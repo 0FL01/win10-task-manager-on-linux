@@ -1,0 +1,76 @@
+name: mission-center
+base: core24
+version: '1.2.0'
+summary: Monitor your CPU, Memory, Disk, Network and GPU usage
+description: |
+  Features:
+   * Monitor overall or per-thread CPU usage
+   * See system process, thread, and handle count, uptime, clock speed (base and current), cache sizes
+   * Monitor RAM and Swap usage
+   * See a breakdown how the memory is being used by the system
+   * Monitor Disk utilization and transfer rates
+   * Monitor network utilization and transfer speeds
+   * See network interface information such as network card name, connection type (Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP address
+   * Monitor overall GPU usage, video encoder and decoder usage, memory usage and power consumption, powered by the popular NVTOP project
+   * Monitor system fans
+   * See a breakdown of resource usage by app and process
+   * Supports a minified summary view for simple monitoring
+   * Use hardware accelerated rendering for all the graphs in an effort to reduce CPU and overall resource usage
+   * Uses GTK4 and Libadwaita
+   * Written in Rust
+  Limitations (there is ongoing work to overcome all of these):
+   * Intel GPU monitoring is only supported for Broadwell and later GPUs; and does not support VRAM, power, or temperature monitoring
+   * When using Linux Mint/Cinnamon, launched applications may not show up in the "Applications" section (Upstream issue: https://github.com/linuxmint/cinnamon/issues/12015)
+grade: stable
+confinement: strict
+
+plugs:
+  system-desktop-files:
+    interface: system-files
+    read:
+      - /var/lib/snapd/hostfs/usr/share/applications
+      - /var/lib/snapd/hostfs/usr/share/icons
+      - /var/lib/snapd/hostfs/var/lib/flatpak
+      - /var/lib/snapd/hostfs/var/lib/snapd/desktop
+      - /sys/fs/cgroup/user.slice
+
+  user-desktop-files:
+    interface: personal-files
+    read:
+      - $HOME/.local/share/applications
+      - $HOME/.local/share/flatpak/exports/share
+
+slots:
+  mission-center:
+    interface: dbus
+    bus: session
+    name: io.missioncenter.MissionCenter
+
+apps:
+  mission-center:
+    environment:
+      MC_RESOURCE_DIR: $SNAP/usr/share/missioncenter/
+      MC_MAGPIE_HW_DB: $SNAP/usr/share/missioncenter/hw.db
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
+      XDG_DATA_DIRS: /var/lib/snapd/hostfs/usr/share:/var/lib/snapd/hostfs/var/lib/snapd/desktop:/var/lib/snapd/hostfs/var/lib/flatpak/exports/share:$SNAP_REAL_HOME/.local/share:$SNAP_REAL_HOME/.local/share/flatpak/exports/share:$XDG_DATA_DIRS
+    plugs:
+      - desktop
+      - desktop-legacy
+      - hardware-observe
+      - network-manager
+      - network-observe
+      - process-control
+      - system-observe
+      - udisks2
+    extensions: [ gnome ]
+    command: usr/bin/missioncenter
+    common-id: io.missioncenter.MissionCenter
+    desktop: usr/share/applications/io.missioncenter.MissionCenter.desktop
+
+parts:
+  mission-center:
+    plugin: nil
+    source: .
+    override-prime: |
+      cp -r $SNAPCRAFT_PART_SRC/snap/local/usr $SNAPCRAFT_PRIME/
+      sed -i 's|Icon=.*|Icon=usr/share/icons/hicolor/scalable/apps/io.missioncenter.MissionCenter.svg|g' $SNAPCRAFT_PRIME/usr/share/applications/io.missioncenter.MissionCenter.desktop

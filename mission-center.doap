@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+    <name>mission-center</name>
+    <platform>GTK 4</platform>
+    <platform>Libadwaita</platform>
+    <shortdesc xml:lang="en">Monitor your CPU, Memory, Disk, Network and GPU usage</shortdesc>
+    <description xml:lang="en">
+        <ul>
+            <li>Monitor overall or per-thread CPU usage</li>
+            <li>See system process, thread, and handle count, uptime, clock speed (base and current), cache sizes</li>
+            <li>Monitor RAM and Swap usage</li>
+            <li>See a breakdown how the memory is being used by the system</li>
+            <li>Monitor Disk utilization and transfer rates</li>
+            <li>Monitor network utilization and transfer speeds</li>
+            <li>See network interface information such as network card name, connection type (Wi-Fi or Ethernet),
+                wireless speeds and frequency, hardware address, IP address
+            </li>
+            <li>Monitor overall GPU usage, video encoder and decoder usage, memory usage and power consumption, powered
+                by the popular NVTOP project
+            </li>
+            <li>See a breakdown of resource usage by app and process</li>
+            <li>Supports a minified summary view for simple monitoring</li>
+            <li>Use hardware accelerated rendering for all the graphs in an effort to reduce CPU and overall resource
+                usage
+            </li>
+            <li>Uses GTK4 and Libadwaita</li>
+            <li>Written in Rust</li>
+        </ul>
+    </description>
+
+    <homepage rdf:resource="https://missioncenter.io/"/>
+    <download-page rdf:resource="https://flathub.org/apps/io.missioncenter.MissionCenter"/>
+    <bug-database rdf:resource="https://gitlab.com/mission-center-devs/mission-center/-/issues"/>
+    <category rdf:resource="http://api.gnome.org/doap-extensions#desktop"/>
+
+    <programming-language>Rust</programming-language>
+
+    <maintainer>
+        <foaf:Person>
+            <foaf:name>Romeo Calota</foaf:name>
+            <foaf:mbox rdf:resource="mailto:mail@romeocalota.me"/>
+            <foaf:account>
+                <foaf:OnlineAccount>
+                    <foaf:accountServiceHomepage rdf:resource="https://gitlab.com"/>
+                    <foaf:accountName>kicsyromy</foaf:accountName>
+                </foaf:OnlineAccount>
+            </foaf:account>
+        </foaf:Person>
+    </maintainer>
+</Project>

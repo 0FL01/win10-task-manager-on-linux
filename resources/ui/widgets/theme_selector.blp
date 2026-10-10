@@ -1,0 +1,59 @@
+using Gtk 4.0;
+
+template $ThemeSelector: Box {
+  hexpand: true;
+  orientation: horizontal;
+  spacing: 12;
+
+  CheckButton follow {
+    styles [
+      "theme-selector",
+      "follow",
+    ]
+
+    hexpand: true;
+    halign: center;
+    focus-on-click: false;
+    action-target: "\"default\"";
+    tooltip-text: _("Follow system style");
+
+    accessibility {
+      label: _("Follow system style");
+    }
+  }
+
+  CheckButton light {
+    styles [
+      "theme-selector",
+      "light",
+    ]
+
+    hexpand: true;
+    halign: center;
+    focus-on-click: false;
+    action-target: "\"force-light\"";
+    tooltip-text: _("Light style");
+
+    accessibility {
+      label: _("Light style");
+    }
+  }
+
+  CheckButton dark {
+    styles [
+      "theme-selector",
+      "dark",
+    ]
+
+    hexpand: true;
+    halign: center;
+    group: light;
+    focus-on-click: false;
+    action-target: "\"force-dark\"";
+    tooltip-text: _("Dark style");
+
+    accessibility {
+      label: _("Dark style");
+    }
+  }
+}

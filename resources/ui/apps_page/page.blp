@@ -1,0 +1,115 @@
+/* ui/apps_page/page.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $AppsPage : Box {
+  orientation: vertical;
+
+  Adw.Clamp {
+    margin-start: 20;
+    margin-end: 20;
+    margin-top: 20;
+    margin-bottom: 20;
+
+    maximum-size: 3000;
+
+    child: Stack content_stack {
+      transition-type: crossfade;
+
+      StackPage {
+        name: "placeholders";
+        child: $Placeholder {
+          profile: "apps-page";
+        };
+      }
+
+      StackPage {
+        name: "content";
+        child: Box {
+          orientation: vertical;
+
+          Box {
+            margin-bottom: 20;
+
+            Box {
+              orientation: vertical;
+
+              spacing: 10;
+
+              hexpand: true;
+
+              Label h1 {
+                styles [
+                  "title-1",
+                ]
+
+                ellipsize: end;
+
+                halign: start;
+              }
+
+              Label h2 {
+                styles [
+                  "faint-text",
+                ]
+
+                halign: start;
+              }
+            }
+
+            Box {
+              valign: end;
+              spacing: 5;
+
+              Button {
+                margin-end: 5;
+
+                action-name: "apps-page.collapse-all";
+                tooltip-text: _("Collapse all apps and processes");
+
+                child: Box {
+                  spacing: 5;
+
+                  halign: center;
+
+                  Image {
+                    icon-name: "list-collapse-symbolic";
+                  }
+
+                  Label collapse_label {
+                    label: _("Collapse All");
+                  }
+                };
+              }
+
+              $ProcessActionBar process_action_bar {
+
+              }
+            }
+          }
+
+          $TableView table_view {}
+        };
+      }
+    };
+  }
+}

@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+    <id>io.missioncenter.MissionCenter</id>
+    <name>Mission Center</name>
+    <developer id="io.missioncenter">
+        <name>Mission Center Developers</name>
+    </developer>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+
+    <url type="homepage">https://missioncenter.io</url>
+    <url type="bugtracker">https://gitlab.com/mission-center-devs/mission-center/-/issues</url>
+    <url type="translate">https://hosted.weblate.org/projects/mission-center/mission-center</url>
+    <url type="vcs-browser">https://gitlab.com/mission-center-devs/mission-center/</url>
+    <url type="donation">https://opencollective.com/mission-center/</url>
+
+    <summary>Monitor system resource usage</summary>
+    <description>
+        <p>Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per app and process breakdown of these statistics</p>
+        <p>Features:</p>
+        <ul>
+            <li>Monitor overall or per-thread CPU usage</li>
+            <li>See system process, thread, and handle count, uptime, clock speed (base and current), cache sizes</li>
+            <li>Monitor RAM and Swap usage</li>
+            <li>See a breakdown how the memory is being used by the system</li>
+            <li>Monitor Disk utilization and transfer rates</li>
+            <li>Monitor network utilization and transfer speeds</li>
+            <li>See network interface information such as network card name, connection type (Wi-Fi or Ethernet),
+                wireless speeds and frequency, hardware address, IP address
+            </li>
+            <li>Monitor overall GPU usage, video encoder and decoder usage, memory usage and power consumption, powered
+                by the popular NVTOP project
+            </li>
+            <li>Monitor system fans</li>
+            <li>See a breakdown of resource usage by app and process</li>
+            <li>Supports a minified summary view for simple monitoring</li>
+            <li>Use hardware accelerated rendering for all the graphs in an effort to reduce CPU and overall resource
+                usage
+            </li>
+            <li>Uses GTK4 and Libadwaita</li>
+            <li>Written in Rust</li>
+        </ul>
+        <p>Limitations (there is ongoing work to overcome all of these):</p>
+        <ul>
+            <li>Intel GPU monitoring is only supported for Broadwell and later GPUs; and does not support VRAM, power,
+                or temperature monitoring
+            </li>
+            <li>When using Linux Mint/Cinnamon, launched applications may not show up in the "Applications" section
+                (Upstream issue: https://github.com/linuxmint/cinnamon/issues/12015)
+            </li>
+        </ul>
+        <p>Comments, suggestions, bug reports and contributions welcome</p>
+    </description>
+
+    <branding>
+        <color type="primary" scheme_preference="light">#91b3c3</color>
+        <color type="primary" scheme_preference="dark">#071f2b</color>
+    </branding>
+
+    <recommends>
+        <control>keyboard</control>
+        <control>pointing</control>
+        <control>touch</control>
+    </recommends>
+
+    <requires>
+        <display_length compare="ge">360</display_length>
+    </requires>
+
+    <screenshots>
+        <screenshot type="default">
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0001-cpu.png</image>
+            <caption>Per-thread CPU utilization and detailed processor information</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0002-memory.png</image>
+            <caption>RAM and swap usage, memory composition and memory module details</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0003-disk.png</image>
+            <caption>Activity, transfer rates and capacity for each storage device</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0004-ethernet.png
+            </image>
+            <caption>Ethernet throughput, with adapter, hardware address and IP details</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0005-wifi.png</image>
+            <caption>Wi-Fi throughput, with signal strength, frequency and IP details</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0006-gpu.png</image>
+            <caption>GPU utilization, video encoding and decoding, memory usage and power draw</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0007-fan.png</image>
+            <caption>Fan speed and temperature history for every fan in the system</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0008-apps.png</image>
+            <caption>Resource usage broken down by running apps and processes</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0008-services.png
+            </image>
+            <caption>System services tab, showing the list of running services and associated actions</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0009-cpu-dark.png
+            </image>
+            <caption>The CPU page using the dark color scheme</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0010-disk-dark.png
+            </image>
+            <caption>The disk page using the dark color scheme</caption>
+        </screenshot>
+    </screenshots>
+
+    <content_rating type="oars-1.1"/>
+    <translation type="gettext">missioncenter</translation>
+    <launchable type="desktop-id">io.missioncenter.MissionCenter.desktop</launchable>
+
+    <releases>
+        <release version="1.2.0" date="2026-07-24">
+            <description translate="no">
+                <p>Noteworthy changes:</p>
+                <ul>
+                    <li>Add a new Battery page to the Performance tab, with charge graphs and detailed battery information (@jlo62)</li>
+                    <li>Show per-partition usage details on the disk page, including used and free space (@jojo2357)</li>
+                    <li>Overhaul the graphing backend: smoother animations and rendering, a new loading shimmer while data loads, and less stuttering on application startup (@jojo2357, @kicsyromy)</li>
+                    <li>Improve application detection, fixing wrong names and icons, phantom entries for PWAs, and constantly cycling processes (@kicsyromy)</li>
+                    <li>Improvements to the Snap package, which was upgraded to the core24 snap (@kicsyromy)</li>
+                    <li>Improvements to the AppImage package which now uses quick-sharun, is smaller and no longer depends on FUSE (@kicsyromy)</li>
+                </ul>
+                <p>Minor features:</p>
+                <ul>
+                    <li>Add a second CPU graph that can show temperature, power draw or CPU frequency (@jlo62)</li>
+                    <li>Add memory compression (zRAM/zswap) statistics to the Memory page (@timatgca)</li>
+                    <li>Refactor and redesign the Preferences dialog (@kicsyromy)</li>
+                    <li>Allow disabling entire device categories and individual network types (@kicsyromy)</li>
+                    <li>Update to GNOME 50 Platform (@kicsyromy)</li>
+                    <li>Pause UI refreshes by holding the CTRL key, just like the Windows Task Manager (@jlo62)</li>
+                    <li>More accurate per-process memory usage using a hybrid PSS approximation (@kicsyromy)</li>
+                    <li>Show per-process swap usage instead of shared memory in the Apps page (@jlo62)</li>
+                    <li>Allow sending process signals that require elevation via `pkexec` (@jojo2357)</li>
+                    <li>Add an option to select what the middle GPU graph displays (@jlo62)</li>
+                    <li>Add a first run dialog and setup script for advanced features (@jlo62)</li>
+                    <li>Add `--app-id`/`-a` command-line flag for setting custom application IDs (@kicsyromy)</li>
+                    <li>Collapse and expand rows using double-click or the left and right arrow keys (@jojo2357)</li>
+                    <li>Display the network connection state in the network details sidebar (@jojo2357)</li>
+                    <li>Show total GPU memory on the graph when GTT is not available (@jlo62)</li>
+                    <li>Add an option to gray out zero values in the Apps page (@jlo62)</li>
+                    <li>Enhance the About System dialog with more information and better copy functionality (@jlo62)</li>
+                    <li>Add and rebind keyboard shortcuts, including Alt+1/2/3 for switching pages and F9 for toggling the sidebar (@jlo62)</li>
+                    <li>Add a visual indicator when CPU speed falls back to BogoMIPS (@bleys1)</li>
+                    <li>Move icon extraction to backend to improve portability and remote monitoring (@jojo2357)</li>
+                </ul>
+                <p>Bug fixes:</p>
+                <ul>
+                    <li>Fix phantom CPU usage spikes when the system is idle (@kicsyromy)</li>
+                    <li>Fix L3 and L4 cache sizes on CPUs with SNC-like topologies (@kicsyromy)</li>
+                    <li>Treat ZFS ARC as free memory (@kicsyromy)</li>
+                    <li>Fix blurry application icons on HiDPI displays (@kicsyromy)</li>
+                    <li>Fix the SMART dialog so that it properly adapts to narrow widths (@kicsyromy)</li>
+                    <li>Detect drives becoming ejectable at runtime (@jojo2357)</li>
+                    <li>Fix a race condition in the Apps page (@jojo2357)</li>
+                    <li>Fix graphing inconsistency on the disk page (@jojo2357)</li>
+                    <li>Read CPU temperatures from the hwmon directory used by the SteamDeck (@jlo62)</li>
+                </ul>
+                <p>Translation updates:</p>
+                <ul>
+                    <li>Basque Ibai Oihanguren Sala</li>
+                    <li>Bulgarian Alexander Stoilov</li>
+                    <li>Catalan Xusi Fons Jaime Muñoz Martín</li>
+                    <li>Chinese (Traditional Han script) Kisaragi Hiu 默想刃Mokuso YB</li>
+                    <li>Chinese (Simplified Han script) lumingzh</li>
+                    <li>Czech Pavel Borecki</li>
+                    <li>Dutch Luc van der Werf</li>
+                    <li>Finnish Henri Koivuranta Jiri Grönroos veiskiboi</li>
+                    <li>French Norbert V Nota Inutilis ziyad arif Christophe Jaillet</li>
+                    <li>Georgian Temuri Doghonadze</li>
+                    <li>German Aircraft192 anon</li>
+                    <li>Indonesian Arif Budiman</li>
+                    <li>Irish Aindriú Mac Giolla Eoin</li>
+                    <li>Italian Pierfrancesco Passerini</li>
+                    <li>Kabyle ButterflyOfFire</li>
+                    <li>Korean murllock329</li>
+                    <li>Norwegian Bokmål ovl-1 Telaneo</li>
+                    <li>Occitan Quentin PAGÈS</li>
+                    <li>Polish NooB9496</li>
+                    <li>Portuguese Hugo Carvalho Jonathan Teixeira</li>
+                    <li>Portuguese (Brazil) Rafael Henrique Rubens Stuginski Jr</li>
+                    <li>Russian Anatoly Bogomolov Maxim</li>
+                    <li>Serbian Марко М. Костић</li>
+                    <li>Spanish Xusi Fons</li>
+                    <li>Swedish Game Nobz Jonas Viktor Engkvist</li>
+                    <li>Tamil தமிழ்நேரம்</li>
+                    <li>Turkish İsmail POLAT Sabri Ünal</li>
+                    <li>Ukrainian anonymous Димко</li>
+                    <li>Vietnamese lebao3105 Loc Huynh</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="1.1.0" date="2025-11-11">
+            <description translate="no">
+                <p>Noteworthy changes:</p>
+                <ul>
+                    <li>Overhaul Services Page to include viewing child processes, user services, filtering on status, and a more efficient backend</li>
+                    <li>Add an About System dialog that can be accessed from the context menu</li>
+                </ul>
+                <p>Minor features:</p>
+                <ul>
+                    <li>Update to GNOME 49 Platform</li>
+                    <li>Show CPU power Draw</li>
+                    <li>Add ability to send various OS signals to processes</li>
+                </ul>
+                <p>Bug fixes:</p>
+                <ul>
+                    <li>Ignore SMART temps of 0 Kelvin</li>
+                    <li>Improve fans configuration</li>
+                    <li>Reduce label formatter overhead</li>
+                    <li>For GPUs, fix reading of max_link_{width,speed} and make reading current values more robust</li>
+                    <li>Fix MemoryCompositionWidget tooltip offset</li>
+                    <li>Reduce CPU usage when fetching and updating data</li>
+                </ul>
+                <p>Translation updates</p>
+                <ul>
+                    <li>Arabic by jonnysemon</li>
+                    <li>Basque by Ibai Oihanguren Sala</li>
+                    <li>Belarusian by Yahor, teacond</li>
+                    <li>Chinese (Simplified Han script) by flywater</li>
+                    <li>Czech by Fjuro, erindesu, orangesunny, pavelbo</li>
+                    <li>Dutch by philip.goto, Klinton_</li>
+                    <li>Estonian by IndrekHaav</li>
+                    <li>Finnish by artnay</li>
+                    <li>French by Norbert V</li>
+                    <li>Galician by Espasant3</li>
+                    <li>German by Gian Veronese, Real Tehreal, dbstf</li>
+                    <li>Hebrew by yarons</li>
+                    <li>Hungarian by therealmate, KAMI911</li>
+                    <li>Italian by FrecceNere, Kryotek, amivaleo</li>
+                    <li>Irish by aindriu80</li>
+                    <li>Japanese by shryt0206, rainy_sunset</li>
+                    <li>Norwegian Bokmål by Telaneo</li>
+                    <li>Polish by keloH, Real_Microwave, Cool guy</li>
+                    <li>Portuguese by Raphael Campos, SantosSi</li>
+                    <li>Portuguese (Brazil) by Raphael Campos, danick8989, flyrio</li>
+                    <li>Russian by teacond</li>
+                    <li>Spanish by nolddor, BrYellow, maxdesigna7x</li>
+                    <li>Tamil by tace16</li>
+                    <li>Turkish by yigitalcks, yakushabb</li>
+                    <li>Ukrainian by Ethermidate</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="1.0.2" date="2025-05-25">
+            <description translate="no">
+                <ul>
+                    <li>Fix a crash that occurs on some systems due to an integer overflow</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="1.0.1" date="2025-05-24">
+            <description translate="no">
+                <p>Noteworthy changes:</p>
+                <ul>
+                    <li>Refactor SMART dialog design</li>
+                </ul>
+                <p>Minor features:</p>
+                <ul>
+                    <li>Show an error when the app cannot read SMART data</li>
+                    <li>Show total number of available RAM slots</li>
+                    <li>Try to show drive SMART status more accuratly</li>
+                    <li>Show maximum PCIe speed if availble and differs from the current one</li>
+                    <li>Add extra keyboard shortcuts for controlling services and apps in their respective pages</li>
+                </ul>
+                <p>Bug fixes:</p>
+                <ul>
+                    <li>Fix CPU name for LoongArch</li>
+                    <li>Fix application failing to open because of missing settings key</li>
+                    <li>Fix incorrect Formatted value for disks</li>
+                    <li>Change memory default base to 2</li>
+                    <li>Update and fix translations templates</li>
+                    <li>Try to use the fan name as the summary, if available, and fall back to temperature name, if not</li>
+                    <li>Fix application name in the About window</li>
+                    <li>Keep order of unit toggles in the Preferences window consistent</li>
+                </ul>
+                <p>Translation updates</p>
+                <ul>
+                    <li>Basque by Ibai Oihanguren Sala</li>
+                    <li>Bulgarian by Venelin Stoykov</li>
+                    <li>Chinese (Simplified Han script) by flywater</li>
+                    <li>Chinese (Traditional Han script) by Taijuin Lee, Angel Sherry</li>
+                    <li>Czech by Pavel Borecki</li>
+                    <li>Estonian by Indrek Haav</li>
+                    <li>German by Philipp Kiemle, ItsGamerik</li>
+                    <li>Indonesian by ilhamfauzan</li>
+                    <li>Irish by Aindriú Mac Giolla Eoin</li>
+                    <li>Romanian by Romeo Calota</li>
+                    <li>Spanish by Jack Nolddor</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="1.0.0" date="2025-05-02">
+            <description translate="no">
+                <p>Major Changes:</p>
+                <ul>
+                    <li>Complete refactor of the Gatherer, now called Magpie</li>
+                    <li>Magpie available as a standalone set of libraries and executable; can be used by other
+                        monitoring solutions
+                    </li>
+                    <li>Show SMART data for SATA and NVMe devices</li>
+                    <li>Allow ejecting removable storage devices (optical disks, USB thumb drives, etc.)
+                    </li>
+                    <li>Per-process network usage (see
+                        https://gitlab.com/mission-center-devs/mission-center/-/wikis/Home/Nethogs)
+                    </li>
+                    <li>Redesigned Apps Page with more information available for each app and process</li>
+                </ul>
+                <p>Noteworthy changes</p>
+                <ul>
+                    <li>A new option to make graphs, in the Performance Page, glide smoothly</li>
+                    <li>Visual and functional improvements in the Memory view</li>
+                    <li>Enabled all NVTOP supported GPUs including RaspberryPi (see
+                        https://github.com/Syllo/nvtop?tab=readme-ov-file#gpu-support)
+                    </li>
+                    <li>Right sidebar in the Performance page is now more consistent between devices</li>
+                    <li>Support for keyboard shortcuts</li>
+                    <li>Show maximum bitrate for all network interfaces</li>
+                    <li>Allow customizing units for memory, disk and network usage</li>
+                    <li>Removed a bunch of unsafe code from the main app</li>
+                    <li>Lower overall memory usage</li>
+                    <li>Lower overall CPU usage</li>
+                    <li>Improved overall responsiveness of the app and minimized time deviations between refresh cycles
+                    </li>
+                    <li>Enable full LTO for AppImage, Flatpak and Snap builds</li>
+                </ul>
+                <p>Bug fixes:</p>
+                <ul>
+                    <li>Missing memory composition graph after update to libadwaita 1.7</li>
+                    <li>Service details window to narrow after update to libadwaita 1.7</li>
+                    <li>Integer overflow when copying large files to/from slower storage devices</li>
+                    <li>Gatherer stops responding after a period of time</li>
+                    <li>Don't call `lsblk` to figure out if a drive has the root partition</li>
+                    <li>Fixed memory leak that would occur on some OS/HW combinations</li>
+                    <li>Don't target a specific CPU architecture variant when building Magpie</li>
+                    <li>Fix GPU encoding/decoding graphs misrepresenting the type of workload</li>
+                </ul>
+                <p>Translation updates</p>
+                <ul>
+                    <li>Catalan by Jaime Muñoz Martín</li>
+                    <li>Chinese (Simplified Han script) by Zhang Peng</li>
+                    <li>Chinese (Traditional Han script) by jhihyulin, D0735, Peter Dave Hello</li>
+                    <li>Czech by pavelbo</li>
+                    <li>Dutch by philip.goto</li>
+                    <li>Estonian by Priit Jõerüüt, Indrek Haav</li>
+                    <li>Finnish by Ricky-Tigg</li>
+                    <li>French by europa91m DenisMARCQ, Louis-Simon</li>
+                    <li>Galician by Espasant3</li>
+                    <li>German by Aircraft192, Lauritz, Tieste, ItsGamerik</li>
+                    <li>Hebrew by yarons</li>
+                    <li>Italian by beppeilgommista, ppasserini, svlmrc</li>
+                    <li>Japanese by rainy_sunset</li>
+                    <li>Korean by darkcircle.0426</li>
+                    <li>Norwegian Bokmål by ovl-1, Telaneo</li>
+                    <li>Polish by keloH</li>
+                    <li>Portuguese by hugok79</li>
+                    <li>Spanish by Espasant3</li>
+                    <li>Tamil by anishprabu.t</li>
+                </ul>
+                <p>For a more detailed set of release notes see:
+                    https://gitlab.com/mission-center-devs/mission-center/-/wikis/Release-Notes/v1.0.0
+                </p>
+            </description>
+        </release>
+
+        <release version="0.6.2" date="2024-10-27">
+            <description translate="no">
+                <ul>
+                    <li>Provide ARM64 variants for supported packaging formats</li>
+                    <li>Add option to toggle between light, dark and system color schemes</li>
+                    <li>Fix a crash that occurs when running on an older processor</li>
+                    <li>Fix device selection in the sidebar jumping to the next available item by itself</li>
+                    <li>Show all detected fans in the system, even if the lack an identifying label</li>
+                    <li>Add `mission-center-window`, `mission-center-performance-page`, `mission-center-apps-page` and
+                        `mission-center-services-page` CSS classes to allow some user customizations
+                    </li>
+                    <li>Fix sidebar symbolic icon being too small</li>
+                    <li>Minor styling improvements in the Apps and Services pages</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.6.1" date="2024-10-06">
+            <description translate="no">
+                <ul>
+                    <li>Fix crash at startup when using a native package and XDG_DATA_DIRS is empty</li>
+                    <li>Fix devices in the sidebar still showing up even if they were filtered out by the user</li>
+                    <li>Fix Services not showing up in the Snap build</li>
+                    <li>Elipsize some labels that have the potential to overflow in the GPU details section</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.6.0" date="2024-09-28">
+            <description translate="no">
+                <p>Features:</p>
+                <ul>
+                    <li>Add a new Fan Page that monitors system fans and reports RPM, PWM and temperature information
+                    </li>
+                    <li>Add support for hiding and rearranging devices in the Performance sidebar</li>
+                    <li>Overhaul the Memory Page to convey more information</li>
+                    <li>Update GPU page UI to better reflect what aspects of the GPU can be monitored</li>
+                    <li>Add GTT information to the GPU page (AMD only)</li>
+                    <li>Add network total data transfer information to the Network Page</li>
+                    <li>Show application icons for processes that belong to a known application</li>
+                    <li>Switch to AdwDialog for the About and Preferences dialogs</li>
+                    <li>Update NVTOP for better GPU support</li>
+                    <li>Initial support for Snap</li>
+                    <li>Update to latest GNOME (47) Platform for all supported packaging formats</li>
+                </ul>
+                <p>Bug fixes:</p>
+                <ul>
+                    <li>Add support for `zenpower` when monitoring AMD CPU temperature</li>
+                    <li>Fix a seeming CPU usage spike when the app starts</li>
+                    <li>Improved app detection</li>
+                    <li>Supress some network device related errors that were flooding the SystemD journal</li>
+                    <li>Hide CPU frequency governor and power preference information when not supported</li>
+                    <li>Update CPU frequency governor and power preference information while the app is running</li>
+                    <li>Add an option to use bytes instead of bits for network data transfer information</li>
+                    <li>Add support for more device types in the Network Page</li>
+                    <li>Detect SystemD more reliably using D-Bus instead of searching for a library on disk</li>
+                    <li>Fix a memory leak that occurred when filtering apps and processes</li>
+                    <li>Clean up graph labels to be more consistent across different pages</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.5.2" date="2024-06-16">
+            <description translate="no">
+                <ul>
+                    <li>Fix an application crash that occurs when the gatherer starts up slowly</li>
+                    <li>Fix deleted services showing up when using SystemD</li>
+                    <li>Fix OpenRC not being detected on certain distributions</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.5.1" date="2024-06-08">
+            <description translate="no">
+                <ul>
+                    <li>Fix application crash when using an unsupported service manager</li>
+                    <li>Hide the Services page when service manager is not supported</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.5.0" date="2024-06-08">
+            <description translate="no">
+                <ul>
+                    <li>New Services page: view and control system services using SystemD or OpenRC</li>
+                    <li>New smooth graphs option</li>
+                    <li>CPU frequency governor and driver are now displayed where supported</li>
+                    <li>Indices are no longer shown next to devices if there is only one of its kind</li>
+                    <li>A bunch of small tweaks that makes the app more consistent</li>
+                    <li>Translation updates and fixes</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.5" date="2024-04-22">
+            <description translate="no">
+                <ul>
+                    <li>Hotplugging support for disks and network devices in the Performance tab</li>
+                    <li>Add ability to customize chart data point count</li>
+                    <li>Add a more fine grained control over update interval</li>
+                    <li>The charts are now rendered using GTK APIs instead of a custom renderer</li>
+                    <li>Fix high VRAM usage on some system configurations</li>
+                    <li>Fix missing graphs on systems with older display drivers</li>
+                    <li>Fix missing graphs on some ARM systems</li>
+                    <li>CPU percentages go up to 100% now, by default, instead of scaling to CPU core count</li>
+                    <li>Fix a crash when running natively on ArchLinux</li>
+                    <li>Graph corners are now rounded</li>
+                    <li>Translation updates and fixes</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.4" date="2024-02-10">
+            <description translate="no">
+                <ul>
+                    <li>Display optical device information in the Performance tab</li>
+                    <li>Fix a bug where the Gatherer process would crash at startup</li>
+                    <li>Remove the need for admin rights to display extended memory information</li>
+                    <li>Remove the requirement for `libgcc_s.so.1` on musl-based systems</li>
+                    <li>Make the saturation and transfer graphs the same height in the disk usage panes</li>
+                    <li>Translation updates and fixes</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.3" date="2023-12-15">
+            <description translate="no">
+                <ul>
+                    <li>Fix a bug where the number of CPUs was incorrectly detected on some systems (again!)</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.2" date="2023-12-14">
+            <description translate="no">
+                <ul>
+                    <li>Fix a bug where the number of CPUs was incorrectly detected on some systems</li>
+                    <li>Add missing icon for the details panel in the Performance tab</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.1" date="2023-12-09">
+            <description translate="no">
+                <ul>
+                    <li>Fix a regression in 0.4.0 where GPU data would not be available for some users</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.4.0" date="2023-12-08">
+            <description translate="no">
+                <p>Features:</p>
+                <ul>
+                    <li>Update to GTK 4.12 and libadwaita 1.4</li>
+                    <li>Redesigned the Performance tab to be adaptive</li>
+                    <li>Early and very minimal Intel GPU support</li>
+                    <li>Add GPU memory usage column to the Apps page</li>
+                    <li>Added an AppImage</li>
+                    <li>The Performance tab now shows what kind of virtualization is enabled on the host</li>
+                    <li>The logical CPU graphs are now arranged in a more pleasing manner</li>
+                    <li>The Gatherer was rearchitected and now uses D-Bus for communication with the main app</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fix misaligned header in the Apps tab with GTK 4.12</li>
+                    <li>Fix app and Gatherer not starting due to LD_PRELOAD being set in the host environment</li>
+                    <li>Fix sometimes Apps not showing the accumulated resource usage from all it's children</li>
+                    <li>Fix missing L1/2/3 CPU cache information missing when NUMA is not enabled</li>
+                    <li>Fix Virtualization reported as Unknown under certain circumstances</li>
+                    <li>Fix a Gatherer crash on older CPUs</li>
+                </ul>
+                <p>A lot of new translations and fixes to existing ones</p>
+            </description>
+        </release>
+
+        <release version="0.3.3" date="2023-10-13">
+            <description translate="no">
+                <p>Features:</p>
+                <ul>
+                    <li>Improve memory composition graph</li>
+                    <li>Add GPU usage column in the Apps tab</li>
+                    <li>Reduce memory usage and fix a memory leak in the main app</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fix a crash at start-up when flatpak data is stored in a path with spaces</li>
+                    <li>Fix incorrect base frequency in AMD CPUs</li>
+                    <li>Fix missing video encode/decode information in the GPU tab</li>
+                </ul>
+                <p>A lot of new translations and fixes to existing ones</p>
+            </description>
+        </release>
+
+        <release version="0.3.2" date="2023-09-08">
+            <description translate="no">
+                <p>Features:</p>
+                <ul>
+                    <li>Add an option, to the context menu, to show kernel times, in the CPU graphs</li>
+                    <li>Add CPU temperature, where possible</li>
+                    <li>Implement smarter rounding and display precision of values throughout the app by
+                        QwertyChouskie
+                    </li>
+                    <li>Use metainfo instead of appdata for application metadata by David Guglielmi</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a regression where natively installed browsers were not showing up in the apps list on
+                        Fedora
+                    </li>
+                    <li>Fixed a regression where Flatpak apps were not showing up in the apps list on ArchLinux Plasma
+                    </li>
+                    <li>Fixed a bug where the Maps app desktop file wasn't being parsed correctly</li>
+                    <li>Moved some performance related logs to g_debug to prevent spamming of system logs</li>
+                </ul>
+                <p>Translations:</p>
+                <ul>
+                    <li>New translation to Korean by Seong-ho Cho</li>
+                    <li>New translation to Dutch by Gert</li>
+                    <li>New translation to Polish by _Ghost_</li>
+                    <li>New translation to Italian by beppeilgommista</li>
+                    <li>New translation to Portuguese (Brazil) by Gérson da Fonseca Henzel</li>
+                    <li>Updated Spanish translation</li>
+                    <li>Updated Finnish translation</li>
+                    <li>Updated Russian translation</li>
+                    <li>Updated Chinese (Simplified) translation</li>
+                    <li>Updated Finnish translation</li>
+                    <li>Updated Greek translation</li>
+                    <li>Updated German translation</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.3.1" date="2023-08-22">
+            <description translate="no">
+                <ul>
+                    <li>Hotfix release to fix a bug that caused the app to not display any information for some users
+                    </li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.3.0" date="2023-08-22">
+            <description translate="no">
+                <p>Features:</p>
+                <ul>
+                    <li>New app icon by QwertyChouskie</li>
+                    <li>Add ability to stop and force stop apps and processes</li>
+                    <li>Running apps are now shown more reliably, and should reflect most if not all running apps</li>
+                    <li>Experimental support for Snap apps in the running apps list</li>
+                    <li>Added a setting to show resource consumption individually per process or cumulated with their
+                        descendants
+                    </li>
+                    <li>Added a setting to enable persistent sorting in the apps and processes list</li>
+                    <li>Data gathering is now more versatile and will permit new features to be added quicker and
+                        easier
+                    </li>
+                    <li>App can now be built from GNOME Builder</li>
+                </ul>
+                <p>Translations:</p>
+                <ul>
+                    <li>New translation to Norwegian Bokmål by Allan Nordhøy</li>
+                    <li>New translation to Russian by Ivan Maslikhov</li>
+                    <li>New translation to Slovak by mthw0</li>
+                    <li>New translation to Greek by Yiannis Ioannides</li>
+                    <li>New translation to Chinese (Simplified) by foxer NS</li>
+                    <li>New translation to French by Link Mauve</li>
+                    <li>New translation to Hungarian by Kovács Bálint Hunor</li>
+                    <li>Updated Spanish translation</li>
+                    <li>Updated Czech translation</li>
+                    <li>Updated Portuguese translation</li>
+                    <li>Updated German translation</li>
+                    <li>Updated Finnish translation</li>
+                    <li>Fixes for Chinese translations by foxer NS</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.2.5" date="2023-07-24">
+            <description translate="no">
+                <ul>
+                    <li>Add Spanish translation by Óscar Fernández Díaz</li>
+                    <li>The memory tab now shows configured memory speed instead of the maximum supported by the
+                        modules
+                    </li>
+                    <li>Add German translation by TecCheck</li>
+                    <li>When a process uses large amounts of CPU or RAM it is now highlighted in the Apps and Processes
+                        list
+                    </li>
+                    <li>Add initial support for building for ARM64</li>
+                    <li>Take into account multiple CPU cores and cache sharing when calculating cache sizes</li>
+                    <li>Fix browsers, installed as native packages, not showing up in the Apps list</li>
+                    <li>Translation updates for Traditional Chinese by Peter Dave Hello</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.2.4" date="2023-07-16">
+            <description translate="no">
+                <ul>
+                    <li>Translation fixes for Portuguese by Rafael Fontenelle</li>
+                    <li>Only show a link-local IPv6 address if no other IPv6 exists by Maximilian</li>
+                    <li>Add Traditional Chinese locale by Peter Dave Hello</li>
+                    <li>Add category for application menu by Renner0E</li>
+                    <li>Fix a parsing error when parsing the output of `dmidecode` that lead to a panic</li>
+                    <li>Use a fallback if `/sys/devices/system/cpu/cpu0/cpufreq/base_frequency` does not exist, when
+                        getting CPU base speed information
+                    </li>
+                    <li>Update GPU tab UI to be more adaptive for smaller resolutions</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.2.3" date="2023-07-13">
+            <description translate="no">
+                <ul>
+                    <li>Added Czech translation by ondra05</li>
+                    <li>Added Portuguese translation by Rilson Joás</li>
+                    <li>Add keywords to desktop file to improve search function of desktop environments by Hannes
+                        Kuchelmeister
+                    </li>
+                    <li>Fixed a bug where the app and process list was empty for some users</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.2.2" date="2023-07-12">
+            <description translate="no">
+                <ul>
+                    <li>Fix a crash that occurs when the system is under heavy load</li>
+                </ul>
+            </description>
+        </release>
+
+        <release version="0.2.0" date="2023-07-10">
+            <description translate="no">
+                <ul>
+                    <li>First official release!</li>
+                </ul>
+            </description>
+        </release>
+
+    </releases>
+</component>

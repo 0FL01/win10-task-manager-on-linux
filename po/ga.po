@@ -1,0 +1,2428 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2026-07-12 16:44+0000\n"
+"Last-Translator: Aindriú Mac Giolla Eoin <aindriu80@gmail.com>\n"
+"Language-Team: Irish <https://hosted.weblate.org/projects/mission-center/"
+"mission-center/ga/>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : (n>2 && n<7) ? 2 :(n>"
+"6 && n<11) ? 3 : 4;\n"
+"X-Generator: Weblate 2026.7.1.dev0\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "Ionad Misean"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"Bainisteoir tascanna; Monatóir acmhainní; Monatóir córais; Próiseálaí; "
+"Próisis; Monatóir feidhmíochta; LAP; GPU; Diosca; Cuimhne; Líonra; Úsáid; "
+"Seirbhís; Seirbhísí; Bainisteoir Seirbhísí; Liosta Seirbhísí; Seirbhísí "
+"Córais; Seirbhísí Úsáideora; systemd; systemctl;Task manager;Resource "
+"monitor;System monitor;Proces"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "Forbróirí Ionad Misean"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "Monatóireacht a dhéanamh ar úsáid acmhainní córais"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"Monatóireacht a dhéanamh ar do úsáid LAP, Cuimhne, Diosca, Líonra agus GPU"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "Gnéithe:"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "Monatóireacht a dhéanamh ar úsáid LAP iomlán nó in aghaidh"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"Féach próiseas an chórais, comhaireamh snáithe agus láimhseála, uptime, luas "
+"clog (bonn agus reatha), méideanna taisce"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "Monatóireacht a dhéanamh ar úsáid RAM agus Babhtáil"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr "Féach miondealú conas a úsáideann an córas an chuimhne"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "Monatóireacht a dhéanamh ar rátaí úsáid agus aistrithe"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "Monatóireacht a dhéanamh ar úsáid líonra agus luasanna aistrithe"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"Féach faisnéis chomhéadan líonra mar ainm cárta líonra, cineál nasc (Wi-Fi "
+"nó Ethernet), luasanna agus minicíocht gan sreang, seoladh crua-earraí, "
+"seoladh IP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"Monatóireacht a dhéanamh ar úsáid iomlán GPU, úsáid ionchódóra físeáin agus "
+"díchódóra, úsáid cuimhne agus tomhaltas cumhachta, faoi thiomáint ag an "
+"tionscadal tóir NVTOP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "lucht leanúna an chórais monatóireachta"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "Féach miondealú ar úsáid acmhainní de réir aip agus próisis"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "Tacaíonn sé le dearcadh achoimre mionraithe le haghaidh monatóire"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr ""
+"Úsáid rindreáil luathaithe crua-earraí do na graif go léir chun an LAP agus "
+"úsáid foriomlán acmhainní a laghdú"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "Úsáideann GTK4 agus Libadwaita"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "Scríofa i Rust"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr "Teorainneacha (tá obair leanúnach ann chun iad seo go léir a shárú):"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"Ní thacaítear le monatóireacht Intel GPU ach le haghaidh GPUanna Broadwell "
+"agus níos déanaí; agus ní thacaíonn sé le monatóireacht VRAM, cumhacht nó "
+"teochta"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"Agus Linux Mint/Cinnamon á úsáid agat, b'fhéidir nach dtaispeánfar "
+"feidhmchláir seolta sa chuid “Feidhmchláir” (Eagrán suas an sruth: https://"
+"github.com/linuxmint/cinnamon/issues/12015)"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr ""
+"Fáiltítear roimh thuairimí, mholtaí, tuairiscí ar fhabhtanna agus tuairimí"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "Cén leathanach a thaispeántar ar thosú feidhmchlár"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "Stíl Chomhéadain"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr "Más chóir stíl comhéadain éadrom nó dorcha a úsáid"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "DÍSCRÍOFA! NACH BHFUIL IN ÚSÁID A THUILLEADH!"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr ""
+"Cé chomh tapa agus ba chóir na sonraí a athnuachan agus an Chomhéadan a "
+"nuashonrú (i gcreimeanna 50ms)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "Cé mhéad pointe ba chóir a thaispeáint ar gach cairt?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "Cibé acu giotán nó beart a úsáid (réamhshocrú) don chuimhne"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "Cibé acu bonn-10 nó bonn-2 (réamhshocraithe) a úsáid don chuimhne"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr ""
+"Cibé acu giotán nó beart (réamhshocraithe) le haghaidh luas + méid an "
+"tiomántáin"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr ""
+"Cibé acu bonn-10 nó bonn-2 (réamhshocraithe) a úsáid le haghaidh luas + méid "
+"an tiomántáin"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr ""
+"Cibé acu giotán (réamhshocraithe) nó beartáin a úsáid le haghaidh luas líonra"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr ""
+"Cibé acu bonn-10 (réamhshocraithe) nó bonn-2 a úsáid le haghaidh luas líonra"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr ""
+"Cibé an gcuirfear graf max a shocrú go max comhéadan (bréagach) nó an t-"
+"uasmhéid a breathnaíodh (fíor)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+"Taispeántar staitisticí próisis tuismitheora agus leanaí ina n-aonar nó "
+"déantar iad a chumasc aníos"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "Leanann sórtáil colún ar aghaidh trasna atosaithe aipeanna"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "Coinnítear ord na gcolún ar feadh atosaithe an aip"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr ""
+"Taispeáin úsáid LAP le haghaidh Aipeanna agus Próisis scálaithe de réir líon "
+"na gcroí atá ar fáil"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr "Taispeáin deighilteoir idir gach colún san amharc Aipeanna"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr "Liath amach luachanna atá cothrom le náid san amharc Aipeanna"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr "An id colún trína ndéantar amharc leathanaigh na hAipeanna a shórtáil"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "Treo sórtála radhairc leathanaigh na nAipeanna"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "Ord na gcolún san amharc leathanaigh Aipeanna"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+msgid "The column name by which the Services page view is sorted"
+msgstr ""
+"Ainm an cholúin a ndéantar an radharc leathanaigh Seirbhísí a shórtáil leis"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+msgid "The sorting direction of the Services page view"
+msgstr "Treo sórtála radhairc leathanaigh na Seirbhísí"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+msgid "The order of columns in the Services page view"
+msgstr "Ord na gcolún san amharc leathanaigh Seirbhísí"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "Cén graf a thaispeántar ar leathanach feidhmíochta an LAP"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr ""
+"Cén graf atá le feiceáil ar an ngraf bun ar leathanach feidhmíochta an LAP"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr "Taispeáin amanna eithne sna graif LAP"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr ""
+"Cén leathanach a thaispeántar ar thosú feidhmchlár, sa chluaisín feidhmíochta"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "Ar cheart go mbeadh graif feidhmíochta réidh nó garbh"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "Ar cheart graif a bheochan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "Taispeáin faisnéis LAP de réir réamhshocrú"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "Taispeáin faisnéis chuimhne trí réamhshoc"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "Taispeáin faisnéis diosca trí réamhshocrú"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "Taispeáin faisnéis líonra trí réamhshocrú"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+msgid "Show wired network devices by default"
+msgstr "Taispeáin gléasanna líonra sreangaithe de réir réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+msgid "Show wireless network devices by default"
+msgstr "Taispeáin gléasanna líonra gan sreang de réir réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+msgid "Show VPN network devices by default"
+msgstr "Taispeáin gléasanna líonra VPN de réir réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr ""
+"Taispeáin gléasanna líonra fíorúla (Docker, Multipass, Bridge) de réir "
+"réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr ""
+"Taispeáin gléasanna líonra eile (Bluetooth, InfiniBand, WWAN) de réir "
+"réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "Taispeáin faisnéis GPU de réir réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "Taispeáin faisnéis Gaothráin de réir réamhshocraithe"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "Taispeáin an ghiuirléid comhdhéanamh meam"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "Taispeáin an graf babhtála"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr "Ábhar agus infheictheacht an Ghraf Láir"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr "Ábhar agus infheictheacht an Ghraif Bhun"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "Ordú iontrálacha i barra taobh na bhfeidhmchláir"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "Graif ba chóir a bheith i bhfolach i mbarra taobh na feidhmchláir"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr ""
+"Sáruithe infheictheachta in aghaidh an ghléis (iontrálacha scartha le "
+"leathstad ainm:taispeáin nó ainm:folaigh)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr "Más é seo do chéad uair ag rith Ionad Misin"
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "Thit gach aip agus próiseas"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "Cill Gach"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "Theip ar Easghabháil"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr "Maraigh"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr "In Úsáid:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr "Athraithe:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr "Fuireachas:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr "Saor in aisce:"
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "LAP"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+msgid "Utilization over "
+msgstr "Úsáid thar "
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+msgid "Change _Top Graph To"
+msgstr "Athraigh _Graf Barr Go"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "U_tilization foriomlán"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "Próiseálaithe Loighciúla"
+
+#: resources/ui/performance_page/cpu.blp:180
+msgid "_All Threads"
+msgstr "_Gach Snáithe"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr "Gach Snáithe _Cruachta"
+
+#: resources/ui/performance_page/cpu.blp:191
+msgid "Change B_ottom Graph To"
+msgstr "Athraigh an Graf B_un go"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+msgid "_Power Draw"
+msgstr "_Tarraingt Cumhachta"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+msgid "_Temperature"
+msgstr "_Teocht"
+
+#: resources/ui/performance_page/cpu.blp:204
+msgid "_Clock Speed"
+msgstr "_Luas Clog"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr "_Gan aon cheann"
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr "Taispeáin Kernel Amanna"
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "Graf _Amharc Achoimre"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "_Féach"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "LA_P"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "_Cuimhne"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr "_Tiomáint"
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "_Líonra"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "_GPU"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr "_Gaothráin"
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr "_Ceallraí"
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "_Cóipeáil"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr "Taispeáin Sonraí SMART"
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr "Easchur Diosca"
+
+#: resources/ui/performance_page/disk.blp:100
+msgid "Active time over "
+msgstr "Am gníomhach thar éis "
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+msgid "Throughput over "
+msgstr "Tríchur thar "
+
+#: resources/ui/performance_page/fan.blp:62
+msgid "Fan speed over "
+msgstr "Luas gaothráin thar "
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+msgid "Temperature over "
+msgstr "Teocht os cionn "
+
+#: resources/ui/performance_page/fan_details.blp:59
+msgid "Fan Speed"
+msgstr "Luas Gaothráin"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr "Céatadán PWM"
+
+#: resources/ui/performance_page/fan_details.blp:127
+msgid "Current Temperature"
+msgstr "Teocht Reatha"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+msgid "Video encode/decode utilization over "
+msgstr "Ionchódú físeáin/úsáid díchódaithe thar "
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+msgid "Memory usage over "
+msgstr "Úsáid cuimhne thar "
+
+#: resources/ui/performance_page/gpu.blp:206
+msgid "Change Middle Graph To"
+msgstr "Athraigh an Lárghraf go"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+msgid "_Encode/_Decode"
+msgstr "_Ionchódú/_Díchódú"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+msgid "_Memory Usage"
+msgstr "Úsáid _Cuimhne"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+msgid "_Clock Speeds"
+msgstr "_Luasanna Cloig"
+
+#: resources/ui/performance_page/gpu.blp:240
+msgid "Change Bottom Graph To"
+msgstr "Athraigh an Graf Bun go"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "Cuimhne"
+
+#: resources/ui/performance_page/memory.blp:123
+msgid "Swap usage over "
+msgstr "Úsáid a mhalartú "
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "Comhdhéanamh cuimhne"
+
+#: resources/ui/performance_page/memory.blp:195
+msgid "Show Memory Composition"
+msgstr "Taispeáin Comhdhéanamh Cuimh"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr "Taispeáin Úsáid Malartú"
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "In úsáid"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "Ar fáil"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "Tiomanta"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "Cocháilte"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "Malartú a úsáidtear"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "Babhtáil ar fáil"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr "Comhbhrúite"
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr "Coigilteas"
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "Luas:"
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "Sliotáin a úsáidtear:"
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "Fachtóir foirm:"
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "Cineál:"
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "Socrui_the Líonra"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "Faigh"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "Seol"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr "Iomlán Faighte"
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr "Iomlán Seolta"
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "Ainm an chomhéadain:"
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "Cineál ceangail:"
+
+#: resources/ui/performance_page/network_details.blp:222
+msgid "Connection status:"
+msgstr "Stádas naisc:"
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID:"
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "Neart comhartha:"
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "Uasmhéid Giotáin:"
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "Minicíocht:"
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "Seoladh crua-earraí:"
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "IPv4 Seoladh:"
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "Seoladh IPv6:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr "Sonraí Cliste"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+msgid "Last Updated:"
+msgstr "Nuashonraithe Deiridh:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+msgid "Powered On:"
+msgstr "Cumhachtaithe Ar:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr "Sláinte an Tiomáint:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr "Stádas Tástála SMART:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr "tréith"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr "Luach"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr "ID"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+msgid "Normalized"
+msgstr "Gnáthaithe"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+msgid "Threshold"
+msgstr "Tairseach"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr "Is measa"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "Cineál"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+msgid "Updates"
+msgstr "Nuashonruithe"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr "Measúnú"
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "Úsáid"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "Luas Clog"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+msgid "Power Draw"
+msgstr "Tarraingt Cumhachta"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+msgid "Memory Usage"
+msgstr "Úsáid Cuimhne"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+msgid "Shared Memory Usage"
+msgstr "Úsáid Chomhroinnte Cuimhne"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+msgid "Memory Speed"
+msgstr "Luas cuimhne"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+msgid "Video encode"
+msgstr "Ionchódú físe"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+msgid "Video decode"
+msgstr "Díchódaithe físeán"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "Teocht"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "Leagan OpenGL:"
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "Leagan Vulkan:"
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "Luas PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:597
+msgid "Max PCI Express speed:"
+msgstr "Uasluas PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "Seoladh bus PCI:"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+msgid "Failed To Get SMART Data"
+msgstr "Theip ar shonraí SMART a fháil"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"Bhí fadhb ann agus sonraí SMART á n-aisghabháil. Bain triail as rith ón líne "
+"ordaithe chun tuilleadh eolais a fháil."
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "Luas léigh"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "Luas scríobh"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr "Léamh Iomlán"
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr "Iomlán Scríofa"
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "Am gníomhach"
+
+#: resources/ui/performance_page/disk_details.blp:221
+msgid "Avg. response time"
+msgstr "Am freagartha ar an meán"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "Cumas:"
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "Formáidithe:"
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "Diosca córas:"
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr "WWN:"
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr "Sraithuimhir:"
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr "Ráta Rothlaithe"
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr "Deighiltí"
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "Luas"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "Próisis"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "Snáitheanna"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "Láimhseáil"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "Am suas"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "Luas Bonn:"
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "Soicéid:"
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "Próiseálaithe fíorúla:"
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "Fíorúiliú:"
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "Meaisín fíorúil:"
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "Taisce L1:"
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "Taisce L2:"
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "Taisce L3:"
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Tiománaí Cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Gobharnóir Cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "Rogha cumhachta:"
+
+#: resources/ui/preferences/apps_services_page.blp:25
+msgid "Apps & Services"
+msgstr "Aipeanna & Seirbhísí"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr "Cumaisc Stats Próisis"
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr "Cuimhnigh Sórtá"
+
+#: resources/ui/preferences/apps_services_page.blp:36
+msgid "Persist sorting by column across app restarts"
+msgstr ""
+"Leanúint ar aghaidh ag sórtáil de réir colúin trasna atosaithe aipeanna"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr "Cuimhnigh ar Ordú Colún"
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr "Coinnigh ord na gcolún, trasna atosaithe aipeanna"
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr "Scála Úsáid LAP go dtí Chomhaire"
+
+#: resources/ui/preferences/apps_services_page.blp:46
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr "Taispeáin úsáid LAP scálaithe de réir líon na gcroíthe atá ar fáil"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr "Taispeáin Deighilteoirí Colún"
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr "Taispeáin deighilteoir idir gach colún"
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr "Liath Amach Nialais"
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr "Luachanna atá cothrom le náid a liathú"
+
+#: resources/ui/preferences/general_page.blp:25
+msgid "General"
+msgstr "Ginearálta"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr "Eatraimh Nuashonrai"
+
+#: resources/ui/preferences/general_page.blp:31
+msgid "In seconds"
+msgstr "I soicindí"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr "Leathanach Feidhmíochta"
+
+#: resources/ui/preferences/performance_page.blp:29
+msgid "Graph Settings"
+msgstr "Socruithe Grafaicí"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr "Pointí Sonraí"
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr "Graif réidh"
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr "Tarraing graif mar líne réidh in ionad líne ghearrtha"
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr "Graif sleamhnáin"
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr "Graif a bheochan (d'fhéadfadh tionchar diúltach ar fheidhmíoch"
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr "Scála Graif Líonra go dinimiciúil"
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+"Socraigh graf líonra le scála go dinimiciúil le húsáid iarbhír nó le luas "
+"uasta an chainéil"
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr "Gléasanna"
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr "Taispeáin Faisnéis Diosca"
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr "Taispeáin Faisnéis Líonra"
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr "Sreangaithe"
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr "Gan sreang"
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr "VPN"
+
+#: resources/ui/preferences/performance_page.blp:91
+msgid "Virtual"
+msgstr "Fíorúil"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr "Docadóir, Ilphas, Droichead"
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "Eile"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr "Bluetooth, InfiniBand, WWAN"
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr "Taispeáin Faisnéis GPU"
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr "Taispeáin Faisnéis Gaothráin"
+
+#: resources/ui/preferences/performance_page.blp:112
+msgid "Show Battery Information"
+msgstr "Taispeáin Faisnéis Ceallraí"
+
+#: resources/ui/preferences/performance_page.blp:113
+msgid "Show battery information by default"
+msgstr "Taispeáin faisnéis ceallraí de réir réamhshocraithe"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr "Aonaid"
+
+#: resources/ui/preferences/units_page.blp:30
+msgid "Memory Usage Unit"
+msgstr "Aonad Úsáide Cuimhne"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr "Úsáid Bytes mar Aonad Tomhais don Chuimhne"
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr "Bytes"
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr "Úsáid Giotáin mar Aonad Tomhais don Chuimhne"
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr "Giotáin"
+
+#: resources/ui/preferences/units_page.blp:49
+msgid "Memory Usage Base"
+msgstr "Bonn Úsáide Cuimhne"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr "Úsáid Bonn 10 le haghaidh Cuimhne"
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr "Bonn 10"
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr "Úsáid Bonn 2 le haghaidh Cuimhne"
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr "Bonn 2"
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr "Aonad Úsáide Tiomána"
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr "Úsáid Bytes mar Aonad Tomhais do Tiomántáin Diosca"
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr "Úsáid Giotáin mar Aonad Tomhais do Tiomántáin Diosca"
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr "Bonn Úsáide Tiomána"
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr "Úsáid Base 10 le haghaidh Tiomántáin Diosca"
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr "Úsáid Bonn 2 do Tiomántáin Diosca"
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr "Aonad Úsáide Líonra"
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr "Úsáid Bytes mar Aonad Tomhais le haghaidh Comhéadain Líonra"
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr "Úsáid Giotáin mar Aonad Tomhais le haghaidh Comhéadain Líonra"
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr "Bonn Úsáide Líonra"
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr "Úsáid Bonn 10 le haghaidh Comhéadain Líonra"
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr "Úsáid Bonn 2 le haghaidh Comhéadain Líonra"
+
+#: resources/ui/services_page/page.blp:96
+msgid "Collapse all expanded services"
+msgstr "Laghdaigh na seirbhísí leathnaithe go léir"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr "Scag próisis reatha"
+
+#: resources/ui/services_page/page.blp:155
+msgid "Filter failed processes"
+msgstr "Scag próisis theipthe"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr "Scag próisis stoptha"
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr "Scag próisis dhíchumasaithe"
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr "Bain na scagairí go léir"
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr "Bain Scagairí"
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "Lean stíl an chórais"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "Stíl éadrom"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "Stíl dorcha"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr "Aicearraí Méarchlár"
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr "Domhanda"
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr "Oscail an Roghchlár"
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr "Dún an Fhuinneog"
+
+#: resources/ui/keyboard_shortcuts.blp:26
+msgid "Open Preferences"
+msgstr "Oscail Roghanna"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr "Taispeáin Aicearraí Méarchláir"
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr "Taispeáin Leathanach Feidhmíochta"
+
+#: resources/ui/keyboard_shortcuts.blp:41
+msgid "Show Apps Page"
+msgstr "Taispeáin Leathanach na nAipeanna"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr "Taispeáin Leathanach na Seirbhísí"
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr "Barra Taobh a Athraigh"
+
+#: resources/ui/keyboard_shortcuts.blp:60
+msgid "Copy Device Information"
+msgstr "Cóipeáil Faisnéis Gléas"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr "Mód Achoimre a Athrú"
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr "Roghnaigh Gléas"
+
+#: resources/ui/keyboard_shortcuts.blp:76
+msgid "Apps Page"
+msgstr "Leathanach na nAipeanna"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr "Cuardaigh"
+
+#: resources/ui/keyboard_shortcuts.blp:89
+msgid "Stop App or Process"
+msgstr "Próiseas Stad"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+msgid "Force Stop App or Process"
+msgstr "Stop Éigeantach Aip nó Próiseas"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr "Taispeáin Dialóg Sonraí"
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr "Leathanach Seirbhísí"
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr "Tosaigh Seirbhís"
+
+#: resources/ui/keyboard_shortcuts.blp:123
+msgid "Stop Service"
+msgstr "Stop Seirbhís"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr "Atosaigh an tSeirbhís"
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "Ainm"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "PID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+msgid "Swap"
+msgstr "Malartú"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "Tiomáint"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "Líonra"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "GPU"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "Cuimhne GPU"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "Stad"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "Stop Fórsa"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr "Seol Comhartha"
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr "Cuir ar fionraí (STOP)"
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr "Lean ar aghaidh (LEAN AR AGHAIDH)"
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr "Croch suas (HUP)"
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr "Idirbhriseadh (INT)"
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr "Foirceannadh (TERM)"
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr "Maraigh (MARAIGH)"
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr "Úsáideoir 1 (USR1)"
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr "Úsáideoir 2 (USR2)"
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "Sonraí"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "Tosaigh"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "Athosaigh"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "Stop an aip roghnaithe"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "Stop fórsa an aip roghnaithe"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "Taispeáin sonraí an aip roghnaithe"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr "Aitheantas Aipe"
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "N/A"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "Líne Orduithe"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "Úsáid Acmhainní"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "Tiomántáin"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "Tosaigh an tseirbhís roghnaithe"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "Stop an tseirbhís roghnaithe"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "Athosaigh an tseirbhís roghnaithe"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "Taispeáin sonraí na seirbhíse roghnaithe"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "Sonraí Seirbhíse"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "Stát"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "Staid reatha na seirbhíse"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "Tosaigh an tseirbhís"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "Stad tseirbhís"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "Atosaigh an tseirbhís"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "Cur síos"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "Stádas"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "Cumasaithe"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "Próiseas"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "Próiseas agus faisnéis úsáideora"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "Aitheantas Próisis"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "Úsáideoir"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "Grúpa"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr "Suíomh Comhaid"
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "Logaí"
+
+#: resources/ui/about_system_dialog.blp:36
+msgid "System Info"
+msgstr "Eolas Córais"
+
+#: resources/ui/about_system_dialog.blp:65
+msgid "Operating System Information"
+msgstr "Faisnéis faoin gCóras Oibriúcháin"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+msgid "Version"
+msgstr "Leagan"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr "Bainisteoir Pacáiste"
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr "Leagan Bainisteoir Pacáiste"
+
+#: resources/ui/about_system_dialog.blp:183
+msgid "Kernel Information"
+msgstr "Faisnéis Eithne"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr "Scaoileadh Eithne"
+
+#: resources/ui/about_system_dialog.blp:245
+msgid "Desktop Environment Information"
+msgstr "Faisnéis faoi Thimpeallacht Deisce"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr "Córas Fuinneoige"
+
+#: resources/ui/about_system_dialog.blp:344
+msgid "Virtual Terminal"
+msgstr "Teirminéal Fíorúil"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr "Cumasaigh Gach"
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr "Díchumasaigh Gach"
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr "Athshocraigh go Réamhshocrú"
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr "Athraigh Sidebar"
+
+#: resources/ui/window.blp:134
+msgid "Type a name or PID to search"
+msgstr "Clóscríobh ainm nó PID chun cuardach a dhéanamh"
+
+#: resources/ui/window.blp:149
+msgid "Toggle Device Information"
+msgstr "Faisnéis Gléas a Athrú"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr "Príomh-roghchlár"
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr "Feidhmíocht"
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "Aipeanna"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr "Seirbhísí"
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "_Roghanna"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr "_Aicearraí Méarchláir"
+
+#: resources/ui/window.blp:237
+msgid "_System Information"
+msgstr "_Faisnéis an Chórais"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr "Oscail _Vicí"
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr "Taispeáin _Dialóg an Chéad Rith"
+
+#: resources/ui/window.blp:257
+msgid "_About Mission Center"
+msgstr "_Maidir le MissionCenter"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] "{} Aip Rith"
+msgstr[1] "{} Aipeanna atá ag rith"
+msgstr[2] "{} Aipeanna atá ag rith"
+msgstr[3] "{} Aipeanna atá ag rith"
+msgstr[4] "{} Aipeanna atá ag rith"
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] "{} Próiseas Rith"
+msgstr[1] "{} Próisis Reatha"
+msgstr[2] "{} Próisis Reatha"
+msgstr[3] "{} Próisis Reatha"
+msgstr[4] "{} Próisis Reatha"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr "Dún"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr "Déan iarracht eile"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+msgid "Kill All"
+msgstr "Maraigh Gach Duine"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr "{} ó shin"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "Anaithnid"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr "Réamh-Teip"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr "Seanaois"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr "Ar Líne"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr "As líne"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr "AG TEIP"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr "Theip ar an am atá caite"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr "Ceart go leor"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr "Céatadán Úsá"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+msgid "Available Spare"
+msgstr "Spártha atá ar Fáil"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr "Tairseach breise"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr "Iomlán na Sonraí Léite"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr "Sonraí Iomlán Scríofa"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr "Am Teochta Rabhadh"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr "Am Teochta Criticiúil"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr "Rialú Am Gnóthach"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+msgid "Warning Temperature"
+msgstr "Teocht Rabhaidh"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr "{}° C"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+msgid "Critical Temperature"
+msgstr "Teocht Chriticiúil"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr "Time's"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr "Dúnadh neamhshábhá"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr "Earráidí Meán"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr "Iontrálacha Logála Earráide Líon"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr "Timthriallta Cumhachta"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"In úsáid ({})\n"
+"\n"
+"Cuimhne a úsáideann an córas oibriúcháin agus feidhmchláir atá ag rith"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"Modhnaithe ({})\n"
+"\n"
+"Cuimhne nach mór a bhfuil inti a scríobh chuig diosca sula bhféadfaidh "
+"próiseas eile í a úsáid"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"Fuireachas ({})\n"
+"\n"
+"Cuimhne ina bhfuil sonraí taisceáilte agus cód nach bhfuil in úsáid go "
+"gníomhach"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"Saor ({})\n"
+"\n"
+"Cuimhne nach bhfuil in úsáid faoi láthair, agus a athúsáidfear ar dtús nuair "
+"a bheidh níos mó cuimhne ag teastáil ón gcóras oibriúcháin, ó na "
+"tiománaithe, nó ó na feidhmchláir"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, rust-format
+msgid "{} sectors"
+msgstr "{} earnáil"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+"Níl sonraí fíormhinicíochta LAP ar fáil (coitianta i Meaisíní Fíorúla, i "
+"gcoimeádáin, nó i gcásanna scamall). Ag taispeáint luach BogoMIPS mar rogha "
+"eile. Is méadracht calabrúcháin lúb moille é BogoMIPS, ní tomhas "
+"fíorminicíochta é."
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "Gan tacaíocht"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "Is ea"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "Níl"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+msgid "Power draw over "
+msgstr "Tarraingt cumhachta thar "
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+msgid "Clock speed over "
+msgstr "Luas an chloig thar "
+
+#: src/performance_page/disk.rs:179
+#, rust-format
+msgid "Disk {} ({})"
+msgstr "Diosca {} ({})"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, rust-format
+msgid "Drive ({})"
+msgstr "Tiomántán ({})"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+msgid "SD"
+msgstr "SD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr "Optúil"
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr "Diosca bog"
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr "Tiomántán Ordóg"
+
+#: src/performance_page/disk.rs:336
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "Tiomáint {} ({})"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr "{} RPM"
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr "Gaothráin {}"
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr "Gaothráin"
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: src/performance_page/gpu.rs:562
+msgid "Video encode/decode"
+msgstr "Ionchódú/díchódú físe"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "GPU {}"
+
+#: src/performance_page/gpu.rs:826
+msgid "Total Memory"
+msgstr "Cuimhne Iomlán"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr "Cuimhne roinnte iomlán"
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr "Úsáid cuimhne tiomnaithe agus roinnte "
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr "{} de {}"
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr "Theip ar eolas cuimhne breise a fháil"
+
+#: src/performance_page/mod.rs:1269
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} {} B"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr "Ceallraí {}"
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr "Ceallraí"
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr "{}"
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr "Teip"
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr "Dícheangailte"
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr "Ag dícheangal"
+
+#: src/performance_page/network.rs:460
+msgid "Connected"
+msgstr "Ceangailte"
+
+#: src/performance_page/network.rs:461
+msgid "Connecting"
+msgstr "Ag ceangal"
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr "Ag cumrú"
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr "Ag fanacht le húdarú"
+
+#: src/performance_page/network.rs:464
+msgid "Unavailable"
+msgstr "Gan a bheith ar fáil"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr "Ag luchtú"
+
+#: src/services_page/mod.rs:99
+#, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "{} Seirbhís Iomlán"
+msgstr[1] "{} Seirbhísí Iomlána"
+msgstr[2] "{} Seirbhísí Iomlána"
+msgstr[3] "{} Seirbhísí Iomlána"
+msgstr[4] "{} Seirbhísí Iomlána"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr "Ag rith"
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr "Stopa"
+
+#: src/services_page/mod.rs:138
+msgid "Disabled"
+msgstr "Míchumasaithe"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr "Níl aon seirbhísí ag teacht leis na scagairí reatha"
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr "Níor cuireadh aon scagairí i bhfeidhm"
+
+#: src/services_page/mod.rs:153
+#, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "{} {} Seirbhís"
+msgstr[1] "{} {} Seirbhísí"
+msgstr[2] "{} {} Seirbhísí"
+msgstr[3] "{} {} Seirbhísí"
+msgstr[4] "{} {} Seirbhísí"
+
+#: src/services_page/mod.rs:182
+msgid "User Services"
+msgstr "Seirbhísí Úsáideoirí"
+
+#: src/services_page/mod.rs:187
+msgid "System Services"
+msgstr "Seirbhísí Córais"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr "Ceannteideal Rannóg"
+
+#: src/table_view/row_model.rs:280
+msgid "Service"
+msgstr "Seirbhís"
+
+#: src/table_view/row_model.rs:281
+msgid "App"
+msgstr "Aip"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr "Cóipeáil logaí chuig gear"
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr "creidmheasanna aistritheora"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} bliain"
+msgstr[1] "{} bliana"
+msgstr[2] "{} bliana"
+msgstr[3] "{} bliana"
+msgstr[4] "{} bliana"
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} mí"
+msgstr[1] "{} míonna"
+msgstr[2] "{} míonna"
+msgstr[3] "{} míonna"
+msgstr[4] "{} míonna"
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} lá"
+msgstr[1] "{} laethanta"
+msgstr[2] "{} laethanta"
+msgstr[3] "{} laethanta"
+msgstr[4] "{} laethanta"
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} uair an chloig"
+msgstr[1] "{} uaireanta"
+msgstr[2] "{} uaireanta"
+msgstr[3] "{} uaireanta"
+msgstr[4] "{} uaireanta"
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} nóiméad"
+msgstr[1] "{} nóiméid"
+msgstr[2] "{} nóiméid"
+msgstr[3] "{} nóiméid"
+msgstr[4] "{} nóiméid"
+
+#: src/main.rs:126 src/main.rs:205
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} soicind"
+msgstr[1] "{} soicindí"
+msgstr[2] "{} soicindí"
+msgstr[3] "{} soicindí"
+msgstr[4] "{} soicindí"
+
+#: src/main.rs:163
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} agus {}"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr "{} agus {}"
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr "Níos lú ná nóiméad"
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "_Scoir"
+
+#~ msgid "Show the gpu encode-decode graph"
+#~ msgstr "Taispeáin an graf ionchódai-díchódaithe gpu"
+
+#~ msgid "Shared Memory"
+#~ msgstr "Cuimhne Chomhroinnte"
+
+#~ msgid "Show CPU Information"
+#~ msgstr "Taispeáin Faisnéis LAP"
+
+#~ msgid "Global Units"
+#~ msgstr "Aonaid Domhanda"
+
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr ""
+#~ "Cuimhne\n"
+#~ "Chomhroinnte"
+
+#~ msgid "_About System"
+#~ msgstr "_Maidir leis an gCóras"
+
+#~ msgid "Not Implemented"
+#~ msgstr "Níor cuireadh i bhfeidhm é"
+
+#~ msgid "App Page"
+#~ msgstr "Leathanach na hAipe"
+
+#~ msgid "{} failed services out of a total of {}"
+#~ msgstr "{} theip ar sheirbhísí as iomlán de {}"
+
+#~ msgid "{} second{}"
+#~ msgstr "{} soicind {}"
+
+#~ msgid "{} minute{} "
+#~ msgstr "{} nóiméad {} "
+
+#~ msgid "{} years"
+#~ msgstr "{} blianta"
+
+#~ msgid "{} months"
+#~ msgstr "{} míonna"
+
+#~ msgid "{} days"
+#~ msgstr "{} laethanta"
+
+#~ msgid "{} hours"
+#~ msgstr "{} uaireanta"
+
+#~ msgid "{} minutes"
+#~ msgstr "{} nóiméid"
+
+#, fuzzy
+#~ msgid "Whether or not to use base-10 (default) or base-2 for memory"
+#~ msgstr ""
+#~ "Cibé acu an n-úsáidfear nó nach n-úsáidfear giotán (réamhshocraithe) nó "
+#~ "Bearta do luas líonra"
+
+#~ msgid "No per-process network usage"
+#~ msgstr "Gan aon úsáid líonra in aghaidh an phróisis"
+
+#~ msgid "GPU support is experimental"
+#~ msgstr "Tá tacaíocht GPU turgnamhach"
+
+#~ msgid "PWM %"
+#~ msgstr "PWM%"
+
+#~ msgid "GTT usage"
+#~ msgstr "Úsáid GTT"
+
+#~ msgid "Show Network Speed In Bytes"
+#~ msgstr "Taispeáin Luas Líonra I mBéite"
+
+#~ msgid "GPU Usage"
+#~ msgstr "Úsáid GPU"
+
+#~ msgid "Stop Application"
+#~ msgstr "Stad Iarratas"
+
+#~ msgid "Force Stop Application"
+#~ msgstr "Iarratas Stad Fórsa"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {} {} B/s"
+
+#~ msgid "B/s"
+#~ msgstr "B/s"
+
+#~ msgid "bps"
+#~ msgstr "bps"

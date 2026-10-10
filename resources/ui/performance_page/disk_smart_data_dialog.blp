@@ -1,0 +1,184 @@
+/* ui/performance_page/disk_smart_data_dialog.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $SmartDataDialog: Adw.Dialog {
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Label {
+        styles [
+          "heading"
+        ]
+
+        label: _("Smart Data");
+      };
+    }
+
+    Box {
+      margin-start: 15;
+      margin-end: 15;
+      margin-bottom: 15;
+      spacing: 15;
+
+      orientation: vertical;
+
+      FlowBox common_data {
+        margin-end: 7;
+        margin-top: 7;
+        margin-bottom: 7;
+
+        max-children-per-line: 2;
+        selection-mode: none;
+        can-target: false;
+
+        Box {
+          Label {
+            margin-end: 5;
+            label: _("Last Updated:");
+          }
+
+          Label last_updated {
+            hexpand: true;
+            halign: start;
+          }
+        }
+
+        Box {
+          Label {
+            margin-end: 5;
+            label: _("Powered On:");
+          }
+
+          Label powered_on {
+            hexpand: true;
+            halign: start;
+          }
+        }
+
+        Box {
+          Label {
+            margin-end: 5;
+            label: _("Drive Health:");
+          }
+
+          Label health {
+            hexpand: true;
+            halign: start;
+          }
+        }
+
+        Box {
+          Label {
+            margin-end: 5;
+            label: _("SMART Test Status:");
+          }
+
+          Label status {
+            hexpand: true;
+            halign: start;
+          }
+        }
+      }
+
+      ScrolledWindow nvme_data {
+        propagate-natural-height: true;
+
+        ColumnView nvme_column_view {
+          ColumnViewColumn nvme_name_column {
+            title: _("Attribute");
+            expand: true;
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn nvme_value_column {
+            title: _("Value");
+
+            factory: SignalListItemFactory {};
+          }
+        }
+      }
+
+      ScrolledWindow sata_data {
+        propagate-natural-height: true;
+
+        ColumnView sata_column_view {
+          ColumnViewColumn sata_id_column {
+            title: _("ID");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_attribute_column {
+            title: _("Attribute");
+            expand: true;
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_value_column {
+            title: _("Value");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_normalized_column {
+            title: _("Normalized");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_threshold_column {
+            title: _("Threshold");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_worst_column {
+            title: _("Worst");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_type_column {
+            title: _("Type");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_updates_column {
+            title: _("Updates");
+
+            factory: SignalListItemFactory {};
+          }
+
+          ColumnViewColumn sata_assessment_column {
+            title: _("Assessment");
+
+            factory: SignalListItemFactory {};
+          }
+        }
+      }
+    }
+  }
+}

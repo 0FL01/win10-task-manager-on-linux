@@ -1,0 +1,143 @@
+/* ui/preferences/units_page.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesUnitsPage: Adw.PreferencesPage {
+  title: _("Units");
+  icon-name: "ruler-angled-symbolic";
+
+  Adw.PreferencesGroup {
+    Adw.ActionRow {
+      title: _("Memory Usage Unit");
+
+      Adw.ToggleGroup toggle_group_memory_unit {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_memory_unit_bytes {
+          tooltip: _("Use Bytes as a Unit of Measurement for Memory");
+          label: _("Bytes");
+        }
+
+        Adw.Toggle toggle_memory_unit_bits {
+          tooltip: _("Use Bits as a Unit of Measurement for Memory");
+          label: _("Bits");
+        }
+      }
+    }
+
+    Adw.ActionRow {
+      title: _("Memory Usage Base");
+
+      Adw.ToggleGroup toggle_group_memory_base {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_memory_base_10 {
+          tooltip: _("Use Base 10 for Memory");
+          label: _("Base 10");
+        }
+
+        Adw.Toggle toggle_memory_base_2 {
+          tooltip: _("Use Base 2 for Memory");
+          label: _("Base 2");
+        }
+      }
+    }
+
+    Adw.ActionRow {
+      title: _("Drive Usage Unit");
+
+      Adw.ToggleGroup toggle_group_drive_unit {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_drive_unit_bytes {
+          tooltip: _("Use Bytes as a Unit of Measurement for Disk Drives");
+          label: _("Bytes");
+        }
+
+        Adw.Toggle toggle_drive_unit_bits {
+          tooltip: _("Use Bits as a Unit of Measurement for Disk Drives");
+          label: _("Bits");
+        }
+      }
+    }
+
+    Adw.ActionRow {
+      title: _("Drive Usage Base");
+
+      Adw.ToggleGroup toggle_group_drive_base {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_drive_base_10 {
+          tooltip: _("Use Base 10 for Disk Drives");
+          label: _("Base 10");
+        }
+
+        Adw.Toggle toggle_drive_base_2 {
+          tooltip: _("Use Base 2 for Disk Drives");
+          label: _("Base 2");
+        }
+      }
+    }
+
+    Adw.ActionRow {
+      title: _("Network Usage Unit");
+
+      Adw.ToggleGroup toggle_group_net_unit {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_net_unit_bytes {
+          tooltip: _("Use Bytes as a Unit of Measurement for Network Interfaces");
+          label: _("Bytes");
+        }
+
+        Adw.Toggle toggle_net_unit_bits {
+          tooltip: _("Use Bits as a Unit of Measurement for Network Interfaces");
+          label: _("Bits");
+        }
+      }
+    }
+
+    Adw.ActionRow {
+      title: _("Network Usage Base");
+
+      Adw.ToggleGroup toggle_group_net_base {
+        valign: center;
+        homogeneous: true;
+
+        Adw.Toggle toggle_net_base_10 {
+          tooltip: _("Use Base 10 for Network Interfaces");
+          label: _("Base 10");
+        }
+
+        Adw.Toggle toggle_net_base_2 {
+          tooltip: _("Use Base 2 for Network Interfaces");
+          label: _("Base 2");
+        }
+      }
+    }
+  }
+}

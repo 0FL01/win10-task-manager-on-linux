@@ -1,0 +1,383 @@
+/* ui/about_system_dialog.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+using Gtk 4.0;
+using Adw 1;
+
+template $AboutSystemDialog: Adw.Dialog {
+    Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {
+            title-widget: Box {
+                Label title {
+                    styles [
+                        "heading",
+                    ]
+
+                    label: _("System Information");
+                }
+            };
+
+            [end]
+            Button {
+                action-name: "app.info-page-copy-all";
+                tooltip-text: _("Copy All");
+                icon-name: "edit-copy";
+            }
+        }
+
+        ScrolledWindow {
+            hscrollbar-policy: never;
+            propagate-natural-height: true;
+            propagate-natural-width: true;
+
+            Adw.Clamp {
+                maximum-size: 1000;
+
+                Box {
+                    margin-start: 20;
+                    margin-end: 20;
+                    margin-bottom: 20;
+                    orientation: vertical;
+                    spacing: 32;
+
+                    Image logo {
+                        margin-top: 10;
+                        pixel-size: 192;
+                    }
+
+                    Adw.PreferencesGroup os_info_box {
+                        hexpand: true;
+                        title: _("Operating System Information");
+
+                        Adw.ActionRow os_name_row {
+                            activatable: true;
+                            visible: bind os_name.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label os_name_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Name");
+                                }
+
+                                Label os_name {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow version_row {
+                            activatable: true;
+                            visible: bind version.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label version_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Version");
+                                }
+
+                                Label version {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow package_manager_row {
+                            activatable: true;
+                            visible: bind package_manager.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label package_manager_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Package Manager");
+                                }
+
+                                Label package_manager {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow package_manager_version_row {
+                            activatable: true;
+                            visible: bind package_manager_version.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label package_manager_version_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Package Manager Version");
+                                }
+
+                                Label package_manager_version {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+                    }
+
+                    Adw.PreferencesGroup kernel_info_box {
+                        hexpand: true;
+                        title: _("Kernel Information");
+
+                        Adw.ActionRow kernel_release_row {
+                            activatable: true;
+                            visible: bind kernel_release.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label kernel_release_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Kernel Release");
+                                }
+
+                                Label kernel_release {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow kernel_version_row {
+                            activatable: true;
+                            visible: bind kernel_version.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label kernel_version_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Version");
+                                }
+
+                                Label kernel_version {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+                    }
+
+                    Adw.PreferencesGroup de_info_box {
+                        hexpand: true;
+                        title: _("Desktop Environment Information");
+
+                        Adw.ActionRow desktop_environment_row {
+                            activatable: true;
+                            visible: bind desktop_environment.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label desktop_environment_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Name");
+                                }
+
+                                Label desktop_environment {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow desktop_environment_version_row {
+                            activatable: true;
+                            visible: bind desktop_environment_version.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label desktop_environment_version_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Version");
+                                }
+
+                                Label desktop_environment_version {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow windowing_system_row {
+                            activatable: true;
+                            visible: bind windowing_system.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label windowing_system_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Windowing System");
+                                }
+
+                                Label windowing_system {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+
+                        Adw.ActionRow virtual_terminal_row {
+                            activatable: true;
+                            visible: bind virtual_terminal.visible;
+                            tooltip-text: _("copy");
+
+                            child: Box {
+                                height-request: 36;
+                                margin-start: 10;
+                                margin-end: 10;
+                                spacing: 10;
+
+                                Label virtual_terminal_label {
+                                    hexpand: true;
+                                    halign: start;
+                                    label: _("Virtual Terminal");
+                                }
+
+                                Label virtual_terminal {
+                                    styles [
+                                        "dim-label",
+                                    ]
+
+                                    ellipsize: middle;
+                                    hexpand: true;
+                                    halign: end;
+                                    selectable: true;
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,162 @@
+/* ui/keyboard_shortcuts.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ShortcutsDialog keyboard_shortcuts {
+    title: _("Keyboard Shortcuts");
+
+    Adw.ShortcutsSection {
+        title: _("Global");
+
+        Adw.ShortcutsItem {
+            title: _("Open Menu");
+            accelerator: "F10";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Close Window");
+            accelerator: "<Control>Q <Control>W";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Open Preferences");
+            accelerator: "<Control>comma";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Keyboard Shortcuts");
+            accelerator: "<Control>question";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Performance Page");
+            accelerator: "<Alt>1 <Control>1";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Apps Page");
+            accelerator: "<Alt>2 <Control>2";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Services Page");
+            accelerator: "<Alt>3 <Control>3";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show System Information");
+            accelerator: "<Control>A";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Toggle Sidebar");
+            accelerator: "F9 <Control>T";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Pause Updates");
+            subtitle: _("Hold to pause");
+            accelerator: "<Control>";
+        }
+    }
+
+    Adw.ShortcutsSection {
+        title: _("Performance Page");
+
+        Adw.ShortcutsItem {
+            title: _("Copy Device Information");
+            accelerator: "<Control>C";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Toggle Summary Mode");
+            accelerator: "<Control>M";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Select a Device");
+            accelerator: "F1...F8";
+        }
+    }
+
+    Adw.ShortcutsSection {
+        title: _("Apps Page");
+
+        Adw.ShortcutsItem {
+            title: _("Search");
+            accelerator: "<Control>F";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Collapse All");
+            accelerator: "<Control>L";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Stop App or Process");
+            accelerator: "<Control>E";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Force Stop App or Process");
+            accelerator: "<Control>X";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Details Dialog");
+            accelerator: "<Control>I";
+        }
+    }
+
+    Adw.ShortcutsSection {
+        title: _("Services Page");
+
+        Adw.ShortcutsItem {
+            title: _("Search");
+            accelerator: "<Control>F";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Collapse All");
+            accelerator: "<Control>L";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Start Service");
+            accelerator: "<Control>S";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Stop Service");
+            accelerator: "<Control>E";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Restart Service");
+            accelerator: "<Control>R";
+        }
+
+        Adw.ShortcutsItem {
+            title: _("Show Details Dialog");
+            accelerator: "<Control>I";
+        }
+    }
+}

@@ -1,0 +1,2468 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2026-07-19 07:52+0000\n"
+"Last-Translator: Jaime Muñoz Martín <jmmartin_5@outlook.com>\n"
+"Language-Team: Catalan <https://hosted.weblate.org/projects/mission-center/"
+"mission-center/ca/>\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2026.8.dev0\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "Mission Center"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"Gestor de tasques; Monitor de recursos; Monitor del sistema; Processador; "
+"Processos; Monitor de rendiment; CPU; GPU; Disc; Discos; Memòria; Xarxa; Ús; "
+"Utilització; Servei; Serveis; Gestor de serveis; Llista de serveis; Serveis "
+"del sistema; Serveis d'usuari; systemd; systemctl"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "Desenvolupadors del Mission Center"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "Superviseu l'ús dels recursos del sistema"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"Superviseu l'ús de la CPU, memòria, disc, xarxa i GPU, acompanyat d'un "
+"desglossament per aplicació i procés d'aquestes estadístiques"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "Característiques:"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "Superviseu l'ús de la CPU en general o per fil"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"Vegeu els procesos del sistema, el nombre de fils i controladors, el temps "
+"de funcionament, la velocitat del rellotge (base i actual), les mides de la "
+"memòria cau"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "Superviseu l'ús de la memòria RAM i memòria d'intercanvi"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr "Vegeu un desglossament de com el sistema utilitza la memòria"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "Superviseu l'ús del disc i les taxes de transferència"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "Superviseu l'ús de la xarxa i les velocitats de transferència"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"Consulteu la informació de la interfície de xarxa, com ara el nom de la "
+"targeta de xarxa, el tipus de connexió (Wi-Fi o Ethernet), velocitats i "
+"freqüència Wi-Fi, adreça de maquinari, adreça IP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"Superviseu l'ús general de la GPU, l'ús del codificador i descodificador de "
+"vídeo, l'ús de la memòria i el consum d'energia, impulsat pel popular "
+"projecte NVTOP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "Superviseu els ventiladors del sistema"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "Consulteu un desglossament de l'ús de recursos per aplicació i procés"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "Admet una vista de resum reduïda per a una supervisió senzilla"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr ""
+"Utilitza la representació accelerada per maquinari per a tots els gràfics "
+"per tal de reduir l'ús de la CPU i els recursos generals"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "Utilitza GTK4 i Libadwaita"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "Escrit en Rust"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr "Limitacions (s'està treballant per superar-ho tot):"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"La supervisió de la GPU d'Intel només és compatible amb les GPU Broadwell i "
+"posteriors. No admet la supervisió de VRAM, energia o temperatura"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"Quan utilitzeu el Linux Mint/Cinnamon, és possible que les aplicacions "
+"executades no es mostrin a la secció «Aplicacions» (problema relacionat: "
+"https://github.com/linuxmint/cinnamon/issues/12015)"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr ""
+"Els comentaris, suggeriments, informes d'errors i contribucions són "
+"benvinguts"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "Quina pàgina es mostra a l'inici de l'aplicació"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "Estil de la interfície"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr "Si s'ha d'utilitzar un estil d'interfície clar o fosc"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "OBSOLET! JA NO S'UTILITZA!"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr ""
+"Amb quina rapidesa s'han d'actualitzar les dades i actualitzar la interfície "
+"d'usuari (en increments de 50 ms)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "Quants punts s'han de mostrar a cada gràfic?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "Si s'han d'utilitzar bits o bytes (per defecte) per a la memòria"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "Si s'ha d'utilitzar la base 10 o base 2 (per defecte) per a la memòria"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr ""
+"Si s'han d'utilitzar bits o bytes (per defecte) per a la velocitat + mida de "
+"la unitat"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr ""
+"Si s'ha d'utilitzar la base 10 o base 2 (per defecte) per a la velocitat + "
+"mida de la unitat"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr ""
+"Si s'han d'utilitzar bits (per defecte) o bytes per a la velocitat de la "
+"xarxa"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr ""
+"Si s'ha d'utilitzar la base 10 (per defecte) o base 2 per a la velocitat de "
+"la xarxa"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr ""
+"Si s'ha d'establir el màxim del gràfic al màxim de la interfície (fals) o al "
+"màxim observat (cert)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+"Les estadístiques dels processos pare i fill es mostren individualment o es "
+"fusionen cap amunt"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "L'ordenació per columnes es manté després de reiniciar l'aplicació"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "L'ordre de les columnes es manté després de reiniciar l'aplicació"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr ""
+"Mostra l'ús de la CPU per a aplicacions i processos escalats segons el "
+"nombre de nuclis disponibles"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr "Mostra un separador entre cada columna a la vista d'aplicacions"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr ""
+"Els valors que són iguals a zero apareixen en gris a la vista d'Aplicacions"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr ""
+"El nom de la columna pel qual s'ordena la vista de pàgina d'aplicacions"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "La direcció d'ordenació de la vista de pàgina d'aplicacions"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "L'ordre de les columnes a la vista de pàgina d'aplicacions"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+msgid "The column name by which the Services page view is sorted"
+msgstr "El nom de la columna pel qual s'ordena la vista de pàgina de Serveis"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+msgid "The sorting direction of the Services page view"
+msgstr "La direcció d'ordenació de la vista de pàgina de Serveis"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+msgid "The order of columns in the Services page view"
+msgstr "L'ordre de les columnes a la vista de pàgina de Serveis"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "Quin gràfic es mostra a la pàgina de rendiment de la CPU?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr "Quin gràfic es mostra a la pàgina de rendiment de la CPU"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr "Mostra els temps del nucli als gràfics de la CPU"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr ""
+"Quina pàgina es mostra a l'inici de l'aplicació, a la pestanya de rendiment"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "Els gràfics de rendiment han de ser suaus o irregulars?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "Els gràfics haurien de ser animats?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "Mostra la informació de la CPU per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "Mostra la informació de la memòria per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "Mostra la informació del disc per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "Mostra la informació de la xarxa per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+msgid "Show wired network devices by default"
+msgstr "Mostra els dispositius de xarxa amb cable per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+msgid "Show wireless network devices by default"
+msgstr "Mostra els dispositius de xarxa sense fil per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+msgid "Show VPN network devices by default"
+msgstr "Mostra els dispositius de xarxa VPN per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr ""
+"Mostra els dispositius de xarxa virtual (Docker, multipass, pont) per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr ""
+"Mostra altres dispositius de xarxa (Bluetooth, InfiniBand, WWAN) per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "Mostra la informació de la GPU per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "Mostra la informació del ventilador per defecte"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "Mostra el giny de composició de la memòria"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "Mostra el gràfic de la memòria d'intercanvi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr "Contingut i visibilitat del gràfic central"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr "Contingut i visibilitat del gràfic inferior"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "L'ordre de les entrades a la barra lateral de l'aplicació"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "Gràfics que s'han d'amagar a la barra lateral de l'aplicació"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr ""
+"Substitucions de visibilitat per dispositiu (entrades separades per punt i "
+"coma nom:mostra o nom:amaga)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr "Si és la primera vegada que executeu el Mission Center"
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "Replega totes les aplicacions i processos"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "Replega-ho tot"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "No s'ha pogut expulsar"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr "Finalitza"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr "En ús:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr "Modificat:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr "En repòs:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr "Lliure:"
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "CPU"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+msgid "Utilization over "
+msgstr "Ús superior a "
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+msgid "Change _Top Graph To"
+msgstr "Canvia el gràfic _superior a"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "Ús_s general"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "_Processadors lògics"
+
+#: resources/ui/performance_page/cpu.blp:180
+msgid "_All Threads"
+msgstr "_Tots els fils"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr "Tots els fils _apilats"
+
+#: resources/ui/performance_page/cpu.blp:191
+msgid "Change B_ottom Graph To"
+msgstr "Canvia el gràfic i_nferior a"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+msgid "_Power Draw"
+msgstr "_Consum d'energia"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+msgid "_Temperature"
+msgstr "_Temperatura"
+
+#: resources/ui/performance_page/cpu.blp:204
+msgid "_Clock Speed"
+msgstr "_Velocitat del rellotge"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr "_Cap"
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr "Mostra els temps del nucli"
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "Vista resu_m de la gràfica"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "_Vista"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "CP_U"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "_Memòria"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr "_Unitat"
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "_Xarxa"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "_GPU"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr "_Ventilador"
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr "_Bateria"
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "_Copia"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr "Mostra les dades SMART"
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr "Expulsa el disc"
+
+#: resources/ui/performance_page/disk.blp:100
+msgid "Active time over "
+msgstr "Temps actiu "
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+msgid "Throughput over "
+msgstr "Rendiment superior a "
+
+#: resources/ui/performance_page/fan.blp:62
+msgid "Fan speed over "
+msgstr "Velocitat del ventilador superior a "
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+msgid "Temperature over "
+msgstr "Temperatura superior a "
+
+#: resources/ui/performance_page/fan_details.blp:59
+msgid "Fan Speed"
+msgstr "Velocitat del ventilador"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr "Percentatge de PWM"
+
+#: resources/ui/performance_page/fan_details.blp:127
+msgid "Current Temperature"
+msgstr "Temperatura actual"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+msgid "Video encode/decode utilization over "
+msgstr "Ús de codificació/descodificació de vídeo superior a "
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+msgid "Memory usage over "
+msgstr "Ús de la memòria superior a "
+
+#: resources/ui/performance_page/gpu.blp:206
+msgid "Change Middle Graph To"
+msgstr "Canvia el gràfic central a"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+msgid "_Encode/_Decode"
+msgstr "_Codifica/_Descodifica"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+msgid "_Memory Usage"
+msgstr "_Ús de memòria"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+msgid "_Clock Speeds"
+msgstr "_Velocitats de rellotge"
+
+#: resources/ui/performance_page/gpu.blp:240
+msgid "Change Bottom Graph To"
+msgstr "Canvia el gràfic inferior a"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "Memòria"
+
+#: resources/ui/performance_page/memory.blp:123
+msgid "Swap usage over "
+msgstr "Ús de la memòria d'intercanvi superior a "
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "Composició de la memòria"
+
+#: resources/ui/performance_page/memory.blp:195
+msgid "Show Memory Composition"
+msgstr "Mostra la composició de la memòria"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr "Mostra l'ús d'intercanvi de memòria"
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "En ús"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "Disponible"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "Compromès"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "En memòria cau"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "Memòria d'intercanvi usada"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "Memòria d'intercanvi disponible"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr "Comprimit"
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr "Estalvis"
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "Velocitat:"
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "Sòcols utilitzats:"
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "Factor de forma:"
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "Tipus:"
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "Con_figuració de xarxa"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "Rebuts"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "Enviats"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr "Total rebut"
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr "Total enviat"
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "Nom de la interfície:"
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "Tipus de connexió:"
+
+#: resources/ui/performance_page/network_details.blp:222
+msgid "Connection status:"
+msgstr "Estat de la connexió:"
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID:"
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "Intensitat del senyal:"
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "Taxa de bits màxima:"
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "Freqüència:"
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "Adreça del maquinari:"
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "Adreça IPv4:"
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "Adreça IPv6:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr "Dades SMART"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+msgid "Last Updated:"
+msgstr "Última actualització:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+msgid "Powered On:"
+msgstr "Encès:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr "Salut de la unitat:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr "Estat de la prova SMART:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr "Atribut"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr "Valor"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr "ID"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+msgid "Normalized"
+msgstr "Normalitzat"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+msgid "Threshold"
+msgstr "Llindar"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr "El pitjor"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "Tipus"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+msgid "Updates"
+msgstr "Actualitzacions"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr "Avaluació"
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "Ús"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "Velocitat del rellotge"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+msgid "Power Draw"
+msgstr "Consum d'energia"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+msgid "Memory Usage"
+msgstr "Ús de memòria"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+msgid "Shared Memory Usage"
+msgstr "Ús de memòria compartida"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+msgid "Memory Speed"
+msgstr "Velocitat de memòria"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+msgid "Video encode"
+msgstr "Codificació de vídeo"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+msgid "Video decode"
+msgstr "Descodificació de vídeo"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "Temperatura"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "Versió de l'OpenGL:"
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "Versió del Vulkan:"
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "Velocitat PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:597
+msgid "Max PCI Express speed:"
+msgstr "Velocitat màxima del PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "Adreça del bus PCI:"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+msgid "Failed To Get SMART Data"
+msgstr "No s'han pogut obtenir les dades SMART"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"Hi ha hagut un problema en obtenir les dades SMART. Proveu d'executar-ho des "
+"de la línia d'ordres per obtenir més informació."
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "Velocitat de lectura"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "Velocitat d'escriptura"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr "Total llegit"
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr "Total escrit"
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "Temps actiu"
+
+#: resources/ui/performance_page/disk_details.blp:221
+msgid "Avg. response time"
+msgstr "Mitj. de temps de resposta"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "Capacitat:"
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "Format:"
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "Disc del sistema:"
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr "WWN:"
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr "Nombre de sèrie:"
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr "Velocitat de rotació"
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr "Particions"
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "Velocitat"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "Processos"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "Fils"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "Controladors"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "Temps d'activitat"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "Velocitat base:"
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "Sòcols:"
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "Processadors virtuals:"
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "Virtualització:"
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "Màquina virtual:"
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "Memòria cau L1:"
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "Memòria cau L2:"
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "Memòria cau L3:"
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Controlador cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Governador cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "Preferència d'energia:"
+
+#: resources/ui/preferences/apps_services_page.blp:25
+msgid "Apps & Services"
+msgstr "Aplicacions i serveis"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr "Combina les estadístiques del procés"
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr "Recorda l'ordenació"
+
+#: resources/ui/preferences/apps_services_page.blp:36
+msgid "Persist sorting by column across app restarts"
+msgstr "Mantén l'ordre per columna després de reiniciar l'aplicació"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr "Recorda l'ordre de les columnes"
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr "Mantén l'ordre de les columnes, després de reiniciar l'aplicació"
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr "Escala l'ús de la CPU al recompte de nuclis"
+
+#: resources/ui/preferences/apps_services_page.blp:46
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr "Mostra l'ús de la CPU escalat segons el nombre de nuclis disponibles"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr "Mostra els separadors de columna"
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr "Mostra un separador entre cada columna"
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr "Enfosqueix els zeros"
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr "Enfosqueix els valors que siguin iguals a zero"
+
+#: resources/ui/preferences/general_page.blp:25
+msgid "General"
+msgstr "General"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr "Interval d'actualització"
+
+#: resources/ui/preferences/general_page.blp:31
+msgid "In seconds"
+msgstr "En segons"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr "Pàgina de rendiment"
+
+#: resources/ui/preferences/performance_page.blp:29
+msgid "Graph Settings"
+msgstr "Configuració del gràfic"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr "Punts de dades"
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr "Gràfics suaus"
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr "Dibuixa gràfics com a línies suaus en lloc de línies irregulars"
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr "Gràfics lliscants"
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr "Anima els gràfics (pot afectar negativament el rendiment)"
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr "Escala els gràfics de xarxa dinàmicament"
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+"Estableix el gràfic de xarxa per escalar dinàmicament amb l'ús real o amb la "
+"velocitat màxima del canal"
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr "Dispositius"
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr "Mostra la informació del disc"
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr "Mostra la informació de la xarxa"
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr "Cablejada"
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr "Sense fils"
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr "VPN"
+
+#: resources/ui/preferences/performance_page.blp:91
+msgid "Virtual"
+msgstr "Virtual"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr "Docker, multipass, pont"
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "Altres"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr "Bluetooth, InfiniBand, WWAN"
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr "Mostra la informació de la GPU"
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr "Mostra informació dels ventiladors"
+
+#: resources/ui/preferences/performance_page.blp:112
+msgid "Show Battery Information"
+msgstr "Mostra informació de la bateria"
+
+#: resources/ui/preferences/performance_page.blp:113
+msgid "Show battery information by default"
+msgstr "Mostra la informació de la bateria per defecte"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr "Unitats"
+
+#: resources/ui/preferences/units_page.blp:30
+msgid "Memory Usage Unit"
+msgstr "Unitat d'ús de memòria"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr "Utilitza bytes com a unitat de mesura per a la memòria"
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr "Bytes"
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr "Utilitza bits com a unitat de mesura per a la memòria"
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr "Bits"
+
+#: resources/ui/preferences/units_page.blp:49
+msgid "Memory Usage Base"
+msgstr "Base d'ús de memòria"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr "Utilitza la base 10 per a la memòria"
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr "Base 10"
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr "Utilitza la base 2 per a la memòria"
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr "Base 2"
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr "Unitat d'ús de la unitat"
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr "Utilitza els bytes com a unitat de mesura per a les unitats de disc"
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr "Utilitza els bits com a unitat de mesura per a les unitats de disc"
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr "Base d'ús de la unitat"
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr "Utilitza la base 10 per a les unitats de disc"
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr "Utilitza la base 2 per a les unitats de disc"
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr "Unitat d'ús de xarxa"
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr "Utilitza bytes com a unitat de mesura per a les interfícies de xarxa"
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr "Utilitza bits com a unitat de mesura per a les interfícies de xarxa"
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr "Base d'ús de la xarxa"
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr "Utilitza la base 10 per a les interfícies de xarxa"
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr "Utilitza la base 2 per a les interfícies de xarxa"
+
+#: resources/ui/services_page/page.blp:96
+msgid "Collapse all expanded services"
+msgstr "Replega tots els serveis expandits"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr "Filtra processos en execució"
+
+#: resources/ui/services_page/page.blp:155
+msgid "Filter failed processes"
+msgstr "Filtra processos fallits"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr "Filtra processos parats"
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr "Filtra processos deshabilitats"
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr "Esborra tots els filtres"
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr "Esborra filtres"
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "Segueix l'estil del sistema"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "Estil clar"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "Estil fosc"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr "Dreceres de teclat"
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr "Global"
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr "Obri el menú"
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr "Tanca la finestra"
+
+#: resources/ui/keyboard_shortcuts.blp:26
+msgid "Open Preferences"
+msgstr "Obri les preferències"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr "Mostra les dreceres de teclat"
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr "Mostra la pàgina de rendiment"
+
+#: resources/ui/keyboard_shortcuts.blp:41
+msgid "Show Apps Page"
+msgstr "Mostra la pàgina d'aplicacions"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr "Mostra la pàgina de serveis"
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr "Commuta la barra lateral"
+
+#: resources/ui/keyboard_shortcuts.blp:60
+msgid "Copy Device Information"
+msgstr "Copia la informació del dispositiu"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr "Commuta el mode resum"
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr "Seleccioneu un dispositiu"
+
+#: resources/ui/keyboard_shortcuts.blp:76
+msgid "Apps Page"
+msgstr "Pàgina d'aplicacions"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr "Cerca"
+
+#: resources/ui/keyboard_shortcuts.blp:89
+msgid "Stop App or Process"
+msgstr "Atura l'aplicació o el procés"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+msgid "Force Stop App or Process"
+msgstr "Forçar l'aturada d'una aplicació o procés"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr "Mostra el quadre de diàleg dels detalls"
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr "Pàgina de serveis"
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr "Inicia el servei"
+
+#: resources/ui/keyboard_shortcuts.blp:123
+msgid "Stop Service"
+msgstr "Atura el servei"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr "Reinicia el servei"
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "Nom"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "PID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+msgid "Swap"
+msgstr "Memòria d'intercanvi"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "Unitat"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "Xarxa"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "GPU"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "Memòria de la GPU"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "Atura"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "Força l'aturada"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr "Envia una senyal"
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr "Suspén (STOP)"
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr "Continua (CONT)"
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr "Penja (HUP)"
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr "Interromp (INT)"
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr "Acaba (TERM)"
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr "Mata (KILL)"
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr "Usuari 1 (USR1)"
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr "Usuari 2 (USR2)"
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "Detalls"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "Inicia"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "Reinicia"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "Atura l'aplicació seleccionada"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "Força l'aturada de l'aplicació seleccionada"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "Mostra els detalls de l'aplicació seleccionada"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr "Identificador d'aplicació"
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "N/D"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "Línia d'ordres"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "Ús de recursos"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "Unitats"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "Inicia el servei seleccionat"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "Atura el servei seleccionat"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "Reinicia el servei seleccionat"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "Mostra els detalls del servei seleccionat"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "Detalls del servei"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "Estat"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "Estat actual del servei"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "Inicia el servei"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "Atura el servei"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "Reinicia el servei"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "Descripció"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "Estat"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "Habilitat"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "Procés"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "Informació del procés i dels usuaris"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "ID del procés"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "Usuari"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "Grup"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr "Ubicació del fitxer"
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "Registres"
+
+#: resources/ui/about_system_dialog.blp:36
+msgid "System Info"
+msgstr "Informació del sistema"
+
+#: resources/ui/about_system_dialog.blp:65
+msgid "Operating System Information"
+msgstr "Informació del sistema operatiu"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+msgid "Version"
+msgstr "Versió"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr "Gestor de paquets"
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr "Versió del gestor de paquets"
+
+#: resources/ui/about_system_dialog.blp:183
+msgid "Kernel Information"
+msgstr "Informació del Kernel"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr "Versió del Kernel"
+
+#: resources/ui/about_system_dialog.blp:245
+msgid "Desktop Environment Information"
+msgstr "Informació de l'entorn d'escriptori"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr "Sistema de finestres"
+
+#: resources/ui/about_system_dialog.blp:344
+msgid "Virtual Terminal"
+msgstr "Terminal virtual"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr "Habilita-ho tot"
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr "Desactiva-ho tot"
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr "Restableix als valors per defecte"
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr "Edita la barra lateral"
+
+#: resources/ui/window.blp:134
+msgid "Type a name or PID to search"
+msgstr "Escriviu un nom o un PID per cercar"
+
+#: resources/ui/window.blp:149
+msgid "Toggle Device Information"
+msgstr "Commuta la informació del dispositiu"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr "Menú principal"
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr "Rendiment"
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "Aplicacions"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr "Serveis"
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "_Preferències"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr "_Dreceres del teclat"
+
+#: resources/ui/window.blp:237
+msgid "_System Information"
+msgstr "Informació del _sistema"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr "Obre la _Wiki"
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr "Mostra el quadre de diàleg de la _primera execució"
+
+#: resources/ui/window.blp:257
+msgid "_About Mission Center"
+msgstr "_Quant al Mission Center"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] "{} aplicació en execució"
+msgstr[1] "{} aplicacions en execució"
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] "{} procés en execució"
+msgstr[1] "{} processos en execució"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr "Tanca"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr "Reintenta"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+msgid "Kill All"
+msgstr "Finalitza-ho tot"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr "Fa {}"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "Desconegut"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr "Pre-fallida"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr "Antic-Edat"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr "En línia"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr "Fora de línia"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr "FALLANT"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr "Ha fallat en el passat"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr "D'acord"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr "Percentatge utilitzat"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+msgid "Available Spare"
+msgstr "Recanvi disponible"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr "Llindar de recanvi"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr "Lectura total de dades"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr "Dades totals escrites"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr "Temps d'advertència de temperatura"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr "Temps de temperatura crítica"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr "Control del temps ocupat"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+msgid "Warning Temperature"
+msgstr "Temperatura d'advertència"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr "{} °C"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+msgid "Critical Temperature"
+msgstr "Temperatura crítica"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr "Temps"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr "Aturades insegures"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr "Errors de mitjans"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr "Entrades del registre d'errors numèrics"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr "Cicles de potència"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"En ús ({})\n"
+"\n"
+"Memòria utilitzada pel sistema operatiu i les aplicacions en execució"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"Modificada ({})\n"
+"\n"
+"Memòria el contingut de la qual s'ha d'escriure al disc abans que pugui ser "
+"utilitzat per un altre procés"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"En espera ({})\n"
+"\n"
+"Memòria que conté dades emmagatzemades a la memòria cau i codi que no "
+"s'utilitza activament"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"Lliure ({})\n"
+"\n"
+"Memòria que no està en ús actualment i que es reutilitzarà primer quan el "
+"sistema operatiu, els controladors o les aplicacions necessitin més memòria"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, rust-format
+msgid "{} sectors"
+msgstr "{} sectors"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+"Les dades de freqüència real de la CPU no estan disponibles (habitual en "
+"màquines virtuals, contenidors o instàncies al núvol). Es mostra el valor de "
+"BogoMIPS com a alternativa. BogoMIPS és una mètrica de calibratge del bucle "
+"de retard, no una mesura de freqüència real."
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "No compatible"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "Sí"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "No"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+msgid "Power draw over "
+msgstr "Consum d'energia "
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+msgid "Clock speed over "
+msgstr "Velocitat del rellotge "
+
+#: src/performance_page/disk.rs:179
+#, rust-format
+msgid "Disk {} ({})"
+msgstr "Disc {} ({})"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, rust-format
+msgid "Drive ({})"
+msgstr "Unitat ({})"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+msgid "SD"
+msgstr "SD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr "Òptic"
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr "Disquet"
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr "Unitat USB"
+
+#: src/performance_page/disk.rs:336
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "Unitat {} ({})"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr "{} RPM"
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr "Ventilador {}"
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr "Ventilador"
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: src/performance_page/gpu.rs:562
+msgid "Video encode/decode"
+msgstr "Codificació/descodificació de vídeo"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "GPU {}"
+
+#: src/performance_page/gpu.rs:826
+msgid "Total Memory"
+msgstr "Memòria total"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr "Memòria compartida total"
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr "Ús de memòria dedicada i compartida "
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr "{} de {}"
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr "No s'ha pogut obtenir informació addiciona de la memòria"
+
+#: src/performance_page/mod.rs:1269
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr "Bateria {}"
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr "Bateria"
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr "{}"
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr "Error"
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr "Desconnectada"
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr "Desconnexió"
+
+#: src/performance_page/network.rs:460
+msgid "Connected"
+msgstr "Connectat"
+
+#: src/performance_page/network.rs:461
+msgid "Connecting"
+msgstr "Connectant"
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr "Configuració"
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr "Esperant l'autorització"
+
+#: src/performance_page/network.rs:464
+msgid "Unavailable"
+msgstr "No disponible"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr "Carregant"
+
+#: src/services_page/mod.rs:99
+#, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "{} servei en total"
+msgstr[1] "{} serveis en total"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr "En execució"
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr "Aturat"
+
+#: src/services_page/mod.rs:138
+msgid "Disabled"
+msgstr "Deshabilitat"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr "Cap servei coincideix amb els filtres actuals"
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr "Cap filtre aplicat"
+
+#: src/services_page/mod.rs:153
+#, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "{} {} servei"
+msgstr[1] "{} {} serveis"
+
+#: src/services_page/mod.rs:182
+msgid "User Services"
+msgstr "Serveis d'usuari"
+
+#: src/services_page/mod.rs:187
+msgid "System Services"
+msgstr "Serveis del sistema"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr "Capçalera de secció"
+
+#: src/table_view/row_model.rs:280
+msgid "Service"
+msgstr "Servei"
+
+#: src/table_view/row_model.rs:281
+msgid "App"
+msgstr "Aplicació"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr "Copia els registres al porta-retalls"
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr "Jaime Muñoz <jmmartin_5@outlook.com>"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} any"
+msgstr[1] "{} anys"
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} mes"
+msgstr[1] "{} mesos"
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} dia"
+msgstr[1] "{} dies"
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} hora"
+msgstr[1] "{} hores"
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} minut"
+msgstr[1] "{} minuts"
+
+#: src/main.rs:126 src/main.rs:205
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} segon"
+msgstr[1] "{} segons"
+
+#: src/main.rs:163
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} i {}"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr "{} i {}"
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr "Menys d'un minut"
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "_Surt"
+
+#~ msgid "Show the gpu encode-decode graph"
+#~ msgstr "Mostra el gràfic de codificació/descodificació de la GPU"
+
+#~ msgid "Shared Memory"
+#~ msgstr "Memòria compartida"
+
+#~ msgid "Show CPU Information"
+#~ msgstr "Mostra la informació de la CPU"
+
+#~ msgid "Global Units"
+#~ msgstr "Unitats globals"
+
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr ""
+#~ "Memòria\n"
+#~ "compartida"
+
+#~ msgid "_About System"
+#~ msgstr "_Quant al sistema"
+
+#~ msgid "App Page"
+#~ msgstr "Pàgina de l'aplicació"
+
+#~ msgid "{} failed services out of a total of {}"
+#~ msgstr "{} serveis fallits d'un total de {}"
+
+#, fuzzy
+#~ msgid "{} minutes"
+#~ msgstr "{} minut{} "
+
+#~ msgid "{} second{}"
+#~ msgstr "{} segon{}"
+
+#~ msgid "{} minute{} "
+#~ msgstr "{} minut{} "
+
+#, fuzzy
+#~ msgid "Whether or not to use base-10 (default) or base-2 for memory"
+#~ msgstr ""
+#~ "Si s'utilitza o no bits (per defecte) o bytes per a la velocitat de la "
+#~ "xarxa"
+
+#~ msgid "No per-process network usage"
+#~ msgstr "Sense ús de xarxa per procés"
+
+#~ msgid "GPU support is experimental"
+#~ msgstr "Suport de GPU és experimental"
+
+#~ msgid "PWM %"
+#~ msgstr "PWM %"
+
+#~ msgid "GTT usage"
+#~ msgstr "Ús del GTT"
+
+#~ msgid "Show Network Speed In Bytes"
+#~ msgstr "Mostra la velocitat de xarxa en bytes"
+
+#~ msgid "GPU Usage"
+#~ msgstr "Ús de la GPU"
+
+#~ msgid "Stop Application"
+#~ msgstr "Atura l'aplicació"
+
+#~ msgid "Force Stop Application"
+#~ msgstr "Força l'aturada de l'aplicació"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {}{}B/s"
+
+#~ msgid "B/s"
+#~ msgstr "B/s"
+
+#~ msgid "bps"
+#~ msgstr "bps"
+
+#~ msgid "{} {}bps"
+#~ msgstr "{} {}bps"
+
+#~ msgid "Ethernet"
+#~ msgstr "Ethernet"
+
+#~ msgid "Wi-Fi"
+#~ msgstr "Wi-Fi"
+
+#~ msgid "Flatpak first"
+#~ msgstr "Flatpak primer"
+
+#~ msgid "Video decode utilization"
+#~ msgstr "Ús de descodificació de vídeo"
+
+#~ msgid "_Disk"
+#~ msgstr "_Disc"
+
+#~ msgid "Disk"
+#~ msgstr "Disc"
+
+#~ msgid "Display optical device information in the Performance tab"
+#~ msgstr "Mostra informació de dispositiu òptic en la pestanya de Rendiment"
+
+#, fuzzy
+#~ msgid "Update to GTK 4.12 and libadwaita 1.4"
+#~ msgstr "Utilitza GTK4 i Libadwaita"
+
+#, fuzzy
+#~ msgid ""
+#~ "Add an option, to the context menu, to show kernel times, in the CPU "
+#~ "graphs"
+#~ msgstr "Mostra els temps del nucli als gràfics de la CPU"
+
+#, fuzzy
+#~ msgid "Translations:"
+#~ msgstr "Virtualització:"
+
+#, fuzzy
+#~ msgid "Fixed a bug where the app and process list was empty for some users"
+#~ msgstr ""
+#~ "Recorda l'ordenació de l'aplicació i la llista de processos durant els "
+#~ "reinicis de l'aplicació"
+
+#~ msgid "Disk transfer rate"
+#~ msgstr "Velocitat de transferència del disc"
+
+#~ msgid "Overall utilization"
+#~ msgstr "Ús general"
+
+#~ msgid ""
+#~ "GPU support is experimental and only AMD and nVidia GPUs can be monitored"
+#~ msgstr ""
+#~ "El suport de GPU és experimental i només es poden supervisar les GPU AMD "
+#~ "i nVidia"
+
+#~ msgid "Fast"
+#~ msgstr "Ràpida"
+
+#~ msgid "Refresh every half second"
+#~ msgstr "Actualitza cada mig segon"
+
+#~ msgid "Refresh every second"
+#~ msgstr "Actualitza cada segon"
+
+#~ msgid "Slow"
+#~ msgstr "Lenta"
+
+#~ msgid "Refresh every second and a half"
+#~ msgstr "Actualitza cada segon i mig"
+
+#~ msgid "Very Slow"
+#~ msgstr "Molt lenta"
+
+#~ msgid "Refresh every 2 seconds"
+#~ msgstr "Actualitza cada 2 segons"
+
+#~ msgid "Supported"
+#~ msgstr "Compatible"
+
+#~ msgid "Authentication failed"
+#~ msgstr "L'autenticació ha fallat"
+
+#~ msgid "More info"
+#~ msgstr "Més informació"

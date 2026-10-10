@@ -1,0 +1,509 @@
+/* ui/performance_page/disk_details.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $DiskDetails: Box {
+  margin-top: 65;
+  margin-bottom: 10;
+  orientation: vertical;
+
+  Grid {
+    row-spacing: 5;
+    column-spacing: 0;
+
+    styles [
+      "layout-grid"
+    ]
+
+    Picture legend_read {
+      layout {
+        column: '0';
+        row: '0';
+      }
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '0';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Read speed");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label read_speed {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Picture legend_write {
+      layout {
+        column: '2';
+        row: '0';
+      }
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '3';
+        row: '0';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Write speed");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label write_speed {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '1';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Total Read");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label total_read {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '3';
+        row: '1';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Total Written");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label total_write {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '2';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Active time");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label active_time {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '3';
+        row: '2';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Avg. response time");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label avg_response_time {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '3';
+      }
+
+      margin-top: 20;
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Capacity:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '4';
+      }
+
+       styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Formatted:");
+      ellipsize: end;
+   }
+
+    Label {
+      layout {
+        column: '1';
+        row: '5';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("System disk:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '6';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Type:");
+      ellipsize: end;
+    }
+
+    Label {
+      visible: bind template.wwn_visible;
+
+      layout {
+        column: '1';
+        row: '7';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("WWN:");
+      ellipsize: end;
+    }
+
+    Label {
+      visible: bind template.serial_number_visible;
+
+      layout {
+        column: '1';
+        row: '8';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Serial:");
+      ellipsize: end;
+    }
+
+    Label {
+      visible: bind template.rotation_visible;
+
+      layout {
+        column: '1';
+         row: '9';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Rotation Rate");
+      ellipsize: end;
+    }
+
+    Label capacity {
+      layout {
+        column: '3';
+        row: '3';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-top: 20;
+
+      selectable: true;
+    }
+
+    Label formatted {
+      layout {
+        column: '3';
+        row: '4';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+
+    Label system_disk {
+      layout {
+        column: '3';
+        row: '5';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+
+    Label disk_type {
+      layout {
+        column: '3';
+        row: '6';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+
+    Label wwn {
+      visible: bind template.wwn_visible;
+
+      layout {
+        column: '3';
+        row: '7';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      ellipsize: middle;
+      selectable: true;
+    }
+
+    Label serial_number {
+      visible: bind template.serial_number_visible;
+
+      layout {
+        column: '3';
+        row: '8';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      ellipsize: middle;
+      selectable: true;
+    }
+
+    Label rotation_rate {
+      visible: bind template.rotation_visible;
+
+      layout {
+        column: '3';
+         row: '9';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+  }
+
+  Box partitions_section {
+    orientation: vertical;
+
+    Label {
+      label: _("Partitions");
+      styles ["heading"]
+      halign: start;
+      margin-top: 24;
+    }
+
+    ListBox partitions_stack {
+      styles [
+        "rich-list",
+        "transparent"
+      ]
+    }
+  }
+}

@@ -1,0 +1,116 @@
+/* ui/preferences/performance_page.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesPerformancePage: Adw.PreferencesPage {
+  title: _("Performance Page");
+  icon-name: "speedometer-symbolic";
+
+  Adw.PreferencesGroup {
+    title: _("Graph Settings");
+
+    Adw.ActionRow {
+      title: _("Data Points");
+
+      Gtk.Scale data_points {
+        adjustment: Gtk.Adjustment {
+          lower: 10;
+          upper: 600;
+          step-increment: 1;
+          value: 60;
+        };
+
+        digits: 0;
+        hexpand: true;
+        draw-value: true;
+        value-pos: left;
+      }
+    }
+
+    Adw.SwitchRow smooth_graphs {
+      title: _("Smooth Graphs");
+      subtitle: _("Draw graphs as smooth line instead of jagged line");
+    }
+
+    Adw.SwitchRow sliding_graphs {
+      title: _("Sliding Graphs");
+      subtitle: _("Animate graphs (may negatively impact performance)");
+    }
+
+    Adw.SwitchRow network_dynamic_scaling {
+      title: _("Scale Network Graphs Dynamically");
+      subtitle: _("Set network graph to scale dynamically with actual usage or with channel max speed");
+    }
+  }
+
+  Adw.PreferencesGroup {
+    title: _("Devices");
+
+    Adw.SwitchRow show_disks {
+      title: _("Show Disk Information");
+      subtitle: _("Show disk information by default");
+    }
+
+    Adw.ExpanderRow show_network {
+      title: _("Show Network Information");
+      subtitle: _("Show network information by default");
+      show-enable-switch: true;
+
+      Adw.SwitchRow show_network_wired {
+        title: _("Wired");
+      }
+
+      Adw.SwitchRow show_network_wireless {
+        title: _("Wireless");
+      }
+
+      Adw.SwitchRow show_network_vpn {
+        title: _("VPN");
+      }
+
+      Adw.SwitchRow show_network_virtual {
+        title: _("Virtual");
+        subtitle: _("Docker, Multipass, Bridge");
+      }
+
+      Adw.SwitchRow show_network_other {
+        title: _("Other");
+        subtitle: _("Bluetooth, InfiniBand, WWAN");
+      }
+    }
+
+    Adw.SwitchRow show_gpus {
+      title: _("Show GPU Information");
+      subtitle: _("Show GPU information by default");
+    }
+
+    Adw.SwitchRow show_fans {
+      title: _("Show Fan Information");
+      subtitle: _("Show fan information by default");
+    }
+
+    Adw.SwitchRow show_batteries {
+      title: _("Show Battery Information");
+      subtitle: _("Show battery information by default");
+    }
+  }
+}

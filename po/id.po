@@ -1,0 +1,2709 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2026-08-09 12:40+0000\n"
+"Last-Translator: Arif Budiman <arifpedia@gmail.com>\n"
+"Language-Team: Indonesian <https://hosted.weblate.org/projects/mission-"
+"center/mission-center/id/>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 2026.9.dev0\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "Pusat Misi"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"Pengelola tugas;Monitor sumber daya;Monitor sistem;Prosesor;Proses;Monitor "
+"kinerja;CPU;GPU;Diska;Disk;Memori;Jaringan;Utilisasi;Utilisasi;Layanan;Layanan;Pengelola "
+"Layanan;Daftar Layanan;Layanan Sistem;Layanan Pengguna;systemd;systemctl"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "Pengembang Mission Center"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "Pantau penggunaan sumber daya sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"Pantau penggunaan CPU, Memori, Disk, Jaringan, dan GPU Anda, disertai dengan "
+"rincian per aplikasi dan proses dari statistik ini"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "Fitur:"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "Pantau penggunaan CPU secara keseluruhan atau per-thread"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"Lihat proses sistem, thread, dan total handle, waktu aktif, kecepatan clock "
+"(dasar dan saat ini), ukuran cache"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "Pantau penggunaan RAM dan Swap"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr "Lihat perincian bagaimana memori digunakan oleh sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "Pantau penggunaan Disk dan kecepatan transfer"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "Pantau penggunaan jaringan dan kecepatan transfer"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"Lihat informasi antarmuka jaringan seperti nama perangkat jaringan, jenis "
+"koneksi (Wi-Fi atau Ethernet), kecepatan dan frekuensi jaringan, alamat "
+"perangkat keras, alamat IP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"Pantau penggunaan GPU secara keseluruhan, penggunaan pengode dan pengurai "
+"video, penggunaan memori, dan konsumsi daya, didukung oleh proyek NVTOP yang "
+"populer"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "Pantau kipas sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "Lihat rincian penggunaan sumber daya berdasarkan aplikasi dan proses"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "Mendukung tampilan ringkasan miniatur untuk pemantauan sederhana"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr ""
+"Gunakan rendering yang dipercepat perangkat keras untuk semua grafik dalam "
+"upaya mengurangi penggunaan CPU dan sumber daya secara keseluruhan"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "Menggunakan GTK4 dan Libadwaita"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "Dibuat dengan Rust"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr ""
+"Keterbatasan (ada pekerjaan yang sedang berlangsung untuk mengatasi semua "
+"ini):"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"Pemantauan Intel GPU hanya mendukung GPU Broadwell dan generasi selanjutnya; "
+"tidak mendukung VRAM, power, atau pemantauan suhu"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"Saat menggunakan Linux Mint/CInnamon, aplikasi yang dijalankan mungkin tidak "
+"akan muncul di bagian \"Aplikasi\" (Upstream issue: https://github.com/"
+"linuxmint/cinnamon/issues/12015)"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr "Komentar, saran, laporan bug, dan kontribusi dipersilakan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "Halaman mana yang ditampilkan saat aplikasi dimulai"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "Gaya Antarmuka"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr "Apakah gaya antarmuka terang atau gelap yang harus digunakan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "TIDAK BERLAKU! TIDAK DIGUNAKAN LAGI!"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr ""
+"Seberapa cepat data harus disegarkan dan UI diperbarui (dalam kelipatan 50ms)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "Berapa banyak titik yang harus ditampilkan pada setiap grafik?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "Apakah akan menggunakan bit atau byte (default) untuk memori"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "Apakah akan menggunakan basis-10 atau basis-2 (default) untuk memori"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr ""
+"Apakah akan menggunakan bit atau byte (default) untuk kecepatan + ukuran "
+"drive"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr ""
+"Apakah akan menggunakan basis-10 atau basis-2 (default) untuk kecepatan + "
+"ukuran drive"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr ""
+"Apakah akan menggunakan bit (default) atau Byte untuk kecepatan jaringan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr ""
+"Apakah akan menggunakan basis-10 (default) atau basis-2 untuk kecepatan "
+"jaringan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr ""
+"Apakah maksimum grafik akan diatur ke maksimum antarmuka (false) atau ke "
+"maksimum yang teramati (true)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+"Statistik proses induk dan turunan ditampilkan terpisah atau digabungkan "
+"keatas"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "Pengurutan kolom dipertahankan di seluruh restart aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "Urutan kolom dipertahankan di seluruh restart aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr ""
+"Tampilkan penggunaan CPU untuk Aplikasi dan Proses yang diskalakan sesuai "
+"jumlah inti yang tersedia"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr "Tampilkan pemisah di antara setiap kolom pada tampilan Aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr "Abukan nilai yang sama dengan nol di tampilan Aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr "Nama kolom yang digunakan untuk mengurutkan tampilan halaman Aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "Arah penyortiran pada tampilan halaman Aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "Urutan kolom pada tampilan halaman Aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+msgid "The column name by which the Services page view is sorted"
+msgstr "Nama kolom yang digunakan untuk menyortir tampilan halaman Layanan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+msgid "The sorting direction of the Services page view"
+msgstr "Arah pengurutan tampilan halaman Layanan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+msgid "The order of columns in the Services page view"
+msgstr "Urutan kolom di tampilan halaman Layanan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "Grafik mana yang ditampilkan di halaman kinerja CPU"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr "Grafik mana yang ditampilkan di grafik bawah halaman kinerja CPU"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr "Tampilkan waktu kernel dalam grafik CPU"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr ""
+"Halaman mana yang akan ditampilkan saat aplikasi dimulai, dalam tab performa"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "Apakah grafik performa harus halus atau bergerigi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "Apakah grafik harus dianimasikan"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "Tampilkan informasi CPU secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "Tampilkan informasi memori secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "Tampilkan informasi disk secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "Tampilkan informasi jaringan secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+msgid "Show wired network devices by default"
+msgstr "Tampilkan perangkat jaringan berkabel secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+msgid "Show wireless network devices by default"
+msgstr "Tampilkan perangkat jaringan nirkabel secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+msgid "Show VPN network devices by default"
+msgstr "Tampilkan perangkat jaringan VPN secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr ""
+"Tampilkan perangkat jaringan virtual (Docker, Multipass, Bridge) secara "
+"default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr ""
+"Tampilkan perangkat jaringan lain (Bluetooth, InfiniBand, WWAN) secara "
+"default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "Tampilkan informasi GPU secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "Tampilkan informasi kipas secara default"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "Tampilkan widget komposisi memori"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "Tampilkan grafik swap"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr "Konten dan visibilitas Grafik Tengah"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr "Konten dan visibilitas Grafik Bawah"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "Urutan entri di bilah sisi aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "Grafik yang harus disembunyikan di bilah sisi aplikasi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr ""
+"Pengaturan visibilitas per perangkat (entri nama:tampilkan atau "
+"nama:sembunyikan yang dipisahkan titik koma)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr "Jika ini pertama kali Anda menjalankan Mission Center"
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "Ciutkan semua aplikasi dan proses"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "Ciutkan Semua"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "Gagal Mengeluarkan"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr "Hentikan"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr "Digunakan:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr "Dimodifikasi:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr "Siaga:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr "Bebas:"
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "CPU"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+msgid "Utilization over "
+msgstr "Utilisasi di atas "
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+msgid "Change _Top Graph To"
+msgstr "Ubah Grafik Atas Menjadi"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "Keseluruhan P_emanfaatan"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "_Prosesor Logis"
+
+#: resources/ui/performance_page/cpu.blp:180
+msgid "_All Threads"
+msgstr "Semua Thread"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr "Semua Thread _Ditumpuk"
+
+#: resources/ui/performance_page/cpu.blp:191
+msgid "Change B_ottom Graph To"
+msgstr "Ubah Grafik _Bawah Menjadi"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+msgid "_Power Draw"
+msgstr "_Daya Listrik"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+msgid "_Temperature"
+msgstr "_Suhu"
+
+#: resources/ui/performance_page/cpu.blp:204
+msgid "_Clock Speed"
+msgstr "Kecepatan Clock"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr "_Tidak Ada"
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr "Tampilkan Waktu Kernel"
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "Grafik _Ringkasan Tampilan"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "_Tampilan"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "CP_U"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "_Memori"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr "_Drive"
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "_Jaringan"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "_GPU"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr "_Kipas"
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr "_Baterai"
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "_Salin"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr "Tampilkan Data SMART"
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr "Keluarkan Disk"
+
+#: resources/ui/performance_page/disk.blp:100
+msgid "Active time over "
+msgstr "Waktu aktif selama "
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+msgid "Throughput over "
+msgstr "Throughput selama "
+
+#: resources/ui/performance_page/fan.blp:62
+msgid "Fan speed over "
+msgstr "Kecepatan kipas selama "
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+msgid "Temperature over "
+msgstr "Suhu di atas "
+
+#: resources/ui/performance_page/fan_details.blp:59
+msgid "Fan Speed"
+msgstr "Kecepatan Kipas"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr "Persentase PWM"
+
+#: resources/ui/performance_page/fan_details.blp:127
+msgid "Current Temperature"
+msgstr "Suhu Saat Ini"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+msgid "Video encode/decode utilization over "
+msgstr "Penggunaan pengode/pengurai video di atas "
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+msgid "Memory usage over "
+msgstr "Penggunaan memori di atas "
+
+#: resources/ui/performance_page/gpu.blp:206
+msgid "Change Middle Graph To"
+msgstr "Ubah Grafik _Tengah Menjadi"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+msgid "_Encode/_Decode"
+msgstr "_Pengode/_Pengurai"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+msgid "_Memory Usage"
+msgstr "_Penggunaan Memori"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+msgid "_Clock Speeds"
+msgstr "_Kecepatan Clock"
+
+#: resources/ui/performance_page/gpu.blp:240
+msgid "Change Bottom Graph To"
+msgstr "Ubah Grafik Bawah Menjadi"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "Memori"
+
+#: resources/ui/performance_page/memory.blp:123
+msgid "Swap usage over "
+msgstr "Penggunaan Swap di atas "
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "Komposisi memori"
+
+#: resources/ui/performance_page/memory.blp:195
+msgid "Show Memory Composition"
+msgstr "Tampilkan Komposisi Memori"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr "Tampilkan Penggunaan Swap"
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "Digunakan"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "Tersedia"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "Terikat"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "Tercache"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "Swap digunakan"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "Swap tersedia"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr "Dikompresi"
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr "Penghematan"
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "Kecepatan:"
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "Slot digunakan:"
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "Faktor bentuk:"
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "Tipe:"
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "Pe_ngaturan Jaringan"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "Terima"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "Kirim"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr "Total Diterima"
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr "Total dikirim"
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "Nama antarmuka:"
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "Jenis koneksi:"
+
+#: resources/ui/performance_page/network_details.blp:222
+msgid "Connection status:"
+msgstr "Status koneksi:"
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID:"
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "Kekuatan sinyal:"
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "Bitrate maksimal:"
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "Frekuensi:"
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "Alamat Hardware:"
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "Alamat IPv4:"
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "Alamat IPv6:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr "Data Cerdas"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+msgid "Last Updated:"
+msgstr "Terakhir Diperbarui:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+msgid "Powered On:"
+msgstr "Hidup:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr "Kesehatan Drive:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr "Status Tes SMART:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr "Atribut"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr "Nilai"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr "ID"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+msgid "Normalized"
+msgstr "Dinormalisasi"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+msgid "Threshold"
+msgstr "Ambang"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr "Terburuk"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "Tipe"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+msgid "Updates"
+msgstr "Pembaruan"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr "Penilaian"
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "Pemanfaatan"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "Kecepatan Clock"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+msgid "Power Draw"
+msgstr "Daya yang Digunakan"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+msgid "Memory Usage"
+msgstr "Penggunaan Memori"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+msgid "Shared Memory Usage"
+msgstr "Penggunaan Memori Bersama"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+msgid "Memory Speed"
+msgstr "Kecepatan Memori"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+msgid "Video encode"
+msgstr "Pengodean video"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+msgid "Video decode"
+msgstr "Penguraian video"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "Suhu"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "Versi OpenGL:"
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "Versi Vulkan:"
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "Kecepatan PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:597
+msgid "Max PCI Express speed:"
+msgstr "Kecepatan maksimum PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "Alamat bus PCI:"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+msgid "Failed To Get SMART Data"
+msgstr "Gagal Mengambil Data SMART"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"Terjadi masalah saat mengambil data SMART. Coba jalankan dari baris perintah "
+"untuk mendapatkan informasi lebih lanjut."
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "Kecepatan baca"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "Kecepatan tulis"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr "Total Baca"
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr "Total Ditulis"
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "Waktu aktif"
+
+#: resources/ui/performance_page/disk_details.blp:221
+msgid "Avg. response time"
+msgstr "Rata-rata waktu respon"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "Kapasitas:"
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "Terformat:"
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "Disk sistem:"
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr "WWN:"
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr "Serial:"
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr "Kecepatan Putar"
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr "Partisi"
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "Kecepatan"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "Proses"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "Utas"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "Pegangan"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "Waktu aktif"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "Basis Kecepatan:"
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "Soket:"
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "Prosesor virtual:"
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "Virtualisasi:"
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "Mesin virtual:"
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "Cache L1:"
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "Cache L2:"
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "Cache L3:"
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Driver cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Governor cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "Preferensi daya:"
+
+#: resources/ui/preferences/apps_services_page.blp:25
+msgid "Apps & Services"
+msgstr "Aplikasi & Layanan"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr "Satukan Statistik Proses"
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr "Ingat Pengurutan"
+
+#: resources/ui/preferences/apps_services_page.blp:36
+msgid "Persist sorting by column across app restarts"
+msgstr "Pertahankan pengurutan berdasarkan kolom di seluruh restart aplikasi"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr "Ingat Urutan Kolom"
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr "Pertahankan urutan kolom, di seluruh restart aplikasi"
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr "Skalakan Penggunaan CPU ke Jumlah Inti"
+
+#: resources/ui/preferences/apps_services_page.blp:46
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr ""
+"Tampilkan penggunaan CPU yang diskalakan sesuai jumlah inti yang tersedia"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr "Tampilkan Pemisah Kolom"
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr "Tampilkan pemisah di antara setiap kolom"
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr "Abukan Nol"
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr "Abukan nilai yang sama dengan nol"
+
+#: resources/ui/preferences/general_page.blp:25
+msgid "General"
+msgstr "Umum"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr "Interval Pembaruan"
+
+#: resources/ui/preferences/general_page.blp:31
+msgid "In seconds"
+msgstr "Dalam detik"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr "Halaman Kinerja"
+
+#: resources/ui/preferences/performance_page.blp:29
+msgid "Graph Settings"
+msgstr "Pengaturan Grafik"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr "Titik Data"
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr "Grafik Halus"
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr "Gambar grafik sebagai garis halus alih-alih garis bergerigi"
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr "Grafik Bergeser"
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr "Animasikan grafik (dapat berdampak negatif pada performa)"
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr "Skalakan Grafik Jaringan Secara Dinamis"
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+"Atur grafik jaringan agar diskalakan secara dinamis sesuai penggunaan aktual "
+"atau kecepatan maksimum kanal"
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr "Perangkat"
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr "Tampilkan Informasi Disk"
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr "Tampilkan Informasi Jaringan"
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr "Berkabel"
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr "Nirkabel"
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr "VPN"
+
+#: resources/ui/preferences/performance_page.blp:91
+msgid "Virtual"
+msgstr "Virtual"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr "Docker, Multipass, Bridge"
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "Lainnya"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr "Bluetooth, InfiniBand, WWAN"
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr "Tampilkan Informasi GPU"
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr "Tampilkan Informasi Kipas"
+
+#: resources/ui/preferences/performance_page.blp:112
+msgid "Show Battery Information"
+msgstr "Tampilkan Informasi Baterai"
+
+#: resources/ui/preferences/performance_page.blp:113
+msgid "Show battery information by default"
+msgstr "Tampilkan informasi baterai secara default"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr "Satuan"
+
+#: resources/ui/preferences/units_page.blp:30
+msgid "Memory Usage Unit"
+msgstr "Satuan Penggunaan Memori"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr "Gunakan Byte sebagai Satuan Pengukuran untuk Memori"
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr "Byte"
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr "Gunakan Bit sebagai Satuan Pengukuran untuk Memori"
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr "Bit"
+
+#: resources/ui/preferences/units_page.blp:49
+msgid "Memory Usage Base"
+msgstr "Basis Penggunaan Memori"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr "Gunakan Basis 10 untuk Memori"
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr "Basis 10"
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr "Gunakan Basis 2 untuk Memori"
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr "Basis 2"
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr "Satuan Penggunaan Drive"
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr "Gunakan Byte sebagai Satuan Pengukuran untuk Drive Disk"
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr "Gunakan Bit sebagai Satuan Pengukuran untuk Drive Disk"
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr "Basis Penggunaan Drive"
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr "Gunakan Basis 10 untuk Drive Disk"
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr "Gunakan Basis 2 untuk Drive Disk"
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr "Satuan Penggunaan Jaringan"
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr "Gunakan Byte sebagai Satuan Pengukuran untuk Antarmuka Jaringan"
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr "Gunakan Bit sebagai Satuan Pengukuran untuk Antarmuka Jaringan"
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr "Basis Penggunaan Jaringan"
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr "Gunakan Basis 10 untuk Antarmuka Jaringan"
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr "Gunakan Basis 2 untuk Antarmuka Jaringan"
+
+#: resources/ui/services_page/page.blp:96
+msgid "Collapse all expanded services"
+msgstr "Ciutkan semua layanan yang diperluas"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr "Filter proses yang berjalan"
+
+#: resources/ui/services_page/page.blp:155
+msgid "Filter failed processes"
+msgstr "Filter proses yang gagal"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr "Filter proses yang dihentikan"
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr "Filter proses yang dinonaktifkan"
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr "Hapus semua filter"
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr "Hapus Filter"
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "Ikuti gaya sistem"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "Gaya terang"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "Gaya gelap"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr "Pintasan Keyboard"
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr "Global"
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr "Buka Menu"
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr "Tutup Jendela"
+
+#: resources/ui/keyboard_shortcuts.blp:26
+msgid "Open Preferences"
+msgstr "Buka Preferensi"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr "Tampilkan Pintasan Keyboard"
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr "Tampilkan Halaman Kinerja"
+
+#: resources/ui/keyboard_shortcuts.blp:41
+msgid "Show Apps Page"
+msgstr "Tampilkan Halaman Aplikasi"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr "Tampilkan Halaman Layanan"
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr "Alihkan Bilah Sisi"
+
+#: resources/ui/keyboard_shortcuts.blp:60
+msgid "Copy Device Information"
+msgstr "Salin Informasi Perangkat"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr "Aktifkan/Nonaktifkan Mode Ringkasan"
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr "Pilih Perangkat"
+
+#: resources/ui/keyboard_shortcuts.blp:76
+msgid "Apps Page"
+msgstr "Halaman Aplikasi"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr "Cari"
+
+#: resources/ui/keyboard_shortcuts.blp:89
+msgid "Stop App or Process"
+msgstr "Hentikan Aplikasi atau Proses"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+msgid "Force Stop App or Process"
+msgstr "Hentikan Paksa Aplikasi atau Proses"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr "Tampilkan Dialog Detail"
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr "Halaman Layanan"
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr "Mulai Layanan"
+
+#: resources/ui/keyboard_shortcuts.blp:123
+msgid "Stop Service"
+msgstr "Hentikan Layanan"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr "Mulai Ulang Layanan"
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "Nama"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "PID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+msgid "Swap"
+msgstr "Swap"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "Drive"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "Jaringan"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "GPU"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "Memori GPU"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "Hentikan"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "Hentikan Paksa"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr "Kirim Sinyal"
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr "Tangguhkan (STOP)"
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr "Lanjutkan (CONT)"
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr "Putuskan (HUP)"
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr "Interupsi (INT)"
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr "Akhiri (TERM)"
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr "Kill (KILL)"
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr "Pengguna 1 (USR1)"
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr "Pengguna 2 (USR2)"
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "Detail"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "Mulai"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "Mulai Ulang"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "Hentikan aplikasi yang dipilih"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "Paksa hentikan aplikasi yang dipilih"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "Tampilkan detail aplikasi yang dipilih"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr "ID Aplikasi"
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "T/A"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "Baris Perintah"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "Penggunaan Sumber Daya"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "Drive"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "Mulai layanan yang dipilih"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "Hentikan layanan yang dipilih"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "Mulai ulang layanan yang dipilih"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "Tampilkan detail layanan yang dipilih"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "Detail Layanan"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "Status"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "Status layanan saat ini"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "Mulai layanan"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "Hentikan layanan"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "Mulai ulang layanan"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "Deskripsi"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "Status"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "Diaktifkan"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "Proses"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "Informasi proses dan pengguna"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "ID Proses"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "Pengguna"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "Grup"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr "Lokasi File"
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "Log"
+
+#: resources/ui/about_system_dialog.blp:36
+msgid "System Info"
+msgstr "Info Sistem"
+
+#: resources/ui/about_system_dialog.blp:65
+msgid "Operating System Information"
+msgstr "Informasi Sistem Operasi"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+msgid "Version"
+msgstr "Versi"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr "Manajer Paket"
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr "Versi Pengelola Paket"
+
+#: resources/ui/about_system_dialog.blp:183
+msgid "Kernel Information"
+msgstr "Informasi Kernel"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr "Rilis Kernel"
+
+#: resources/ui/about_system_dialog.blp:245
+msgid "Desktop Environment Information"
+msgstr "Informasi Lingkungan Desktop"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr "Sistem Windowing"
+
+#: resources/ui/about_system_dialog.blp:344
+msgid "Virtual Terminal"
+msgstr "Terminal Virtual"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr "Aktifkan Semua"
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr "Nonaktifkan Semua"
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr "Setel Ulang ke Default"
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr "Edit Bilah Samping"
+
+#: resources/ui/window.blp:134
+msgid "Type a name or PID to search"
+msgstr "Ketik nama atau PID untuk mencari"
+
+#: resources/ui/window.blp:149
+msgid "Toggle Device Information"
+msgstr "Aktifkan/Nonaktifkan Informasi Perangkat"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr "Menu Utama"
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr "Performa"
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "Aplikasi"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr "Layanan"
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "_Preferensi"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr "_Pintasan Keyboard"
+
+#: resources/ui/window.blp:237
+msgid "_System Information"
+msgstr "Informasi Sistem"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr "Buka _Wiki"
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr "Tampilkan Dialog _Pertama Kali"
+
+#: resources/ui/window.blp:257
+msgid "_About Mission Center"
+msgstr "Tentang Mission Center"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] "{} Aplikasi yang Berjalan"
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] "{} Proses yang Berjalan"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr "Tutup"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr "Coba Lagi"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+msgid "Kill All"
+msgstr "Hentikan Semua"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr "{} yang lalu"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "Tak diketahui"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr "Pra-Gagal"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr "Usia Tua"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr "Online"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr "Offline"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr "GAGAL"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr "Pernah gagal sebelumnya"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr "Baik"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr "Persen Digunakan"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+msgid "Available Spare"
+msgstr "Sisa Tersedia"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr "Ambang Cadangan"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr "Total Data Dibaca"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr "Total Data Ditulis"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr "Waktu Suhu Peringatan"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr "Waktu Suhu Kritis"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr "Waktu Sibuk Kontrol"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+msgid "Warning Temperature"
+msgstr "Suhu Peringatan"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr "{} °C"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+msgid "Critical Temperature"
+msgstr "Suhu Kritis"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr "Suhu"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr "Shutdown Tidak Aman"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr "Kesalahan Media"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr "Jumlah Entri Log Kesalahan"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr "Siklus Daya"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"Digunakan ({})\n"
+"\n"
+"Memori yang digunakan oleh sistem operasi dan aplikasi yang sedang berjalan"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"Dimodifikasi ({})\n"
+"\n"
+"Memori yang isinya harus ditulis ke disk sebelum dapat digunakan oleh proses "
+"lain"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"Siaga ({})\n"
+"\n"
+"Memori yang berisi data dan kode cache yang tidak sedang digunakan secara "
+"aktif"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"Bebas ({})\n"
+"Memori yang sedang tidak digunakan, dan yang akan digunakan kembali pertama "
+"kali ketika sistem operasi, driver, atau aplikasi membutuhkan lebih banyak "
+"memori"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, rust-format
+msgid "{} sectors"
+msgstr "{} sektor"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+"Data frekuensi CPU nyata tidak tersedia (umum di VM, kontainer, atau "
+"instance cloud). Menampilkan nilai BogoMIPS sebagai cadangan. BogoMIPS "
+"adalah metrik kalibrasi loop penundaan, bukan pengukuran frekuensi yang "
+"sebenarnya."
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "Tidak didukung"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "Ya"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "Tidak"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+msgid "Power draw over "
+msgstr "Penggunaan daya di atas "
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+msgid "Clock speed over "
+msgstr "Kecepatan clock di atas "
+
+#: src/performance_page/disk.rs:179
+#, rust-format
+msgid "Disk {} ({})"
+msgstr "Disk {} ({})"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, rust-format
+msgid "Drive ({})"
+msgstr "Drive ({})"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+msgid "SD"
+msgstr "SD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr "Optik"
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr "Floppy"
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr "Drive Thumb"
+
+#: src/performance_page/disk.rs:336
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "Drive {} ({})"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr "{} RPM"
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr "Kipas {}"
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr "Kipas"
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: src/performance_page/gpu.rs:562
+msgid "Video encode/decode"
+msgstr "Pengode/penguraian video"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "GPU {}"
+
+#: src/performance_page/gpu.rs:826
+msgid "Total Memory"
+msgstr "Total Memori"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr "Total Memori Shared"
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr "Penggunaan memori dedicated dan shared selama "
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr "{} dari {}"
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr "Gagal mendapatkan informasi memori tambahan"
+
+#: src/performance_page/mod.rs:1269
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr "Baterai {}"
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr "Baterai"
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr "{}"
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr "Gagal"
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr "Terputus"
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr "Memutus"
+
+#: src/performance_page/network.rs:460
+msgid "Connected"
+msgstr "Terhubung"
+
+#: src/performance_page/network.rs:461
+msgid "Connecting"
+msgstr "Menghubungkan"
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr "Mengonfigurasi"
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr "Menunggu autentikasi"
+
+#: src/performance_page/network.rs:464
+msgid "Unavailable"
+msgstr "Tidak tersedia"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr "Memuat"
+
+#: src/services_page/mod.rs:99
+#, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "{} Total Layanan"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr "Berjalan"
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr "Berhenti"
+
+#: src/services_page/mod.rs:138
+msgid "Disabled"
+msgstr "Dinonaktifkan"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr "Tidak ada layanan yang cocok dengan filter saat ini"
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr "Tidak ada filter yang diterapkan"
+
+#: src/services_page/mod.rs:153
+#, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "{} {} Layanan"
+
+#: src/services_page/mod.rs:182
+msgid "User Services"
+msgstr "Layanan Pengguna"
+
+#: src/services_page/mod.rs:187
+msgid "System Services"
+msgstr "Layanan Sistem"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr "Header Bagian"
+
+#: src/table_view/row_model.rs:280
+msgid "Service"
+msgstr "Layanan"
+
+#: src/table_view/row_model.rs:281
+msgid "App"
+msgstr "Aplikasi"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr "Salin log ke clipboard"
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr ""
+"Muhammad Hasan Firdaus <hasanteam008@gmail.com>, \n"
+"Arif Budiman <arifpedia@gmail.com>"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} tahun"
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} bulan"
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} hari"
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} jam"
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} menit"
+
+#: src/main.rs:126 src/main.rs:205
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} detik"
+
+#: src/main.rs:163
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} dan {}"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr "{} dan {}"
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr "Kurang dari satu menit"
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "Keluar"
+
+#, fuzzy
+#~ msgid "Show the gpu encode-decode graph"
+#~ msgstr "Tampilkan grafik GPU encode‐decode"
+
+#, fuzzy
+#~ msgid "Shared Memory"
+#~ msgstr "Memori"
+
+#~ msgid "Show CPU Information"
+#~ msgstr "Tampilkan Informasi CPU"
+
+#, fuzzy
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr "Memori"
+
+#, fuzzy
+#~ msgid "App Page"
+#~ msgstr "Pengaturan Halaman Aplikasi"
+
+#, fuzzy
+#~ msgid "{} second{}"
+#~ msgstr "{} detik"
+
+#~ msgid "No per-process network usage"
+#~ msgstr "Tidak ada penggunaan jaringan per proses"
+
+#~ msgid "GPU support is experimental"
+#~ msgstr "Dukungan GPU masih dalam uji coba"
+
+#, fuzzy
+#~ msgid "PWM %"
+#~ msgstr "PWM %"
+
+#~ msgid "Stop Application"
+#~ msgstr "Hentikan Aplikasi"
+
+#~ msgid "Force Stop Application"
+#~ msgstr "Hentikan Paksa Aplikasi"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {}{}B/s"
+
+#~ msgid "{} {}bps"
+#~ msgstr "{} {}bps"
+
+#~ msgid "Ethernet"
+#~ msgstr "Ethernet"
+
+#~ msgid "Wi-Fi"
+#~ msgstr "Wi-Fi"
+
+#~ msgid "Flatpak first"
+#~ msgstr "Flatpak pertama"
+
+#, fuzzy
+#~ msgid "Video decode utilization"
+#~ msgstr "Decode video"
+
+#~ msgid "_Disk"
+#~ msgstr "_Disk"
+
+#~ msgid "Disk"
+#~ msgstr "Disk"
+
+#, fuzzy
+#~ msgid "Fix a bug where the Gatherer process would crash at startup"
+#~ msgstr ""
+#~ "Memperbaiki bug ketika daftar aplikasi dan proses kosong untuk beberapa "
+#~ "pengguna"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems (again!)"
+#~ msgstr ""
+#~ "Memperbaiki bug ketika daftar aplikasi dan proses kosong untuk beberapa "
+#~ "pengguna"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems"
+#~ msgstr ""
+#~ "Memperbaiki bug ketika daftar aplikasi dan proses kosong untuk beberapa "
+#~ "pengguna"
+
+#, fuzzy
+#~ msgid "Update to GTK 4.12 and libadwaita 1.4"
+#~ msgstr "Menggunakan GTK4 dan Libadwaita"
+
+#~ msgid "Fixes:"
+#~ msgstr "Perbaikan:"
+
+#~ msgid ""
+#~ "Add an option, to the context menu, to show kernel times, in the CPU "
+#~ "graphs"
+#~ msgstr ""
+#~ "Tambahkan opsi, ke menu konteks, untuk menunjukkan waktu kernel, dalam "
+#~ "grafik CPU"
+
+#~ msgid "Add CPU temperature, where possible"
+#~ msgstr "Tambahkan suhu CPU, jika memungkinkan"
+
+#~ msgid ""
+#~ "Implement smarter rounding and display precision of values throughout the "
+#~ "app by QwertyChouskie"
+#~ msgstr ""
+#~ "Penerapan pembulatan yang lebih cerdas dan menampilkan ketepatan nilai di "
+#~ "seluruh aplikasi oleh QwertyChouskie"
+
+#~ msgid ""
+#~ "Use metainfo instead of appdata for application metadata by David "
+#~ "Guglielmi"
+#~ msgstr ""
+#~ "Gunakan metainfo sebagai pengganti appdata untuk metadata aplikasi oleh "
+#~ "David Guglielmi"
+
+#~ msgid ""
+#~ "Fixed a regression where natively installed browsers were not showing up "
+#~ "in the apps list on Fedora"
+#~ msgstr ""
+#~ "Memperbaiki regresi di mana peramban yang terinstal secara bawaan tidak "
+#~ "muncul di daftar aplikasi di Fedora"
+
+#~ msgid ""
+#~ "Fixed a regression where Flatpak apps were not showing up in the apps "
+#~ "list on ArchLinux Plasma"
+#~ msgstr ""
+#~ "Memperbaiki masalah dimana aplikasi Flatpak tidak muncul di daftar "
+#~ "aplikasi pada ArchLinux Plasma"
+
+#~ msgid ""
+#~ "Fixed a bug where the Maps app desktop file wasn't being parsed correctly"
+#~ msgstr ""
+#~ "Memperbaiki masalah ketika Peta berkas aplikasi desktop tidak diuraikan "
+#~ "dengan benar"
+
+#~ msgid ""
+#~ "Moved some performance related logs to g_debug to prevent spamming of "
+#~ "system logs"
+#~ msgstr ""
+#~ "Memindahkan log beberapa hal terkait performa ke g_debug untuk "
+#~ "menghindari spam ke log sistem"
+
+#~ msgid "Translations:"
+#~ msgstr "Terjemahan:"
+
+#~ msgid "New translation to Korean by Seong-ho Cho"
+#~ msgstr "Terjemahan baru Bahasa Korea oleh Seong-ho Cho"
+
+#~ msgid "New translation to Dutch by Gert"
+#~ msgstr "Terjemahan baru Bahasa Belanda oleh Gert"
+
+#~ msgid "New translation to Polish by _Ghost_"
+#~ msgstr "Terjemahan baru Bahasa Polandia oleh _Ghost_"
+
+#~ msgid "New translation to Italian by beppeilgommista"
+#~ msgstr "Terjemahan baru Bahasa Italia oleh beppeilgommista"
+
+#~ msgid "New translation to Portuguese (Brazil) by Gérson da Fonseca Henzel"
+#~ msgstr ""
+#~ "Terjemahan baru Bahasa Portugis (Brazil) oleh Gérson da Fonseca Henzel"
+
+#~ msgid "Updated Spanish translation"
+#~ msgstr "Terjemahan Bahasa Spanyol diperbarui"
+
+#~ msgid "Updated Finnish translation"
+#~ msgstr "Terjemahan Bahasa Finlandia diperbarui"
+
+#~ msgid "Updated Russian translation"
+#~ msgstr "Terjemahan Bahasa Rusia diperbarui"
+
+#~ msgid "Updated Chinese (Simplified) translation"
+#~ msgstr "Terjemahan Bahasa Mandarin (Sederhana) diperbarui"
+
+#~ msgid "Updated Greek translation"
+#~ msgstr "Terjemahan Bahasa Yunani diperbarui"
+
+#~ msgid "Updated German translation"
+#~ msgstr "Terjemahan Bahasa Jerman diperbarui"
+
+#~ msgid ""
+#~ "Hotfix release to fix a bug that caused the app to not display any "
+#~ "information for some users"
+#~ msgstr ""
+#~ "Rilis perbaikan terbaru untuk memperbaiki bug yang menyebabkan aplikasi "
+#~ "tidak menampilkan informasi apa pun untuk beberapa pengguna"
+
+#~ msgid "New app icon by QwertyChouskie"
+#~ msgstr "Ikon aplikasi baru oleh QwertyChouskie"
+
+#~ msgid "Add ability to stop and force stop apps and processes"
+#~ msgstr ""
+#~ "Menambahkan kemampuan untuk menghentikan dan menghentikan paksa aplikasi "
+#~ "dan proses"
+
+#~ msgid ""
+#~ "Running apps are now shown more reliably, and should reflect most if not "
+#~ "all running apps"
+#~ msgstr ""
+#~ "Aplikasi berjalan kini ditampilkan dengan lebih andal, dan mencerminkan "
+#~ "sebagian besar jika tidak seluruh aplikasi berjalan"
+
+#~ msgid "Experimental support for Snap apps in the running apps list"
+#~ msgstr ""
+#~ "Dukungan eksperimental untuk aplikasi Snap di daftar aplikasi berjalan"
+
+#~ msgid ""
+#~ "Added a setting to show resource consumption individually per process or "
+#~ "cumulated with their descendants"
+#~ msgstr ""
+#~ "Menambahkan pengaturan untuk menampilkan konsumsi daya individual per "
+#~ "proses atau gabungan dengan proses turunan"
+
+#~ msgid ""
+#~ "Added a setting to enable persistent sorting in the apps and processes "
+#~ "list"
+#~ msgstr ""
+#~ "Menambahkan pengaturan untuk mengaktifkan pengurutan tetap dalam daftar "
+#~ "aplikasi dan proses"
+
+#~ msgid ""
+#~ "Data gathering is now more versatile and will permit new features to be "
+#~ "added quicker and easier"
+#~ msgstr ""
+#~ "Pengumpulan data sekarang lebih serbaguna dan akan memungkinkan fitur "
+#~ "baru untuk ditambahkan lebih cepat dan mudah"
+
+#~ msgid "App can now be built from GNOME Builder"
+#~ msgstr "Sekarang aplikasi dapat dibuat dari GNOME Builder"
+
+#~ msgid "New translation to Norwegian Bokmål by Allan Nordhøy"
+#~ msgstr "Terjemahan baru Bahasa Norwegia Bokmål oleh Allan Nordhøy"
+
+#~ msgid "New translation to Russian by Ivan Maslikhov"
+#~ msgstr "Terjemahan baru Bahasa Rusia oleh Ivan Maslikhov"
+
+#~ msgid "New translation to Slovak by mthw0"
+#~ msgstr "Terjemahan baru Bahasa Slovakia oleh mthw0"
+
+#~ msgid "New translation to Greek by Yiannis Ioannides"
+#~ msgstr "Terjemahan baru Bahasa Yunani oleh Yiannis Ioannides"
+
+#~ msgid "New translation to Chinese (Simplified) by foxer NS"
+#~ msgstr "Terjemahan baru Bahasa Mandarin (Sederhana) oleh foxer NS"
+
+#~ msgid "New translation to French by Link Mauve"
+#~ msgstr "Terjemahan baru Bahasa Prancis oleh Link Mauve"
+
+#~ msgid "New translation to Hungarian by Kovács Bálint Hunor"
+#~ msgstr "Terjemahan baru Bahasa Hungaria oleh Kovács Bálint Hunor"
+
+#~ msgid "Updated Czech translation"
+#~ msgstr "Terjemahan Bahasa Ceko diperbarui"
+
+#~ msgid "Updated Portuguese translation"
+#~ msgstr "Terjemahan Bahasa Portugal diperbarui"
+
+#~ msgid "Fixes for Chinese translations by foxer NS"
+#~ msgstr "Perbaikan untuk terjemahan Bahasa Mandarin oleh foxer NS"
+
+#~ msgid "Add Spanish translation by Óscar Fernández Díaz"
+#~ msgstr "Menambahkan terjemahan Bahasa Spanyol oleh Óscar Fernández Díaz"
+
+#~ msgid ""
+#~ "The memory tab now shows configured memory speed instead of the maximum "
+#~ "supported by the modules"
+#~ msgstr ""
+#~ "Tab memori kini menampilkan kecepatan memori yang dikonfigurasi, bukan "
+#~ "kecepatan maksimal yang didukung oleh modul"
+
+#~ msgid "Add German translation by TecCheck"
+#~ msgstr "Menambahkan terjemahan Bahasa Jerman oleh TecCheck"
+
+#~ msgid ""
+#~ "When a process uses large amounts of CPU or RAM it is now highlighted in "
+#~ "the Apps and Processes list"
+#~ msgstr ""
+#~ "Ketika proses menggunakan CPU atau RAM dengan jumlah besar sekarang "
+#~ "disorot di daftar Aplikasi dan Proses"
+
+#~ msgid "Add initial support for building for ARM64"
+#~ msgstr "Menambahkan dukungan awal untuk ARM64"
+
+#~ msgid ""
+#~ "Take into account multiple CPU cores and cache sharing when calculating "
+#~ "cache sizes"
+#~ msgstr ""
+#~ "Menghitung multi CPU core dan pembagian cache ketika menghitung ukuran "
+#~ "cache"
+
+#~ msgid ""
+#~ "Fix browsers, installed as native packages, not showing up in the Apps "
+#~ "list"
+#~ msgstr ""
+#~ "Memperbaiki browser, pemasangan sebagai paket native, tidak muncul di "
+#~ "daftar Aplikasi"
+
+#~ msgid "Translation updates for Traditional Chinese by Peter Dave Hello"
+#~ msgstr ""
+#~ "Terjemahan Bahasa Mandarin Tradisional diperbarui oleh Peter Dave Hello"
+
+#~ msgid "Translation fixes for Portuguese by Rafael Fontenelle"
+#~ msgstr "Perbaikan terjemahan Bahasa Portugal oleh Rafael Fontenelle"
+
+#~ msgid ""
+#~ "Only show a link-local IPv6 address if no other IPv6 exists by Maximilian"
+#~ msgstr ""
+#~ "Hanya menampilkan alamat link IPv6 lokal jika tidak ada IPv6 lain oleh "
+#~ "Maximilian"
+
+#~ msgid "Add Traditional Chinese locale by Peter Dave Hello"
+#~ msgstr ""
+#~ "Menambahkan terjemahan Bahasa Mandarin Tradisional oleh Peter Dave Hello"
+
+#~ msgid "Add category for application menu by Renner0E"
+#~ msgstr "Menambahkan kategori untuk menu aplikasi oleh Renner0E"
+
+#~ msgid ""
+#~ "Fix a parsing error when parsing the output of `dmidecode` that lead to a "
+#~ "panic"
+#~ msgstr ""
+#~ "Memperbaiki kesalahan parsing ketika menguraikan hasil dari `dmidecode` "
+#~ "yang menyebabkan panik"
+
+#~ msgid ""
+#~ "Use a fallback if `/sys/devices/system/cpu/cpu0/cpufreq/base_frequency` "
+#~ "does not exist, when getting CPU base speed information"
+#~ msgstr ""
+#~ "Menggunakan cadangan ketika `/sys/devices/system/cpu/cpu0/cpufreq/"
+#~ "base_frequency` tidak ada, ketika mendapatkan informasi basis kecepatan "
+#~ "CPU"
+
+#~ msgid "Update GPU tab UI to be more adaptive for smaller resolutions"
+#~ msgstr ""
+#~ "Memperbarui tampilan tab GPU supaya lebih adaptif untuk resolusi yang "
+#~ "lebih kecil"
+
+#~ msgid "Added Czech translation by ondra05"
+#~ msgstr "Terjemahan Bahasa Ceko ditambahkan oleh ondra05"
+
+#~ msgid "Added Portuguese translation by Rilson Joás"
+#~ msgstr "Terjemahan Bahasa Portugal ditambahkan oleh Rilson Joás"
+
+#~ msgid ""
+#~ "Add keywords to desktop file to improve search function of desktop "
+#~ "environments by Hannes Kuchelmeister"
+#~ msgstr ""
+#~ "Menambahkan kata kunci ke file desktop untuk memperbaiki performa fungsi "
+#~ "pencarian dari lingkungan desktop oleh Hannes Kuchelmeister"
+
+#~ msgid "Fixed a bug where the app and process list was empty for some users"
+#~ msgstr ""
+#~ "Memperbaiki bug ketika daftar aplikasi dan proses kosong untuk beberapa "
+#~ "pengguna"
+
+#~ msgid "Fix a crash that occurs when the system is under heavy load"
+#~ msgstr "Memperbaiki crash yang terjadi ketika sistem dalam beban berat"
+
+#~ msgid "First official release!"
+#~ msgstr "Rilis resmi pertama!"
+
+#~ msgid "Disk transfer rate"
+#~ msgstr "Kecepatan transfer disk"
+
+#~ msgid "Overall utilization"
+#~ msgstr "Keseluruhan pemanfaatan"
+
+#~ msgid ""
+#~ "GPU support is experimental and only AMD and nVidia GPUs can be monitored"
+#~ msgstr ""
+#~ "Dukungan GPU bersifat eksperimental dan hanya GPU AMD dan nVidia yang "
+#~ "dapat dimonitor"
+
+#~ msgid "Fast"
+#~ msgstr "Cepat"
+
+#~ msgid "Refresh every half second"
+#~ msgstr "Perbarui setiap setengah detik"
+
+#~ msgid "Refresh every second"
+#~ msgstr "Perbarui setiap detik"
+
+#~ msgid "Slow"
+#~ msgstr "Lambat"
+
+#~ msgid "Refresh every second and a half"
+#~ msgstr "Perbarui setiap satu setengah detik"
+
+#~ msgid "Very Slow"
+#~ msgstr "Sangat Lambat"
+
+#~ msgid "Refresh every 2 seconds"
+#~ msgstr "Perbarui setiap 2 detik"
+
+#~ msgid "Supported"
+#~ msgstr "Didukung"
+
+#~ msgid "Authentication failed"
+#~ msgstr "Autentikasi gagal"
+
+#~ msgid "More info"
+#~ msgstr "Info selengkapnya"
+
+#~ msgid "Disk utilization percentage might not be accurate"
+#~ msgstr "Persentase pemanfaatan disk mungkin tidak akurat"
+
+#~ msgid "No per-process GPU usage"
+#~ msgstr "Tidak ada penggunaan GPU per proses"
+
+#~ msgid "Some information requires administrative privileges"
+#~ msgstr "Beberapa informasi memerlukan hak istimewa administrator"

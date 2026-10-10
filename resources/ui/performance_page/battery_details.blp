@@ -1,0 +1,680 @@
+/* ui/performance_page/battery_details.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+Grid root {
+  margin-top: 65;
+  margin-bottom: 10;
+
+  row-spacing: 10;
+  column-spacing: 0;
+
+  styles [
+    "layout-grid"
+  ]
+
+  Box {
+    layout {
+      column: '0';
+      row: '0';
+    }
+
+    orientation: horizontal;
+
+    Box percentage_box {
+      width-request: 100;
+      orientation: vertical;
+      spacing: 3;
+
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Percentage");
+      }
+
+      Label percentage {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+    Box {
+      visible: bind energy.visible;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Energy");
+      }
+
+      Label energy {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+  }
+  Box {
+    layout {
+      column: '0';
+      row: '1';
+    }
+    orientation: horizontal;
+
+
+    Box voltage_box {
+      visible: bind voltage.visible;
+      width-request: bind percentage_box.width-request;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Voltage");
+      }
+
+      Label voltage {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+    Box {
+      visible: bind power.visible;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Power");
+      }
+
+      Label power {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+  }
+
+  Box {
+    visible: bind state.visible;
+    layout {
+      column: '0';
+      row: '2';
+    }
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("State");
+    }
+
+    Label state {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box time_to_box {
+    layout {
+      column: '0';
+      row: '3';
+    }
+
+    orientation: vertical;
+    spacing: 3;
+
+    Box {
+      orientation: horizontal;
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Time to ");
+      }
+
+      Label time_to_direction {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+      }
+    }
+
+    Label time_to {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    visible: bind charge_cycles.visible;
+    layout {
+      column: '0';
+      row: '4';
+    }
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Charge Cycles");
+    }
+
+    Label charge_cycles {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Grid system_info {
+    layout {
+      column: '0';
+      row: '5';
+    }
+
+    margin-top: 10;
+
+    row-spacing: 5;
+    column-spacing: 10;
+
+    Label {
+        visible: bind serial.visible;
+
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '0';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Serial:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind kind.visible;
+
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '1';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Type:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind power_supply.visible;
+
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '2';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Powering System:");
+      ellipsize: end;
+    }
+    Label {
+        visible: bind technology.visible;
+
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '3';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Technology:");
+      ellipsize: end;
+    }
+
+
+    Label {
+        visible: bind capacity.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '4';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Capacity:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind energy_empty.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '5';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Energy Empty:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind energy_full.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '6';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Energy Full:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind energy_full_design.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '7';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Energy Full (design):");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind voltage_min_design.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '8';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Voltage min (design):");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind voltage_max_design.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '9';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Voltage max (design):");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind charge_threshold_enabled.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '10';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Charge Threshold:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind charge_start_threshold.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '11';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Charge Start Threshold:");
+      ellipsize: end;
+    }
+
+    Label {
+        visible: bind charge_end_threshold.visible;
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '0';
+        row: '12';
+      }
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Charge End Threshold:");
+      ellipsize: end;
+    }
+
+
+
+    Label serial {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '0';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label kind {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '1';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label power_supply {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '2';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label technology {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '3';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label capacity {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '4';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label energy_empty {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '5';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label energy_full {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '6';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label energy_full_design {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '7';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label voltage_min_design {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '8';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label voltage_max_design {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '9';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label charge_threshold_enabled {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '10';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label charge_start_threshold {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '11';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+
+    Label charge_end_threshold {
+      styles [
+        "caption",
+      ]
+
+      layout {
+        column: '1';
+        row: '12';
+      }
+
+      halign: start;
+      selectable: true;
+    }
+  }
+}

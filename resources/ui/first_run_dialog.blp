@@ -1,0 +1,104 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $FirstRunDialog: Adw.Dialog {
+    default-widget: run_script;
+
+    Box {
+        orientation: vertical;
+        valign: start;
+        halign: start;
+        margin-top: 12;
+        margin-start: 12;
+        margin-end: 12;
+        margin-bottom: 12;
+        spacing: 12;
+
+        Label {
+            styles [
+                "title-1",
+            ]
+
+            wrap: true;
+            wrap-mode: word_char;
+            label: _("Enabling Additional Values");
+        }
+
+        Label main_text {
+            halign: start;
+            hexpand: true;
+            use-markup: true;
+            wrap: true;
+            label: _("CPU power draw, per-process network usage and fans may require additional setup");
+        }
+
+        Adw.WrapBox {
+            child-spacing: 12;
+            line-spacing: 12;
+
+            Button {
+                tooltip-text: "https://gitlab.com/mission-center-devs/mission-center/-/wikis/home";
+                action-name: "app.open-wiki";
+
+                Box {
+                    spacing: 6;
+
+                    Label {
+                        label: _("Open Wiki");
+                    }
+
+                    Image {
+                        icon-name: "external-link-symbolic";
+                    }
+                }
+            }
+
+            Box {
+                spacing: 6;
+
+                Box {
+                    hexpand: true;
+
+                    Adw.SplitButton run_script {
+                        action-name: "app.run_script";
+                        menu-model: button_run_menu;
+                        receives-default: true;
+
+                        styles [
+                            "suggested-action",
+                        ]
+
+                        Box {
+                            spacing: 6;
+
+                            Label {
+                                label: _("Run Additional Setup");
+                            }
+
+                            Image {
+                                icon-name: "padlock2-symbolic";
+                            }
+                        }
+                    }
+                }
+
+                Button close {
+                    label: _("Close");
+                }
+            }
+        }
+    }
+}
+
+menu button_run_menu {
+    section {
+        item (_("Revert Additional Setup"), "app.run_revert_script")
+        item (_("View Script"), "app.view_script")
+    }
+
+    section {
+        item (_("Copy Script Location"), "app.copy_script_location")
+        item (_("Copy Command"), "app.copy_script_command")
+        item (_("Copy Revert Command"), "app.copy_revert_script_command")
+    }
+}

@@ -1,0 +1,266 @@
+/* ui/window.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+using Gtk 4.0;
+using Adw 1;
+
+template $MissionCenterWindow: Adw.ApplicationWindow {
+    width-request: 360;
+    height-request: 400;
+    default-width: 800;
+    default-height: 480;
+    title: "Mission Center";
+    summary-mode: bind performance_page.summary-mode;
+    collapse-threshold: 1000;
+
+    Adw.Breakpoint breakpoint {}
+
+    content: Adw.OverlaySplitView split_view {
+        show-sidebar: bind toggle_sidebar_button.active bidirectional;
+
+        sidebar: Adw.ToolbarView {
+            [top]
+            Adw.HeaderBar {
+                [start]
+                Box {
+                    visible: bind toggle_sidebar_edit_mode_button.active;
+
+                    Button sidebar_edit_mode_enable_all {
+                        icon-name: "list-enable-all-symbolic";
+                        tooltip-text: _("Enable All");
+                    }
+
+                    Button sidebar_edit_mode_disable_all {
+                        icon-name: "list-disable-all-symbolic";
+                        tooltip-text: _("Disable All");
+                    }
+
+                    Button sidebar_edit_mode_reset {
+                        icon-name: "arrow-circular-top-right-symbolic";
+                        tooltip-text: _("Reset to Default");
+                    }
+                }
+
+                title-widget: Adw.WindowTitle {
+                    title: _("Devices");
+                };
+
+                [end]
+                ToggleButton toggle_sidebar_edit_mode_button {
+                    icon-name: "edit-symbolic";
+                    tooltip-text: _("Edit Sidebar");
+                    active: false;
+                }
+            }
+
+            Stack sidebar_stack {
+                transition-type: crossfade;
+
+                StackPage {
+                    name: "placeholders";
+
+                    child: ScrolledWindow {
+                        hscrollbar-policy: never;
+
+                        $Placeholder {
+                            profile: "sidebar";
+                        }
+                    };
+                }
+
+                StackPage {
+                    name: "content";
+
+                    child: ScrolledWindow {
+                        hscrollbar-policy: never;
+
+                        ListBox sidebar {
+                            styles [
+                                "navigation-sidebar",
+                            ]
+                        }
+                    };
+                }
+            }
+        };
+
+        content: Adw.ToolbarView window_content {
+            [top]
+            Adw.HeaderBar header_bar {
+                [start]
+                ToggleButton toggle_sidebar_button {
+                    action-name: "win.toggle-sidebar";
+                    icon-name: "sidebar-toggle-left-symbolic";
+                    tooltip-text: _("Toggle Sidebar");
+                }
+
+                title-widget: Stack header_stack {
+                    transition-type: crossfade;
+                    hhomogeneous: false;
+
+                    StackPage {
+                        name: "view-switcher";
+
+                        child: Adw.ViewSwitcher header_tabs {
+                            halign: center;
+                            policy: wide;
+                            stack: stack;
+                        };
+                    }
+
+                    StackPage {
+                        name: "search-entry";
+
+                        child: Adw.Clamp {
+                            orientation: horizontal;
+                            hexpand: true;
+                            maximum-size: 400;
+
+                            child: SearchEntry header_search_entry {
+                                placeholder-text: _("Type a name or PID to search");
+                            };
+                        };
+                    }
+                };
+
+                [end]
+                Box {
+                    ToggleButton info_button {
+                        styles [
+                            "flat",
+                            "flipped",
+                        ]
+
+                        icon-name: "sidebar-toggle-left-symbolic";
+                        visible: bind template.info-button-visible;
+                        active: false;
+                        tooltip-text: _("Toggle Device Information");
+                    }
+
+                    ToggleButton search_button {
+                        styles [
+                            "flat",
+                        ]
+
+                        action-name: "win.toggle-search";
+                        icon-name: "system-search-symbolic";
+                        visible: bind template.search-button-visible;
+                        tooltip-text: _("Search");
+                    }
+
+                    Button system_about {
+                        action-name: "app.system-about";
+                        tooltip-text: _("System Information");
+                        icon-name: "info-outline-symbolic";
+                    }
+
+                    MenuButton menu_button {
+                        icon-name: "open-menu-symbolic";
+                        tooltip-text: _("Main Menu");
+                        menu-model: primary_menu;
+                        primary: true;
+                    }
+                }
+            }
+
+            content: Box {
+                orientation: vertical;
+
+                Adw.ViewStack stack {
+                    hexpand: true;
+                    vexpand: true;
+
+                    Adw.ViewStackPage {
+                        name: "performance-page";
+                        icon-name: "speedometer-symbolic";
+                        title: _("Performance");
+
+                        child: $PerformancePage performance_page {
+                            infobar-visible: bind info_button.active bidirectional;
+                            summary-mode: bind header_bar.visible bidirectional inverted;
+                            sidebar: sidebar;
+                            sidebar-edit-mode: bind toggle_sidebar_edit_mode_button.active bidirectional;
+                        };
+                    }
+
+                    Adw.ViewStackPage {
+                        name: "apps-page";
+                        icon-name: "overlapping-windows-symbolic";
+                        title: _("Apps");
+
+                        child: $AppsPage apps_page {};
+                    }
+
+                    Adw.ViewStackPage services_stack_page {
+                        name: "services-page";
+                        icon-name: "system-run-symbolic";
+                        title: _("Services");
+
+                        child: $ServicesPage services_page {};
+                    }
+                }
+            };
+
+            [bottom]
+            Adw.ViewSwitcherBar bottom_bar {
+                stack: stack;
+            }
+        };
+    };
+}
+
+menu primary_menu {
+    section {
+        item {
+            custom: 'theme-selector';
+        }
+    }
+
+    section {
+        item {
+            label: _("_Preferences");
+            action: "app.preferences";
+        }
+
+        item {
+            label: _("_Keyboard Shortcuts");
+            action: "app.keyboard-shortcuts";
+        }
+    }
+
+    section {
+        item {
+            label: _("Open _Wiki");
+            verb-icon: "external-link-symbolic";
+            action: "app.open-wiki";
+        }
+
+        item {
+            label: _("Show _First Run Dialog");
+            action: "app.first-run-dialog";
+        }
+    }
+
+    section {
+        item {
+            label: _("_About Mission Center");
+            action: "app.about";
+        }
+    }
+}

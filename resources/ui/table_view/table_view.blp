@@ -1,0 +1,204 @@
+/* ui/table_view/table_view.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $TableView: Box {
+  Frame {
+    child: ScrolledWindow {
+      hexpand: true;
+      vexpand: true;
+
+      ColumnView column_view {
+        styles [
+          "rich-list"
+        ]
+
+        reorderable: true;
+        show-row-separators: false;
+        show-column-separators: bind template.show-column-separators;
+
+        ColumnViewColumn name_column {
+          id: "name";
+          title: _("Name");
+          expand: true;
+          resizable: false;
+        }
+
+        ColumnViewColumn pid_column {
+          id: "pid";
+          title: _("PID");
+          resizable: true;
+        }
+
+        ColumnViewColumn cpu_column {
+          id: "cpu";
+          title: _("CPU");
+          resizable: true;
+        }
+
+        ColumnViewColumn memory_column {
+          id: "memory";
+          title: _("Memory");
+          resizable: true;
+        }
+
+        ColumnViewColumn swap_column {
+          id: "swap";
+          title: _("Swap");
+          resizable: true;
+        }
+
+        ColumnViewColumn drive_column {
+          id: "drive";
+          title: _("Drive");
+          resizable: true;
+        }
+
+        ColumnViewColumn network_usage_column {
+          id: "network";
+          title: _("Network");
+          resizable: true;
+        }
+
+        ColumnViewColumn gpu_usage_column {
+          id: "gpu";
+          title: _("GPU");
+          resizable: true;
+        }
+
+        ColumnViewColumn gpu_memory_column {
+          id: "gpu_memory";
+          title: _("GPU Memory");
+          resizable: true;
+        }
+
+        // "Stolen" from baobab. See baobab-main-window.ui circa 04/2026
+        ShortcutController {
+          propagation-phase: capture;
+
+          Shortcut {
+            trigger: "Right";
+            action: "action(column-view.tableview-expand-row)";
+          }
+
+          Shortcut {
+            trigger: "Left";
+            action: "action(column-view.tableview-collapse-row)";
+          }
+        }
+      }
+    };
+  }
+
+  PopoverMenu context_menu {
+  }
+}
+
+menu app_menu_model {
+  section {
+    item {
+      label: _("Stop");
+      action: "process.stop";
+    }
+
+    item {
+      label: _("Force Stop");
+      action: "process.force-stop";
+    }
+
+    submenu {
+      label: _("Send Signal");
+
+      item {
+        label: _("Suspend (STOP)");
+        action: "process.suspend";
+      }
+
+      item {
+        label: _("Continue (CONT)");
+        action: "process.continue";
+      }
+
+      item {
+        label: _("Hangup (HUP)");
+        action: "process.hangup";
+      }
+
+      item {
+        label: _("Interrupt (INT)");
+        action: "process.interrupt";
+      }
+
+      item {
+        label: _("Terminate (TERM)");
+        action: "process.stop";
+      }
+
+      item {
+        label: _("Kill (KILL)");
+        action: "process.force-stop";
+      }
+
+      item {
+        label: _("User 1 (USR1)");
+        action: "process.user-one";
+      }
+
+      item {
+        label: _("User 2 (USR2)");
+        action: "process.user-two";
+      }
+    }
+  }
+
+  section {
+    item {
+      label: _("Details");
+      action: "process.details";
+    }
+  }
+}
+
+menu service_menu_model {
+  section {
+    item {
+      label: _("Start");
+      action: "service.start";
+    }
+
+    item {
+      label: _("Stop");
+      action: "service.stop";
+    }
+
+    item {
+      label: _("Restart");
+      action: "service.restart";
+    }
+  }
+
+  section {
+    item {
+      label: _("Details");
+      action: "service.details";
+    }
+  }
+}

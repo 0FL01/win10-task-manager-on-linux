@@ -1,0 +1,693 @@
+/* ui/performance_page/gpu_details.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $GpuDetails: Box {
+  margin-top: 65;
+  margin-bottom: 10;
+
+  Grid dynamic_data {
+    row-spacing: 10;
+    column-spacing: 0;
+    orientation: vertical;
+
+    styles [
+      "layout-grid"
+    ]
+
+    Box {
+      layout {
+        column: '1';
+        row: '0';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Utilization");
+      }
+
+      Label utilization {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Picture legend_clock {
+      layout {
+        column: '0';
+        row: '1';
+      }
+      visible: true;
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '1';
+      }
+
+      visible: bind template.clock_speed_available;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Clock Speed");
+      }
+
+      Box {
+        Label clock_speed_current {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+
+        Label clock_speed_separator{
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          label: " / ";
+        }
+
+        Label clock_speed_max {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Box box_power_draw {
+      layout {
+        column: '1';
+        row: '2';
+      }
+
+      visible: bind template.power_draw_available;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Power Draw");
+      }
+
+      Box {
+        Label power_draw_current {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+
+        Label power_draw_separator{
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          label: " / ";
+        }
+
+        Label power_draw_max {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Picture legend_vram {
+      layout {
+        column: '0';
+        row: '3';
+      }
+      visible: true;
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '3';
+      }
+
+      visible: bind template.dedicated_memory_available;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label memory_usage_title {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Memory Usage");
+      }
+
+      Box {
+        Label memory_usage_current {
+          visible: bind template.used_memory_valid;
+
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+
+        Label {
+          visible: bind template.show_dedicated_separator;
+
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          label: " / ";
+        }
+
+        Label memory_usage_max {
+          visible: bind template.total_memory_valid;
+
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Picture legend_gtt {
+      layout {
+        column: '0';
+        row: '4';
+      }
+      visible: bind legend_vram.visible;
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '4';
+      }
+
+      visible: bind template.shared_memory_available;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label shared_memory_usage_title {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Shared Memory Usage");
+      }
+
+      Box {
+        Label gtt_usage_current {
+          visible: bind template.used_shared_memory_valid;
+
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+
+        Label gtt_separator {
+          visible: bind template.show_shared_separator;
+
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          label: " / ";
+        }
+
+        Label gtt_usage_max {
+          visible: bind template.total_shared_memory_valid;
+
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Picture legend_clock_mem {
+      layout {
+        column: '0';
+        row: '5';
+      }
+      visible: bind legend_clock.visible;
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box box_mem_speed {
+      layout {
+        column: '1';
+        row: '5';
+      }
+
+      visible: bind template.memory_speed_available;
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Memory Speed");
+      }
+
+      Box {
+        Label memory_speed_current {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+
+        Label memory_speed_separator {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          label: " / ";
+        }
+
+        Label memory_speed_max {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Picture legend_encode {
+      layout {
+        column: '0';
+        row: '6';
+      }
+      visible: true;
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Grid {
+      layout {
+        column: '1';
+        row: '6';
+        column-span: '3';
+      }
+
+      visible: bind template.encode_decode_available;
+
+      Box {
+        layout {
+          column: '0';
+          row: '0';
+        }
+
+        orientation: vertical;
+        spacing: 3;
+
+        Label encode_label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Video encode");
+        }
+
+        Label encode_percent {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+
+      Picture legend_decode {
+        layout {
+          column: '1';
+          row: '0';
+        }
+
+        margin-start: 20;
+
+        visible: false;
+
+        can-shrink: false;
+        content-fit: scale_down;
+      }
+
+      Box {
+        layout {
+          column: '2';
+          row: '0';
+        }
+
+        visible: bind template.encode_decode_shared inverted;
+
+        orientation: vertical;
+        spacing: 3;
+        halign: end;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Video decode");
+        }
+
+        Label decode_percent {
+          styles [
+            "title-4",
+          ]
+
+          ellipsize: middle;
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Box box_temp {
+      layout {
+        column: '1';
+        row: '7';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Temperature");
+      }
+
+      Label temperature {
+        styles [
+          "title-4",
+        ]
+
+        ellipsize: middle;
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Grid system_info {
+      layout {
+        column: '1';
+        row: '8';
+      }
+
+      margin-top: 10;
+
+      row-spacing: 5;
+      column-spacing: 10;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '0';
+          row: '0';
+        }
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("OpenGL version:");
+        ellipsize: end;
+      }
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '0';
+          row: '1';
+        }
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("Vulkan version:");
+        ellipsize: end;
+      }
+
+      Label pcie_speed_label {
+        visible: bind template.pcie_info_visible;
+
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '0';
+          row: '2';
+        }
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("PCI Express speed:");
+        ellipsize: end;
+      }
+
+      Label max_pcie_speed_label {
+        visible: bind template.max_pcie_info_visible;
+
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '0';
+          row: '3';
+        }
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("Max PCI Express speed:");
+        ellipsize: end;
+      }
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '0';
+          row: '4';
+        }
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("Device address:");
+        ellipsize: end;
+      }
+
+      Label opengl_version {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '1';
+          row: '0';
+        }
+
+        halign: start;
+        selectable: true;
+      }
+
+      Label vulkan_version {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '1';
+          row: '1';
+        }
+
+        halign: start;
+        selectable: true;
+      }
+
+      Label pcie_speed {
+        visible: bind template.pcie_info_visible;
+
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '1';
+          row: '2';
+        }
+
+        halign: start;
+        selectable: true;
+      }
+
+      Label max_pcie_speed {
+        visible: bind template.max_pcie_info_visible;
+
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '1';
+          row: '3';
+        }
+
+        halign: start;
+        selectable: true;
+      }
+
+      Label pci_addr {
+        styles [
+          "caption",
+        ]
+
+        layout {
+          column: '1';
+          row: '4';
+        }
+
+        halign: start;
+        selectable: true;
+      }
+    }
+  }
+}

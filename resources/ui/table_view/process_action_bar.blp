@@ -1,0 +1,88 @@
+/* ui/table_view/process_action_bar.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $ProcessActionBar: Box {
+  spacing: 5;
+
+  Box {
+    styles [
+      "linked"
+    ]
+
+    Button {
+      action-name: "process.stop";
+      tooltip-text: _("Stop the selected app");
+
+      child: Box {
+        spacing: 5;
+
+        halign: center;
+
+        Image {
+          icon-name: "media-playback-stop-symbolic";
+        }
+
+        Label stop_label {
+          label: _("Stop");
+        }
+      };
+    }
+
+    Button {
+      action-name: "process.force-stop";
+      tooltip-text: _("Force stop the selected app");
+
+      child: Box {
+        spacing: 5;
+
+        halign: center;
+
+        Image {
+          icon-name: "cross-small-circle-filled-symbolic";
+        }
+
+        Label force_stop_label{
+          label: _("Force Stop");
+        }
+      };
+    }
+  }
+
+  Button {
+    action-name: "process.details";
+    tooltip-text: _("Show details of the selected app");
+
+    child: Box {
+      spacing: 5;
+
+      halign: center;
+
+      Image {
+        icon-name: "details-symbolic";
+      }
+
+      Label details_label {
+        label: _("Details");
+      }
+    };
+  }
+}

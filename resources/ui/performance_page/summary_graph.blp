@@ -1,0 +1,91 @@
+/* ui/performance_page/summary_graph.blp
+ *
+ * Copyright 2023 Romeo Calota
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $SummaryGraph: Box {
+  orientation: vertical;
+
+  margin-top: 10;
+  margin-bottom: 10;
+  margin-end: 10;
+
+  Box {
+    spacing: 10;
+
+    Image drag_handle_icon {
+      styles [
+        "drag-handle",
+      ]
+
+      visible: false;
+      margin-start: 3;
+
+      icon-name: "list-drag-handle-symbolic";
+    }
+
+    $McGraphWidget graph_widget {
+        width-request: 80;
+        height-request: 50;
+
+        data-points: 60;
+        grid-visible: false;
+    }
+
+    Box {
+      orientation: vertical;
+      spacing: 3;
+      width-request: 145;
+
+      Label label_heading {
+        halign: start;
+        ellipsize: end;
+      }
+
+      Label label_info1 {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        ellipsize: end;
+      }
+
+      Label label_info2 {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        ellipsize: end;
+      }
+    }
+
+    Switch enabled_switch {
+      visible: false;
+
+      halign: end;
+      valign: center;
+      vexpand: false;
+
+      active: true;
+    }
+  }
+}

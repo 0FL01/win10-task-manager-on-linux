@@ -1,0 +1,327 @@
+/* ui/performance_page/gpu.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+template $PerformancePageGpu: Box {
+  orientation: vertical;
+  margin-bottom: 10;
+
+  WindowHandle {
+    child: Box description {
+      orientation: vertical;
+      margin-top: 2;
+      spacing: 7;
+      hexpand: true;
+
+      Box {
+        spacing: 20;
+
+        Label gpu_id {
+          styles [
+            "title-1",
+          ]
+
+          hexpand: true;
+          halign: start;
+        }
+
+        Label device_name {
+          styles [
+            "title-3",
+          ]
+
+          halign: end;
+          ellipsize: middle;
+          selectable: true;
+        }
+      }
+    };
+  }
+
+  Box big_box {
+    orientation: vertical;
+    homogeneous: true;
+    spacing: 10;
+    margin-top: 7;
+
+    Box graph_top {
+      orientation: vertical;
+
+      Box {
+        Label {
+          styles [
+            "caption",
+          ]
+          label: _("Utilization over ");
+        }
+        Label graph_max_duration {
+          styles [
+              "caption",
+          ]
+
+          hexpand: true;
+          halign: start;
+        }
+        Label {
+          styles [
+            "caption",
+          ]
+          label: _("100%");
+        }
+      }
+
+      $McGraphWidget graph_utilization {
+        vexpand: true;
+        hexpand: true;
+
+        width-request: 100;
+        height-request: 50;
+
+        base-color: bind template.base-color;
+        scroll: true;
+      }
+    }
+
+    Box {
+      orientation: vertical;
+      spacing: 10;
+
+      Box middle_graph_box {
+        visible: bind template.encode_decode_available;
+
+        orientation: vertical;
+
+        Box {
+          Label middle_graph_label {
+            styles [
+              "caption",
+            ]
+
+            ellipsize: middle;
+            label: _("Video encode/decode utilization over ");
+          }
+          Label {
+            styles [
+              "caption",
+            ]
+
+            hexpand: true;
+            halign: start;
+            label: bind graph_max_duration.label;
+          }
+
+          Label middle_graph_total {
+            styles [
+              "caption",
+            ]
+            label: _("100%");
+          }
+        }
+
+        $McGraphWidget middle_graph {
+          vexpand: true;
+          hexpand: true;
+
+          width-request: 50;
+          height-request: 30;
+
+          base-color: bind template.base-color;
+          scroll: true;
+        }
+      }
+
+      Box bottom_graph_box {
+        orientation: vertical;
+
+        Box {
+          Label bottom_graph_label {
+            styles [
+              "caption",
+            ]
+
+            ellipsize: middle;
+            label: _("Memory usage over ");
+          }
+
+          Label {
+            styles [
+            "caption",
+            ]
+
+            hexpand: true;
+            halign: start;
+
+            ellipsize: end;
+            label: bind graph_max_duration.label;
+          }
+
+          Label bottom_graph_total {
+            styles [
+              "caption",
+            ]
+          }
+        }
+
+        $McGraphWidget bottom_graph {
+          vexpand: true;
+          hexpand: true;
+
+          width-request: 100;
+          height-request: 40;
+
+          base-color: bind template.base-color;
+          scroll: true;
+        }
+      }
+    }
+  }
+
+  PopoverMenu context_menu {
+    has-arrow: false;
+    menu-model: context_menu_model;
+  }
+}
+
+menu context_menu_model {
+  section {
+    submenu {
+      label: _("Change Middle Graph To");
+
+      item {
+        label: _("_Encode/_Decode");
+        action: "graph.gpu_middle_enc_dec";
+      }
+
+      item {
+        label: _("_Memory Usage");
+        action: "graph.gpu_middle_memory";
+      }
+
+      item {
+        label: _("_Power Draw");
+        action: "graph.gpu_middle_power";
+      }
+
+      item {
+        label: _("_Clock Speeds");
+        action: "graph.gpu_middle_clocks";
+      }
+
+      item {
+        label: _("_Temperature");
+        action: "graph.gpu_middle_temperature";
+      }
+
+      item {
+        label: _("_None");
+        action: "graph.gpu_middle_none";
+      }
+    }
+
+    submenu {
+      label: _("Change Bottom Graph To");
+
+      item {
+        label: _("_Encode/_Decode");
+        action: "graph.gpu_bottom_enc_dec";
+      }
+
+      item {
+        label: _("_Memory Usage");
+        action: "graph.gpu_bottom_memory";
+      }
+
+      item {
+        label: _("_Power Draw");
+        action: "graph.gpu_bottom_power";
+      }
+
+      item {
+        label: _("_Clock Speeds");
+        action: "graph.gpu_bottom_clocks";
+      }
+
+      item {
+        label: _("_Temperature");
+        action: "graph.gpu_bottom_temperature";
+      }
+
+      item {
+        label: _("_None");
+        action: "graph.gpu_bottom_none";
+      }
+    }
+  }
+
+  section {
+    item {
+      label: _("Graph _Summary View");
+      action: "graph.summary";
+    }
+
+
+    submenu {
+      label: _("_View");
+
+      item {
+        label: _("CP_U");
+        action: "graph.cpu";
+      }
+
+      item {
+        label: _("_Memory");
+        action: "graph.memory";
+      }
+
+      item {
+        label: _("_Drive");
+        action: "graph.disk";
+      }
+
+      item {
+        label: _("_Network");
+        action: "graph.network";
+      }
+
+      item {
+        label: _("_GPU");
+        action: "graph.gpu";
+      }
+
+      item {
+        label: _("_Fan");
+        action: "graph.fan";
+      }
+
+      item {
+        label: _("_Battery");
+        action: "graph.battery";
+      }
+    }
+  }
+
+  section {
+    item {
+      label: _("_Copy");
+      action: "graph.copy";
+    }
+  }
+}

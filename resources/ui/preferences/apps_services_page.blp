@@ -1,0 +1,59 @@
+/* ui/preferences/apps_services_page.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesAppsServicesPage: Adw.PreferencesPage {
+  title: _("Apps & Services");
+  icon-name: "overlapping-windows-symbolic";
+
+  Adw.PreferencesGroup {
+    Adw.SwitchRow merged_process_stats {
+      title: _("Merge Process Stats");
+      subtitle: _("Parent and child process stats are shown individually or merged upwards");
+    }
+
+    Adw.SwitchRow remember_sorting {
+      title: _("Remember Sorting");
+      subtitle: _("Persist sorting by column across app restarts");
+    }
+
+    Adw.SwitchRow remember_column_order {
+      title: _("Remember Column Order");
+      subtitle: _("Persist the order of the columns, across app restarts");
+    }
+
+    Adw.SwitchRow core_count_affects_percentages {
+      title: _("Scale CPU Usage to Core Count");
+      subtitle: _("Show CPU usage scaled to the number of available cores");
+    }
+
+    Adw.SwitchRow show_column_separators {
+      title: _("Show Column Separators");
+      subtitle: _("Show a separator between each column");
+    }
+
+    Adw.SwitchRow hide_is_zero {
+      title: _("Grey Out Zeroes");
+      subtitle: _("Gray out values that equal zero");
+    }
+  }
+}

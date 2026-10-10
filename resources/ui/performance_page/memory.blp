@@ -1,0 +1,256 @@
+/* ui/performance_page/memory.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $PerformancePageMemory: Box {
+  orientation: vertical;
+
+  WindowHandle {
+    child: Box description {
+      hexpand: true;
+      margin-top: 2;
+      margin-bottom: 7;
+
+      Label {
+        styles [
+          "title-1",
+        ]
+
+        hexpand: true;
+        halign: start;
+
+        label: _("Memory");
+      }
+
+      Label total_ram {
+        styles [
+          "title-3",
+        ]
+
+        halign: end;
+        ellipsize: middle;
+        selectable: true;
+      }
+    };
+  }
+
+  Adw.ToastOverlay toast_overlay {
+    child: Grid grid_graphs {
+      margin-bottom: 10;
+      row-spacing: 0;
+
+      Box box_system_memory {
+        layout {
+          column: '0';
+          row: '0';
+          row-span: 12;
+        }
+
+        orientation: vertical;
+
+        has-tooltip: true;
+
+        Box {
+          Label {
+            styles [
+              "caption",
+            ]
+            label: _("Memory usage over ");
+          }
+
+          Label graph_max_duration {
+            styles [
+              "caption",
+            ]
+
+            hexpand: true;
+            halign: start;
+            valign: start;
+          }
+
+          Label max_graph_ram {
+            styles [
+              "caption",
+            ]
+          }
+        }
+
+        $McGraphWidget usage_graph {
+          vexpand: true;
+          hexpand: true;
+
+          width-request: 100;
+
+          base-color: bind template.base-color;
+          scroll: true;
+        }
+      }
+
+      Box box_swap_space {
+        layout {
+          column: '0';
+          row: '12';
+          row-span: 8;
+        }
+
+        margin-top: 10;
+
+        orientation: vertical;
+        Box {
+          Label {
+            styles [
+              "caption",
+            ]
+            label: _("Swap usage over ");
+          }
+          Label {
+            styles [
+              "caption",
+            ]
+
+            hexpand: true;
+            halign: start;
+            valign: start;
+
+            label: bind graph_max_duration.label;
+          }
+          Label total_swap {
+            styles [
+              "caption",
+            ]
+          }
+        }
+
+        $McGraphWidget swap_usage_graph {
+          vexpand: true;
+          hexpand: true;
+
+          width-request: 100;
+
+          base-color: bind template.memory-color;
+          scroll: true;
+        }
+      }
+
+      Box box_mem_composition {
+        layout {
+          column: '0';
+          row: '20';
+          row-span: '1';
+        }
+
+        orientation: vertical;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          hexpand: true;
+          halign: start;
+          valign: start;
+          label: _("Memory composition");
+        }
+
+        $MemoryCompositionWidget mem_composition {
+          width-request: 100;
+          height-request: 25;
+
+          vexpand: true;
+
+          base-color: bind template.base-color;
+        }
+      }
+    };
+  }
+
+  PopoverMenu context_menu {
+    has-arrow: false;
+    menu-model: context_menu_model;
+  }
+}
+
+menu context_menu_model {
+  section {
+    item {
+      label: _("Show Memory Composition");
+      action: "graph.memory_composition";
+    }
+    item {
+      label: _("Show Swap Usage");
+      action: "graph.swap_usage";
+    }
+  }
+
+  section {
+    item {
+      label: _("Graph _Summary View");
+      action: "graph.summary";
+    }
+
+    submenu {
+      label: _("_View");
+
+      item {
+        label: _("CP_U");
+        action: "graph.cpu";
+      }
+
+      item {
+        label: _("_Memory");
+        action: "graph.memory";
+      }
+
+      item {
+        label: _("_Drive");
+        action: "graph.disk";
+      }
+
+      item {
+        label: _("_Network");
+        action: "graph.network";
+      }
+
+      item {
+        label: _("_GPU");
+        action: "graph.gpu";
+      }
+
+      item {
+        label: _("_Fan");
+        action: "graph.fan";
+      }
+
+      item {
+        label: _("_Battery");
+        action: "graph.battery";
+      }
+    }
+  }
+
+  section {
+    item {
+      label: _("_Copy");
+      action: "graph.copy";
+    }
+  }
+}

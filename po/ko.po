@@ -1,0 +1,2566 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2026-08-01 07:01+0000\n"
+"Last-Translator: Doyoung Park <doyoungp.00@gmail.com>\n"
+"Language-Team: Korean <https://hosted.weblate.org/projects/mission-center/"
+"mission-center/ko/>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 2026.8.dev0\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "미션 센터"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"작업 관리자;리소스 모니터;시스템 모니터;프로세서;프로세스;성능 "
+"모니터;CPU;GPU;디스크;디스크;메모리;네트워크;이용률;이용률;서비스;서비스;서비스 "
+"관리자;서비스 목록;시스템 서비스;사용자 서비스;systemd;systemctl"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "미션 센터 개발자"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "시스템 자원 이용률을 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"CPU, 메모리, 디스크, 네트워크, GPU 이용률을 감시하고 앱 및 프로세스별 통계를 "
+"받아봅니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "기능:"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "CPU 전체 또는 스레드별 사용량을 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"시스템 프로세스, 스레드, 핸들러 수, 가동 시간, 클록 주파수(기본 및 현재), 캐"
+"시 용량을 살펴봅니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "RAM과 스왑 이용률을 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr "시스템에서 메모리를 어떻게 사용하고 있는지 자세히 살펴봅니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "디스크 이용률 및 데이터 전송률을 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "네트워크 이용률 및 데이터 전송 속도를 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"네트워크 카드 이름, 연결 형태(Wi-Fi 또는 이더넷), 무선 연결 속도 및 주파수, "
+"하드웨어 주소, IP 주소 등의 네트워크 인터페이스 정보를 살펴봅니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"대중적인 NVTOP 프로젝트를 활용하여 전체 GPU 사용량, 비디오 인코더 및 디코더 "
+"사용 상태, 메모리 사용량, 전력 소모 상태를 감시합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "시스템 팬 사용량 감시"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "앱과 프로세스별 자원 이용률을 자세히 살펴봅니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "감시 정보를 간단하게 보여주는 소형화 요약 보기 창을 지원합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr "CPU와 전체 자원 사용을 줄이려 모든 그래프를 하드웨어 가속 렌더링합니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "GTK4와 Libadwaita를 활용했습니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "Rust로 작성됨"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr "제약 사항 (앞으로 해결할 작업 중인 문제):"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"인텔 GPU 모니터링은 브로드웰 이후 GPU 에서만 지원합니다. 그리고 VRAM, 전원, "
+"온도 모니터링은 지원하지 않습니다"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"리눅스 민트/시나몬을 사용할 때 \"프로그램\" 섹션에 실행한 프로그램이 나타나"
+"지 않을 수 있습니다 (업스트림 문제: https://github.com/linuxmint/cinnamon/"
+"issues/12015)"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr "첨언, 제안, 문제 보고, 기여를 환영합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "이 페이지는 앱을 시작할 때 나타납니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "인터페이스 스타일"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr "라이트나 다크 인터페이스 스타일의 사용 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "오래되었습니다! 더이상 사용하지 마십시오!"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr "데이터를 새로 고치고 인터페이스를 업데이트하는 속도 (50ms 단위로 증가)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "차트별로 표시할 점의 갯수"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "메모리 표기에 비트 또는 바이트(기본값) 단위를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "메모리 표기에 10진수 또는 2진수(기본값)를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr "드라이브 속도와 용량 표기에 비트 또는 바이트(기본값) 단위를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr "드라이브 속도와 용량 표기에 10진수 또는 2진수(기본값)를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr "네트워크 속도에 비트(기본값) 또는 바이트 단위를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr "네트워크 속도에 10진수(기본값) 또는 2진수를 사용할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr ""
+"인터페이스의 최대치로 그래프를 맞출지(false) 또는 관측값의 최대치로 그래프를 "
+"맞출지(true)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+"상위 하위 프로세스 상태를 개별 표시하거나 상위 프로세스에 합쳐서 나타냅니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "앱을 다시 시작해도 열 정렬 상태 유지"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "앱을 다시 시작해도 열 순서 유지"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr "앱과 프로세스에 대한 CPU 사용량을 코어의 수에 맞게 조정합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr "앱 뷰에서 열 사이에 구분선을 넣습니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr "앱 뷰에서 0에 대응하는 값을 음영으로 처리합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr "앱 페이지 보기를 정렬할 열 이름"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "앱 페이지 보기 정렬 순서"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "앱 페이지 보기에서 열의 순서"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+msgid "The column name by which the Services page view is sorted"
+msgstr "서비스 페이지 보기를 정렬할 열 이름"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+msgid "The sorting direction of the Services page view"
+msgstr "서비스 페이지 보기의 정렬 방향"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+msgid "The order of columns in the Services page view"
+msgstr "서비스 페이지 보기의 열 순서"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "CPU 성능 페이지에 나타낼 그래프"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr "CPU 성능 페이지 하단에 나타낼 그래프"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr "CPU 그래프에서 커널 시간 보이기"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr "앱 시작시 성능 탭에서 나타낼 페이지"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "성능 그래프가 부드럽거나 뾰족할지 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "그래프 애니메이션 사용 여부"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "기본적으로 CPU 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "기본적으로 메모리 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "기본적으로 디스크 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "기본적으로 네트워크 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+msgid "Show wired network devices by default"
+msgstr "기본적으로 유선 네트워크 디바이스 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+msgid "Show wireless network devices by default"
+msgstr "기본적으로 무선 네트워크 디바이스 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+msgid "Show VPN network devices by default"
+msgstr "기본적으로 VPN 네트워크 디바이스 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr "기본적으로 가상 네트워크 디바이스(도커, 멀티패스, 브리지) 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr ""
+"기본적으로 기타 네트워크 디바이스(블루투스, 인피니밴드, WWAN) 정보를 "
+"표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "기본적으로 GPU 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "기본적으로 팬 정보를 표시합니다"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "메모리 구성 위젯 보이기"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "스왑 그래프 보이기"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr "중앙 그래프의 내용 및 가시성"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr "하단 그래프의 내용 및 가시성"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "애플리케이션 사이드바의 항목 정렬"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "애플리케이션 사이드바에서 숨길 그래프"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr ""
+"디바이스별 가시성 오버라이드 (세미콜론으로 구분된 이름:show 또는 이름:hide "
+"목록)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr "미션 센터를 처음으로 실행하셨다면"
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "앱과 프로세스를 모두 접습니다"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "모두 접기"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "꺼내기 실패"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr "강제 종료"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr "사용중:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr "수정됨:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr "대기중:"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr "여유:"
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "CPU"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+msgid "Utilization over "
+msgstr "동안의 사용량 "
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+msgid "Change _Top Graph To"
+msgstr "상단 그래프 변경(_T)"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "전체 이용률(_T)"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "논리 프로세서(_P)"
+
+#: resources/ui/performance_page/cpu.blp:180
+msgid "_All Threads"
+msgstr "모든 스레드(_A)"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr "모든 스레드 중첩(_S)"
+
+#: resources/ui/performance_page/cpu.blp:191
+msgid "Change B_ottom Graph To"
+msgstr "하단 그래프 변경(_o)"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+msgid "_Power Draw"
+msgstr "전력 부하(_P)"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+msgid "_Temperature"
+msgstr "온도(_T)"
+
+#: resources/ui/performance_page/cpu.blp:204
+msgid "_Clock Speed"
+msgstr "클럭 속도(_C)"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr "없음(_N)"
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr "커널 시간 보기"
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "그래프 요약 보기(_S)"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "보기(_V)"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "CPU(_U)"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "메모리(_M)"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr "드라이브(_D)"
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "네트워크(_N)"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "GPU(_G)"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr "팬(_F)"
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr "배터리(_B)"
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "복사(_C)"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr "SMART 데이터 보기"
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr "디스크 꺼내기"
+
+#: resources/ui/performance_page/disk.blp:100
+msgid "Active time over "
+msgstr "활성 시간 "
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+msgid "Throughput over "
+msgstr "처리량 "
+
+#: resources/ui/performance_page/fan.blp:62
+msgid "Fan speed over "
+msgstr "팬 속도 "
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+msgid "Temperature over "
+msgstr "온도 "
+
+#: resources/ui/performance_page/fan_details.blp:59
+msgid "Fan Speed"
+msgstr "팬 속도"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr "PWM 백분율"
+
+#: resources/ui/performance_page/fan_details.blp:127
+msgid "Current Temperature"
+msgstr "현재 온도"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+msgid "Video encode/decode utilization over "
+msgstr "비디오 인코딩/디코딩 "
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+msgid "Memory usage over "
+msgstr "메모리 사용량 "
+
+#: resources/ui/performance_page/gpu.blp:206
+msgid "Change Middle Graph To"
+msgstr "중간 그래프 변경"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+msgid "_Encode/_Decode"
+msgstr "인코딩(_E)/디코딩(_D)"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+msgid "_Memory Usage"
+msgstr "메모리 사용량(_M)"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+msgid "_Clock Speeds"
+msgstr "클럭 속도(_C)"
+
+#: resources/ui/performance_page/gpu.blp:240
+msgid "Change Bottom Graph To"
+msgstr "하단 그래프 변경"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "메모리"
+
+#: resources/ui/performance_page/memory.blp:123
+msgid "Swap usage over "
+msgstr "스왑 사용량 "
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "메모리 사용량"
+
+#: resources/ui/performance_page/memory.blp:195
+msgid "Show Memory Composition"
+msgstr "메모리 구성 보기"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr "스왑 사용량 보기"
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "사용 중"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "가용량"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "커밋됨"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "캐시됨"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "사용 스왑"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "가용 스왑"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr "압축됨"
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr "절약량"
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "속도:"
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "사용 슬롯:"
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "폼팩터:"
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "종류:"
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "네트워크 설정(_t)"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "수신"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "송신"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr "전체 수신량"
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr "전체 송신량"
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "인터페이스 이름:"
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "연결 형식:"
+
+#: resources/ui/performance_page/network_details.blp:222
+msgid "Connection status:"
+msgstr "연결 상태:"
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID:"
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "신호 세기:"
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "최대 비트전송율:"
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "연결 주파수:"
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "하드웨어 주소:"
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "IPv4 주소:"
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "IPv6 주소:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr "SMART 데이터"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+msgid "Last Updated:"
+msgstr "마지막 업데이트:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+msgid "Powered On:"
+msgstr "켜진 시간:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr "드라이브 상태:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr "SMART 테스트 상태:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr "속성"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr "값"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr "ID"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+msgid "Normalized"
+msgstr "정규화됨"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+msgid "Threshold"
+msgstr "한계치"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr "최악"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "종류"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+msgid "Updates"
+msgstr "업데이트"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr "평가"
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "이용량"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "클럭 속도"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+msgid "Power Draw"
+msgstr "전력 부하"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+msgid "Memory Usage"
+msgstr "메모리 사용량"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+msgid "Shared Memory Usage"
+msgstr "공유 메모리 사용량"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+msgid "Memory Speed"
+msgstr "메모리 속도"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+msgid "Video encode"
+msgstr "비디오 인코딩"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+msgid "Video decode"
+msgstr "비디오 디코딩"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "온도"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "OpenGL 버전:"
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "벌컨 버전:"
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "PCI 익스프레스 속도:"
+
+#: resources/ui/performance_page/gpu_details.blp:597
+msgid "Max PCI Express speed:"
+msgstr "최대 PCI 익스프레스 속도:"
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "PCI 버스 주소:"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+msgid "Failed To Get SMART Data"
+msgstr "SMART 데이터를 가져오는 데 실패했습니다"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"SMART 데이터를 페칭하는 중 문제가 발생했습니다. 자세한 정보를 보려면 명령어에"
+"서 실행하십시오."
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "읽기 속도"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "쓰기 속도"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr "전체 읽기"
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr "전체 쓰기"
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "활성 시간"
+
+#: resources/ui/performance_page/disk_details.blp:221
+msgid "Avg. response time"
+msgstr "평균 응답시간"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "용량:"
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "포맷됨:"
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "시스템 디스크:"
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr "WWN:"
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr "시리얼:"
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr "회전 속도"
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr "파티션"
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "속도"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "프로세스"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "스레드"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "핸들"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "가동 시간"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "기본 속도:"
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "소켓:"
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "가상 프로세서:"
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "가상화:"
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "가상 머신:"
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "L1 캐시:"
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "L2 캐시:"
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "L3 캐시:"
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Cpufreq 드라이버:"
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Cpufreq 조정기:"
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "전원 설정:"
+
+#: resources/ui/preferences/apps_services_page.blp:25
+msgid "Apps & Services"
+msgstr "앱과 서비스"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr "프로세스 상태 정보 병합"
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr "정렬 상태 기억"
+
+#: resources/ui/preferences/apps_services_page.blp:36
+msgid "Persist sorting by column across app restarts"
+msgstr "앱을 다시 시작할 때마다 목록의 정렬 상태를 기억합니다"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr "목록 순서 기억"
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr "앱을 다시 시작할 때마다 목록의 순서를 기억합니다"
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr "코어 수에 맞춰서 CPU 사용량 조정"
+
+#: resources/ui/preferences/apps_services_page.blp:46
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr "활성된 코어 수에 맞춰서 CPU 사용량을 조정"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr "목록 경계선 보기"
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr "각 목록마다 경계선 표시"
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr "0을 음영 처리"
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr "0에 대응하는 값을 음영 처리"
+
+#: resources/ui/preferences/general_page.blp:25
+msgid "General"
+msgstr "일반"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr "갱신 간격"
+
+#: resources/ui/preferences/general_page.blp:31
+msgid "In seconds"
+msgstr "설정 초마다 갱신"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr "성능 페이지"
+
+#: resources/ui/preferences/performance_page.blp:29
+msgid "Graph Settings"
+msgstr "그래프 설정"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr "데이터 갯수"
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr "부드러운 그래프"
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr "날카로운 선 대신 부드러운 선으로 그래프를 그립니다"
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr "슬라이딩 그래프"
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr "그래프 애니메이션 사용 (성능이 저하될 수 있습니다)"
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr "동적으로 네트워크 그래프를 조정"
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+"실제 사용량 또는 채널의 최대 속도에 맞춰 네트워크 그래프 크기를 동적으로 조정"
+"합니다"
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr "디바이스"
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr "디스크 정보 보기"
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr "네트워크 정보 보기"
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr "유선 연결"
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr "무선 연결"
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr "VPN"
+
+#: resources/ui/preferences/performance_page.blp:91
+msgid "Virtual"
+msgstr "가상"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr "도커, 멀티패스, 브리지"
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "기타"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr "블루투스, 인피니밴드, WWAN"
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr "GPU 정보 보기"
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr "팬 정보 보기"
+
+#: resources/ui/preferences/performance_page.blp:112
+msgid "Show Battery Information"
+msgstr "배터리 정보 보기"
+
+#: resources/ui/preferences/performance_page.blp:113
+msgid "Show battery information by default"
+msgstr "기본적으로 배터리 정보를 표시합니다"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr "단위"
+
+#: resources/ui/preferences/units_page.blp:30
+msgid "Memory Usage Unit"
+msgstr "메모리 사용량 단위"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr "메모리 측정에 바이트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr "바이트"
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr "메모리 측정에 비트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr "비트"
+
+#: resources/ui/preferences/units_page.blp:49
+msgid "Memory Usage Base"
+msgstr "메모리 사용량 기수"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr "메모리 용량에 10진법 사용"
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr "10진법"
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr "메모리 용량에 2진법 사용"
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr "2진법"
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr "드라이브 사용량 단위"
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr "디스크 드라이브 측정에 바이트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr "디스크 드라이브 측정에 비트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr "드라이브 사용량 기수"
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr "디스크 드라이브에 10진법 사용"
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr "디스크 드라이브에 2진법 사용"
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr "네트워크 사용량 단위"
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr "네트워크 인터페이스 측정에 바이트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr "네트워크 인터페이스 측정에 비트 단위 사용"
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr "네트워크 사용량 기수"
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr "네트워크 인터페이스에 10진법 사용"
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr "네트워크 인터페이스에 2진법 사용"
+
+#: resources/ui/services_page/page.blp:96
+msgid "Collapse all expanded services"
+msgstr "펼친 서비스 항목을 모두 접습니다"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr "실행 중인 프로세스를 필터링합니다"
+
+#: resources/ui/services_page/page.blp:155
+msgid "Filter failed processes"
+msgstr "실행 실패된 프로세서를 필터링합니다"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr "실행 정지된 프로세스를 필터링합니다"
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr "비활성화된 프로세스를 필터링합니다"
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr "모든 필터를 제거합니다"
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr "필터 제거"
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "시스템 스타일 따르기"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "라이트 스타일"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "다크 스타일"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr "키보드 단축키"
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr "전체"
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr "메뉴 열기"
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr "창 닫기"
+
+#: resources/ui/keyboard_shortcuts.blp:26
+msgid "Open Preferences"
+msgstr "설정 열기"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr "단축키 보이기"
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr "성능 페이지 보기"
+
+#: resources/ui/keyboard_shortcuts.blp:41
+msgid "Show Apps Page"
+msgstr "앱 페이지 보기"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr "서비스 페이지 보기"
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr "사이드바 토글"
+
+#: resources/ui/keyboard_shortcuts.blp:60
+msgid "Copy Device Information"
+msgstr "디바이스 정보 복사"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr "요약 모드 토글"
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr "디바이스 선택"
+
+#: resources/ui/keyboard_shortcuts.blp:76
+msgid "Apps Page"
+msgstr "앱 페이지"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr "검색"
+
+#: resources/ui/keyboard_shortcuts.blp:89
+msgid "Stop App or Process"
+msgstr "앱 또는 프로세스 중단"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+msgid "Force Stop App or Process"
+msgstr "앱 또는 프로세스 강제 중단"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr "세부정보 보기"
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr "서비스 페이지"
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr "서비스 시작"
+
+#: resources/ui/keyboard_shortcuts.blp:123
+msgid "Stop Service"
+msgstr "서비스 중단"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr "서비스 재시작"
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "이름"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "프로세스 ID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+msgid "Swap"
+msgstr "스왑"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "드라이브"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "네트워크"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "GPU"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "GPU 메모리"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "중단"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "강제 중단"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr "신호 보내기"
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr "정지 (STOP)"
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr "실행 (CONT)"
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr "행업 (HUP)"
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr "인터럽트 (INT)"
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr "종료 (TERM)"
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr "킬 (KILL)"
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr "사용자 1 (USR1)"
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr "사용자 2 (USR2)"
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "세부정보"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "시작"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "재시작"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "선택한 앱 중지"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "선택한 앱 강제 중지"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "선택한 앱의 세부정보 보기"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr "앱 ID"
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "없음"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "커맨드 라인"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "리소스 사용량"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "드라이브"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "선택한 서비스 시작"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "선택한 서비스 중지"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "선택한 서비스 재시작"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "선택한 서비스의 세부정보 보기"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "서비스 세부정보"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "상태"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "서비스의 현재 상태"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "서비스 시작"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "서비스 중단"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "서비스 재시작"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "설명"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "상태"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "사용 설정됨"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "프로세스"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "프로세스와 사용자 정보"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "프로세스 ID"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "사용자"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "그룹"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr "파일 위치"
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "로그"
+
+#: resources/ui/about_system_dialog.blp:36
+msgid "System Info"
+msgstr "시스템 정보"
+
+#: resources/ui/about_system_dialog.blp:65
+msgid "Operating System Information"
+msgstr "운영체제 정보"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+msgid "Version"
+msgstr "버전"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr "패키지 매니저"
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr "패키지 매니저 버전"
+
+#: resources/ui/about_system_dialog.blp:183
+msgid "Kernel Information"
+msgstr "커널 정보"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr "커널 릴리스"
+
+#: resources/ui/about_system_dialog.blp:245
+msgid "Desktop Environment Information"
+msgstr "데스크탑 환경 정보"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr "윈도잉 시스템"
+
+#: resources/ui/about_system_dialog.blp:344
+msgid "Virtual Terminal"
+msgstr "가상 터미널"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr "모두 사용 설정"
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr "모두 사용 안 함 설정"
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr "기본값으로 되돌리기"
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr "사이드바 수정"
+
+#: resources/ui/window.blp:134
+msgid "Type a name or PID to search"
+msgstr "검색할 이름 또는 PID를 입력하십시오"
+
+#: resources/ui/window.blp:149
+msgid "Toggle Device Information"
+msgstr "디바이스 정보 토글"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr "메인 메뉴"
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr "성능"
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "앱"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr "서비스"
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "기본 설정(_P)"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr "키보드 단축키(_K)"
+
+#: resources/ui/window.blp:237
+msgid "_System Information"
+msgstr "시스템 정보(_S)"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr "위키 열기(_W)"
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr "첫 실행 다이얼로그 보기(_F)"
+
+#: resources/ui/window.blp:257
+msgid "_About Mission Center"
+msgstr "미션 센터 정보(_A)"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] "실행 중인 앱 {}개"
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] "실행 중인 프로세스 {}개"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr "닫기"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr "재시도"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+msgid "Kill All"
+msgstr "모두 중지"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr "{} 전"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "알 수 없음"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr "결함 전"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr "오래됨"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr "온라인"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr "오프라인"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr "결함 발생 중"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr "지난 결함"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr "Ok"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr "사용량 백분율"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+msgid "Available Spare"
+msgstr "사용 가능한 스페어"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr "스페어 경계값"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr "총 데이터 읽기"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr "총 데이터 쓰기"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr "경고 온도 시간"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr "위험 온도 시간"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr "제어 중 시간"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+msgid "Warning Temperature"
+msgstr "경고 온도"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr "{} °C"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+msgid "Critical Temperature"
+msgstr "위험 온도"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr "온도"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr "위험한 셧다운"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr "미디어 에러"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr "에러 로그 갯수"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr "파워 사이클 수"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"사용 중 ({})\n"
+"\n"
+"운영체제와 실행 중인 앱에서 사용하는 메모리"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"수정됨 ({})\n"
+"\n"
+"다른 프로세스가 사용하기 전에 디스크에 기록해야 할 메모리"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"대기 중 ({})\n"
+"\n"
+"현재 사용 중이지 않은 캐시된 데이터와 코드가 들어간 메모리"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"가용량 ({})\n"
+"\n"
+"현재 사용하지 않아 운영체제, 드라이버, 또는 앱에서 더 많은 메모리가 필요할 "
+"때 1순위로 할당할 메모리"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, rust-format
+msgid "{} sectors"
+msgstr "{} 섹터"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+"실제 CPU 속도 데이터가 없습니다 (가상머신, 컨테이너, 클라우드 인스턴스에서 "
+"흔함). BogoMIPS 값으로 대체합니다. BogoMIPS는 딜레이 루프 측정값이므로 실제 "
+"속도를 나타내지 않습니다."
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "미지원"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "예"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "아니요"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+msgid "Power draw over "
+msgstr "전력 부하 "
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+msgid "Clock speed over "
+msgstr "클럭 속도 "
+
+#: src/performance_page/disk.rs:179
+#, rust-format
+msgid "Disk {} ({})"
+msgstr "{}번 디스크 ({})"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, rust-format
+msgid "Drive ({})"
+msgstr "드라이브 ({})"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+msgid "SD"
+msgstr "SD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr "광학"
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr "플로피"
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr "USB 드라이브"
+
+#: src/performance_page/disk.rs:336
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "드라이브 {} ({})"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr "{} RPM"
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr "팬 {}"
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr "팬"
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: src/performance_page/gpu.rs:562
+msgid "Video encode/decode"
+msgstr "비디오 인코딩/디코딩"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "GPU {}"
+
+#: src/performance_page/gpu.rs:826
+msgid "Total Memory"
+msgstr "전체 메모리"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr "전체 공유 메모리"
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr "전용 및 공용 메모리 사용 "
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr "{} / {}"
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr "추가 메모리 정보 획득에 실패"
+
+#: src/performance_page/mod.rs:1269
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr "배터리 {}"
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr "배터리"
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr "{}"
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr "실패함"
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr "제거됨"
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr "제거 중"
+
+#: src/performance_page/network.rs:460
+msgid "Connected"
+msgstr "연결됨"
+
+#: src/performance_page/network.rs:461
+msgid "Connecting"
+msgstr "연결 중"
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr "설정 중"
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr "허가 대기 중"
+
+#: src/performance_page/network.rs:464
+msgid "Unavailable"
+msgstr "사용 불가"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr "로딩 중"
+
+#: src/services_page/mod.rs:99
+#, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "전체 서비스 {}개"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr "실행 중"
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr "중단됨"
+
+#: src/services_page/mod.rs:138
+msgid "Disabled"
+msgstr "비활성화됨"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr "현재 필터에 맞는 서비스가 없습니다"
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr "적용된 필터 없음"
+
+#: src/services_page/mod.rs:153
+#, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "{} {} 서비스"
+
+#: src/services_page/mod.rs:182
+msgid "User Services"
+msgstr "사용자 서비스"
+
+#: src/services_page/mod.rs:187
+msgid "System Services"
+msgstr "시스템 서비스"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr "섹션 헤더"
+
+#: src/table_view/row_model.rs:280
+msgid "Service"
+msgstr "서비스"
+
+#: src/table_view/row_model.rs:281
+msgid "App"
+msgstr "앱"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr "클립보드로 로그 복사"
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr ""
+"Doyoung Park <doyoungp.00@gmail.com>\n"
+"Seong-ho Cho <shcho@gnome.org>"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{}년"
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{}개월"
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{}일"
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{}시간"
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{}분"
+
+#: src/main.rs:126 src/main.rs:205
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{}초"
+
+#: src/main.rs:163
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} 그리고 {}"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr "{} 및 {}"
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr "1분 미만"
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "종료(_Q)"
+
+#, fuzzy
+#~ msgid "Shared Memory"
+#~ msgstr "메모리"
+
+#~ msgid "Show CPU Information"
+#~ msgstr "CPU 정보 보기"
+
+#, fuzzy
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr "메모리"
+
+#, fuzzy
+#~ msgid "App Page"
+#~ msgstr "앱 페이지 설정"
+
+#, fuzzy
+#~ msgid "{} minutes"
+#~ msgstr "{} 분 "
+
+#, fuzzy
+#~ msgid "{} second{}"
+#~ msgstr "{} 초"
+
+#, fuzzy
+#~ msgid "{} minute{} "
+#~ msgstr "{} 분 "
+
+#, fuzzy
+#~ msgid "Whether or not to use base-10 (default) or base-2 for memory"
+#~ msgstr "비트(기본) 또는 바이트 단위를 네트워크 속도 표기에 사용할 지 여부"
+
+#~ msgid "No per-process network usage"
+#~ msgstr "프로세스별 네트워크 사용량 정보가 없습니다"
+
+#~ msgid "GPU support is experimental"
+#~ msgstr "GPU 지원은 실험적입니다"
+
+#~ msgid "Stop Application"
+#~ msgstr "앱 중단"
+
+#~ msgid "Force Stop Application"
+#~ msgstr "앱 강제 중단"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {}{}B/s"
+
+#~ msgid "{} {}bps"
+#~ msgstr "{} {}bps"
+
+#~ msgid "Ethernet"
+#~ msgstr "이더넷"
+
+#~ msgid "Wi-Fi"
+#~ msgstr "Wi-Fi"
+
+#~ msgid "Flatpak first"
+#~ msgstr "플랫팩을 우선 지원합니다"
+
+#, fuzzy
+#~ msgid "Video decode utilization"
+#~ msgstr "영상 디코딩"
+
+#~ msgid "_Disk"
+#~ msgstr "디스크(_D)"
+
+#~ msgid "Disk"
+#~ msgstr "디스크"
+
+#, fuzzy
+#~ msgid "Fix a bug where the Gatherer process would crash at startup"
+#~ msgstr "앱 및 프로세스 목록이 일부 사용자에게서 비어 보인느 문제 수정"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems (again!)"
+#~ msgstr "앱 및 프로세스 목록이 일부 사용자에게서 비어 보인느 문제 수정"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems"
+#~ msgstr "앱 및 프로세스 목록이 일부 사용자에게서 비어 보인느 문제 수정"
+
+#, fuzzy
+#~ msgid "Update to GTK 4.12 and libadwaita 1.4"
+#~ msgstr "GTK4와 libadwaita를 활용했습니다"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fixed a regression where natively installed browsers were not showing up "
+#~ "in the apps list on Fedora"
+#~ msgstr "자체 패키지로 설치하여 앱 목록에 나타나지 않는 브라우저 문제 수정"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fixed a regression where Flatpak apps were not showing up in the apps "
+#~ "list on ArchLinux Plasma"
+#~ msgstr "자체 패키지로 설치하여 앱 목록에 나타나지 않는 브라우저 문제 수정"
+
+#, fuzzy
+#~ msgid ""
+#~ "Fixed a bug where the Maps app desktop file wasn't being parsed correctly"
+#~ msgstr "앱 및 프로세스 목록이 일부 사용자에게서 비어 보인느 문제 수정"
+
+#, fuzzy
+#~ msgid "Translations:"
+#~ msgstr "가상화 수단:"
+
+#, fuzzy
+#~ msgid "New translation to Portuguese (Brazil) by Gérson da Fonseca Henzel"
+#~ msgstr "Rafael Fontenelle가 포르투갈어 번역 수정"
+
+#, fuzzy
+#~ msgid "Updated Spanish translation"
+#~ msgstr "TecCheck가 독일어 번역 추가함"
+
+#, fuzzy
+#~ msgid "Updated Finnish translation"
+#~ msgstr "ondra05가 체코어 번역 추가"
+
+#, fuzzy
+#~ msgid "Updated Russian translation"
+#~ msgstr "TecCheck가 독일어 번역 추가함"
+
+#, fuzzy
+#~ msgid "Updated Chinese (Simplified) translation"
+#~ msgstr "ondra05가 체코어 번역 추가"
+
+#, fuzzy
+#~ msgid "Updated Greek translation"
+#~ msgstr "TecCheck가 독일어 번역 추가함"
+
+#, fuzzy
+#~ msgid "Updated German translation"
+#~ msgstr "TecCheck가 독일어 번역 추가함"
+
+#, fuzzy
+#~ msgid "Updated Czech translation"
+#~ msgstr "ondra05가 체코어 번역 추가"
+
+#, fuzzy
+#~ msgid "Updated Portuguese translation"
+#~ msgstr "Rilson Joás가 포르투갈어 번역 추가"
+
+#~ msgid "Add Spanish translation by Óscar Fernández Díaz"
+#~ msgstr "Óscar Fernández Díaz가 스페인어 번역 추가함"
+
+#~ msgid ""
+#~ "The memory tab now shows configured memory speed instead of the maximum "
+#~ "supported by the modules"
+#~ msgstr ""
+#~ "이제 메모리탭에서 모듈에서 지원하는 최대 속도 대신 설정 메모리 속도를 보여"
+#~ "줍니다"
+
+#~ msgid "Add German translation by TecCheck"
+#~ msgstr "TecCheck가 독일어 번역 추가함"
+
+#~ msgid ""
+#~ "When a process uses large amounts of CPU or RAM it is now highlighted in "
+#~ "the Apps and Processes list"
+#~ msgstr ""
+#~ "이제 프로세스에서 상당양의 CPU 또는 RAM을 활용할 경우 앱 및 프로세스 목록"
+#~ "에 강조합니다"
+
+#~ msgid "Add initial support for building for ARM64"
+#~ msgstr "ARM64 빌드 지원을 처음으로 추가"
+
+#~ msgid ""
+#~ "Take into account multiple CPU cores and cache sharing when calculating "
+#~ "cache sizes"
+#~ msgstr "캐시 용량을 계산할 때 CPU 코어 수와 공유 캐시 용량을 고려합니다"
+
+#~ msgid ""
+#~ "Fix browsers, installed as native packages, not showing up in the Apps "
+#~ "list"
+#~ msgstr "자체 패키지로 설치하여 앱 목록에 나타나지 않는 브라우저 문제 수정"
+
+#~ msgid "Translation updates for Traditional Chinese by Peter Dave Hello"
+#~ msgstr "Peter Dave Hello가 중국어 번체 번역 업데이트"
+
+#~ msgid "Translation fixes for Portuguese by Rafael Fontenelle"
+#~ msgstr "Rafael Fontenelle가 포르투갈어 번역 수정"
+
+#~ msgid ""
+#~ "Only show a link-local IPv6 address if no other IPv6 exists by Maximilian"
+#~ msgstr ""
+#~ "Maximilian이 기타 IPv6 값이 없을 경우 link-local IPv6 주소만 나타내도록 수"
+#~ "정"
+
+#~ msgid "Add Traditional Chinese locale by Peter Dave Hello"
+#~ msgstr "Peter Dave Hello가 중국어 번체 로캘 추가"
+
+#~ msgid "Add category for application menu by Renner0E"
+#~ msgstr "Renner0E가 앱 메뉴의 카테고리 추가"
+
+#~ msgid ""
+#~ "Fix a parsing error when parsing the output of `dmidecode` that lead to a "
+#~ "panic"
+#~ msgstr "`dmidecode` 출력 해석시 갑작스레 끝나는 해석 오류 수정"
+
+#~ msgid ""
+#~ "Use a fallback if `/sys/devices/system/cpu/cpu0/cpufreq/base_frequency` "
+#~ "does not exist, when getting CPU base speed information"
+#~ msgstr ""
+#~ "CPU 기본 속도 정보를 가져올 때 `/sys/devices/system/cpu/cpu0/cpufreq/"
+#~ "base_frequency` 파일이 없을 경우 대체 정보 사용"
+
+#~ msgid "Update GPU tab UI to be more adaptive for smaller resolutions"
+#~ msgstr "낮은 해상도에서도 적절하게 나타나도록 GPU 탭 인터페이스 업데이트"
+
+#~ msgid "Added Czech translation by ondra05"
+#~ msgstr "ondra05가 체코어 번역 추가"
+
+#~ msgid "Added Portuguese translation by Rilson Joás"
+#~ msgstr "Rilson Joás가 포르투갈어 번역 추가"
+
+#~ msgid ""
+#~ "Add keywords to desktop file to improve search function of desktop "
+#~ "environments by Hannes Kuchelmeister"
+#~ msgstr ""
+#~ "Hannes Kuchelmeister가 데스크톱 환경의 검색 기능 개선 목적으로 desktop 파"
+#~ "일에 키워드 추가"
+
+#~ msgid "Fixed a bug where the app and process list was empty for some users"
+#~ msgstr "앱 및 프로세스 목록이 일부 사용자에게서 비어 보인느 문제 수정"
+
+#~ msgid "Fix a crash that occurs when the system is under heavy load"
+#~ msgstr "시스템에 과부하가 걸렸을 때 프로그램이 갑자기 끝나는 문제 수정"
+
+#~ msgid "First official release!"
+#~ msgstr "공식 첫 출시!"
+
+#~ msgid "Disk transfer rate"
+#~ msgstr "디스크 전송율"
+
+#~ msgid "Overall utilization"
+#~ msgstr "전체 이용률"
+
+#~ msgid ""
+#~ "GPU support is experimental and only AMD and nVidia GPUs can be monitored"
+#~ msgstr ""
+#~ "GPU 지원 기능은 아직 실험중이며 AMD와 nVidia에서 제조한 GPU만 감시할 수 있"
+#~ "습니다"
+
+#~ msgid "Fast"
+#~ msgstr "빠르게"
+
+#~ msgid "Refresh every half second"
+#~ msgstr "0.5초마다 갱신"
+
+#~ msgid "Refresh every second"
+#~ msgstr "매 초마다 갱신"
+
+#~ msgid "Slow"
+#~ msgstr "느리게"
+
+#~ msgid "Refresh every second and a half"
+#~ msgstr "1.5초마다 갱신"
+
+#~ msgid "Very Slow"
+#~ msgstr "매우 느리게"
+
+#~ msgid "Refresh every 2 seconds"
+#~ msgstr "2초마다 갱신"
+
+#~ msgid "Supported"
+#~ msgstr "지원"
+
+#, fuzzy
+#~ msgid "Authentication failed"
+#~ msgstr "인증(_A)"
+
+#~ msgid "Disk utilization percentage might not be accurate"
+#~ msgstr "디스크 이용률 백분율 수치가 정확하지 않을 수 있습니다"
+
+#~ msgid "No per-process GPU usage"
+#~ msgstr "프로세스별 GPU 사용량이 없습니다"
+
+#~ msgid "Some information requires administrative privileges"
+#~ msgstr "일부 정보를 보려면 관리자 권한이 필요합니다"
+
+#~ msgid ""
+#~ "The application currently only supports monitoring, you cannot stop "
+#~ "processes for example"
+#~ msgstr ""
+#~ "앱에서 현재 감시 기능만 지원하며 예제처럼 프로세스를 멈출 수는 없습니다"
+
+#~ msgid "% Utilization"
+#~ msgstr "이용률"
+
+#~ msgid "{}: {} {}bps {}: {} {}bps"
+#~ msgstr "{}: {} {}bps {}: {} {}bps"

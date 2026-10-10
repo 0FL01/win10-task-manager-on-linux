@@ -1,0 +1,22 @@
+[source.vendored-sources]
+directory = "../../cargo/vendor"
+
+[source."git+https://github.com/pop-os/dbus-settings-bindings.git?rev=87c3c35666b926a24a1e8045fd70be2db1145e34"]
+git = "https://github.com/pop-os/dbus-settings-bindings.git"
+rev = "87c3c35666b926a24a1e8045fd70be2db1145e34"
+replace-with = "vendored-sources"
+
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = ['-Clinker=clang', '-Clink-arg=-fuse-ld=lld', '-Clinker-plugin-lto']
+
+[target.aarch64-unknown-linux-gnu]
+rustflags = ['-Clinker=clang', '-Clink-arg=-fuse-ld=lld', '-Clinker-plugin-lto']
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ['-Ctarget-feature=-crt-static', '-Clinker=clang', '-Clink-arg=-fuse-ld=lld', '-Clink-args=-lunwind']
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ['-Ctarget-feature=-crt-static', '-Clinker=clang', '-Clink-arg=-fuse-ld=lld', '-Clink-args=-lunwind']

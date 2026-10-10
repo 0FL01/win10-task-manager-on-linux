@@ -1,0 +1,242 @@
+/* ui/services_page/page.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $ServicesPage : Box {
+  orientation: vertical;
+
+  Adw.Clamp {
+    margin-start: 20;
+    margin-end: 20;
+    margin-top: 20;
+    margin-bottom: 20;
+
+    maximum-size: 3000;
+
+    child: Stack content_stack {
+      transition-type: crossfade;
+
+      StackPage {
+        name: "placeholders";
+        child: $Placeholder {
+          profile: "services-page";
+        };
+      }
+
+      StackPage {
+        name: "content";
+        child: Box {
+          orientation: vertical;
+          spacing: 10;
+
+          Box top_legend {
+            hexpand: true;
+
+            Box {
+              orientation: vertical;
+              spacing: 5;
+              hexpand: true;
+              halign: start;
+              valign: center;
+
+              Label h1 {
+                styles [
+                  "title-1",
+                ]
+
+                ellipsize: end;
+
+                halign: start;
+              }
+
+              Label h2 {
+                styles [
+                  "faint-text",
+                ]
+
+                ellipsize: end;
+
+                halign: start;
+                visible: bind template.collapsed inverted;
+              }
+            }
+
+            Box {
+              orientation: vertical;
+              spacing: 12;
+              halign: end;
+
+              Box {
+                halign: end;
+                spacing: 5;
+
+                Button {
+                  margin-end: 5;
+
+                  action-name: "services-page.collapse-all";
+                  tooltip-text: _("Collapse all expanded services");
+
+                  child: Box {
+                    spacing: 5;
+
+                    Image {
+                      icon-name: "list-collapse-symbolic";
+                    }
+
+                    Label {
+                      label: _("Collapse All");
+                      visible: bind template.collapsed inverted;
+                    }
+                  };
+                }
+
+                $ProcessActionBar process_action_bar {
+                  visible: false;
+                }
+
+                $ServiceActionBar service_action_bar {
+                  visible: true;
+                }
+              }
+
+              Box {
+                spacing: 5;
+                halign: end;
+
+                Box {
+                  styles [
+                    "linked"
+                  ]
+
+                  halign: end;
+                  homogeneous: true;
+
+                  ToggleButton toggle_running {
+                    name: "toggle_running";
+                    tooltip-text: _("Filter running processes");
+
+                    child: Box {
+                      hexpand: true;
+                      halign: center;
+                      spacing: 5;
+
+                      Image {
+                        icon-name: "service-running";
+                      }
+
+                      Label {
+                        label: "Running";
+                        visible: bind template.collapsed inverted;
+                      }
+                    };
+                  }
+
+                  ToggleButton toggle_failed {
+                    name: "toggle_failed";
+                    tooltip-text: _("Filter failed processes");
+
+                    child: Box {
+                      hexpand: true;
+                      halign: center;
+                      spacing: 5;
+
+                      Image {
+                        icon-name: "service-failed";
+                      }
+
+                      Label {
+                        label: "Failed";
+                        visible: bind template.collapsed inverted;
+                      }
+                    };
+                  }
+
+                  ToggleButton toggle_stopped {
+                    name: "toggle_stopped";
+                    tooltip-text: _("Filter stopped processes");
+
+                    child: Box {
+                      hexpand: true;
+                      halign: center;
+                      spacing: 5;
+
+                      Image {
+                        icon-name: "service-stopped";
+                      }
+
+                      Label {
+                        label: "Stopped";
+                        visible: bind template.collapsed inverted;
+                      }
+                    };
+                  }
+
+                  ToggleButton toggle_disabled {
+                    name: "toggle_disabled";
+                    tooltip-text: _("Filter disabled processes");
+
+                    child: Box {
+                      hexpand: true;
+                      halign: center;
+                      spacing: 5;
+
+                      Image {
+                        icon-name: "service-disabled";
+                      }
+
+                      Label {
+                        label: "Disabled";
+                        visible: bind template.collapsed inverted;
+                      }
+                    };
+                  }
+                }
+
+                Button {
+                  action-name: "services-page.remove-filters";
+                  tooltip-text: _("Remove all filters");
+
+                  child: Box {
+                    spacing: 5;
+
+                    Image {
+                      icon-name: "edit-clear-all-symbolic";
+                    }
+
+                    Label {
+                      label: _("Remove Filters");
+                      visible: bind template.collapsed inverted;
+                    }
+                  };
+                }
+              }
+            }
+          }
+
+          $TableView table_view {
+            margin-top: 10;
+          }
+        };
+      }
+    };
+  }
+}

@@ -1,0 +1,85 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+
+# Qt Creator
+*.pro.user
+CMakeLists.txt.user
+CMakeLists.txt.user*
+
+build-*/
+*.config
+*.creator
+*.files
+*.includes
+
+# Visual Studio
+.vs/
+CMakeSettings.json
+out/
+
+# macOS Finder files
+.DS_Store
+._.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vim
+*.swp
+
+# IntelliJ
+.idea/
+cmake-build*
+
+# Rust
+target/
+
+# IDF
+sdkconfig.old
+
+# VS Code
+.vscode/
+compile_commands.json
+
+# VS Code Flatpak extension by bilelmoussaoui
+.flatpak/
+
+# Project specific
+/flatpak/missioncenter.flatpak
+/subprojects/blueprint-compiler-*
+/subprojects/packagecache
+/subprojects/.wraplock
+_build
+BUILD

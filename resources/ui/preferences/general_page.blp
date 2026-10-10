@@ -1,0 +1,47 @@
+/* ui/preferences/general_page.blp
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesGeneralPage: Adw.PreferencesPage {
+  title: _("General");
+  icon-name: "general-properties-symbolic";
+
+  Adw.PreferencesGroup {
+    Adw.ActionRow {
+      title: _("Update Interval");
+      subtitle: _("In seconds");
+
+      Adw.SpinRow update_interval {
+        adjustment: Gtk.Adjustment {
+          lower: 0.5;
+          upper: 10;
+          step-increment: 0.05;
+          value: 1;
+        };
+
+        hexpand: false;
+        value: 1;
+        digits: 2;
+      }
+    }
+  }
+}

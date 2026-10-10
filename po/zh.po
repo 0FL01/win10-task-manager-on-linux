@@ -1,0 +1,2750 @@
+# Chinese translations for missioncenter package.
+# Copyright (C) 2023 THE missioncenter'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# Peter Dave Hello <hsu@peterdavehello.org>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2026-09-10 01:51+0000\n"
+"Last-Translator: ZhangPeng <scbeta@qq.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
+"projects/mission-center/mission-center/zh_Hans/>\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 2026.9.1\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "任务中心"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"任务管理器;资源监视器;系统监视器;处理器;进程管理;性能监视器;光盘;磁盘;硬盘;固"
+"态;内存;网络;占用;使用率;利用率;服务;服务管理器;服务列表;系统服务;用户服务;"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "任务中心开发者"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "监控系统资源使用情况"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"监控您的处理器、内存、硬盘、网络和显卡使用情况，同时附上这些信息按应用和进程"
+"的统计"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "功能："
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "监控整体或每个线程的处理器使用情况"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"查看系统进程、线程和句柄数量、运行时间、时钟频率（基本频率和当前频率）、缓存"
+"大小"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "监控内存和交换空间使用情況"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr "查看系统使用内存的详细信息"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "监控磁盘使用情况和传输速率"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "监控网络使用情况和传输速度"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"查看网络接口信息，如网卡名称、连接类型（Wi-Fi 或以太网）、无线速度和频率、硬"
+"件地址、IP 地址"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"监控显卡整体使用情况，视频编码器和解码器使用情况，显存使用情况和功耗，由知名"
+"项目 NVTOP 提供支持"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "监控系统风扇"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "查看应用和进程的资源使用详细信息"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "支持缩小的摘要视图以进行简单监控"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr "对所有图形使用硬件加速渲染，以期减少处理器和整体资源占用"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "使用 GTK4 和 Libadwaita"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "使用 Rust 编写"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr "限制（目前正在努力克服这些限制）："
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"英特尔显卡监控仅支持 Broadwell 及更高版本的显卡；并且不支持显存、电源或温度监"
+"控"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"使用 Linux Mint/Cinnamon 时，启动的应用程序可能不会显示在“应用程序”部分（上游"
+"问题：https://github.com/linuxmint/cinnamon/issues/12015）"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr "欢迎提供评论、建议、缺陷报告和贡献"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "应用程序启动时显示的页面"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "界面风格"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr "应使用亮色或是暗色界面风格"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "已废弃！不再使用！"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr "应该以多快的速度刷新数据和用户界面（以 50 毫秒为增量）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "每个图表上应该显示多少个点？"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "是否为内存改用比特或字节（默认）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "是否为内存改用 10 进制或 2 进制（默认）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr "是否为驱动器速度和大小改用比特或字节（默认）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr "是否为驱动器速度和大小改用 10 进制或 2 进制（默认）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr "是否为网络速度使用比特（默认）或字节"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr "是否为网络速度使用 10 进制（默认）或 2 进制"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr "将图形最大值设置为接口最大值 （false） 或是观察到的最大值 （true）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr "分别显示或合并显示父进程和子进程的统计信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "列排序在应用程序重新启动后保持不变"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "列排序在应用程序重新启动后保持不变"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr "显示按可用核心数缩放的应用和进程的处理器占用"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr "在应用视图中每列之间显示分隔符"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr "在应用视图中使等于零的数值变灰"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr "应用页面视图排序所依据的列名称"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "应用页面视图的排序方向"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "应用页面视图中列的排序"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+msgid "The column name by which the Services page view is sorted"
+msgstr "服务页面视图排序所依据的列名称"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+msgid "The sorting direction of the Services page view"
+msgstr "服务页面视图的排序方向"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+msgid "The order of columns in the Services page view"
+msgstr "服务页面视图中列的排序"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "在处理器性能页面上展示哪个图表"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr "在处理器性能页面的底部图表上展示哪个图表"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr "在处理器图表中显示内核时钟"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr "在性能标签下，应用程序启动时展示的页面"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "性能图表应该是平滑的还是锯齿状的"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "图表应是动画化的"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "默认显示处理器信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "默认显示内存信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "默认显示磁盘信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "默认显示网络信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+msgid "Show wired network devices by default"
+msgstr "默认显示有线网络设备"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+msgid "Show wireless network devices by default"
+msgstr "默认显示无线网络设备"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+msgid "Show VPN network devices by default"
+msgstr "默认显示 VPN 网络设备"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr "默认显示虚拟网络设备（Docker、Multipass、网桥）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr "默认显示其它网络设备（蓝牙、无限带宽、WWAN）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "默认显示显卡信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "默认显示风扇信息"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "显示内存组成小部件"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "显示交换空间图表"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr "中部图表的内容和可见性"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr "底部图表的内容和可见性"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "应用程序侧边栏中的条目顺序"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "在应用程序侧边栏中应隐藏的图表"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr "单设备可见性覆盖规则（以分号分隔的 名称:显示 或 名称:隐藏条目）"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr "如果你是首次运行Mission Center"
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "折叠所有应用和进程"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "全部折叠"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "弹出失败"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr "杀死"
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr "使用中："
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr "已修改："
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr "待机中："
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr "空闲中："
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "处理器"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+msgid "Utilization over "
+msgstr "使用率 - 最近 "
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+msgid "Change _Top Graph To"
+msgstr "更改顶部的图表为(_T)"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "整体使用率(_T)"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "逻辑处理器(_P)"
+
+#: resources/ui/performance_page/cpu.blp:180
+msgid "_All Threads"
+msgstr "所有线程"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr "所有线程 _堆叠"
+
+#: resources/ui/performance_page/cpu.blp:191
+msgid "Change B_ottom Graph To"
+msgstr "更改底部的图表为(_o)"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+msgid "_Power Draw"
+msgstr "功耗(_P)"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+msgid "_Temperature"
+msgstr "温度(_T)"
+
+#: resources/ui/performance_page/cpu.blp:204
+msgid "_Clock Speed"
+msgstr "时钟速度(_C)"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr "_无"
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr "显示内核时间"
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "图表总览视图(_S)"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "视图(_V)"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "处理器(_U)"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "内存(_M)"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr "驱动器(_D)"
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "网络(_N)"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "显卡(_G)"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr "风扇(_F)"
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr "电池(_B)"
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "复制(_C)"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr "显示 SMART 数据"
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr "弹出磁盘"
+
+#: resources/ui/performance_page/disk.blp:100
+msgid "Active time over "
+msgstr "活动时间 - 最近 "
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+msgid "Throughput over "
+msgstr "吞吐量 - 最近 "
+
+#: resources/ui/performance_page/fan.blp:62
+msgid "Fan speed over "
+msgstr "风扇速度 - 最近 "
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+msgid "Temperature over "
+msgstr "温度 - 最近 "
+
+#: resources/ui/performance_page/fan_details.blp:59
+msgid "Fan Speed"
+msgstr "风扇速度"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr "PWM 百分比"
+
+#: resources/ui/performance_page/fan_details.blp:127
+msgid "Current Temperature"
+msgstr "当前温度"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+msgid "Video encode/decode utilization over "
+msgstr "视频编码/解码使用率 - 最近 "
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+msgid "Memory usage over "
+msgstr "内存占用 - 最近 "
+
+#: resources/ui/performance_page/gpu.blp:206
+msgid "Change Middle Graph To"
+msgstr "更改中间的图表为"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+msgid "_Encode/_Decode"
+msgstr "编码(_E)/解码(_D)"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+msgid "_Memory Usage"
+msgstr "内存占用(_M)"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+msgid "_Clock Speeds"
+msgstr "时钟速度(_C)"
+
+#: resources/ui/performance_page/gpu.blp:240
+msgid "Change Bottom Graph To"
+msgstr "更改底部的图表为"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "内存"
+
+#: resources/ui/performance_page/memory.blp:123
+msgid "Swap usage over "
+msgstr "交换空间占用 - 最近 "
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "内存组成"
+
+#: resources/ui/performance_page/memory.blp:195
+msgid "Show Memory Composition"
+msgstr "显示内存组成"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr "显示交换空间占用"
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "使用中"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "可用"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "已提交"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "已缓存"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "已使用交换空间"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "可用交换空间"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr "压缩"
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr "节省"
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "速度："
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "已使用插槽："
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "尺寸规格："
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "类型："
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "网络设置(_T)"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "接收"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "发送"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr "收到总计"
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr "发送总计"
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "接口名称："
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "连接类型："
+
+#: resources/ui/performance_page/network_details.blp:222
+msgid "Connection status:"
+msgstr "连接状态："
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID："
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "信号强度："
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "最大传输速率："
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "频率："
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "硬件地址："
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "IPv4 地址："
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "IPv6 地址："
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr "Smart 数据"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+msgid "Last Updated:"
+msgstr "上次更新:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+msgid "Powered On:"
+msgstr "通电时间:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr "驱动器健康:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr "SMART 测试状态:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr "属性"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr "值"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr "ID"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+msgid "Normalized"
+msgstr "标准化"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+msgid "Threshold"
+msgstr "阈值"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr "最差"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "类型"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+msgid "Updates"
+msgstr "更新"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr "评估"
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "使用率"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "时钟速度"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+msgid "Power Draw"
+msgstr "功耗"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+msgid "Memory Usage"
+msgstr "内存占用"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+msgid "Shared Memory Usage"
+msgstr "共享内存占用"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+msgid "Memory Speed"
+msgstr "内存速度"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+msgid "Video encode"
+msgstr "视频编码"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+msgid "Video decode"
+msgstr "视频解码"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "温度"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "OpenGL 版本："
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "Vulkan 版本："
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "PCI Express 速度："
+
+#: resources/ui/performance_page/gpu_details.blp:597
+msgid "Max PCI Express speed:"
+msgstr "PCI Express 最大速度："
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "PCI 总线地址："
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+msgid "Failed To Get SMART Data"
+msgstr "获取 SMART 数据失败"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr "获取 SMART 数据存在困难。请尝试从命令行运行以获取更多信息。"
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "读取速度"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "写入速度"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr "读取总计"
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr "写入总计"
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "活动时间"
+
+#: resources/ui/performance_page/disk_details.blp:221
+msgid "Avg. response time"
+msgstr "平均响应时间"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "容量："
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "格式化容量："
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "系统磁盘："
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr "WWN："
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr "序列号："
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr "转速"
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr "分区"
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "速度"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "进程"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "线程"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "句柄"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "启动时间"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "基准速度："
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "插槽："
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "虚拟处理器："
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "虚拟化："
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "虚拟机："
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "一级缓存："
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "二级缓存："
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "三级缓存："
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Cpufreq 驱动："
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Cpufreq 调频策略："
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "电源首选项："
+
+#: resources/ui/preferences/apps_services_page.blp:25
+msgid "Apps & Services"
+msgstr "应用与服务"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr "合并进程统计"
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr "记住排序"
+
+#: resources/ui/preferences/apps_services_page.blp:36
+msgid "Persist sorting by column across app restarts"
+msgstr "在应用重启间记住列的排序状态"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr "记住列排序"
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr "在应用重启间记住列表的排序状态"
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr "将处理器占用缩放至核心数"
+
+#: resources/ui/preferences/apps_services_page.blp:46
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr "显示按可用核心数缩放的处理器占用"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr "显示列分隔符"
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr "在每列间显示分隔符"
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr "将零值置灰"
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr "将零值置灰"
+
+#: resources/ui/preferences/general_page.blp:25
+msgid "General"
+msgstr "常规"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr "更新间隔"
+
+#: resources/ui/preferences/general_page.blp:31
+msgid "In seconds"
+msgstr "单位秒"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr "性能页面"
+
+#: resources/ui/preferences/performance_page.blp:29
+msgid "Graph Settings"
+msgstr "图表设置(_T)"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr "数据点"
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr "平滑图表"
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr "将图表绘制为平滑线而不是锯齿状线"
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr "滑动图表"
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr "图表动画化（可能对性能有负面影响）"
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr "动态缩放网络图表"
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr "将网络图表设置为根据实际使用情况或通道最大速度动态缩放"
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr "设备"
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr "显示磁盘信息"
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr "显示网络信息"
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr "有线"
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr "无线"
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr "VPN"
+
+#: resources/ui/preferences/performance_page.blp:91
+msgid "Virtual"
+msgstr "虚拟化"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr "Docker, Multipass, Bridge"
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "其他"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr "蓝牙, InfiniBand, WWAN"
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr "显示显卡信息"
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr "显示风扇信息"
+
+#: resources/ui/preferences/performance_page.blp:112
+msgid "Show Battery Information"
+msgstr "显示电池信息"
+
+#: resources/ui/preferences/performance_page.blp:113
+msgid "Show battery information by default"
+msgstr "默认显示电池信息"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr "单位"
+
+#: resources/ui/preferences/units_page.blp:30
+msgid "Memory Usage Unit"
+msgstr "内存占用单位"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr "为内存使用字节作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr "字节"
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr "为内存使用位作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr "位"
+
+#: resources/ui/preferences/units_page.blp:49
+msgid "Memory Usage Base"
+msgstr "内存占用进制"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr "为内存使用 10 进制"
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr "10 进制"
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr "为内存使用 2 进制"
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr "2 进制"
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr "驱动器占用单位"
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr "为磁盘驱动器使用字节作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr "为磁盘驱动器使用位作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr "驱动器占用进制"
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr "为磁盘驱动器使用 10 进制"
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr "为磁盘驱动器使用 2 进制"
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr "网络占用单位"
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr "为网络接口使用字节作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr "为网络接口使用位作为测量单位"
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr "网络占用进制"
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr "为网络接口使用 10 进制"
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr "为网络接口使用 2 进制"
+
+#: resources/ui/services_page/page.blp:96
+msgid "Collapse all expanded services"
+msgstr "折叠所有展开的服务"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr "筛选正在运行的进程"
+
+#: resources/ui/services_page/page.blp:155
+msgid "Filter failed processes"
+msgstr "筛选失败的进程"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr "筛选已停止的进程"
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr "筛选已禁用的进程"
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr "移除所有筛选器"
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr "移除筛选器"
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "跟随系统样式"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "亮色风格"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "暗色风格"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr "键盘快捷键"
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr "全局"
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr "打开菜单"
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr "关闭窗口"
+
+#: resources/ui/keyboard_shortcuts.blp:26
+msgid "Open Preferences"
+msgstr "打开首选项"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr "显示键盘快捷键"
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr "显示性能页面"
+
+#: resources/ui/keyboard_shortcuts.blp:41
+msgid "Show Apps Page"
+msgstr "显示应用页面"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr "显示服务页面"
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr "切换侧边栏"
+
+#: resources/ui/keyboard_shortcuts.blp:60
+msgid "Copy Device Information"
+msgstr "复制设备信息"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr "切换摘要模式"
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr "选择设备"
+
+#: resources/ui/keyboard_shortcuts.blp:76
+msgid "Apps Page"
+msgstr "应用页面"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr "搜索"
+
+#: resources/ui/keyboard_shortcuts.blp:89
+msgid "Stop App or Process"
+msgstr "停止应用或进程"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+msgid "Force Stop App or Process"
+msgstr "强制停止应用或进程"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr "显示详情对话框"
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr "服务页面"
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr "启动服务"
+
+#: resources/ui/keyboard_shortcuts.blp:123
+msgid "Stop Service"
+msgstr "停止服务"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr "重启服务"
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "名称"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "PID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+msgid "Swap"
+msgstr "交换空间"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "驱动器"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "网络"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "显卡"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "显存"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "停止"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "强制停止"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr "发送信号"
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr "挂起（STOP）"
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr "继续（CONT）"
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr "挂机（HUP）"
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr "中断（INT）"
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr "终止（TERM）"
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr "杀死（KILL）"
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr "用户 1（USR1）"
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr "用户 2（USR2）"
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "详情"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "启动"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "重启"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "停止选中的应用"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "强制停止选中的应用"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "显示选中应用的详情"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr "应用 ID"
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "N/A"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "命令行"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "资源占用"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "驱动器"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "启动选中的服务"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "停止选中的服务"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "重启选中的服务"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "显示选中服务的详情"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "服务详情"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "状态"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "服务当前状态"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "启动服务"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "停止服务"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "重启服务"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "描述"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "状态"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "已启用"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "进程"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "进程与用户信息"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "进程 ID"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "用户"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "组"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr "文件位置"
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "日志"
+
+#: resources/ui/about_system_dialog.blp:36
+msgid "System Info"
+msgstr "系统信息"
+
+#: resources/ui/about_system_dialog.blp:65
+msgid "Operating System Information"
+msgstr "操作系统信息"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+msgid "Version"
+msgstr "版本"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr "包管理器"
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr "包管理器版本"
+
+#: resources/ui/about_system_dialog.blp:183
+msgid "Kernel Information"
+msgstr "内核信息"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr "内核发布"
+
+#: resources/ui/about_system_dialog.blp:245
+msgid "Desktop Environment Information"
+msgstr "桌面环境信息"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr "窗口系统"
+
+#: resources/ui/about_system_dialog.blp:344
+msgid "Virtual Terminal"
+msgstr "虚拟终端"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr "全部启用"
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr "全部禁用"
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr "重置为默认值"
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr "编辑侧边栏"
+
+#: resources/ui/window.blp:134
+msgid "Type a name or PID to search"
+msgstr "输入名称或 PID 进行搜索"
+
+#: resources/ui/window.blp:149
+msgid "Toggle Device Information"
+msgstr "切换设备信息"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr "主菜单"
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr "性能"
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "应用"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr "服务"
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "首选项(_P)"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr "键盘快捷键(_K)"
+
+#: resources/ui/window.blp:237
+msgid "_System Information"
+msgstr "系统信息"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr "打开_Wiki"
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr "显示初次运行对话框(_F)"
+
+#: resources/ui/window.blp:257
+msgid "_About Mission Center"
+msgstr "关于任务中心(_A)"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] "{} 个应用正在运行"
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] "{} 个进程正在运行"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr "关闭"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr "重试"
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+msgid "Kill All"
+msgstr "全部杀死"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr "{} 前"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "未知"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr "预失效"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr "老化"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr "在线"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr "离线"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr "即将故障"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr "历史曾失效"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr "正常"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr "使用百分比"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+msgid "Available Spare"
+msgstr "可用备用块"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr "备用块阈值"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr "数据读取总计"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr "数据写入总计"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr "过热警告时间"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr "温度临界时间"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr "主控繁忙时间"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+msgid "Warning Temperature"
+msgstr "警告温度"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr "{} °C"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+msgid "Critical Temperature"
+msgstr "临界温度"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr "温度"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr "不安全关机"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr "媒体错误"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr "错误日志条目数量"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr "通电周期"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"使用中（{}）\n"
+"\n"
+"被操作系统和运行中应用程序使用的内存"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"已修改（{}）\n"
+"\n"
+"被其它进程使用前必须将内容写入磁盘的内存"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"待机（{}）\n"
+"\n"
+"包含未活跃使用缓存数据和代码的内存"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"空闲（{}）\n"
+"\n"
+"当操作系统、驱动程序或应用程序需要更多内存时，优先重新分配的当前未使用内存"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, rust-format
+msgid "{} sectors"
+msgstr "{} 扇区"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+"无法获取真实的 CPU 频率数据（常见于虚拟机、容器或云实例中）。显示 BogoMIPS 值"
+"作为替代方案。BogoMIPS 是一种延迟循环校准指标，并非真实的频率测量值。"
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "不支持"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "是"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "否"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+msgid "Power draw over "
+msgstr "功耗 "
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+msgid "Clock speed over "
+msgstr "时钟速度 - 最近 "
+
+#: src/performance_page/disk.rs:179
+#, rust-format
+msgid "Disk {} ({})"
+msgstr "磁盘 {}（{}）"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, rust-format
+msgid "Drive ({})"
+msgstr "驱动器（{}）"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+msgid "SD"
+msgstr "SD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr "光驱"
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr "软盘"
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr "U 盘"
+
+#: src/performance_page/disk.rs:336
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "驱动器 {}（{}）"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr "{} 转速"
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr "风扇 {}"
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr "风扇"
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: src/performance_page/gpu.rs:562
+msgid "Video encode/decode"
+msgstr "视频编码/解码"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "显卡 {}"
+
+#: src/performance_page/gpu.rs:826
+msgid "Total Memory"
+msgstr "显存总计"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr "共享内存总计"
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr "独立和共享内存占用 - 最近 "
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr "{} 共 {}"
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr "获取额外内存信息失败"
+
+#: src/performance_page/mod.rs:1269
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr "电池 {}"
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr "电池"
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr "{}"
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr "已失败"
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr "已断开连接"
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr "断开连接中"
+
+#: src/performance_page/network.rs:460
+msgid "Connected"
+msgstr "已连接："
+
+#: src/performance_page/network.rs:461
+msgid "Connecting"
+msgstr "连接中："
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr "配置"
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr "等待授权"
+
+#: src/performance_page/network.rs:464
+msgid "Unavailable"
+msgstr "不可用"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr "加载中"
+
+#: src/services_page/mod.rs:99
+#, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "总计 {} 项服务"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr "运行中"
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr "已停止"
+
+#: src/services_page/mod.rs:138
+msgid "Disabled"
+msgstr "已禁用"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr "无匹配当前筛选器的服务"
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr "无应用的筛选器"
+
+#: src/services_page/mod.rs:153
+#, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "{} {} 项服务"
+
+#: src/services_page/mod.rs:182
+msgid "User Services"
+msgstr "用户服务"
+
+#: src/services_page/mod.rs:187
+msgid "System Services"
+msgstr "系统服务"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr "节标头"
+
+#: src/table_view/row_model.rs:280
+msgid "Service"
+msgstr "服务"
+
+#: src/table_view/row_model.rs:281
+msgid "App"
+msgstr "应用"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr "复制日志到剪贴板"
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr ""
+"NS nsfoxer <muwuren@gmail.com>\n"
+"张鹏 <scbeta@qq.com>\n"
+"lumingzh <lumingzh@qq.com>"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} 年"
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} 月"
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} 天"
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} 小时"
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} 分钟"
+
+#: src/main.rs:126 src/main.rs:205
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} 秒"
+
+#: src/main.rs:163
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} 另 {}"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr "{} 另 {}"
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr "少于 1 分钟"
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "退出(_Q)"
+
+#~ msgid "Show the gpu encode-decode graph"
+#~ msgstr "显示显卡编解码图表"
+
+#~ msgid "Shared Memory"
+#~ msgstr "共享内存"
+
+#~ msgid "Show CPU Information"
+#~ msgstr "显示处理器信息"
+
+#~ msgid "Global Units"
+#~ msgstr "全局单位"
+
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr ""
+#~ "共享\n"
+#~ "内存"
+
+#~ msgid "_About System"
+#~ msgstr "关于系统(_A)"
+
+#~ msgid "Not Implemented"
+#~ msgstr "未实现"
+
+#~ msgid "App Page"
+#~ msgstr "应用页面"
+
+#~ msgid "{} failed services out of a total of {}"
+#~ msgstr "{} 项失败的服务，共 {} 项服务"
+
+#, fuzzy
+#~ msgid "{} minutes"
+#~ msgstr "{} 分钟{} "
+
+#~ msgid "{} second{}"
+#~ msgstr "{} 秒{}"
+
+#~ msgid "{} minute{} "
+#~ msgstr "{} 分钟{} "
+
+#~ msgid "No per-process network usage"
+#~ msgstr "没有单个进程网络使用情况"
+
+#~ msgid "GPU support is experimental"
+#~ msgstr "显卡支持是实验性的"
+
+#~ msgid "PWM %"
+#~ msgstr "PWM %"
+
+#~ msgid "GTT usage"
+#~ msgstr "GTT 占用"
+
+#~ msgid "Show Network Speed In Bytes"
+#~ msgstr "显示网络速度（字节）"
+
+#~ msgid "GPU Usage"
+#~ msgstr "显卡占用"
+
+#~ msgid "Stop Application"
+#~ msgstr "停止应用程序"
+
+#~ msgid "Force Stop Application"
+#~ msgstr "强制停止应用程序"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {}{}B/秒"
+
+#~ msgid "B/s"
+#~ msgstr "B/s"
+
+#~ msgid "bps"
+#~ msgstr "bps"
+
+#~ msgid "{} {}bps"
+#~ msgstr "{} {}b/秒"
+
+#~ msgid "Ethernet"
+#~ msgstr "以太网络"
+
+#~ msgid "Wi-Fi"
+#~ msgstr "Wi-Fi"
+
+#~ msgid "Flatpak first"
+#~ msgstr "Flatpak 优先"
+
+#~ msgid "Video decode utilization"
+#~ msgstr "视频解码利用率"
+
+#~ msgid "Display optical device information in the Performance tab"
+#~ msgstr "在性能标签页中显示光器件信息"
+
+#~ msgid "Fix a bug where the Gatherer process would crash at startup"
+#~ msgstr "修复在启动时搜集进程可能崩溃的BUG"
+
+#~ msgid ""
+#~ "Remove the need for admin rights to display extended memory information"
+#~ msgstr "无需管理员权限即可显示扩展内存信息"
+
+#~ msgid "Remove the requirement for `libgcc_s.so.1` on musl-based systems"
+#~ msgstr "在基于musl的系统上移除对`libgcc_s.so.1`的需求"
+
+#~ msgid ""
+#~ "Make the saturation and transfer graphs the same height in the disk usage "
+#~ "panes"
+#~ msgstr "在磁盘使用情况窗格中使吞吐量和传输图的高度相同"
+
+#~ msgid "Translation updates and fixes"
+#~ msgstr "翻译更新和修复"
+
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems (again!)"
+#~ msgstr "修复在某些系统上检测到CPU数量不正确的BUG(再次修复)"
+
+#~ msgid ""
+#~ "Fix a bug where the number of CPUs was incorrectly detected on some "
+#~ "systems"
+#~ msgstr "修复在某些系统上检测到CPU数量不正确的BUG"
+
+#~ msgid "Add missing icon for the details panel in the Performance tab"
+#~ msgstr "在性能标签页上为详情面板增加缺失的图标"
+
+#~ msgid ""
+#~ "Fix a regression in 0.4.0 where GPU data would not be available for some "
+#~ "users"
+#~ msgstr "修复在0.4.0版本中某些用户下GPU数据不可用的问题"
+
+#~ msgid "Update to GTK 4.12 and libadwaita 1.4"
+#~ msgstr "更新到GTK 4.12 和 Libadwaita 1.4"
+
+#~ msgid "Redesigned the Performance tab to be adaptive"
+#~ msgstr "重新设计性能标签页以自适应"
+
+#~ msgid "Early and very minimal Intel GPU support"
+#~ msgstr "非常早期和有限的支持Intel GPU"
+
+#~ msgid "Add GPU memory usage column to the Apps page"
+#~ msgstr "在应用程序页添加GPU内存使用情况列"
+
+#~ msgid "Added an AppImage"
+#~ msgstr "添加一个AppImage"
+
+#~ msgid ""
+#~ "The Performance tab now shows what kind of virtualization is enabled on "
+#~ "the host"
+#~ msgstr "在性能标签页上现在显示主机上启用的虚拟化类型"
+
+#~ msgid "The logical CPU graphs are now arranged in a more pleasing manner"
+#~ msgstr "逻辑 CPU 图现在以更令人愉悦的方式排列"
+
+#~ msgid ""
+#~ "The Gatherer was rearchitected and now uses D-Bus for communication with "
+#~ "the main app"
+#~ msgstr "收集器经过重新架构设计，现在使用 D-Bus 与主应用程序进行通信"
+
+#~ msgid "Fixes:"
+#~ msgstr "修复："
+
+#~ msgid "Fix misaligned header in the Apps tab with GTK 4.12"
+#~ msgstr "修复使用GTK 4.12时应用程序选项卡标题未对齐的BUG"
+
+#~ msgid ""
+#~ "Fix app and Gatherer not starting due to LD_PRELOAD being set in the host "
+#~ "environment"
+#~ msgstr "修复当LD_PRELOAD被设置到主机环境变量时应用程序和收集器不能启动的BUG"
+
+#~ msgid ""
+#~ "Fix sometimes Apps not showing the accumulated resource usage from all "
+#~ "it's children"
+#~ msgstr "修复有时应用程序不显示所有子进程的累积资源使用情况的问题"
+
+#~ msgid ""
+#~ "Fix missing L1/2/3 CPU cache information missing when NUMA is not enabled"
+#~ msgstr "修复当NUMA未启用时丢失L1/2/3 CPU缓存的问题"
+
+#~ msgid "Fix Virtualization reported as Unknown under certain circumstances"
+#~ msgstr "修复在某些情况下虚拟化类型报告为“未知”的问题"
+
+#~ msgid "Fix a Gatherer crash on older CPUs"
+#~ msgstr "修复在老的CPU上收集器崩溃的问题"
+
+#~ msgid "A lot of new translations and fixes to existing ones"
+#~ msgstr "在现有基础上增加了许多新的翻译和修复"
+
+#~ msgid "Add GPU usage column in the Apps tab"
+#~ msgstr "在“应用程序”选项卡中添加 GPU 使用情况列"
+
+#~ msgid "Reduce memory usage and fix a memory leak in the main app"
+#~ msgstr "减少内存使用量并修复主应用程序中的内存泄漏"
+
+#~ msgid ""
+#~ "Fix a crash at start-up when flatpak data is stored in a path with spaces"
+#~ msgstr "修复了 flatpak 数据存储在带有空格的路径中时启动时崩溃的问题"
+
+#~ msgid "Fix incorrect base frequency in AMD CPUs"
+#~ msgstr "修复 AMD CPU 中基本频率不正确的问题"
+
+#~ msgid "Fix missing video encode/decode information in the GPU tab"
+#~ msgstr "修复“GPU”选项卡中缺失视频编码/解码信息的问题"
+
+#~ msgid ""
+#~ "Add an option, to the context menu, to show kernel times, in the CPU "
+#~ "graphs"
+#~ msgstr "在上下文菜单中添加一个选项，在CPU图形中显示内核时间"
+
+#~ msgid "Add CPU temperature, where possible"
+#~ msgstr "在可能的情况下添加处理器温度"
+
+#~ msgid ""
+#~ "Implement smarter rounding and display precision of values throughout the "
+#~ "app by QwertyChouskie"
+#~ msgstr ""
+#~ "通过 QwertyChouskie 在整个应用程序中实现更智能的四舍五入和数值显示精度"
+
+#~ msgid ""
+#~ "Use metainfo instead of appdata for application metadata by David "
+#~ "Guglielmi"
+#~ msgstr ""
+#~ "使用 metainfo 而不是 appdata 作为应用程序元数据， by David Guglielmi"
+
+#~ msgid ""
+#~ "Fixed a regression where natively installed browsers were not showing up "
+#~ "in the apps list on Fedora"
+#~ msgstr "修复了本机安装的浏览器未显示在 Fedora 的应用程序列表中的回归问题"
+
+#~ msgid ""
+#~ "Fixed a regression where Flatpak apps were not showing up in the apps "
+#~ "list on ArchLinux Plasma"
+#~ msgstr ""
+#~ "修复了 Flatpak 应用程序未显示在 Archlinux Plasma 上的应用程序列表中的回归"
+
+#~ msgid ""
+#~ "Fixed a bug where the Maps app desktop file wasn't being parsed correctly"
+#~ msgstr "修复了一个导致“地图”应用桌面文件无法正确解析的错误"
+
+#~ msgid ""
+#~ "Moved some performance related logs to g_debug to prevent spamming of "
+#~ "system logs"
+#~ msgstr "将一些与性能相关的日志移至 g_debug，以防止系统日志滥发"
+
+#~ msgid "Translations:"
+#~ msgstr "翻译："
+
+#~ msgid "New translation to Korean by Seong-ho Cho"
+#~ msgstr "新韩文翻译 by Seong-ho Cho"
+
+#~ msgid "New translation to Dutch by Gert"
+#~ msgstr "新荷兰语翻译 by Gert"
+
+#~ msgid "New translation to Polish by _Ghost_"
+#~ msgstr "新波兰语翻译 by _Ghost_"
+
+#~ msgid "New translation to Italian by beppeilgommista"
+#~ msgstr "由beppeilgommista完成的意大利语翻译"
+
+#~ msgid "New translation to Portuguese (Brazil) by Gérson da Fonseca Henzel"
+#~ msgstr "由 Gérson da Fonseca Henzel 完成葡萄牙语翻译"
+
+#~ msgid "Updated Spanish translation"
+#~ msgstr "更新西班牙语翻译"
+
+#~ msgid "Updated Finnish translation"
+#~ msgstr "更新芬兰语翻译"
+
+#~ msgid "Updated Russian translation"
+#~ msgstr "更新俄语翻译"
+
+#~ msgid "Updated Chinese (Simplified) translation"
+#~ msgstr "更新的简体中文翻译"
+
+#~ msgid "Updated Greek translation"
+#~ msgstr "更新希腊语翻译"
+
+#~ msgid "Updated German translation"
+#~ msgstr "更新德语翻译"
+
+#~ msgid ""
+#~ "Hotfix release to fix a bug that caused the app to not display any "
+#~ "information for some users"
+#~ msgstr "热更新版本，修复了“应用可能对特定用户不显示任何信息”的bug"
+
+#~ msgid "New app icon by QwertyChouskie"
+#~ msgstr "新版应用图标（由QwertyChouskie制作）"
+
+#~ msgid "Add ability to stop and force stop apps and processes"
+#~ msgstr "新增停止/强制停止应用/进程的功能"
+
+#~ msgid ""
+#~ "Running apps are now shown more reliably, and should reflect most if not "
+#~ "all running apps"
+#~ msgstr ""
+#~ "现在更可靠地显示正在运行的应用程序，并且应反映大多数（可能不是全部）正在运"
+#~ "行的应用程序"
+
+#~ msgid "Experimental support for Snap apps in the running apps list"
+#~ msgstr "对应用程序列表中正在运行的Snap应用程序提供实验性支持"
+
+#~ msgid ""
+#~ "Added a setting to show resource consumption individually per process or "
+#~ "cumulated with their descendants"
+#~ msgstr ""
+#~ "添加了用于显示每个进程的资源消耗量，或与其子进程的累积资源消耗量的设置项"
+
+#~ msgid ""
+#~ "Added a setting to enable persistent sorting in the apps and processes "
+#~ "list"
+#~ msgstr "添加了一个设置，以便在应用程序和进程列表中启用持久排序"
+
+#~ msgid ""
+#~ "Data gathering is now more versatile and will permit new features to be "
+#~ "added quicker and easier"
+#~ msgstr "数据收集现在更加多样化，这样可以更快、更容易地添加新功能"
+
+#~ msgid "App can now be built from GNOME Builder"
+#~ msgstr "现在可以从GNOME Builder构建应用程序"
+
+#~ msgid "New translation to Norwegian Bokmål by Allan Nordhøy"
+#~ msgstr "Allan Nordhøy新增挪威语Bokmål的翻译"
+
+#~ msgid "New translation to Russian by Ivan Maslikhov"
+#~ msgstr "伊万·马斯利霍夫 Ivan Maslikhov新增俄语翻译"
+
+#~ msgid "New translation to Slovak by mthw0"
+#~ msgstr "mthw0新增斯洛伐克语的翻译"
+
+#~ msgid "New translation to Greek by Yiannis Ioannides"
+#~ msgstr "由Yiannis Ioannides新增希腊语翻译"
+
+#~ msgid "New translation to Chinese (Simplified) by foxer NS"
+#~ msgstr "由foxer NS新增简体中文翻译"
+
+#~ msgid "New translation to French by Link Mauve"
+#~ msgstr "由Link Mauve新增法语翻译"
+
+#~ msgid "New translation to Hungarian by Kovács Bálint Hunor"
+#~ msgstr "Kovács Bálint Hunor新增匈牙利语翻译"
+
+#~ msgid "Updated Czech translation"
+#~ msgstr "更新捷克语翻译"
+
+#~ msgid "Updated Portuguese translation"
+#~ msgstr "更新葡萄牙语翻译"
+
+#~ msgid "Fixes for Chinese translations by foxer NS"
+#~ msgstr "由foxer NS更新中文翻译"
+
+#~ msgid "Add Spanish translation by Óscar Fernández Díaz"
+#~ msgstr "由 Óscar Fernández Díaz 新增西班牙语翻译"
+
+#~ msgid ""
+#~ "The memory tab now shows configured memory speed instead of the maximum "
+#~ "supported by the modules"
+#~ msgstr "内存标签现在显示配置的内存速度，而不是模块支持的最大速度"
+
+#~ msgid "Add German translation by TecCheck"
+#~ msgstr "由 TecCheck 新增德语翻译"
+
+#~ msgid ""
+#~ "When a process uses large amounts of CPU or RAM it is now highlighted in "
+#~ "the Apps and Processes list"
+#~ msgstr "当进程占用大量CPU或RAM时，它现在会在应用程序和进程列表中突出显示"
+
+#~ msgid "Add initial support for building for ARM64"
+#~ msgstr "添加对ARM64架构的初始支持"
+
+#~ msgid ""
+#~ "Take into account multiple CPU cores and cache sharing when calculating "
+#~ "cache sizes"
+#~ msgstr "计算缓存大小时考虑多个CPU核心和缓存共享"
+
+#~ msgid ""
+#~ "Fix browsers, installed as native packages, not showing up in the Apps "
+#~ "list"
+#~ msgstr "修复作为本机软件包安装时未在菜单的应用程序列表中显示的问题"
+
+#~ msgid "Translation updates for Traditional Chinese by Peter Dave Hello"
+#~ msgstr "由 Peter Dave Hello 新增繁体中文语言"
+
+#~ msgid "Translation fixes for Portuguese by Rafael Fontenelle"
+#~ msgstr "由 Rafael Fontenelle 修复葡萄牙语翻译"
+
+#~ msgid ""
+#~ "Only show a link-local IPv6 address if no other IPv6 exists by Maximilian"
+#~ msgstr "由 Maximilian 提供，如果沒有其他 IPv6，則只顯示連結本地 IPv6 位址"
+
+#~ msgid "Add Traditional Chinese locale by Peter Dave Hello"
+#~ msgstr "由 Peter Dave Hello 新增繁体中文语言"
+
+#~ msgid "Add category for application menu by Renner0E"
+#~ msgstr "由 Renner0E 为应用程序菜单新增分类"
+
+#~ msgid ""
+#~ "Fix a parsing error when parsing the output of `dmidecode` that lead to a "
+#~ "panic"
+#~ msgstr "修复在解析 `dmidecode` 输出时导致panic的解析错误"
+
+#~ msgid ""
+#~ "Use a fallback if `/sys/devices/system/cpu/cpu0/cpufreq/base_frequency` "
+#~ "does not exist, when getting CPU base speed information"
+#~ msgstr ""
+#~ "在获取 CPU 基础速度信息时，如果 `/sys/devices/system/cpu/cpu0/cpufreq/"
+#~ "base_frequency` 不存在，則使用回退"
+
+#~ msgid "Update GPU tab UI to be more adaptive for smaller resolutions"
+#~ msgstr "更新GPU选项卡UI，使其更适合较小分辨率"
+
+#~ msgid "Added Czech translation by ondra05"
+#~ msgstr "由 ondra05 新增捷克语翻译"
+
+#~ msgid "Added Portuguese translation by Rilson Joás"
+#~ msgstr "由 Rilson Joás 新增葡萄牙语翻译"
+
+#~ msgid ""
+#~ "Add keywords to desktop file to improve search function of desktop "
+#~ "environments by Hannes Kuchelmeister"
+#~ msgstr ""
+#~ "由 Hannes Kuchelmeister 为桌面文件新增关键字以改进桌面环境的搜索功能"
+
+#~ msgid "Fixed a bug where the app and process list was empty for some users"
+#~ msgstr "修复某些用户的应用程序和进程列表为空的bug"
+
+#~ msgid "Fix a crash that occurs when the system is under heavy load"
+#~ msgstr "修复系统负载过重时发生的崩溃"
+
+#~ msgid "First official release!"
+#~ msgstr "首次正式发布！"
+
+#~ msgid "_Disk"
+#~ msgstr "磁盘"
+
+#~ msgid "Disk transfer rate"
+#~ msgstr "磁盘传输速率"
+
+#~ msgid "Overall utilization"
+#~ msgstr "整体使用率"
+
+#~ msgid "Disk"
+#~ msgstr "磁盘"
+
+#~ msgid ""
+#~ "GPU support is experimental and only AMD and nVidia GPUs can be monitored"
+#~ msgstr "GPU 支持处于实验阶段，只能监控 AMD 和 nVidia 的 GPU"
+
+#~ msgid "Fast"
+#~ msgstr "快"
+
+#~ msgid "Refresh every half second"
+#~ msgstr "每半秒更新一次"
+
+#~ msgid "Refresh every second"
+#~ msgstr "每秒更新一次"
+
+#~ msgid "Slow"
+#~ msgstr "慢"
+
+#~ msgid "Refresh every second and a half"
+#~ msgstr "每 1.5 秒更新一次"
+
+#~ msgid "Very Slow"
+#~ msgstr "非常慢"
+
+#~ msgid "Refresh every 2 seconds"
+#~ msgstr "每 2 秒更新一次"
+
+#~ msgid "Supported"
+#~ msgstr "支持"
+
+#~ msgid "Authentication failed"
+#~ msgstr "认证失败"
+
+#~ msgid "More info"
+#~ msgstr "详细信息"
+
+#~ msgid "Disk utilization percentage might not be accurate"
+#~ msgstr "磁盘利用率可能不准确"
+
+#~ msgid "No per-process GPU usage"
+#~ msgstr "沒有单个进程的 GPU 使用情況"
+
+#~ msgid "Some information requires administrative privileges"
+#~ msgstr "某些信息需要管理员权限"
+
+#~ msgid ""
+#~ "The application currently only supports monitoring, you cannot stop "
+#~ "processes for example"
+#~ msgstr "该应用程序目前只支持监控功能，例如您无法停止进程"
+
+#~ msgid "% Utilization"
+#~ msgstr "% 使用率"
+
+#~ msgid "{}: {} {}bps {}: {} {}bps"
+#~ msgstr "{}: {} {}bps {}: {} {}bps"

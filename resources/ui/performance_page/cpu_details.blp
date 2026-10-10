@@ -1,0 +1,576 @@
+/* ui/performance_page/cpu_details.blp
+ *
+ * Copyright 2024 Romeo Calota
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+Box root {
+  margin-top: 65;
+  margin-bottom: 10;
+  orientation: vertical;
+  spacing: 20;
+
+  Box dynamic_data {
+    orientation: vertical;
+    spacing: 10;
+
+    Box top_row {
+      spacing: 15;
+
+      Box {
+        orientation: vertical;
+        spacing: 3;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Utilization");
+        }
+
+        Label utilization {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          selectable: true;
+        }
+      }
+
+      Box {
+        orientation: vertical;
+        spacing: 3;
+
+        Box speed_label_box {
+          spacing: 3;
+          halign: start;
+
+          Label speed_label {
+            styles [
+              "caption",
+            ]
+
+            label: _("Speed");
+          }
+
+          Label speed_indicator {
+            styles [
+              "caption",
+            ]
+
+            label: "(?)";
+            visible: false;
+          }
+        }
+
+        Label speed {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Box power_row {
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Power Draw");
+      }
+
+      Label power_draw {
+        styles [
+        "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box mid_row {
+      spacing: 15;
+      width-request: 200;
+
+      Box {
+        orientation: vertical;
+        spacing: 3;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Processes");
+        }
+
+        Label processes {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          selectable: true;
+        }
+      }
+
+      Box {
+        orientation: vertical;
+        spacing: 3;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Threads");
+        }
+
+        Label threads {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          selectable: true;
+        }
+      }
+
+      Box {
+        orientation: vertical;
+        spacing: 3;
+
+        Label {
+          styles [
+            "caption",
+          ]
+
+          halign: start;
+          label: _("Handles");
+        }
+
+        Label handles {
+          styles [
+            "title-4",
+          ]
+
+          halign: start;
+          selectable: true;
+        }
+      }
+    }
+
+    Box {
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Up time");
+      }
+
+      Label uptime {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      visible: bind temperature.visible;
+      orientation: vertical;
+      spacing: 3;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Temperature");
+      }
+
+      Label temperature {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+  }
+
+  Grid system_info {
+    row-spacing: 5;
+    column-spacing: 10;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Base Speed:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '0';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Sockets:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '1';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Virtual processors:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '2';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Virtualization:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '3';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Virtual machine:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '4';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("L1 cache:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '5';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("L2 cache:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '6';
+      }
+    }
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("L3 cache:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '7';
+      }
+    }
+
+    Label cpufreq_driver_label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Cpufreq driver:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '8';
+      }
+    }
+
+    Label cpufreq_governor_label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Cpufreq governor:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '9';
+      }
+    }
+
+    Label energy_performance_preference_label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Power preference:");
+      ellipsize: end;
+
+      layout {
+        column: '0';
+        row: '10';
+      }
+    }
+
+    Label base_speed {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '0';
+      }
+
+      selectable: true;
+    }
+
+    Label sockets {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '1';
+      }
+
+      selectable: true;
+    }
+
+    Label virt_proc {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '2';
+      }
+
+      selectable: true;
+    }
+
+    Label virtualization {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: "Unknown";
+
+      layout {
+        column: '1';
+        row: '3';
+      }
+
+      selectable: true;
+    }
+
+    Label virt_machine {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '4';
+      }
+
+      selectable: true;
+    }
+
+    Label l1_cache {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '5';
+      }
+
+      selectable: true;
+    }
+
+    Label l2_cache {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '6';
+      }
+
+      selectable: true;
+    }
+
+    Label l3_cache {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '7';
+      }
+
+      selectable: true;
+    }
+
+    Label cpufreq_driver {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '8';
+      }
+
+      selectable: true;
+    }
+
+    Label cpufreq_governor {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '9';
+      }
+
+      selectable: true;
+    }
+
+    Label energy_performance_preference {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      layout {
+        column: '1';
+        row: '10';
+      }
+
+      selectable: true;
+    }
+  }
+}

@@ -1,0 +1,345 @@
+/* ui/table_view/process_details_dialog.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+using Adw 1;
+
+template $ProcessDetailsDialog: Adw.Dialog {
+  width-request: 360;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Box {
+        spacing: 10;
+
+        Image icon {
+          pixel-size: 24;
+        }
+
+        Label title {
+          styles [
+            "heading"
+          ]
+        }
+      };
+    }
+
+    ScrolledWindow {
+      hscrollbar-policy: never;
+      propagate-natural-height: true;
+      propagate-natural-width: true;
+
+      Adw.Clamp {
+        maximum-size: 2000;
+
+        Box {
+          margin-start: 20;
+          margin-end: 20;
+          margin-top: 20;
+          margin-bottom: 20;
+
+          orientation: vertical;
+          spacing: 32;
+
+          Adw.PreferencesGroup {
+            hexpand: true;
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label pid_label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("PID");
+                }
+
+                Label app_id_label {
+                  visible: false;
+
+                  hexpand: true;
+                  halign: start;
+                  label: _("App ID");
+                }
+
+                Label id_value {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  ellipsize: middle;
+                  hexpand: true;
+                  halign: end;
+                  label: _("N/A");
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("Type");
+                }
+
+                Label kind {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  ellipsize: middle;
+                  hexpand: true;
+                  halign: end;
+                  label: _("N/A");
+                }
+              };
+            }
+
+            Adw.PreferencesRow command_line_row {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("Command Line");
+                }
+
+                Label command_line {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                  halign: end;
+
+                  wrap: true;
+                  wrap-mode: char;
+                  natural-wrap-mode: none;
+                }
+              };
+            }
+          }
+
+          Adw.PreferencesGroup {
+            hexpand: true;
+
+            title: _("Resource Usage");
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("CPU");
+                }
+
+                $LabelCell cpu {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("Memory");
+                }
+
+                $LabelCell memory {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("Swap");
+                }
+
+                $LabelCell swap {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  halign: end;
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("Drives");
+                }
+
+                $LabelCell drives {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+              Label {
+                hexpand: true;
+                halign: start;
+                label: _("Network");
+              }
+
+              $LabelCell network {
+                styles [
+                  "dim-label",
+                ]
+
+                hexpand: true;
+              }
+            };
+          }
+
+          Adw.PreferencesRow {
+            activatable: false;
+
+            child: Box {
+              height-request: 50;
+              margin-start: 12;
+              margin-end: 12;
+              spacing: 12;
+
+              Label {
+                hexpand: true;
+                halign: start;
+                label: _("GPU");
+              }
+
+                $LabelCell gpu {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                }
+              };
+            }
+
+            Adw.PreferencesRow {
+              activatable: false;
+
+              child: Box {
+                height-request: 50;
+                margin-start: 12;
+                margin-end: 12;
+                spacing: 12;
+
+                Label {
+                  hexpand: true;
+                  halign: start;
+                  label: _("GPU Memory");
+                }
+
+                $LabelCell gpu_memory {
+                  styles [
+                    "dim-label",
+                  ]
+
+                  hexpand: true;
+                }
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

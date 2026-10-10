@@ -1,0 +1,2582 @@
+# Romanian translations for missioncenter package.
+# Copyright (C) 2023 THE missioncenter'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the missioncenter package.
+# Automatically generated, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: missioncenter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"PO-Revision-Date: 2025-05-18 08:59+0000\n"
+"Last-Translator: Romeo Calota <mail@romeocalota.me>\n"
+"Language-Team: Romanian <https://hosted.weblate.org/projects/mission-center/"
+"mission-center/ro/>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Generator: Weblate 5.12-dev\n"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:2
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
+msgid "Mission Center"
+msgstr "Mission Center"
+
+#: data/io.missioncenter.MissionCenter.desktop.in:9
+#, fuzzy
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"Task manager;Manager de sarcini; Monitor de resurse; Monitor de sistem; "
+"Procesor; Procese; Monitor de performanță; CPU; GPU; Disc; Memorie; Rețea; "
+"Utilizare"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
+msgid "Mission Center Developers"
+msgstr "Dezvoltatorii Mission Center"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
+msgid "Monitor system resource usage"
+msgstr "Monitorizarea utilizării resurselor de sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+#, fuzzy
+msgid ""
+"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
+"app and process breakdown of these statistics"
+msgstr ""
+"Monitorizează utilizarea Procesorului, Memoriei, Discului, Rețelei și a "
+"plăcii grafice"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
+msgid "Features:"
+msgstr "Caracteristici:"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
+msgid "Monitor overall or per-thread CPU usage"
+msgstr "Monitorizează utilizarea procesorului per nucleu sau per ansamblu"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+msgid ""
+"See system process, thread, and handle count, uptime, clock speed (base and "
+"current), cache sizes"
+msgstr ""
+"Vizualizează numărul de procese, fire de execuție, și identificatori de "
+"resurse, disponibilitatea aparatului, viteza de tact (de bază si actuală), "
+"marimea cache a procesorului"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
+msgid "Monitor RAM and Swap usage"
+msgstr "Monitorizează ocuparea memoriei RAM și Swap"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
+msgid "See a breakdown how the memory is being used by the system"
+msgstr ""
+"Vizualizarea a unei defalcări a modului în care memoria este utilizată de "
+"sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
+msgid "Monitor Disk utilization and transfer rates"
+msgstr "Monitorizarea utilizării discului și a ratelor de transfer"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
+msgid "Monitor network utilization and transfer speeds"
+msgstr "Monitorizarea utilizării rețelei și a ratelor de transfer"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+msgid ""
+"See network interface information such as network card name, connection type "
+"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
+"address"
+msgstr ""
+"Consultarea informațiilor despre interfața de rețea, cum ar fi numele plăcii "
+"de rețea, tipul conexiunii (Wi-Fi sau Ethernet), vitezele și frecvența "
+"wireless, adresa hardware, adresa IP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
+msgid ""
+"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
+"power consumption, powered by the popular NVTOP project"
+msgstr ""
+"Monitorizarea utilizării generale a GPU-ului, utilizarea (de)codorului "
+"video, utilizarea memoriei și consumul de energie, alimentat de popularul "
+"proiect NVTOP"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
+msgid "Monitor system fans"
+msgstr "Monitorizarea ventilatoarelor din sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
+msgid "See a breakdown of resource usage by app and process"
+msgstr "Detaliere a utilizării resurselor în funcție de aplicație și proces"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
+msgid "Supports a minified summary view for simple monitoring"
+msgstr "Permite o vizualizare rezumat minimizată pentru monitorizare simplă"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
+msgid ""
+"Use hardware accelerated rendering for all the graphs in an effort to reduce "
+"CPU and overall resource usage"
+msgstr ""
+"Utilizarea randării folosind accelerare hardware pentru toate graficele cu "
+"scopul de a reduce utilizarea procesorului si a resurselor din sistem"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
+msgid "Uses GTK4 and Libadwaita"
+msgstr "Folosește GTK4 si Libadwaita"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
+msgid "Written in Rust"
+msgstr "Scris in Rust"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
+msgid "Limitations (there is ongoing work to overcome all of these):"
+msgstr "Limitări (în curs de a depăși toate acestea):"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
+msgid ""
+"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
+"does not support VRAM, power, or temperature monitoring"
+msgstr ""
+"Unitățile de procesare grafică de la Intel au support doar de la generația "
+"Broadwell; și nu au suport pentru monitorizarea memoriei video, puterii "
+"consumate sau a temperaturii"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
+msgid ""
+"When using Linux Mint/Cinnamon, launched applications may not show up in the "
+"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
+"cinnamon/issues/12015)"
+msgstr ""
+"În Linux Mint aplicațiile lansate s-ar putea să nu apară in lista de "
+"aplicații (problemă raportată aici: https://github.com/linuxmint/cinnamon/"
+"issues/12015)"
+
+#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
+msgid "Comments, suggestions, bug reports and contributions welcome"
+msgstr ""
+"Comentariile, sugestiile, rapoartele de erori și contribuțiile sunt "
+"binevenite"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:46
+msgid "Which page is shown on application startup"
+msgstr "Care pagină este afișată la pornirea aplicației"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:51
+msgid "Interface Style"
+msgstr "Stilul interfeței grafice"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:52
+msgid "If light or dark interface style should be used"
+msgstr ""
+"Dacă se vrea a se folosi varianta întunecată sau luminoasă a interfeței "
+"grafice"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:58
+msgid "DEPRECATED! NO LONGER IN USE!"
+msgstr "NU MAI ESTE UTILIZAT!"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:64
+msgid ""
+"How fast should the data be refreshed and the UI updated (in increments of "
+"50ms)"
+msgstr ""
+"Cât de repede ar trebui să fie reîmprospătate datele și interfața grafică "
+"actualizată (incrementări a câte 50ms)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:70
+msgid "How many points should be displayed on each chart?"
+msgstr "Câte puncte să fie afișate pe fiecare grafic?"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:75
+msgid "Whether or not to use bits or bytes (default) for memory"
+msgstr "A se folosi biți sau octeți (implicit) pentru valorile memoriei"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:80
+msgid "Whether or not to use base-10 or base-2 (default) for memory"
+msgstr "A se folosi baza 10 sau baza 2 (implicit) pentru valorile memoriei"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:85
+msgid "Whether or not to use bits or bytes (default) for drive speed + size"
+msgstr ""
+"A se folosi biți sau octeți (implicit) pentru viteza și mărimea discurilor"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:90
+msgid ""
+"Whether or not to use base-10 or base-2 (default) for drive speed + size"
+msgstr ""
+"A se folosi baza 10 sau baza 2 (implicit) pentru viteza și mărimea discurilor"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:95
+msgid "Whether or not to use bits (default) or Bytes for network speed"
+msgstr ""
+"A se folosi biți (implicit) sau octeți pentru viteza de transfer prin rețea"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:100
+msgid "Whether or not to use base-10 (default) or base-2 for network speed"
+msgstr ""
+"A se folosi baza 10 (implicit) sau baza 2 pentru viteza de transfer prin "
+"rețea"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:105
+msgid ""
+"Whether to set graph max to interface max (false) or the max observed (true)"
+msgstr ""
+"A se seta maximul graficului la maximul interfeței de rețea (fals) sau la "
+"maximul observat (adevarat)"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:110
+#: resources/ui/preferences/apps_services_page.blp:31
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+"Statisticile proceselor sunt afișate individual sau fiecare părinte include "
+"valorile copiilor săi"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:115
+msgid "Column sorting is persisted across app restarts"
+msgstr "Sortarea coloanelor este reținută pentru rulările următoare"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:120
+msgid "Column order is persisted across app restarts"
+msgstr "Ordinea coloanelor este reținută pentru rulările următoare"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:125
+msgid ""
+"Show CPU usage for Apps and Processes scaled to the number of available cores"
+msgstr ""
+"A se afișa utilizarea procesorului pentru aplicații și procese scalat la "
+"numărul de nuclee"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:130
+msgid "Show a separator between each column in the Apps view"
+msgstr ""
+"A se afișa separatoare între coloanele din lista de aplicații și procese"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:135
+msgid "Gray out values that equal zero in the Apps view"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:140
+msgid "The column name by which the Apps page view is sorted"
+msgstr "Numele coloanei după care sunt sortate aplicațiile și procesele"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:145
+msgid "The sorting direction of the Apps page view"
+msgstr "Direcția de sortare a applicațiilor și a proceselor"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:150
+msgid "The order of columns in the Apps page view"
+msgstr "Ordinea coloanelor din pagina de aplicații"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:155
+#, fuzzy
+msgid "The column name by which the Services page view is sorted"
+msgstr "Numele coloanei după care sunt sortate aplicațiile și procesele"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:160
+#, fuzzy
+msgid "The sorting direction of the Services page view"
+msgstr "Direcția de sortare a applicațiilor și a proceselor"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:165
+#, fuzzy
+msgid "The order of columns in the Services page view"
+msgstr "Ordinea coloanelor din pagina de aplicații"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:171
+msgid "Which graph is shown on the CPU performance page"
+msgstr "Care grafic este afișat pe pagina de performanță a procesorului"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:177
+#, fuzzy
+msgid "Which graph is shown on the bottom graph of the CPU performance page"
+msgstr "Care grafic este afișat pe pagina de performanță a procesorului"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:182
+msgid "Show kernel times in the CPU graphs"
+msgstr ""
+"Afișează timpii petrecuți in nucleul sistemului de operare pe graficele "
+"procesorului"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:187
+msgid "Which page is shown on application startup, in the performance tab"
+msgstr ""
+"Care pagină este afișată la pornirea aplicației, în fila de performanță"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:193
+msgid "Should performance graphs be smooth or jagged"
+msgstr "Să fie curbate sau zimțate graficele de performanță"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:198
+msgid "Should graphs be animated"
+msgstr "Să fie graficele animate"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:203
+msgid "Show CPU information by default"
+msgstr "Afișează informațiile despre procesor în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:208
+msgid "Show memory information by default"
+msgstr "Afișează informațiile despre memorie în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:213
+#: resources/ui/preferences/performance_page.blp:70
+msgid "Show disk information by default"
+msgstr "Afișează informațiile despre unitățile de stocare în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:218
+#: resources/ui/preferences/performance_page.blp:75
+msgid "Show network information by default"
+msgstr "Afișează informațiile despre interfețele de rețea în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:223
+#, fuzzy
+msgid "Show wired network devices by default"
+msgstr "Afișează informațiile despre interfețele de rețea în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:228
+#, fuzzy
+msgid "Show wireless network devices by default"
+msgstr "Afișează informațiile despre interfețele de rețea în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:233
+#, fuzzy
+msgid "Show VPN network devices by default"
+msgstr "Afișează informațiile despre interfețele de rețea în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:238
+msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:243
+msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:248
+#: resources/ui/preferences/performance_page.blp:103
+msgid "Show GPU information by default"
+msgstr "Afișează informațiile despre procesoare grafice în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:253
+#: data/io.missioncenter.MissionCenter.gschema.xml:258
+#: resources/ui/preferences/performance_page.blp:108
+msgid "Show fan information by default"
+msgstr "Afișează informațiile despre ventilatoare în mod implicit"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:263
+msgid "Show the mem composition widget"
+msgstr "Afișează graficul de composiție a memorier"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:268
+msgid "Show the swap graph"
+msgstr "Afișează graficul pentru memoria swap"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:274
+msgid "Middle Graph's Content and visibility"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:280
+msgid "Bottom Graph's Content and visibility"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:286
+msgid "The ordering of entries in the application sidebar"
+msgstr "Ordinea elementelor în bara laterală principală"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:292
+msgid "Graphs that should be hidden in the application sidebar"
+msgstr "Graficele ascunse din bara laterală principală"
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:297
+msgid ""
+"Per-device visibility overrides (semicolon-separated name:show or name:hide "
+"entries)"
+msgstr ""
+
+#: data/io.missioncenter.MissionCenter.gschema.xml:302
+msgid "If it's your first time running Mission Center"
+msgstr ""
+
+#: resources/ui/apps_page/page.blp:87
+msgid "Collapse all apps and processes"
+msgstr "Restrânge toate aplicațiile și procesele"
+
+#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
+#: resources/ui/keyboard_shortcuts.blp:84
+#: resources/ui/keyboard_shortcuts.blp:113
+msgid "Collapse All"
+msgstr "Restrânge toate"
+
+#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
+msgid "Failed To Eject"
+msgstr "Evacuare nereușită"
+
+#: resources/ui/performance_page/disk_eject_failure_row.blp:51
+msgid "Kill"
+msgstr ""
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:31
+msgid "In Use:"
+msgstr ""
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:36
+msgid "Modified:"
+msgstr ""
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:41
+msgid "Standby:"
+msgstr ""
+
+#: resources/ui/performance_page/memory_info_tooltip.blp:46
+msgid "Free:"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:56
+#: resources/ui/table_view/table_view.blp:53
+#: resources/ui/table_view/process_details_dialog.blp:177
+#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
+msgid "CPU"
+msgstr "Procesor"
+
+#: resources/ui/performance_page/cpu.blp:75
+#: resources/ui/performance_page/gpu.blp:73
+#, fuzzy
+msgid "Utilization over "
+msgstr "% de utilizare în interval de {} de secunde"
+
+#: resources/ui/performance_page/cpu.blp:90
+#: resources/ui/performance_page/gpu.blp:87
+#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
+msgid "100%"
+msgstr "100%"
+
+#: resources/ui/performance_page/cpu.blp:167
+#, fuzzy
+msgid "Change _Top Graph To"
+msgstr "Schimbă g_raficul în"
+
+#: resources/ui/performance_page/cpu.blp:170
+msgid "Overall U_tilization"
+msgstr "Utilizare _generală"
+
+#: resources/ui/performance_page/cpu.blp:175
+msgid "Logical _Processors"
+msgstr "Procesoare _logice"
+
+#: resources/ui/performance_page/cpu.blp:180
+#, fuzzy
+msgid "_All Threads"
+msgstr "Fire de execuție"
+
+#: resources/ui/performance_page/cpu.blp:185
+msgid "All Threads _Stacked"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:191
+#, fuzzy
+msgid "Change B_ottom Graph To"
+msgstr "Schimbă g_raficul în"
+
+#: resources/ui/performance_page/cpu.blp:194
+#: resources/ui/performance_page/gpu.blp:219
+#: resources/ui/performance_page/gpu.blp:253
+#, fuzzy
+msgid "_Power Draw"
+msgstr "Putere consumată"
+
+#: resources/ui/performance_page/cpu.blp:199
+#: resources/ui/performance_page/gpu.blp:229
+#: resources/ui/performance_page/gpu.blp:263
+#, fuzzy
+msgid "_Temperature"
+msgstr "Temperatură"
+
+#: resources/ui/performance_page/cpu.blp:204
+#, fuzzy
+msgid "_Clock Speed"
+msgstr "Frecvență ceas"
+
+#: resources/ui/performance_page/cpu.blp:209
+#: resources/ui/performance_page/gpu.blp:234
+#: resources/ui/performance_page/gpu.blp:268
+msgid "_None"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:215
+msgid "Show Kernel Times"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:222
+#: resources/ui/performance_page/disk.blp:180
+#: resources/ui/performance_page/fan.blp:151
+#: resources/ui/performance_page/gpu.blp:276
+#: resources/ui/performance_page/memory.blp:206
+#: resources/ui/performance_page/network.blp:104
+msgid "Graph _Summary View"
+msgstr "Vizualizare _rezumat grafic"
+
+#: resources/ui/performance_page/cpu.blp:227
+#: resources/ui/performance_page/disk.blp:185
+#: resources/ui/performance_page/fan.blp:156
+#: resources/ui/performance_page/gpu.blp:282
+#: resources/ui/performance_page/memory.blp:211
+#: resources/ui/performance_page/network.blp:109
+msgid "_View"
+msgstr "V_izualizare"
+
+#: resources/ui/performance_page/cpu.blp:230
+#: resources/ui/performance_page/disk.blp:188
+#: resources/ui/performance_page/fan.blp:159
+#: resources/ui/performance_page/gpu.blp:285
+#: resources/ui/performance_page/memory.blp:214
+#: resources/ui/performance_page/network.blp:112
+msgid "CP_U"
+msgstr "Pr_ocesor"
+
+#: resources/ui/performance_page/cpu.blp:235
+#: resources/ui/performance_page/disk.blp:193
+#: resources/ui/performance_page/fan.blp:164
+#: resources/ui/performance_page/gpu.blp:290
+#: resources/ui/performance_page/memory.blp:219
+#: resources/ui/performance_page/network.blp:117
+msgid "_Memory"
+msgstr "_Memorie"
+
+#: resources/ui/performance_page/cpu.blp:240
+#: resources/ui/performance_page/disk.blp:198
+#: resources/ui/performance_page/fan.blp:169
+#: resources/ui/performance_page/gpu.blp:295
+#: resources/ui/performance_page/memory.blp:224
+#: resources/ui/performance_page/network.blp:122
+msgid "_Drive"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:245
+#: resources/ui/performance_page/disk.blp:203
+#: resources/ui/performance_page/fan.blp:174
+#: resources/ui/performance_page/gpu.blp:300
+#: resources/ui/performance_page/memory.blp:229
+#: resources/ui/performance_page/network.blp:127
+msgid "_Network"
+msgstr "_Rețea"
+
+#: resources/ui/performance_page/cpu.blp:250
+#: resources/ui/performance_page/disk.blp:208
+#: resources/ui/performance_page/fan.blp:179
+#: resources/ui/performance_page/gpu.blp:305
+#: resources/ui/performance_page/memory.blp:234
+#: resources/ui/performance_page/network.blp:132
+msgid "_GPU"
+msgstr "Proce_sor grafic"
+
+#: resources/ui/performance_page/cpu.blp:255
+#: resources/ui/performance_page/disk.blp:213
+#: resources/ui/performance_page/fan.blp:184
+#: resources/ui/performance_page/gpu.blp:310
+#: resources/ui/performance_page/memory.blp:239
+#: resources/ui/performance_page/network.blp:137
+msgid "_Fan"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:260
+#: resources/ui/performance_page/disk.blp:218
+#: resources/ui/performance_page/fan.blp:189
+#: resources/ui/performance_page/gpu.blp:315
+#: resources/ui/performance_page/memory.blp:244
+#: resources/ui/performance_page/network.blp:142
+msgid "_Battery"
+msgstr ""
+
+#: resources/ui/performance_page/cpu.blp:268
+#: resources/ui/performance_page/disk.blp:226
+#: resources/ui/performance_page/fan.blp:197
+#: resources/ui/performance_page/gpu.blp:323
+#: resources/ui/performance_page/memory.blp:252
+#: resources/ui/performance_page/network.blp:155
+msgid "_Copy"
+msgstr "_Copiați"
+
+#: resources/ui/performance_page/disk.blp:66
+msgid "Show SMART Data"
+msgstr ""
+
+#: resources/ui/performance_page/disk.blp:77
+msgid "Eject Disk"
+msgstr ""
+
+#: resources/ui/performance_page/disk.blp:100
+#, fuzzy
+msgid "Active time over "
+msgstr "Timp activ"
+
+#: resources/ui/performance_page/disk.blp:140
+#: resources/ui/performance_page/network.blp:62
+#, fuzzy
+msgid "Throughput over "
+msgstr "Debit"
+
+#: resources/ui/performance_page/fan.blp:62
+#, fuzzy
+msgid "Fan speed over "
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
+#: src/performance_page/gpu.rs:1128
+#, fuzzy
+msgid "Temperature over "
+msgstr "Temperatură"
+
+#: resources/ui/performance_page/fan_details.blp:59
+#, fuzzy
+msgid "Fan Speed"
+msgstr "Viteză"
+
+#: resources/ui/performance_page/fan_details.blp:99
+msgid "PWM Percentage"
+msgstr ""
+
+#: resources/ui/performance_page/fan_details.blp:127
+#, fuzzy
+msgid "Current Temperature"
+msgstr "Temperatură"
+
+#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
+#, fuzzy
+msgid "Video encode/decode utilization over "
+msgstr "Codare video"
+
+#: resources/ui/performance_page/gpu.blp:161
+#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
+#, fuzzy
+msgid "Memory usage over "
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/gpu.blp:206
+#, fuzzy
+msgid "Change Middle Graph To"
+msgstr "Schimbă g_raficul în"
+
+#: resources/ui/performance_page/gpu.blp:209
+#: resources/ui/performance_page/gpu.blp:243
+#, fuzzy
+msgid "_Encode/_Decode"
+msgstr "Codare video"
+
+#: resources/ui/performance_page/gpu.blp:214
+#: resources/ui/performance_page/gpu.blp:248
+#, fuzzy
+msgid "_Memory Usage"
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/gpu.blp:224
+#: resources/ui/performance_page/gpu.blp:258
+#, fuzzy
+msgid "_Clock Speeds"
+msgstr "Frecvență ceas"
+
+#: resources/ui/performance_page/gpu.blp:240
+#, fuzzy
+msgid "Change Bottom Graph To"
+msgstr "Schimbă g_raficul în"
+
+#: resources/ui/performance_page/memory.blp:41
+#: resources/ui/table_view/table_view.blp:59
+#: resources/ui/table_view/process_details_dialog.blp:202
+#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
+msgid "Memory"
+msgstr "Memorie"
+
+#: resources/ui/performance_page/memory.blp:123
+#, fuzzy
+msgid "Swap usage over "
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/memory.blp:171
+msgid "Memory composition"
+msgstr "Compoziție memorie"
+
+#: resources/ui/performance_page/memory.blp:195
+#, fuzzy
+msgid "Show Memory Composition"
+msgstr "Compoziție memorie"
+
+#: resources/ui/performance_page/memory.blp:199
+msgid "Show Swap Usage"
+msgstr ""
+
+#: resources/ui/performance_page/memory_details.blp:58
+msgid "In use"
+msgstr "Utilizat"
+
+#: resources/ui/performance_page/memory_details.blp:88
+msgid "Available"
+msgstr "Disponibil"
+
+#: resources/ui/performance_page/memory_details.blp:131
+msgid "Committed"
+msgstr "Înregistrat"
+
+#: resources/ui/performance_page/memory_details.blp:162
+msgid "Cached"
+msgstr "În cache"
+
+#: resources/ui/performance_page/memory_details.blp:194
+msgid "Swap used"
+msgstr "Swap utilizat"
+
+#: resources/ui/performance_page/memory_details.blp:226
+msgid "Swap available"
+msgstr "Swap disponibil"
+
+#: resources/ui/performance_page/memory_details.blp:258
+msgid "Compressed"
+msgstr ""
+
+#: resources/ui/performance_page/memory_details.blp:290
+msgid "Savings"
+msgstr ""
+
+#: resources/ui/performance_page/memory_details.blp:317
+msgid "Speed:"
+msgstr "Viteză:"
+
+#: resources/ui/performance_page/memory_details.blp:334
+msgid "Slots used:"
+msgstr "Socluri utilizate:"
+
+#: resources/ui/performance_page/memory_details.blp:351
+msgid "Form factor:"
+msgstr "Format:"
+
+#: resources/ui/performance_page/memory_details.blp:368
+#: resources/ui/performance_page/disk_details.blp:300
+msgid "Type:"
+msgstr "Tip:"
+
+#: resources/ui/performance_page/network.blp:148
+msgid "Network Se_ttings"
+msgstr "Se_tări rețea"
+
+#: resources/ui/performance_page/network_details.blp:63
+msgid "Receive"
+msgstr "Recepție"
+
+#: resources/ui/performance_page/network_details.blp:102
+msgid "Send"
+msgstr "Trimitere"
+
+#: resources/ui/performance_page/network_details.blp:132
+msgid "Total Received"
+msgstr ""
+
+#: resources/ui/performance_page/network_details.blp:162
+msgid "Total Sent"
+msgstr ""
+
+#: resources/ui/performance_page/network_details.blp:190
+msgid "Interface name:"
+msgstr "Nume interfață:"
+
+#: resources/ui/performance_page/network_details.blp:207
+msgid "Connection type:"
+msgstr "Tip conexiune:"
+
+#: resources/ui/performance_page/network_details.blp:222
+#, fuzzy
+msgid "Connection status:"
+msgstr "Tip conexiune:"
+
+#: resources/ui/performance_page/network_details.blp:240
+msgid "SSID:"
+msgstr "SSID:"
+
+#: resources/ui/performance_page/network_details.blp:259
+msgid "Signal strength:"
+msgstr "Putere semnal:"
+
+#: resources/ui/performance_page/network_details.blp:278
+msgid "Maximum Bitrate:"
+msgstr "Bitrate maxim:"
+
+#: resources/ui/performance_page/network_details.blp:297
+msgid "Frequency:"
+msgstr "Freqvență:"
+
+#: resources/ui/performance_page/network_details.blp:314
+msgid "Hardware address:"
+msgstr "Adresă hardware:"
+
+#: resources/ui/performance_page/network_details.blp:458
+msgid "IPv4 address:"
+msgstr "Adresă IPv4:"
+
+#: resources/ui/performance_page/network_details.blp:487
+msgid "IPv6 address:"
+msgstr "Adresă IPv6:"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
+msgid "Smart Data"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
+#, fuzzy
+msgid "Last Updated:"
+msgstr "Viteză actualizare"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
+#, fuzzy
+msgid "Powered On:"
+msgstr "Putere consumată"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
+msgid "Drive Health:"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
+msgid "SMART Test Status:"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
+msgid "Attribute"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
+msgid "Value"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
+msgid "ID"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
+#, fuzzy
+msgid "Normalized"
+msgstr "Normal"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
+#, fuzzy
+msgid "Threshold"
+msgstr "Fire de execuție"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
+msgid "Worst"
+msgstr ""
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
+#: resources/ui/table_view/process_details_dialog.blp:113
+msgid "Type"
+msgstr "Tip"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
+#, fuzzy
+msgid "Updates"
+msgstr "Viteză actualizare"
+
+#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
+msgid "Assessment"
+msgstr ""
+
+#: resources/ui/performance_page/gpu_details.blp:51
+#: resources/ui/performance_page/cpu_details.blp:46
+msgid "Utilization"
+msgstr "Utilizare"
+
+#: resources/ui/performance_page/gpu_details.blp:92
+msgid "Clock Speed"
+msgstr "Frecvență ceas"
+
+#: resources/ui/performance_page/gpu_details.blp:146
+#: resources/ui/performance_page/cpu_details.blp:106
+#, fuzzy
+msgid "Power Draw"
+msgstr "Putere consumată"
+
+#: resources/ui/performance_page/gpu_details.blp:211
+#: src/performance_page/gpu.rs:806
+#, fuzzy
+msgid "Memory Usage"
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/gpu_details.blp:282
+#: src/performance_page/gpu.rs:860
+#, fuzzy
+msgid "Shared Memory Usage"
+msgstr "Utilizare memorie"
+
+#: resources/ui/performance_page/gpu_details.blp:353
+#, fuzzy
+msgid "Memory Speed"
+msgstr "Frecvență memorie"
+
+#: resources/ui/performance_page/gpu_details.blp:425
+#, fuzzy
+msgid "Video encode"
+msgstr "Codare video"
+
+#: resources/ui/performance_page/gpu_details.blp:472
+#, fuzzy
+msgid "Video decode"
+msgstr "Codare video"
+
+#: resources/ui/performance_page/gpu_details.blp:503
+#: resources/ui/performance_page/cpu_details.blp:227
+msgid "Temperature"
+msgstr "Temperatură"
+
+#: resources/ui/performance_page/gpu_details.blp:542
+msgid "OpenGL version:"
+msgstr "Versiune OpenGL:"
+
+#: resources/ui/performance_page/gpu_details.blp:559
+msgid "Vulkan version:"
+msgstr "Versiune Vulkan:"
+
+#: resources/ui/performance_page/gpu_details.blp:578
+msgid "PCI Express speed:"
+msgstr "Viteză PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:597
+#, fuzzy
+msgid "Max PCI Express speed:"
+msgstr "Viteză PCI Express:"
+
+#: resources/ui/performance_page/gpu_details.blp:614
+msgid "PCI bus address:"
+msgstr "Adresă bus PCI:"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
+#, fuzzy
+msgid "Failed To Get SMART Data"
+msgstr "Evacuare nereușită"
+
+#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:62
+msgid "Read speed"
+msgstr "Viteză de citire"
+
+#: resources/ui/performance_page/disk_details.blp:101
+msgid "Write speed"
+msgstr "Viteză de scriere"
+
+#: resources/ui/performance_page/disk_details.blp:131
+msgid "Total Read"
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:161
+msgid "Total Written"
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:191
+msgid "Active time"
+msgstr "Timp activ"
+
+#: resources/ui/performance_page/disk_details.blp:221
+#, fuzzy
+msgid "Avg. response time"
+msgstr "Timp mediu de răspuns"
+
+#: resources/ui/performance_page/disk_details.blp:249
+msgid "Capacity:"
+msgstr "Capacitate:"
+
+#: resources/ui/performance_page/disk_details.blp:266
+msgid "Formatted:"
+msgstr "Formatat:"
+
+#: resources/ui/performance_page/disk_details.blp:283
+msgid "System disk:"
+msgstr "Disc de sistem:"
+
+#: resources/ui/performance_page/disk_details.blp:319
+msgid "WWN:"
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:338
+msgid "Serial:"
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:357
+msgid "Rotation Rate"
+msgstr ""
+
+#: resources/ui/performance_page/disk_details.blp:478
+msgid "Partitions"
+msgstr ""
+
+#: resources/ui/performance_page/cpu_details.blp:72
+msgid "Speed"
+msgstr "Viteză"
+
+#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+msgid "Processes"
+msgstr "Procese"
+
+#: resources/ui/performance_page/cpu_details.blp:156
+msgid "Threads"
+msgstr "Fire de execuție"
+
+#: resources/ui/performance_page/cpu_details.blp:179
+msgid "Handles"
+msgstr "Handle-uri"
+
+#: resources/ui/performance_page/cpu_details.blp:203
+msgid "Up time"
+msgstr "Timp de funcționare"
+
+#: resources/ui/performance_page/cpu_details.blp:251
+msgid "Base Speed:"
+msgstr "Vizează de bază:"
+
+#: resources/ui/performance_page/cpu_details.blp:266
+msgid "Sockets:"
+msgstr "Socluri:"
+
+#: resources/ui/performance_page/cpu_details.blp:281
+msgid "Virtual processors:"
+msgstr "Procesoare virtuale:"
+
+#: resources/ui/performance_page/cpu_details.blp:296
+msgid "Virtualization:"
+msgstr "Virtualizare:"
+
+#: resources/ui/performance_page/cpu_details.blp:311
+msgid "Virtual machine:"
+msgstr "Mașină virtuală:"
+
+#: resources/ui/performance_page/cpu_details.blp:326
+msgid "L1 cache:"
+msgstr "Cache L1:"
+
+#: resources/ui/performance_page/cpu_details.blp:341
+msgid "L2 cache:"
+msgstr "Cache L2:"
+
+#: resources/ui/performance_page/cpu_details.blp:356
+msgid "L3 cache:"
+msgstr "Cache L3:"
+
+#: resources/ui/performance_page/cpu_details.blp:371
+msgid "Cpufreq driver:"
+msgstr "Driver cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:386
+msgid "Cpufreq governor:"
+msgstr "Regulator cpufreq:"
+
+#: resources/ui/performance_page/cpu_details.blp:401
+msgid "Power preference:"
+msgstr "Preferință putere:"
+
+#: resources/ui/preferences/apps_services_page.blp:25
+#, fuzzy
+msgid "Apps & Services"
+msgstr "Repornește serviciu"
+
+#: resources/ui/preferences/apps_services_page.blp:30
+msgid "Merge Process Stats"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:35
+msgid "Remember Sorting"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:36
+#, fuzzy
+msgid "Persist sorting by column across app restarts"
+msgstr "Sortarea coloanelor este reținută pentru rulările următoare"
+
+#: resources/ui/preferences/apps_services_page.blp:40
+msgid "Remember Column Order"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:41
+msgid "Persist the order of the columns, across app restarts"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:45
+msgid "Scale CPU Usage to Core Count"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:46
+#, fuzzy
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr ""
+"A se afișa utilizarea procesorului pentru aplicații și procese scalat la "
+"numărul de nuclee"
+
+#: resources/ui/preferences/apps_services_page.blp:50
+msgid "Show Column Separators"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:51
+msgid "Show a separator between each column"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:55
+msgid "Grey Out Zeroes"
+msgstr ""
+
+#: resources/ui/preferences/apps_services_page.blp:56
+msgid "Gray out values that equal zero"
+msgstr ""
+
+#: resources/ui/preferences/general_page.blp:25
+#, fuzzy
+msgid "General"
+msgstr "Setări generale"
+
+#: resources/ui/preferences/general_page.blp:30
+msgid "Update Interval"
+msgstr ""
+
+#: resources/ui/preferences/general_page.blp:31
+#, fuzzy
+msgid "In seconds"
+msgstr "{} de secunde"
+
+#: resources/ui/preferences/performance_page.blp:25
+#: resources/ui/keyboard_shortcuts.blp:57
+msgid "Performance Page"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:29
+#, fuzzy
+msgid "Graph Settings"
+msgstr "Se_tări rețea"
+
+#: resources/ui/preferences/performance_page.blp:32
+msgid "Data Points"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:50
+msgid "Smooth Graphs"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:51
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:55
+msgid "Sliding Graphs"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:56
+msgid "Animate graphs (may negatively impact performance)"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:60
+msgid "Scale Network Graphs Dynamically"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:61
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
+msgid "Devices"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:69
+msgid "Show Disk Information"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:74
+msgid "Show Network Information"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:79
+msgid "Wired"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:83
+msgid "Wireless"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:87
+msgid "VPN"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:91
+#, fuzzy
+msgid "Virtual"
+msgstr "Virtualizare:"
+
+#: resources/ui/preferences/performance_page.blp:92
+msgid "Docker, Multipass, Bridge"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:96
+msgid "Other"
+msgstr "Altul"
+
+#: resources/ui/preferences/performance_page.blp:97
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:102
+msgid "Show GPU Information"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:107
+msgid "Show Fan Information"
+msgstr ""
+
+#: resources/ui/preferences/performance_page.blp:112
+#, fuzzy
+msgid "Show Battery Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/preferences/performance_page.blp:113
+#, fuzzy
+msgid "Show battery information by default"
+msgstr "Afișează informațiile despre memorie în mod implicit"
+
+#: resources/ui/preferences/units_page.blp:25
+msgid "Units"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:30
+#, fuzzy
+msgid "Memory Usage Unit"
+msgstr "Utilizare memorie"
+
+#: resources/ui/preferences/units_page.blp:37
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:38
+#: resources/ui/preferences/units_page.blp:76
+#: resources/ui/preferences/units_page.blp:114
+msgid "Bytes"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:42
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:43
+#: resources/ui/preferences/units_page.blp:81
+#: resources/ui/preferences/units_page.blp:119
+msgid "Bits"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:49
+#, fuzzy
+msgid "Memory Usage Base"
+msgstr "Utilizare memorie"
+
+#: resources/ui/preferences/units_page.blp:56
+msgid "Use Base 10 for Memory"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:57
+#: resources/ui/preferences/units_page.blp:95
+#: resources/ui/preferences/units_page.blp:133
+msgid "Base 10"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:61
+msgid "Use Base 2 for Memory"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:62
+#: resources/ui/preferences/units_page.blp:100
+#: resources/ui/preferences/units_page.blp:138
+msgid "Base 2"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:68
+msgid "Drive Usage Unit"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:75
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:80
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:87
+msgid "Drive Usage Base"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:94
+msgid "Use Base 10 for Disk Drives"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:99
+msgid "Use Base 2 for Disk Drives"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:106
+msgid "Network Usage Unit"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:113
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:118
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:125
+msgid "Network Usage Base"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:132
+msgid "Use Base 10 for Network Interfaces"
+msgstr ""
+
+#: resources/ui/preferences/units_page.blp:137
+msgid "Use Base 2 for Network Interfaces"
+msgstr ""
+
+#: resources/ui/services_page/page.blp:96
+#, fuzzy
+msgid "Collapse all expanded services"
+msgstr "Restrânge toate aplicațiile și procesele"
+
+#: resources/ui/services_page/page.blp:135
+msgid "Filter running processes"
+msgstr ""
+
+#: resources/ui/services_page/page.blp:155
+#, fuzzy
+msgid "Filter failed processes"
+msgstr "Procesoare virtuale:"
+
+#: resources/ui/services_page/page.blp:175
+msgid "Filter stopped processes"
+msgstr ""
+
+#: resources/ui/services_page/page.blp:195
+msgid "Filter disabled processes"
+msgstr ""
+
+#: resources/ui/services_page/page.blp:216
+msgid "Remove all filters"
+msgstr ""
+
+#: resources/ui/services_page/page.blp:226
+msgid "Remove Filters"
+msgstr ""
+
+#: resources/ui/widgets/theme_selector.blp:18
+#: resources/ui/widgets/theme_selector.blp:21
+msgid "Follow system style"
+msgstr "Urmează stilul sistemului"
+
+#: resources/ui/widgets/theme_selector.blp:35
+#: resources/ui/widgets/theme_selector.blp:38
+msgid "Light style"
+msgstr "Stil luminos"
+
+#: resources/ui/widgets/theme_selector.blp:53
+#: resources/ui/widgets/theme_selector.blp:56
+msgid "Dark style"
+msgstr "Stil întunecat"
+
+#: resources/ui/keyboard_shortcuts.blp:5
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:8
+msgid "Global"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:11
+msgid "Open Menu"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:16
+#: resources/ui/keyboard_shortcuts.blp:21
+msgid "Close Window"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:26
+#, fuzzy
+msgid "Open Preferences"
+msgstr "_Preferințe"
+
+#: resources/ui/keyboard_shortcuts.blp:31
+msgid "Show Keyboard Shortcuts"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:36
+msgid "Show Performance Page"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:41
+#, fuzzy
+msgid "Show Apps Page"
+msgstr "Setări generale"
+
+#: resources/ui/keyboard_shortcuts.blp:46
+msgid "Show Services Page"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
+msgid "Toggle Sidebar"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:60
+#, fuzzy
+msgid "Copy Device Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/keyboard_shortcuts.blp:65
+msgid "Toggle Summary Mode"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:70
+msgid "Select a Device"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:76
+#, fuzzy
+msgid "Apps Page"
+msgstr "Setări generale"
+
+#: resources/ui/keyboard_shortcuts.blp:79
+#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
+msgid "Search"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:89
+#, fuzzy
+msgid "Stop App or Process"
+msgstr "Procese"
+
+#: resources/ui/keyboard_shortcuts.blp:94
+#, fuzzy
+msgid "Force Stop App or Process"
+msgstr "Procese"
+
+#: resources/ui/keyboard_shortcuts.blp:99
+#: resources/ui/keyboard_shortcuts.blp:133
+msgid "Show Details Dialog"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:105
+msgid "Services Page"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:118
+msgid "Start Service"
+msgstr ""
+
+#: resources/ui/keyboard_shortcuts.blp:123
+#, fuzzy
+msgid "Stop Service"
+msgstr "Procese"
+
+#: resources/ui/keyboard_shortcuts.blp:128
+msgid "Restart Service"
+msgstr ""
+
+#. The `Name` column should be default aligned
+#. The column that contains the context menu button should be default aligned
+#: resources/ui/table_view/table_view.blp:40
+#: resources/ui/table_view/service_details_dialog.blp:136
+#: resources/ui/about_system_dialog.blp:80
+#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+msgid "Name"
+msgstr "Nume"
+
+#: resources/ui/table_view/table_view.blp:47
+#: resources/ui/table_view/process_details_dialog.blp:77
+msgid "PID"
+msgstr "PID"
+
+#: resources/ui/table_view/table_view.blp:65
+#: resources/ui/table_view/process_details_dialog.blp:227
+#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+#, fuzzy
+msgid "Swap"
+msgstr "Swap utilizat"
+
+#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
+#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
+msgid "Drive"
+msgstr "Disc"
+
+#: resources/ui/table_view/table_view.blp:77
+#: resources/ui/table_view/process_details_dialog.blp:277
+#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
+msgid "Network"
+msgstr "Rețea"
+
+#: resources/ui/table_view/table_view.blp:83
+#: resources/ui/table_view/process_details_dialog.blp:302
+#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
+#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
+#: src/table_view/mod.rs:946
+msgid "GPU"
+msgstr "Procesor grafic"
+
+#: resources/ui/table_view/table_view.blp:89
+#: resources/ui/table_view/process_details_dialog.blp:327
+#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
+msgid "GPU Memory"
+msgstr "Memorie grafică"
+
+#: resources/ui/table_view/table_view.blp:118
+#: resources/ui/table_view/table_view.blp:188
+#: resources/ui/table_view/process_action_bar.blp:45
+#: resources/ui/table_view/service_action_bar.blp:69
+msgid "Stop"
+msgstr "Oprește"
+
+#: resources/ui/table_view/table_view.blp:123
+#: resources/ui/table_view/process_action_bar.blp:64
+msgid "Force Stop"
+msgstr "Oprește forțat"
+
+#: resources/ui/table_view/table_view.blp:128
+msgid "Send Signal"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:131
+msgid "Suspend (STOP)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:136
+msgid "Continue (CONT)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:141
+msgid "Hangup (HUP)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:146
+msgid "Interrupt (INT)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:151
+msgid "Terminate (TERM)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:156
+msgid "Kill (KILL)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:161
+msgid "User 1 (USR1)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:166
+msgid "User 2 (USR2)"
+msgstr ""
+
+#: resources/ui/table_view/table_view.blp:174
+#: resources/ui/table_view/table_view.blp:200
+#: resources/ui/table_view/process_action_bar.blp:84
+#: resources/ui/table_view/service_action_bar.blp:110
+msgid "Details"
+msgstr "Detalii"
+
+#: resources/ui/table_view/table_view.blp:183
+#: resources/ui/table_view/service_action_bar.blp:48
+msgid "Start"
+msgstr "Pornește"
+
+#: resources/ui/table_view/table_view.blp:193
+#: resources/ui/table_view/service_action_bar.blp:91
+msgid "Restart"
+msgstr "Repornește"
+
+#: resources/ui/table_view/process_action_bar.blp:33
+msgid "Stop the selected app"
+msgstr "Oprește aplicația selectată"
+
+#: resources/ui/table_view/process_action_bar.blp:52
+msgid "Force stop the selected app"
+msgstr "Oprește forțat aplicația selectată"
+
+#: resources/ui/table_view/process_action_bar.blp:72
+msgid "Show details of the selected app"
+msgstr "Afișează detaliile aplicației selectate"
+
+#: resources/ui/table_view/process_details_dialog.blp:85
+msgid "App ID"
+msgstr ""
+
+#: resources/ui/table_view/process_details_dialog.blp:96
+#: resources/ui/table_view/process_details_dialog.blp:124
+#: resources/ui/table_view/service_details_dialog.blp:252
+#: resources/ui/table_view/service_details_dialog.blp:284
+#: resources/ui/table_view/service_details_dialog.blp:316
+#: src/performance_page/widgets/smart_data_dialog.rs:201
+#: src/performance_page/widgets/smart_data_dialog.rs:209
+#: src/performance_page/widgets/smart_data_dialog.rs:217
+#: src/performance_page/widgets/smart_data_dialog.rs:225
+#: src/performance_page/widgets/smart_data_dialog.rs:236
+#: src/performance_page/widgets/smart_data_dialog.rs:244
+#: src/performance_page/widgets/smart_data_dialog.rs:252
+#: src/performance_page/widgets/smart_data_dialog.rs:260
+#: src/performance_page/widgets/smart_data_dialog.rs:268
+#: src/performance_page/widgets/smart_data_dialog.rs:276
+#: src/performance_page/widgets/smart_data_dialog.rs:285
+#: src/performance_page/widgets/smart_data_dialog.rs:293
+#: src/performance_page/widgets/smart_data_dialog.rs:301
+#: src/performance_page/widgets/smart_data_dialog.rs:309
+#: src/performance_page/widgets/smart_data_dialog.rs:317
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
+#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
+#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
+#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
+#: src/performance_page/network.rs:447
+#: src/table_view/service_details_dialog.rs:270
+#: src/table_view/service_details_dialog.rs:278
+#: src/table_view/service_details_dialog.rs:286
+msgid "N/A"
+msgstr "Nu se aplică"
+
+#: resources/ui/table_view/process_details_dialog.blp:141
+msgid "Command Line"
+msgstr "Linie de comandă"
+
+#: resources/ui/table_view/process_details_dialog.blp:163
+msgid "Resource Usage"
+msgstr "Utilizare resurse"
+
+#: resources/ui/table_view/process_details_dialog.blp:252
+msgid "Drives"
+msgstr "Discuri"
+
+#: resources/ui/table_view/service_action_bar.blp:34
+msgid "Start the selected service"
+msgstr "Pornește serviciul selectat"
+
+#: resources/ui/table_view/service_action_bar.blp:55
+msgid "Stop the selected service"
+msgstr "Oprește serviciul selectat"
+
+#: resources/ui/table_view/service_action_bar.blp:77
+msgid "Restart the selected service"
+msgstr "Repornește serviciul selectat"
+
+#: resources/ui/table_view/service_action_bar.blp:98
+msgid "Show details of the selected service"
+msgstr "Afișează detalii despre serviciul selectat"
+
+#: resources/ui/table_view/service_details_dialog.blp:35
+msgid "Service Details"
+msgstr "Detaliile servicilui"
+
+#: resources/ui/table_view/service_details_dialog.blp:59
+msgid "State"
+msgstr "Stare"
+
+#: resources/ui/table_view/service_details_dialog.blp:60
+msgid "The current state of the service"
+msgstr "Starea actuală a serviciului"
+
+#: resources/ui/table_view/service_details_dialog.blp:77
+msgid "Start service"
+msgstr "Pornește serviciu"
+
+#: resources/ui/table_view/service_details_dialog.blp:92
+msgid "Stop service"
+msgstr "Oprește serviciu"
+
+#: resources/ui/table_view/service_details_dialog.blp:108
+msgid "Restart service"
+msgstr "Repornește serviciu"
+
+#: resources/ui/table_view/service_details_dialog.blp:166
+msgid "Description"
+msgstr "Descriere"
+
+#: resources/ui/table_view/service_details_dialog.blp:196
+msgid "Status"
+msgstr "Stare"
+
+#: resources/ui/table_view/service_details_dialog.blp:215
+msgid "Enabled"
+msgstr "Permis"
+
+#: resources/ui/table_view/service_details_dialog.blp:222
+#: src/table_view/row_model.rs:282
+msgid "Process"
+msgstr "Proces"
+
+#: resources/ui/table_view/service_details_dialog.blp:223
+msgid "Process and user information"
+msgstr "Informații despre proces și utilizator"
+
+#: resources/ui/table_view/service_details_dialog.blp:239
+msgid "Process ID"
+msgstr "Identificator proces"
+
+#: resources/ui/table_view/service_details_dialog.blp:271
+msgid "User"
+msgstr "Utilizator"
+
+#: resources/ui/table_view/service_details_dialog.blp:303
+msgid "Group"
+msgstr "Grup"
+
+#: resources/ui/table_view/service_details_dialog.blp:335
+msgid "File Location"
+msgstr ""
+
+#: resources/ui/table_view/service_details_dialog.blp:358
+msgid "Logs"
+msgstr "Jurnal"
+
+#: resources/ui/about_system_dialog.blp:36
+#, fuzzy
+msgid "System Info"
+msgstr "Disc de sistem:"
+
+#: resources/ui/about_system_dialog.blp:65
+#, fuzzy
+msgid "Operating System Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/about_system_dialog.blp:108
+#: resources/ui/about_system_dialog.blp:226
+#: resources/ui/about_system_dialog.blp:288
+#, fuzzy
+msgid "Version"
+msgstr "Versiune Vulkan:"
+
+#: resources/ui/about_system_dialog.blp:136
+msgid "Package Manager"
+msgstr ""
+
+#: resources/ui/about_system_dialog.blp:164
+msgid "Package Manager Version"
+msgstr ""
+
+#: resources/ui/about_system_dialog.blp:183
+#, fuzzy
+msgid "Kernel Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/about_system_dialog.blp:198
+msgid "Kernel Release"
+msgstr ""
+
+#: resources/ui/about_system_dialog.blp:245
+#, fuzzy
+msgid "Desktop Environment Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/about_system_dialog.blp:316
+msgid "Windowing System"
+msgstr ""
+
+#: resources/ui/about_system_dialog.blp:344
+#, fuzzy
+msgid "Virtual Terminal"
+msgstr "Mașină virtuală:"
+
+#: resources/ui/window.blp:49
+msgid "Enable All"
+msgstr ""
+
+#: resources/ui/window.blp:54
+msgid "Disable All"
+msgstr ""
+
+#: resources/ui/window.blp:59
+msgid "Reset to Default"
+msgstr ""
+
+#: resources/ui/window.blp:70
+msgid "Edit Sidebar"
+msgstr ""
+
+#: resources/ui/window.blp:134
+#, fuzzy
+msgid "Type a name or PID to search"
+msgstr "Scrie un nume, un editor sau un PID pentru a căuta"
+
+#: resources/ui/window.blp:149
+#, fuzzy
+msgid "Toggle Device Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/window.blp:164
+msgid "Main Menu"
+msgstr ""
+
+#: resources/ui/window.blp:181
+msgid "Performance"
+msgstr ""
+
+#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
+msgid "Apps"
+msgstr "Aplicații"
+
+#: resources/ui/window.blp:201
+msgid "Services"
+msgstr ""
+
+#: resources/ui/window.blp:225
+msgid "_Preferences"
+msgstr "_Preferințe"
+
+#: resources/ui/window.blp:230
+msgid "_Keyboard Shortcuts"
+msgstr ""
+
+#: resources/ui/window.blp:237
+#, fuzzy
+msgid "_System Information"
+msgstr "Compoziție memorie"
+
+#: resources/ui/window.blp:244
+msgid "Open _Wiki"
+msgstr ""
+
+#: resources/ui/window.blp:250
+msgid "Show _First Run Dialog"
+msgstr ""
+
+#: resources/ui/window.blp:257
+#, fuzzy
+msgid "_About Mission Center"
+msgstr "_Despre MissionCenter"
+
+#: src/apps_page/mod.rs:303
+#, rust-format
+msgid "{} Running App"
+msgid_plural "{} Running Apps"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/apps_page/mod.rs:313
+#, rust-format
+msgid "{} Running Process"
+msgid_plural "{} Running Processes"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:157
+#: src/performance_page/widgets/smart_failure_dialog.rs:67
+msgid "Close"
+msgstr ""
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:158
+msgid "Retry"
+msgstr ""
+
+#: src/performance_page/widgets/eject_failure_dialog.rs:159
+#, fuzzy
+msgid "Kill All"
+msgstr "Restrânge toate"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:95
+#, rust-format
+msgid "{} ago"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:98
+#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
+#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
+#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
+#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
+#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
+#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
+#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
+#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
+#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
+#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
+#: src/table_view/service_details_dialog.rs:294
+msgid "Unknown"
+msgstr "Necunoscut"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:130
+msgid "Pre-Fail"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:131
+msgid "Old-Age"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:134
+msgid "Online"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:135
+msgid "Offline"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:142
+msgid "FAILING"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:147
+msgid "Failed in the past"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:149
+msgid "Ok"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:197
+msgid "Percent Used"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:205
+#, fuzzy
+msgid "Available Spare"
+msgstr "Disponibil"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:213
+msgid "Spare Threshold"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:221
+msgid "Total Data Read"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:229
+msgid "Total Data Written"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:240
+msgid "Warning Temp Time"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:248
+msgid "Critical Temp Time"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:256
+#: src/performance_page/widgets/smart_data_dialog.rs:313
+msgid "Control Busy Time"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:264
+#, fuzzy
+msgid "Warning Temperature"
+msgstr "Temperatură"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:266
+#: src/performance_page/widgets/smart_data_dialog.rs:274
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
+#: src/performance_page/fan.rs:264
+#, rust-format
+msgid "{} °C"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:272
+#, fuzzy
+msgid "Critical Temperature"
+msgstr "Temperatură"
+
+#: src/performance_page/widgets/smart_data_dialog.rs:279
+msgid "Temps"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:281
+msgid "Unsafe Shutdowns"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:289
+msgid "Media Errors"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:297
+msgid "Number Error Log Entries"
+msgstr ""
+
+#: src/performance_page/widgets/smart_data_dialog.rs:305
+msgid "Power Cycles"
+msgstr ""
+
+#: src/performance_page/widgets/mem_composition_widget.rs:251
+#, fuzzy, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"Utilizat ({}iO)\n"
+"\n"
+"Memorie utilizată de sistemul de operare și de aplicațiile în execuție"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:281
+#, fuzzy, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"Modificat ({}iO)\n"
+"\n"
+"Memorie a cărui conținut trebuie scris pe disc înainte de a putea fi "
+"utilizat de către un alt proces"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:305
+#, fuzzy, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"În așteptare ({}iO)\n"
+"\n"
+"Memorie care conține date și cod cache care nu este utilizat activ"
+
+#: src/performance_page/widgets/mem_composition_widget.rs:318
+#, fuzzy, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"Disponibil ({}iO)\n"
+"\n"
+"Memorie care nu este utilizată în prezent și care va fi utilizată prima dată "
+"atunci când sistemul de operare, driverele sau aplicațiile au nevoie de mai "
+"multă memorie"
+
+#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
+#, fuzzy, rust-format
+msgid "{} sectors"
+msgstr "{} de secunde"
+
+#: src/performance_page/cpu.rs:532
+msgid ""
+"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
+"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
+"loop calibration metric, not a true frequency measurement."
+msgstr ""
+
+#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
+#: src/performance_page/gpu.rs:592
+msgid "Unsupported"
+msgstr "Neatestat"
+
+#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
+msgid "Yes"
+msgstr "Da"
+
+#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
+msgid "No"
+msgstr "Nu"
+
+#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
+#, fuzzy
+msgid "Power draw over "
+msgstr "Putere consumată"
+
+#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
+#, fuzzy
+msgid "Clock speed over "
+msgstr "Utilizare memorie"
+
+#: src/performance_page/disk.rs:179
+#, fuzzy, rust-format
+msgid "Disk {} ({})"
+msgstr "Disc"
+
+#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
+#, fuzzy, rust-format
+msgid "Drive ({})"
+msgstr "Disc"
+
+#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
+msgid "HDD"
+msgstr "HDD"
+
+#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
+msgid "SSD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
+msgid "NVMe"
+msgstr "NVMe"
+
+#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
+msgid "eMMC"
+msgstr "eMMC"
+
+#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
+#, fuzzy
+msgid "SD"
+msgstr "SSD"
+
+#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
+msgid "Optical"
+msgstr ""
+
+#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
+msgid "Floppy"
+msgstr ""
+
+#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
+msgid "Thumb Drive"
+msgstr ""
+
+#: src/performance_page/disk.rs:336
+#, fuzzy, rust-format
+msgid "Drive {} ({})"
+msgstr "Disc"
+
+#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
+#: src/performance_page/fan.rs:279
+#, rust-format
+msgid "{} RPM"
+msgstr ""
+
+#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
+#: src/performance_page/mod.rs:2540
+#, rust-format
+msgid "Fan {}"
+msgstr ""
+
+#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
+#: src/performance_page/mod.rs:2542
+msgid "Fan"
+msgstr ""
+
+#: src/performance_page/fan.rs:253
+#, rust-format
+msgid "{}%"
+msgstr ""
+
+#: src/performance_page/gpu.rs:562
+#, fuzzy
+msgid "Video encode/decode"
+msgstr "Codare video"
+
+#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
+#: src/performance_page/mod.rs:2465
+#, rust-format
+msgid "GPU {}"
+msgstr "Procesor grafic {}"
+
+#: src/performance_page/gpu.rs:826
+#, fuzzy
+msgid "Total Memory"
+msgstr "Memorie"
+
+#: src/performance_page/gpu.rs:876
+msgid "Total Shared Memory"
+msgstr ""
+
+#: src/performance_page/gpu.rs:1116
+msgid "Dedicated and shared memory usage over "
+msgstr ""
+
+#: src/performance_page/memory.rs:358
+#, rust-format
+msgid "{} of {}"
+msgstr ""
+
+#: src/performance_page/memory.rs:380
+msgid "Getting additional memory information failed"
+msgstr ""
+
+#: src/performance_page/mod.rs:1269
+#, fuzzy, rust-format
+msgid "{} {} ({})"
+msgstr "{} {}{}B/s"
+
+#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
+#, rust-format
+msgid "Battery {}"
+msgstr ""
+
+#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
+msgid "Battery"
+msgstr ""
+
+#: src/performance_page/mod.rs:2391
+#, rust-format
+msgid "{}"
+msgstr ""
+
+#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
+#, fuzzy, rust-format
+msgid "{}: {}"
+msgstr "{} {}bps"
+
+#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
+#: src/table_view/service_details_dialog.rs:257
+#: src/table_view/service_details_dialog.rs:331
+msgid "Failed"
+msgstr ""
+
+#: src/performance_page/network.rs:458
+msgid "Disconnected"
+msgstr ""
+
+#: src/performance_page/network.rs:459
+msgid "Disconnecting"
+msgstr ""
+
+#: src/performance_page/network.rs:460
+#, fuzzy
+msgid "Connected"
+msgstr "Tip conexiune:"
+
+#: src/performance_page/network.rs:461
+#, fuzzy
+msgid "Connecting"
+msgstr "Tip conexiune:"
+
+#: src/performance_page/network.rs:462
+msgid "Configuring"
+msgstr ""
+
+#: src/performance_page/network.rs:463
+msgid "Waiting for auth"
+msgstr ""
+
+#: src/performance_page/network.rs:464
+#, fuzzy
+msgid "Unavailable"
+msgstr "Disponibil"
+
+#: src/performance_page/network.rs:465
+msgid "Loading"
+msgstr ""
+
+#: src/services_page/mod.rs:99
+#, fuzzy, rust-format
+msgid "{} Total Service"
+msgid_plural "{} Total Services"
+msgstr[0] "Procese"
+msgstr[1] "Procese"
+msgstr[2] "Procese"
+
+#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
+#: src/table_view/service_details_dialog.rs:329
+msgid "Running"
+msgstr ""
+
+#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
+#: src/table_view/service_details_dialog.rs:333
+msgid "Stopped"
+msgstr ""
+
+#: src/services_page/mod.rs:138
+#, fuzzy
+msgid "Disabled"
+msgstr "Permis"
+
+#: src/services_page/mod.rs:144
+msgid "No services match the current filters"
+msgstr ""
+
+#: src/services_page/mod.rs:146
+msgid "No filters applied"
+msgstr ""
+
+#: src/services_page/mod.rs:153
+#, fuzzy, rust-format
+msgid "{} {} Service"
+msgid_plural "{} {} Services"
+msgstr[0] "Procese"
+msgstr[1] "Procese"
+msgstr[2] "Procese"
+
+#: src/services_page/mod.rs:182
+#, fuzzy
+msgid "User Services"
+msgstr "Repornește serviciu"
+
+#: src/services_page/mod.rs:187
+#, fuzzy
+msgid "System Services"
+msgstr "Procese"
+
+#: src/table_view/row_model.rs:279
+msgid "Section Header"
+msgstr ""
+
+#: src/table_view/row_model.rs:280
+#, fuzzy
+msgid "Service"
+msgstr "Procese"
+
+#: src/table_view/row_model.rs:281
+#, fuzzy
+msgid "App"
+msgstr "Aplicații"
+
+#: src/table_view/service_details_dialog.rs:209
+msgid "Copy logs to clipboard"
+msgstr ""
+
+#: src/application.rs:521
+msgid "translator-credits"
+msgstr "Romeo Calotă <mail@romeocalota.me>"
+
+#: src/main.rs:106
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/main.rs:110
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/main.rs:114
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/main.rs:118
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/main.rs:122 src/main.rs:207
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: src/main.rs:126 src/main.rs:205
+#, fuzzy, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} de secunde"
+msgstr[1] "{} de secunde"
+msgstr[2] "{} de secunde"
+
+#: src/main.rs:163
+#, fuzzy, rust-format
+msgid "{}, {} and {}"
+msgstr "{} {}bps"
+
+#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
+#, rust-format
+msgid "{} and {}"
+msgstr ""
+
+#: src/main.rs:197
+msgid "Less than a minute"
+msgstr ""
+
+#: src/main.rs:451
+msgid "_Quit"
+msgstr "_Ieșire"
+
+#~ msgid "Show the gpu encode-decode graph"
+#~ msgstr "Afișează graficul pentru codare și decodare video"
+
+#~ msgid "Shared Memory"
+#~ msgstr "Memorie Partajată"
+
+#~ msgid ""
+#~ "Shared\n"
+#~ "Memory"
+#~ msgstr ""
+#~ "Memorie\n"
+#~ "Paratjată"
+
+#, fuzzy
+#~ msgid "App Page"
+#~ msgstr "Setări generale"
+
+#, fuzzy
+#~ msgid "{} second{}"
+#~ msgstr "{} de secunde"
+
+#~ msgid "No per-process network usage"
+#~ msgstr "Fără utilizare per proces a rețelei"
+
+#~ msgid "{} {}{}B/s"
+#~ msgstr "{} {}{}B/s"
+
+#~ msgid "{} {}bps"
+#~ msgstr "{} {}bps"
+
+#~ msgid "Ethernet"
+#~ msgstr "Ethernet"
+
+#~ msgid "Wi-Fi"
+#~ msgstr "Wi-Fi"
+
+#~ msgid "Flatpak first"
+#~ msgstr "Creat pentru a fi distribuit ca si Flatpak"
+
+#, fuzzy
+#~ msgid "Video decode utilization"
+#~ msgstr "Decodare video"
+
+#~ msgid "_Disk"
+#~ msgstr "_Disc"
+
+#, fuzzy
+#~ msgid "Disk"
+#~ msgstr "_Disc"
+
+#, fuzzy
+#~ msgid "Update to GTK 4.12 and libadwaita 1.4"
+#~ msgstr "Folosește GTK4 si Libadwaita"
+
+#, fuzzy
+#~ msgid "Translations:"
+#~ msgstr "Virtualizare:"
+
+#, fuzzy
+#~ msgid "Updated Spanish translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Finnish translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Russian translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Chinese (Simplified) translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Greek translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated German translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Czech translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Updated Portuguese translation"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#~ msgid "Add Spanish translation by Óscar Fernández Díaz"
+#~ msgstr "Adaugă traducere în spaniolă de Óscar Fernández Díaz"
+
+#~ msgid ""
+#~ "The memory tab now shows configured memory speed instead of the maximum "
+#~ "supported by the modules"
+#~ msgstr ""
+#~ "Fila memorie afișează acum viteza memoriei configurate în locul maximului "
+#~ "acceptat de modulele RAM"
+
+#~ msgid "Add German translation by TecCheck"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#~ msgid ""
+#~ "When a process uses large amounts of CPU or RAM it is now highlighted in "
+#~ "the Apps and Processes list"
+#~ msgstr ""
+#~ "Atunci când un proces utilizează un procentaj mare de CPU sau RAM, acesta "
+#~ "este acum evidențiat în lista aplicații și procese"
+
+#, fuzzy
+#~ msgid "Added Czech translation by ondra05"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#, fuzzy
+#~ msgid "Added Portuguese translation by Rilson Joás"
+#~ msgstr "Adăugată traducerea în germană de TecCheck"
+
+#~ msgid "Disk transfer rate"
+#~ msgstr "Rată de transfer disc"
+
+#~ msgid "Overall utilization"
+#~ msgstr "Utilizare generală"
+
+#~ msgid ""
+#~ "GPU support is experimental and only AMD and nVidia GPUs can be monitored"
+#~ msgstr ""
+#~ "Suportul GPU este experimental și numai GPU-urile AMD și nVidia pot fi "
+#~ "monitorizate"
+
+#~ msgid "Fast"
+#~ msgstr "Rapid"
+
+#~ msgid "Refresh every half second"
+#~ msgstr "Actualizare la fiecare jumătate de secundă"
+
+#~ msgid "Refresh every second"
+#~ msgstr "Actualizare la fiecare secundă"
+
+#~ msgid "Slow"
+#~ msgstr "Lent"
+
+#~ msgid "Refresh every second and a half"
+#~ msgstr "Actualizare la fiecare secunda și jumătate"
+
+#~ msgid "Very Slow"
+#~ msgstr "Foarte lent"
+
+#~ msgid "Refresh every 2 seconds"
+#~ msgstr "Actualizare la fiecare 2 secunde"
+
+#~ msgid "Supported"
+#~ msgstr "Atestat"
+
+#, fuzzy
+#~ msgid "Authentication failed"
+#~ msgstr "_Autentificare"
+
+#~ msgid "Disk utilization percentage might not be accurate"
+#~ msgstr "Este posibil ca procentul de utilizare a discului să nu fie corect"
+
+#~ msgid "No per-process GPU usage"
+#~ msgstr "Fără utilizare GPU per proces"
+
+#~ msgid "Some information requires administrative privileges"
+#~ msgstr "Anumite informații necesită privilegii de administrator"
+
+#~ msgid ""
+#~ "The application currently only supports monitoring, you cannot stop "
+#~ "processes for example"
+#~ msgstr ""
+#~ "Aplicația, în prezent, doar monitorizează, nu puteți opri procesele, de "
+#~ "exemplu"
+
+#~ msgid "% Utilization"
+#~ msgstr "% de utilizare"
+
+#~ msgid "{}: {} {}bps {}: {} {}bps"
+#~ msgstr "{}: {} {}bps {}: {} {}bps"

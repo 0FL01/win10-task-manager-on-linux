@@ -1,0 +1,515 @@
+/* ui/performance_page/network_details.blp
+ *
+ * Copyright 2024 Romeo Calota
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+Box root {
+  margin-top: 65;
+  margin-bottom: 10;
+  orientation: vertical;
+  spacing: 25;
+
+  Grid {
+    row-spacing: 5;
+    column-spacing: 0;
+
+    styles [
+      "layout-grid"
+    ]
+
+    Picture legend_recv {
+      layout {
+        column: '0';
+        row: '0';
+      }
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '0';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Receive");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label speed_recv {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Picture legend_send {
+      layout {
+        column: '2';
+        row: '0';
+      }
+
+      can-shrink: false;
+      content-fit: scale_down;
+    }
+
+    Box {
+      layout {
+        column: '3';
+        row: '0';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Send");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label speed_send {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '1';
+        row: '1';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Total Received");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label total_recv {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Box {
+      layout {
+        column: '3';
+        row: '1';
+      }
+
+      orientation: vertical;
+      spacing: 3;
+      width-request: 100;
+      margin-top: 7;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        label: _("Total Sent");
+
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label total_sent {
+        styles [
+          "title-4",
+        ]
+
+        halign: start;
+        selectable: true;
+      }
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '2';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      margin-top: 20;
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Interface name:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '3';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Connection type:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '4';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Connection status:");
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '5';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      visible: bind ssid.visible;
+
+      label: _("SSID:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '6';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      visible: bind signal_strength.visible;
+
+      label: _("Signal strength:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '7';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      visible: bind max_bitrate.visible;
+
+      label: _("Maximum Bitrate:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '8';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      visible: bind frequency.visible;
+
+      label: _("Frequency:");
+      ellipsize: end;
+    }
+
+    Label {
+      layout {
+        column: '1';
+        row: '9';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-end: 5;
+
+      label: _("Hardware address:");
+      ellipsize: end;
+    }
+
+    Label interface_name_label {
+      layout {
+        column: '3';
+        row: '2';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      margin-top: 20;
+
+      selectable: true;
+    }
+
+    Label connection_type_label {
+      layout {
+        column: '3';
+        row: '3';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+
+    Label connection_status_label {
+      layout {
+        column: '3';
+        row: '4';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+
+    Label ssid {
+      layout {
+        column: '3';
+        row: '5';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      visible: false;
+
+      selectable: true;
+    }
+
+    Image signal_strength {
+      layout {
+        column: '3';
+        row: '6';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      visible: false;
+    }
+
+    Label max_bitrate {
+      layout {
+        column: '3';
+        row: '7';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      visible: false;
+
+      selectable: true;
+    }
+
+    Label frequency {
+      layout {
+        column: '3';
+        row: '8';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      visible: false;
+
+      selectable: true;
+    }
+
+    Label hw_address {
+      layout {
+        column: '3';
+        row: '9';
+      }
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+
+      selectable: true;
+    }
+  }
+
+  Box {
+    orientation: vertical;
+    spacing: 5;
+    margin-start: 10;
+
+    Box {
+      orientation: horizontal;
+      spacing: 2;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        margin-end: 5;
+        label: _("IPv4 address:");
+
+        ellipsize: end;
+      }
+
+      Label ipv4_address {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+
+        ellipsize: middle;
+        selectable: true;
+      }
+    }
+
+    Box {
+      orientation: horizontal;
+      spacing: 2;
+
+      Label {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+        margin-end: 5;
+
+        label: _("IPv6 address:");
+        ellipsize: end;
+      }
+
+      Label ipv6_address {
+        styles [
+          "caption",
+        ]
+
+        halign: start;
+
+        ellipsize: middle;
+        selectable: true;
+      }
+    }
+  }
+}

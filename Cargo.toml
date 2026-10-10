@@ -1,0 +1,47 @@
+[package]
+name = "missioncenter"
+version = "1.2.0"
+authors = [
+    "Jan Luca <janluca.oster@proton.me>",
+    "jojo2357",
+    "Romeo Calota <mail@romeocalota.me>",
+]
+edition = "2021"
+
+[dependencies]
+arrayvec = "0.7"
+bitfield = "0.19.4"
+nng-c = "1.11"
+paste = "1.0"
+rand = "0.10"
+regex = "1.12"
+rust-ini = "0.21"
+textdistance = "1.1"
+
+[dependencies.adw]
+package = "libadwaita"
+version = "0.9"
+features = ["v1_9"]
+
+[dependencies.gettext-rs]
+version = "0.7"
+features = ["gettext-system"]
+
+[dependencies.gtk]
+package = "gtk4"
+version = "0.11"
+features = ["gnome_50"]
+
+[dependencies.magpie-types]
+path = "subprojects/magpie/types"
+
+[dependencies.mc-graph-widget]
+path = "subprojects/graph-widget"
+
+[dependencies.nng-c-sys]
+version = "1.11"
+default-features = false
+
+[profile.release]
+opt-level = 3
+codegen-units = 1

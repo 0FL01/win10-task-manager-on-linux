@@ -1,0 +1,446 @@
+/* ui/performance_page/memory_details.blp
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+using Gtk 4.0;
+
+Grid root {
+  margin-top: 65;
+  margin-bottom: 10;
+  row-spacing: 5;
+  column-spacing: 0;
+
+  styles [
+    "layout-grid"
+  ]
+
+  Picture legend_used {
+    layout {
+      column: '0';
+      row: '0';
+    }
+
+    can-shrink: false;
+    content-fit: scale_down;
+  }
+
+  Box {
+    layout {
+      column: '1';
+      row: '0';
+    }
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("In use");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label in_use {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '3';
+      row: '0';
+    }
+
+    orientation: vertical;
+    spacing: 3;
+
+    width-request: 100;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Available");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label available {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Picture legend_commited {
+    layout {
+      column: '0';
+      row: '1';
+    }
+
+    margin-top: 7;
+
+    can-shrink: false;
+    content-fit: scale_down;
+  }
+
+  Box {
+    layout {
+      column: '1';
+      row: '1';
+    }
+
+    margin-top: 7;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Committed");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label committed {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '3';
+      row: '1';
+    }
+
+    margin-top: 7;
+    width-request: 100;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      halign: start;
+      label: _("Cached");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label cached {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '1';
+      row: '2';
+    }
+
+    margin-top: 7;
+    width-request: 100;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      visible: bind swap_used.visible;
+      halign: start;
+      label: _("Swap used");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label swap_used {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '3';
+      row: '2';
+    }
+
+    margin-top: 7;
+    width-request: 100;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      visible: bind swap_available.visible;
+      halign: start;
+      label: _("Swap available");
+
+      wrap: true;
+      wrap-mode: word_char;
+    }
+
+    Label swap_available {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '1';
+      row: '3';
+    }
+
+    margin-top: 7;
+    width-request: 100;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      visible: bind compressed.visible;
+      halign: start;
+      label: _("Compressed");
+    }
+
+    Label compressed {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Box {
+    layout {
+      column: '3';
+      row: '3';
+    }
+
+    margin-top: 7;
+    width-request: 100;
+
+    orientation: vertical;
+    spacing: 3;
+
+    Label {
+      styles [
+        "caption",
+      ]
+
+      visible: bind compression_savings.visible;
+      halign: start;
+      label: _("Savings");
+    }
+
+    Label compression_savings {
+      styles [
+        "title-4",
+      ]
+
+      halign: start;
+      selectable: true;
+    }
+  }
+
+  Label {
+    layout {
+      column: '1';
+      row: '4';
+    }
+
+    margin-top: 20;
+    margin-end: 5;
+
+    styles [
+      "caption",
+    ]
+
+    halign: start;
+    label: _("Speed:");
+    ellipsize: end;
+  }
+
+  Label {
+    layout {
+      column: '1';
+      row: '5';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    margin-end: 5;
+
+    halign: start;
+    label: _("Slots used:");
+    ellipsize: end;
+  }
+
+  Label {
+    layout {
+      column: '1';
+      row: '6';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    margin-end: 5;
+
+    halign: start;
+    label: _("Form factor:");
+    ellipsize: end;
+  }
+
+  Label {
+    layout {
+      column: '1';
+      row: '7';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    margin-end: 5;
+
+    halign: start;
+    label: _("Type:");
+    ellipsize: end;
+  }
+
+  Label speed {
+    layout {
+      column: '3';
+      row: '4';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    halign: start;
+    margin-top: 20;
+    selectable: true;
+  }
+
+  Label slots_used {
+    layout {
+      column: '3';
+      row: '5';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    halign: start;
+    selectable: true;
+  }
+
+  Label form_factor {
+    layout {
+      column: '3';
+      row: '6';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    halign: start;
+    selectable: true;
+  }
+
+  Label ram_type {
+    layout {
+      column: '3';
+      row: '7';
+    }
+
+    styles [
+      "caption",
+    ]
+
+    halign: start;
+    selectable: true;
+  }
+}
