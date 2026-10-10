@@ -1,3 +1,0 @@
-option('flatpak', type : 'boolean', value : false, description: 'Building for Flatpak')
-option('cargo_env', type : 'array', value : [], description: 'Additional environment variables that should be set when running cargo')
-option('version', type : 'string', value : '', description: 'Version string')

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.taskmanager.TaskManager</id>
+    <name>Task Manager</name>
+    <developer id="io.github.taskmanager">
+        <name>Task Manager Developers</name>
+    </developer>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-or-later AND OFL-1.1</project_license>
+    <launchable type="desktop-id">io.github.taskmanager.TaskManager.desktop</launchable>
+    <url type="homepage">https://github.com/0FL01/win10-task-manager-on-linux</url>
+    <url type="bugtracker">https://github.com/0FL01/win10-task-manager-on-linux/issues</url>
+
+    <summary>Monitor processes, performance and services</summary>
+    <description>
+        <p>Task Manager shows the processes, performance, details and services of your system in a
+            familiar tabbed interface: per-process CPU, memory, disk and network usage with heat
+            colouring, live graphs for CPU, memory, disks, network, GPU, fans and batteries, a flat
+            process list with owners and states, and systemd services you can start, stop and restart.</p>
+        <p>Task Manager is based on Mission Center: it uses the Mission Center statistics backend
+            (magpie) and code from the Mission Center project by the Mission Center Developers
+            (GPL-3.0-or-later). Its interface is written from scratch with egui.</p>
+    </description>
+
+    <recommends>
+        <control>keyboard</control>
+        <control>pointing</control>
+    </recommends>
+
+    <requires>
+        <display_length compare="ge">540</display_length>
+    </requires>
+
+    <content_rating type="oars-1.1" />
+
+    <releases>
+        <release version="1.2.0" date="2026-10-10">
+            <description>
+                <p>New interface in the style of a classic desktop task manager; per-process network
+                    usage without extra permissions; interface state kept across restarts.</p>
+            </description>
+        </release>
+    </releases>
+</component>

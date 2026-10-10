@@ -1,28 +1,52 @@
-# Mission Center
+# Task Manager
 
-GTK4/libadwaita system monitor (CPU, memory, disk, network, GPU) in Rust. Meson wraps Cargo for all builds and tests.
+Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, services) in Rust with an egui/eframe UI (pure-Rust GUI stack) in the style of the Windows 10 Task Manager, built clean-room from measurements (`docs/win10-spec/`). Based on Mission Center: its statistics backend (magpie) and ported logic; keep the attribution (README "Based on Mission Center", About dialog, `Mission Center Developers` copyright headers) intact. Goals: `docs/goals/2026-10-10-egui-gui-port.md` (GTK → egui port), `docs/goals/2026-10-10-win10-skin.md` (Win10 look).
 
 ## Map
-- `src/` — app code: `main.rs`/`window.rs`, pages in `apps_page/`, `performance_page/`, `services_page/`; shared UI in `table_view/`, `widgets/`.
-- `src/magpie_client/` — NNG IPC client to the magpie stats daemon; data collection itself lives in the magpie submodule.
-- `resources/ui/**/*.blp` — Blueprint UI definitions (not GTK XML). New `.blp` files must be registered in `resources/meson.build`.
-- `subprojects/magpie` — submodule (gng): stats daemon; provides the `magpie-types` path dependency.
-- `subprojects/graph-widget` — submodule: graph rendering crate used for all charts.
-- `data/` — GSettings schema, icons, desktop/appdata.
-- `po/` — gettext translations (managed via Weblate).
-- `support/` — fmt check and AppImage/packaging scripts.
+- `crates/mc-magpie/` — GUI-free client of the magpie daemon (NNG IPC, gatherer thread, `LatestSlot` hand-off, bounded event channel, fixtures, synthetic data); gatherer-side extras without privileges: `users` (process owners), `sockets` (per-process TCP traffic when magpie/nethogs has none).
+- `crates/mc-core/` — GUI-free logic: settings (`config.rs`, keys = former GSettings keys), formatting, i18n (pure-Rust `.mo` reader), sidebar ordering, process/service tree model.
+- `crates/mc-graph-core/` — local, GUI-free graph data/scaling core carried from upstream graph-widget; provenance in `docs/PROVENANCE.md`.
+- `crates/mc-graph/` — egui time-series graph on top of `mc-graph-core`; `GraphStyle::Win10`.
+- `crates/mc-ui/` — egui UI, depends on egui only:
+  - `app.rs` shell (state, data intake, commands);
+  - `win10/` the Win10 look: `palette`/`metrics` (all numbers from the spec), `fonts` (Selawik/Segoe UI), `paint` (pixel-exact helpers), `chrome` (CSD title bar, menu bar, tabs, footer), `menu`, `listview`/`flatlist`, tabs `processes`, `performance`, `details`, `services`, and `style`/`dialog` for standard egui widgets;
+  - `perf/` device models (`DevicePage::win10_view`), `table.rs` (process/service tree view state), `dialogs.rs`, `prefs.rs`, `smart.rs`.
+- `crates/mc-ui/assets/fonts/` — bundled Selawik (SIL OFL 1.1, `OFL.txt`).
+- `crates/mc-ui/assets/icons/` — SVGs carried from Mission Center, embedded by the egui UI.
+- `apps/taskmanager/` — eframe binary `taskmanager` (app id `io.github.taskmanager.TaskManager`, settings `~/.config/taskmanager/config.toml`, copied once from `~/.config/missioncenter/`) (`--fixture`, `--synthetic`, `--dump-readings`, `--renderer wgpu|glow`, `--perf-overlay`, `--bench-seconds`).
+- `xtask/` — dev/packaging tasks (`cargo xtask help`).
+- `docs/port-spec/` — frozen historical GTK specs (msgids, formats, behaviours); source-history links are in their headers.
+- `docs/win10-spec/` — clean-room visual spec (`spec.md`) and pixel probes (`probes.json`); `tools/measure_refs.py` reproduces the measurements from local screenshots in `references/` (git-ignored, never committed).
+- `subprojects/magpie` (gng) — the only required submodule.
+- `po/` — gettext translations (Weblate); `data/` — icons, desktop/metainfo.
 
-## Rules
-- Submodules are required: run `git submodule update --init --recursive` after cloning, or the build fails.
-- No bare `cargo build`/`cargo test` from the repo root: `src/main.rs` includes the generated config via `env!("BUILD_ROOT")`. Always go through meson (see Verify).
-- `src/config.rs` is generated from `src/config.rs.in` by meson — edit the `.in` template, never the output.
-- Run `cargo fmt` after touching Rust code; CI enforces it via `support/check-cargo-fmt.sh`.
-- Native builds need GTK 4.22, libadwaita 1.9, Rust >= 1.90 (roughly Arch >= 20260501 / Fedora >= 44 / Ubuntu >= 26.04).
+## Rules (Win10 look, clean room)
+- Implement only from `docs/win10-spec/spec.md`: no Microsoft pixels, icons, fonts or code in the repository; draw icons ourselves; never commit `references/`.
+- Geometry and colours live in `win10/metrics.rs` and `win10/palette.rs`; mark own design (not measured) as such in the spec.
+- Draw 1 px lines and fills with `win10::paint` (meshes; egui's rect tessellation loses single pixels). Place text by cap top (`paint::text`).
+- Names: `mc_ui::APP_NAME` ("Task Manager"), binary/package `taskmanager`, app id `io.github.taskmanager.TaskManager`, gettext domain `taskmanager`. The Mission Center backend keeps its names (`missioncenter-magpie`, `share/missioncenter/hw.db`, flatpak `missioncenter-spawner`). Internal crate names (`mc-*`) are unchanged.
+- The application icon (`data/icons/hicolor/*/apps/io.github.taskmanager.TaskManager.png`) was provided by the user (fan redraw) and is outside the clean-room rule.
+
+## Rules (egui port)
+- Layers: `mc-magpie` → `mc-core` → `mc-graph`/`mc-ui` → app; `mc-graph-core` is GUI-free. `mc-core`/`mc-magpie`/`mc-graph-core` must never depend on egui/eframe/GTK.
+- No I/O, IPC or blocking calls in `App::ui`/`App::logic`; talk to magpie only via `Request`s and `Event`s; persist settings via `ConfigWriter`.
+- No unbounded channels. Snapshots go through `LatestSlot` (overwrite), events through bounded `sync_channel`.
+- Repaint only on events (new readings, input, icon decoded, sliding animation while it runs — capped by `ANIMATION_FRAME`). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only.
+- Rebuild table rows / format strings / graph geometry only when data, sort, filter, size or expansion change.
+- Translatable strings use `mc_core::i18n::{i18n, i18n_f, ni18n_f, ...}` with msgids identical to the GTK app (see `docs/port-spec/`); mnemonic underscores are part of the msgid, strip them for display with `strip_mnemonic`.
+- No `Arc<Mutex<AppState>>`; views mutate state through `Cx` and typed `Command`s.
+- Recorded fixtures (`--dump-readings`) contain private process data: keep them under `testkit/fixtures/live/` (git-ignored). Tests use `mc_magpie::synthetic_series`.
+- Report only measured numbers (method and historical evidence in `perf/README.md`); screenshots only from real renders (`target/ui-snapshots/`).
+- Run `cargo fmt` after touching Rust code.
 
 ## Verify
-- `meson setup _build -Dbuildtype=debug && ninja -C _build` — build (incremental `ninja` is the fastest type check).
-- `meson test -C _build --suite missioncenter --print-errorlogs` — run tests (wraps `cargo test`).
-- `cargo fmt` — before committing.
+- `cargo fmt --all --check` — nonmutating formatting check.
+- `cargo test --workspace` — includes local graph core and xtask, Win10 pixel probes (`tests/win10_probes.rs`) and offscreen snapshots (needs a wgpu adapter); renders go to `target/ui-snapshots/`.
+- `cargo clippy --workspace --all-targets -- -D warnings`.
+- `cargo run -p taskmanager-app -- --synthetic 300` — run without the daemon (glow renderer by default, `--renderer wgpu` optional); `cargo xtask run-dev` — run with the real magpie.
+- `cargo xtask bench-idle` — egui wgpu/glow idle and synthetic-table benchmarks (see `perf/README.md`).
 
 ## Docs
-- `README.md` — full dependency list, Flatpak/AppImage packaging, and env vars (`GSETTINGS_SCHEMA_DIR`, `MC_RESOURCE_DIR`, …) needed to run the app from the build dir.
+- `README.md` — dependencies, packaging, env vars.
+- `docs/PROVENANCE.md` — Mission Center authors, upstream graph revision and original Silver notice.
+- `docs/goals/2026-10-10-egui-gui-port.md` — port contract and current state; `docs/goals/2026-10-10-egui-gui-port-plan.md` — approved plan.

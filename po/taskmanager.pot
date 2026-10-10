@@ -1,0 +1,1846 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the taskmanager package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: taskmanager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-11 00:01+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: crates/mc-core/src/format.rs:34
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:38
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:42 crates/mc-core/src/i18n.rs:276
+#: crates/mc-core/src/i18n.rs:277
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:46
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:50 crates/mc-core/src/format.rs:127
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:54 crates/mc-core/src/format.rs:125
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-core/src/format.rs:85
+#, rust-format
+msgid "{}, {} and {}"
+msgstr ""
+
+#: crates/mc-core/src/format.rs:87 crates/mc-core/src/format.rs:94
+#: crates/mc-core/src/format.rs:101 crates/mc-core/src/format.rs:108
+#, rust-format
+msgid "{} and {}"
+msgstr ""
+
+#: crates/mc-core/src/format.rs:117
+msgid "Less than a minute"
+msgstr ""
+
+#: crates/mc-core/src/table.rs:447
+msgid "Apps"
+msgstr ""
+
+#: crates/mc-core/src/table.rs:453 crates/mc-ui/src/cx.rs:66
+#: crates/mc-ui/src/perf/cpu.rs:438
+msgid "Processes"
+msgstr ""
+
+#: crates/mc-core/src/table.rs:540
+msgid "User Services"
+msgstr ""
+
+#: crates/mc-core/src/table.rs:546
+msgid "System Services"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:536
+msgid "Run new task"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:540
+msgid "Exit"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:545
+msgid "Always on top"
+msgstr ""
+
+#. Runs the magpie setup script (nethogs capabilities, power, sensors) on request
+#: crates/mc-ui/src/app.rs:558
+msgid "Enable per-process network usage…"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:561
+msgid "Settings…"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:574
+msgid "Refresh now"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:580
+msgid "Group by type"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:585
+msgid "Expand all"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:588
+msgid "Collapse all"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:592
+msgid "Update speed"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:593
+msgid "High"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:593
+msgid "Normal"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:593
+msgid "Low"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:602
+msgid "Paused"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:644
+msgid "Create new task"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:652
+msgid "Type the name of a program and Task Manager will start it."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:656
+msgid "Open:"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:669
+msgid "Cancel"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:674
+msgid "OK"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:710
+msgid "File"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:710
+msgid "Options"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:710
+msgid "View"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:728
+msgid "Fewer details"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:730
+msgid "More details"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:737 crates/mc-ui/src/app.rs:744
+#: crates/mc-ui/src/win10/details.rs:224
+#: crates/mc-ui/src/win10/processes.rs:551
+msgid "End task"
+msgstr ""
+
+#: crates/mc-ui/src/cx.rs:67
+msgid "Performance"
+msgstr ""
+
+#: crates/mc-ui/src/cx.rs:68 crates/mc-ui/src/win10/services.rs:218
+msgid "Details"
+msgstr ""
+
+#: crates/mc-ui/src/cx.rs:69
+msgid "Services"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:113
+msgid "Setup Script Failed"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:115
+msgid "Revert Setup Script Failed"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:188
+msgid "Copy Output"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:192 crates/mc-ui/src/smart.rs:356
+msgid "Retry"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:199 crates/mc-ui/src/dialogs.rs:212
+#: crates/mc-ui/src/dialogs.rs:228 crates/mc-ui/src/dialogs.rs:788
+#: crates/mc-ui/src/smart.rs:279 crates/mc-ui/src/smart.rs:353
+msgid "Close"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:205
+msgid "Failed to Open Script"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:208
+msgid "Copy File Location"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:218
+msgid "Success!"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:224 crates/mc-ui/src/win10/services.rs:214
+msgid "Restart"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:278
+msgid "Service Details"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:282 crates/mc-ui/src/perf/battery.rs:415
+msgid "State"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:283
+msgid "The current state of the service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:289
+msgid "Restart service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:296
+msgid "Stop service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:303
+msgid "Start service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:312 crates/mc-ui/src/win10/details.rs:54
+#: crates/mc-ui/src/win10/services.rs:103
+msgid "Running"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:314 crates/mc-ui/src/perf/network.rs:47
+#: crates/mc-ui/src/win10/services.rs:105
+msgid "Failed"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:316 crates/mc-ui/src/win10/services.rs:107
+msgid "Stopped"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:322 crates/mc-ui/src/smart.rs:388
+#: crates/mc-ui/src/smart.rs:410 crates/mc-ui/src/win10/details.rs:190
+#: crates/mc-ui/src/win10/processes.rs:69
+#: crates/mc-ui/src/win10/services.rs:168
+msgid "Name"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:328 crates/mc-ui/src/win10/services.rs:170
+msgid "Description"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:334 crates/mc-ui/src/win10/details.rs:192
+#: crates/mc-ui/src/win10/services.rs:171
+msgid "Status"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:337
+msgid "Enabled"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:351 crates/mc-ui/src/perf/cpu.rs:252
+#: crates/mc-ui/src/perf/memory.rs:347 crates/mc-ui/src/perf/network.rs:221
+#: crates/mc-ui/src/perf/network.rs:296 crates/mc-ui/src/smart.rs:41
+#: crates/mc-ui/src/smart.rs:118 crates/mc-ui/src/win10/details.rs:113
+msgid "N/A"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:354
+msgid "Process ID"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:362
+msgid "User"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:370 crates/mc-ui/src/win10/services.rs:172
+msgid "Group"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:378
+msgid "File Location"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:380 crates/mc-ui/src/perf/battery.rs:182
+#: crates/mc-ui/src/perf/battery.rs:342 crates/mc-ui/src/perf/cpu.rs:218
+#: crates/mc-ui/src/perf/cpu.rs:234 crates/mc-ui/src/perf/cpu.rs:244
+#: crates/mc-ui/src/perf/cpu.rs:249 crates/mc-ui/src/perf/disk.rs:145
+#: crates/mc-ui/src/perf/disk.rs:149 crates/mc-ui/src/perf/disk.rs:156
+#: crates/mc-ui/src/perf/disk.rs:213 crates/mc-ui/src/perf/disk.rs:291
+#: crates/mc-ui/src/perf/gpu.rs:169 crates/mc-ui/src/perf/gpu.rs:184
+#: crates/mc-ui/src/perf/gpu.rs:199 crates/mc-ui/src/perf/memory.rs:113
+#: crates/mc-ui/src/perf/network.rs:46 crates/mc-ui/src/perf/network.rs:126
+#: crates/mc-ui/src/perf/network.rs:220 crates/mc-ui/src/perf/network.rs:338
+#: crates/mc-ui/src/perf/network.rs:339 crates/mc-ui/src/smart.rs:141
+#: crates/mc-ui/src/smart.rs:381 crates/mc-ui/src/win10/details.rs:59
+msgid "Unknown"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:392 crates/mc-ui/src/dialogs.rs:492
+msgid "Process"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:393
+msgid "Process and user information"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:413
+msgid "Logs"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:420
+msgid "Copy logs to clipboard"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:461
+msgid "_Quit"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:489
+msgid "Section Header"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:490
+msgid "Service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:491
+msgid "App"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:495
+msgid "App ID"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:497 crates/mc-ui/src/win10/details.rs:191
+#: crates/mc-ui/src/win10/processes.rs:70
+#: crates/mc-ui/src/win10/services.rs:169
+msgid "PID"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:510 crates/mc-ui/src/smart.rs:201
+msgid "Type"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:514
+msgid "Command Line"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:523
+msgid "Resource Usage"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:529 crates/mc-ui/src/perf/cpu.rs:108
+#: crates/mc-ui/src/perf/cpu.rs:494 crates/mc-ui/src/win10/details.rs:194
+#: crates/mc-ui/src/win10/processes.rs:71
+msgid "CPU"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:531 crates/mc-ui/src/perf/memory.rs:80
+#: crates/mc-ui/src/perf/memory.rs:323 crates/mc-ui/src/win10/details.rs:195
+#: crates/mc-ui/src/win10/processes.rs:72
+msgid "Memory"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:534 crates/mc-ui/src/win10/processes.rs:73
+msgid "Swap"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:536
+msgid "Drives"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:540 crates/mc-ui/src/perf/battery.rs:65
+#: crates/mc-ui/src/win10/processes.rs:75
+msgid "Network"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:543 crates/mc-ui/src/perf/gpu.rs:168
+#: crates/mc-ui/src/perf/gpu.rs:313 crates/mc-ui/src/win10/processes.rs:76
+msgid "GPU"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:545 crates/mc-ui/src/win10/processes.rs:77
+msgid "GPU Memory"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:561
+msgid "Global"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:563
+msgid "Open Menu"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:564
+msgid "Close Window"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:565
+msgid "Open Preferences"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:566
+msgid "Show Keyboard Shortcuts"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:567
+msgid "Show Performance Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:568
+msgid "Show Apps Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:569
+msgid "Show Services Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:571
+msgid "Toggle Sidebar"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:576 crates/mc-ui/src/prefs.rs:328
+msgid "Performance Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:578
+msgid "Copy Device Information"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:579
+msgid "Toggle Summary Mode"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:580
+msgid "Select a Device"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:584
+msgid "Apps Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:586 crates/mc-ui/src/dialogs.rs:596
+msgid "Search"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:587 crates/mc-ui/src/dialogs.rs:597
+msgid "Collapse All"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:588
+msgid "Stop App or Process"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:589
+msgid "Force Stop App or Process"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:590 crates/mc-ui/src/dialogs.rs:601
+msgid "Show Details Dialog"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:594
+msgid "Services Page"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:598
+msgid "Start Service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:599
+msgid "Stop Service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:600
+msgid "Restart Service"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:607
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:622
+msgid "Hold to pause"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:645 crates/mc-ui/src/dialogs.rs:646
+msgid "translator-credits"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:652
+msgid "Based on Mission Center"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:655
+msgid ""
+"Uses the Mission Center statistics backend (magpie) and code from the "
+"Mission Center project."
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:664
+msgid "Standing on the shoulders of giants"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:669
+msgid "And many more... Thank you all!"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:687
+msgid "System Information"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:689
+msgid "Copy All"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:730
+msgid "Enabling Additional Values"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:736
+msgid ""
+"CPU power draw, per-process network usage and fans may require additional "
+"setup"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:743
+msgid ""
+"Per-process network usage needs the nethogs package (e.g. \"sudo dnf install "
+"nethogs\"); restart the app after the setup."
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:748
+msgid "Open Wiki"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:757
+msgid "Run Additional Setup"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:766
+msgid "Revert Additional Setup"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:770
+msgid "View Script"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:774
+msgid "Copy Script Location"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:778
+msgid "Copy Command"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:782
+msgid "Copy Revert Command"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:798 crates/mc-ui/src/smart.rs:136
+#, rust-format
+msgid "{} ago"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:51 crates/mc-ui/src/perf/battery.rs:157
+#: crates/mc-ui/src/perf/battery.rs:196 crates/mc-ui/src/perf/battery.rs:295
+#: crates/mc-ui/src/perf/battery.rs:321
+msgid "Battery"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:100 crates/mc-ui/src/perf/battery.rs:340
+msgid "Empty"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:101 crates/mc-ui/src/perf/battery.rs:337
+msgid "Full"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:203 crates/mc-ui/src/perf/battery.rs:349
+#: crates/mc-ui/src/perf/cpu.rs:242 crates/mc-ui/src/perf/disk.rs:152
+msgid "Yes"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:203 crates/mc-ui/src/perf/battery.rs:351
+#: crates/mc-ui/src/perf/cpu.rs:243 crates/mc-ui/src/perf/disk.rs:154
+msgid "No"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:207 crates/mc-ui/src/perf/battery.rs:328
+#: crates/mc-ui/src/perf/battery.rs:356 crates/mc-ui/src/perf/fan.rs:168
+#, rust-format
+msgid "{}%"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:294 crates/mc-ui/src/perf/battery.rs:320
+#, rust-format
+msgid "Battery {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:347
+msgid "Firmware"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:381 crates/mc-ui/src/perf/battery.rs:458
+#: crates/mc-ui/src/perf/cpu.rs:477 crates/mc-ui/src/perf/disk.rs:370
+#: crates/mc-ui/src/perf/gpu.rs:281 crates/mc-ui/src/perf/gpu.rs:591
+msgid "100%"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:404 crates/mc-ui/src/perf/battery.rs:446
+msgid "Percentage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:406
+msgid "Energy"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:410
+msgid "Voltage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:413
+msgid "Power"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:417
+msgid "Time to "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:420
+msgid "Charge Cycles"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:434 crates/mc-ui/src/perf/disk.rs:348
+msgid "Serial:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:435 crates/mc-ui/src/perf/disk.rs:342
+#: crates/mc-ui/src/perf/memory.rs:301
+msgid "Type:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:438 crates/mc-ui/src/perf/disk.rs:339
+msgid "Capacity:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:444
+msgid "Power Input"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:448
+msgid " over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:457
+msgid "Battery Charge over past week"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:473 crates/mc-ui/src/perf/cpu.rs:240
+#: crates/mc-ui/src/perf/fan.rs:239 crates/mc-ui/src/perf/gpu.rs:188
+msgid "Unsupported"
+msgstr ""
+
+#. Extra values go next to "Up time" (the shortest row) so the statistics stay narrow
+#: crates/mc-ui/src/perf/cpu.rs:425
+msgid "Up time"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:427 crates/mc-ui/src/perf/gpu.rs:523
+msgid "Temperature"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:430 crates/mc-ui/src/perf/gpu.rs:546
+msgid "Power Draw"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:434 crates/mc-ui/src/perf/gpu.rs:521
+msgid "Utilization"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:435
+msgid "Speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:439
+msgid "Threads"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:440
+msgid "Handles"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:445
+msgid "Base Speed:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:446
+msgid "Sockets:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:447
+msgid "Virtual processors:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:448
+msgid "Virtualization:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:449
+msgid "Virtual machine:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:450
+msgid "L1 cache:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:451
+msgid "L2 cache:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:452
+msgid "L3 cache:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:455
+msgid "Cpufreq driver:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:456
+msgid "Cpufreq governor:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:457
+msgid "Power preference:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:505
+msgid "Change _Top Graph To"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:507
+msgid "Overall U_tilization"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:508
+msgid "Logical _Processors"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:509
+msgid "_All Threads"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:511
+msgid "All Threads _Stacked"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:528
+msgid "Change B_ottom Graph To"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:531 crates/mc-ui/src/perf/gpu.rs:335
+msgid "_Power Draw"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:532 crates/mc-ui/src/perf/gpu.rs:337
+msgid "_Temperature"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:533
+msgid "_Clock Speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:534 crates/mc-ui/src/perf/gpu.rs:338
+msgid "_None"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:544
+msgid "Show Kernel Times"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:45
+msgid "HDD"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:46
+msgid "SSD"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:47
+msgid "NVMe"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:48
+msgid "eMMC"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:49
+msgid "SD"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:50
+msgid "iSCSI"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:51
+msgid "Optical"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:52
+msgid "Floppy"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:53
+msgid "Thumb Drive"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:191
+#, rust-format
+msgid "Drive {} ({})"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:192
+#, rust-format
+msgid "Drive ({})"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:194
+msgid "Drive"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:196
+#, rust-format
+msgid "{} {} ({})"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:295 crates/mc-ui/src/perf/fan.rs:166
+#: crates/mc-ui/src/perf/fan.rs:183
+#, rust-format
+msgid "{} RPM"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:326
+msgid "Active time"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:327
+msgid "Avg. response time"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:330
+msgid "Read speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:331
+msgid "Write speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:334
+msgid "Total Read"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:335
+msgid "Total Written"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:340
+msgid "Formatted:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:341
+msgid "System disk:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:345
+msgid "WWN:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:351
+msgid "Rotation Rate"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:386
+msgid "Eject Disk"
+msgstr ""
+
+#: crates/mc-ui/src/perf/disk.rs:389
+msgid "Show SMART Data"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:66 crates/mc-ui/src/perf/fan.rs:105
+#: crates/mc-ui/src/perf/fan.rs:141 crates/mc-ui/src/perf/fan.rs:164
+msgid "Fan"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:140 crates/mc-ui/src/perf/fan.rs:163
+#, rust-format
+msgid "Fan {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:173 crates/mc-ui/src/smart.rs:88
+#: crates/mc-ui/src/smart.rs:94 crates/mc-ui/src/smart.rs:122
+#, rust-format
+msgid "{} °C"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:209
+msgid "Fan Speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:211
+msgid "PWM Percentage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/fan.rs:215
+msgid "Current Temperature"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:268
+msgid "Video encode/decode utilization over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:269
+msgid "Dedicated and shared memory usage over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:270
+msgid "Memory usage over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:271
+msgid "Power draw over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:272
+msgid "Clock speed over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:273
+msgid "Temperature over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:312
+#, rust-format
+msgid "GPU {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:320
+msgid "Change Middle Graph To"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:326
+msgid "Change Bottom Graph To"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:333
+msgid "_Encode/_Decode"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:334
+msgid "_Memory Usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:336
+msgid "_Clock Speeds"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:420
+msgid "Total Memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:422
+msgid "Memory Usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:432
+msgid "Total Shared Memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:434
+msgid "Shared Memory Usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:537
+msgid "Clock Speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:541
+msgid "Memory Speed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:551
+msgid "Video encode/decode"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:555
+msgid "Video encode"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:556
+msgid "Video decode"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:564
+msgid "OpenGL version:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:565
+msgid "Vulkan version:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:568
+msgid "PCI Express speed:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:571
+msgid "Max PCI Express speed:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:573
+msgid "Device address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:59
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:64
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:70
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:76
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:123
+#, rust-format
+msgid "{} of {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:277
+msgid "In use"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:278
+msgid "Available"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:281
+msgid "Committed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:282
+msgid "Cached"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:287
+msgid "Swap used"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:288
+msgid "Swap available"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:293
+msgid "Compressed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:294
+msgid "Savings"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:298
+msgid "Speed:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:299
+msgid "Slots used:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:300
+msgid "Form factor:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:305
+msgid "Getting additional memory information failed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:336
+msgid "Show Swap Usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:48
+msgid "Disconnected"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:49
+msgid "Disconnecting"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:50
+msgid "Connected"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:51
+msgid "Connecting"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:52
+msgid "Configuring"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:53
+msgid "Waiting for auth"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:54
+msgid "Unavailable"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:55
+msgid "Loading"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:259
+#, rust-format
+msgid "{}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:262 crates/mc-ui/src/perf/network.rs:263
+#, rust-format
+msgid "{}: {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:276
+msgid "Send"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:277
+msgid "Receive"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:280
+msgid "Total Sent"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:281
+msgid "Total Received"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:286
+msgid "Interface name:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:287
+msgid "Connection type:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:288
+msgid "Connection status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:291
+msgid "SSID:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:293
+msgid "Signal strength:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:302
+msgid "Maximum Bitrate:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:305
+msgid "Frequency:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:307
+msgid "Hardware address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:308
+msgid "IPv4 address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:309
+msgid "IPv6 address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:325
+msgid "Network Se_ttings"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:51
+msgid "Update Interval"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:52
+msgid "In seconds"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:74
+msgid "Graph Settings"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:76
+msgid "Data Points"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:83
+msgid "Smooth Graphs"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:84
+msgid "Draw graphs as smooth line instead of jagged line"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:97
+msgid "Sliding Graphs"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:98
+msgid "Animate graphs (may negatively impact performance)"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:103
+msgid "Scale Network Graphs Dynamically"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:105
+msgid ""
+"Set network graph to scale dynamically with actual usage or with channel max "
+"speed"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:110
+msgid "Devices"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:113
+msgid "Show Disk Information"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:114
+msgid "Show disk information by default"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:119
+msgid "Show Network Information"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:120
+msgid "Show network information by default"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:125
+msgid "Wired"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:128
+msgid "Wireless"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:132
+msgid "VPN"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:135
+msgid "Virtual"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:136
+msgid "Docker, Multipass, Bridge"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:141
+msgid "Other"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:142
+msgid "Bluetooth, InfiniBand, WWAN"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:149
+msgid "Show GPU Information"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:150
+msgid "Show GPU information by default"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:155
+msgid "Show Fan Information"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:156
+msgid "Show fan information by default"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:161
+msgid "Show Battery Information"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:162
+msgid "Show battery information by default"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:174
+msgid "Merge Process Stats"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:176
+msgid "Parent and child process stats are shown individually or merged upwards"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:182
+msgid "Remember Sorting"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:183
+msgid "Persist sorting by column across app restarts"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:188
+msgid "Remember Column Order"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:189
+msgid "Persist the order of the columns, across app restarts"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:194
+msgid "Scale CPU Usage to Core Count"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:195
+msgid "Show CPU usage scaled to the number of available cores"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:200
+msgid "Show Column Separators"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:201
+msgid "Show a separator between each column"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:206
+msgid "Grey Out Zeroes"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:207
+msgid "Gray out values that equal zero"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:239
+msgid "Memory Usage Unit"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:242 crates/mc-ui/src/prefs.rs:268
+#: crates/mc-ui/src/prefs.rs:294
+msgid "Bytes"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:243
+msgid "Use Bytes as a Unit of Measurement for Memory"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:246 crates/mc-ui/src/prefs.rs:272
+#: crates/mc-ui/src/prefs.rs:298
+msgid "Bits"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:247
+msgid "Use Bits as a Unit of Measurement for Memory"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:255
+msgid "Memory Usage Base"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:257 crates/mc-ui/src/prefs.rs:283
+#: crates/mc-ui/src/prefs.rs:309
+msgid "Base 10"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:257
+msgid "Use Base 10 for Memory"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:258 crates/mc-ui/src/prefs.rs:284
+#: crates/mc-ui/src/prefs.rs:310
+msgid "Base 2"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:258
+msgid "Use Base 2 for Memory"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:265
+msgid "Drive Usage Unit"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:269
+msgid "Use Bytes as a Unit of Measurement for Disk Drives"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:273
+msgid "Use Bits as a Unit of Measurement for Disk Drives"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:281
+msgid "Drive Usage Base"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:283
+msgid "Use Base 10 for Disk Drives"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:284
+msgid "Use Base 2 for Disk Drives"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:291
+msgid "Network Usage Unit"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:295
+msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:299
+msgid "Use Bits as a Unit of Measurement for Network Interfaces"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:307
+msgid "Network Usage Base"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:309
+msgid "Use Base 10 for Network Interfaces"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:310
+msgid "Use Base 2 for Network Interfaces"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:327
+msgid "General"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:329
+msgid "Apps & Services"
+msgstr ""
+
+#: crates/mc-ui/src/prefs.rs:330
+msgid "Units"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:45
+msgid "Percent Used"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:49
+msgid "Available Spare"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:53
+msgid "Spare Threshold"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:57
+msgid "Total Data Read"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:63
+msgid "Total Data Written"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:69
+msgid "Warning Temp Time"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:75
+msgid "Critical Temp Time"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:81
+msgid "Control Busy Time"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:85
+msgid "Warning Temperature"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:91
+msgid "Critical Temperature"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:96
+msgid "Temps"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:98
+msgid "Unsafe Shutdowns"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:102
+msgid "Media Errors"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:106
+msgid "Number Error Log Entries"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:110
+msgid "Power Cycles"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:120
+#, rust-format
+msgid "{} sectors"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:148
+msgid "Smart Data"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:153
+msgid "Last Updated:"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:155
+msgid "Powered On:"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:158
+msgid "Drive Health:"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:160
+msgid "SMART Test Status:"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:175 crates/mc-ui/src/smart.rs:196
+msgid "Attribute"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:178 crates/mc-ui/src/smart.rs:197
+msgid "Value"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:195
+msgid "ID"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:198
+msgid "Normalized"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:199
+msgid "Threshold"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:200
+msgid "Worst"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:202
+msgid "Updates"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:203
+msgid "Assessment"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:229
+msgid "Pre-Fail"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:231
+msgid "Old-Age"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:235
+msgid "Online"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:237
+msgid "Offline"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:241
+msgid "FAILING"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:243
+msgid "Failed in the past"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:245
+msgid "Ok"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:275
+msgid "Failed To Get SMART Data"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:277
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:323
+msgid "Failed To Eject"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:339 crates/mc-ui/src/win10/details.rs:227
+#: crates/mc-ui/src/win10/processes.rs:555
+msgid "Kill"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:361
+msgid "Kill All"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:386
+msgid "Operating System Information"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:390 crates/mc-ui/src/smart.rs:404
+#: crates/mc-ui/src/smart.rs:411
+msgid "Version"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:393
+msgid "Package Manager"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:395
+msgid "Package Manager Version"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:401
+msgid "Kernel Information"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:403
+msgid "Kernel Release"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:408
+msgid "Desktop Environment Information"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:412
+msgid "Windowing System"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:413
+msgid "Virtual Terminal"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:55
+msgid "Sleeping"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:56
+msgid "Waiting"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:57
+msgid "Suspended"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:58
+msgid "Zombie"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:193
+msgid "User name"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:231
+msgid "Copy"
+msgstr ""
+
+#: crates/mc-ui/src/win10/performance.rs:121
+msgid "_Copy"
+msgstr ""
+
+#. / Shown on the Network column while per-process values come from TCP socket counters
+#: crates/mc-ui/src/win10/processes.rs:42
+msgid ""
+"Per-process values count TCP traffic of your processes (UDP such as QUIC and "
+"other users' processes are not visible). For complete values install nethogs "
+"and use Options → Enable per-process network usage…"
+msgstr ""
+
+#. / Shown on the Network column while per-process network data is unavailable
+#: crates/mc-ui/src/win10/processes.rs:46
+msgid ""
+"Per-process network usage needs nethogs with packet capture permissions. "
+"Install nethogs, then use Options → Enable per-process network usage… and "
+"restart the app. The column total shows all network interfaces."
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:74
+msgid "Disk"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:560
+msgid "Properties"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:609
+msgid "Background processes"
+msgstr ""
+
+#: crates/mc-ui/src/win10/services.rs:109
+msgid "Disabled"
+msgstr ""
+
+#: crates/mc-ui/src/win10/services.rs:208
+msgid "Start"
+msgstr ""
+
+#: crates/mc-ui/src/win10/services.rs:211
+msgid "Stop"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:2
+#: data/io.github.taskmanager.TaskManager.desktop.in:3
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:4
+msgid "Task Manager"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:4
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:14
+msgid "Monitor processes, performance and services"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:12
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:6
+msgid "Task Manager Developers"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:16
+msgid ""
+"Task Manager shows the processes, performance, details and services of your "
+"system in a familiar tabbed interface: per-process CPU, memory, disk and "
+"network usage with heat colouring, live graphs for CPU, memory, disks, "
+"network, GPU, fans and batteries, a flat process list with owners and "
+"states, and systemd services you can start, stop and restart."
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:20
+msgid ""
+"Task Manager is based on Mission Center: it uses the Mission Center "
+"statistics backend (magpie) and code from the Mission Center project by the "
+"Mission Center Developers (GPL-3.0-or-later). Its interface is written from "
+"scratch with egui."
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:39
+msgid ""
+"New interface in the style of a classic desktop task manager; per-process "
+"network usage without extra permissions; interface state kept across "
+"restarts."
+msgstr ""

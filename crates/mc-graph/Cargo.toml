@@ -1,0 +1,11 @@
+[package]
+name = "mc-graph"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "egui time-series graph used by Task Manager"
+
+[dependencies]
+egui.workspace = true
+mc-graph-core.workspace = true

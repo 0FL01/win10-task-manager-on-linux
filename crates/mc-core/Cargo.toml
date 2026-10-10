@@ -1,0 +1,19 @@
+[package]
+name = "mc-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "GUI independent state, settings, formatting and models for Task Manager"
+
+[dependencies]
+gettext.workspace = true
+log.workspace = true
+mc-magpie.workspace = true
+regex.workspace = true
+serde.workspace = true
+toml.workspace = true
+mc-graph-core.workspace = true
+textdistance.workspace = true
+
+[dev-dependencies]

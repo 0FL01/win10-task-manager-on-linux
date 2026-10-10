@@ -78,8 +78,16 @@ compile_commands.json
 
 # Project specific
 /flatpak/missioncenter.flatpak
-/subprojects/blueprint-compiler-*
-/subprojects/packagecache
-/subprojects/.wraplock
-_build
+/flatpak/taskmanager*.flatpak
 BUILD
+/.flatpak-builder/
+/flatpak/.flatpak-builder/
+/flatpak/build/
+/flatpak/repo/
+/perf/bench-latest.md
+
+# egui port: recorded fixtures contain private process data
+/testkit/fixtures/live/
+
+# Clean-room references (screenshots of a third-party UI): local only
+/references/

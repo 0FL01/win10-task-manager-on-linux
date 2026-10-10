@@ -1,0 +1,509 @@
+{
+ "frame": "canonical 1030x705 window incl. 1px border; see spec.md",
+ "probes": {
+  "common": [
+   {
+    "x": 700,
+    "y": 15,
+    "color": "#ffffff",
+    "what": "title bar background",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 40,
+    "color": "#ffffff",
+    "what": "menu bar background",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 50,
+    "color": "#f2f2f2",
+    "what": "line under menu (1)",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 51,
+    "color": "#f0f0f0",
+    "what": "line under menu (2)",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 76,
+    "color": "#d9d9d9",
+    "what": "tab strip bottom line",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 655,
+    "color": "#a0a0a0",
+    "what": "footer top line",
+    "frame": true
+   },
+   {
+    "x": 700,
+    "y": 680,
+    "color": "#ffffff",
+    "what": "footer background",
+    "frame": true
+   }
+  ],
+  "processes": [
+   {
+    "x": 30,
+    "y": 54,
+    "color": "#d9d9d9",
+    "what": "selected tab top border",
+    "frame": true
+   },
+   {
+    "x": 100,
+    "y": 56,
+    "color": "#d9d9d9",
+    "what": "unselected tab top border",
+    "frame": true
+   },
+   {
+    "x": 30,
+    "y": 58,
+    "color": "#ffffff",
+    "what": "selected tab (Processes) fill",
+    "frame": true
+   },
+   {
+    "x": 1,
+    "y": 58,
+    "color": "#d9d9d9",
+    "what": "selected tab left border",
+    "frame": true
+   },
+   {
+    "x": 30,
+    "y": 76,
+    "color": "#ffffff",
+    "what": "no bottom line under selected tab",
+    "frame": true
+   },
+   {
+    "x": 100,
+    "y": 58,
+    "color": "#f0f0f0",
+    "what": "unselected tab fill",
+    "frame": true
+   },
+   {
+    "x": 308,
+    "y": 92,
+    "color": "#e8e8e8",
+    "what": "header separator gradient top"
+   },
+   {
+    "x": 308,
+    "y": 110,
+    "color": "#d3d3d3",
+    "what": "header separator gradient middle"
+   },
+   {
+    "x": 308,
+    "y": 132,
+    "color": "#bbbbbb",
+    "what": "header separator gradient bottom"
+   },
+   {
+    "x": 308,
+    "y": 85,
+    "color": "#ffffff",
+    "what": "no separator above y 92"
+   },
+   {
+    "x": 700,
+    "y": 133,
+    "color": "#a0a0a0",
+    "what": "header bottom line"
+   },
+   {
+    "x": 1022,
+    "y": 300,
+    "color": "#f0f0f0",
+    "what": "scroll track"
+   },
+   {
+    "x": 939,
+    "y": 679,
+    "color": "#bfbfbf",
+    "what": "End task disabled border (no selection)"
+   },
+   {
+    "x": 950,
+    "y": 672,
+    "color": "#cccccc",
+    "what": "End task disabled fill"
+   },
+   {
+    "x": 237,
+    "y": 140,
+    "color": "#ffffff",
+    "what": "group header row has no heat (fixture: row 0 = Apps)"
+   },
+   {
+    "x": 237,
+    "y": 175,
+    "color": "#ffe48a",
+    "what": "CPU heat 5-20 % (fixture: Web Browser 12 %)"
+   },
+   {
+    "x": 456,
+    "y": 175,
+    "color": "#fff4c4",
+    "what": "heat zero (fixture: network 0)"
+   },
+   {
+    "x": 237,
+    "y": 370,
+    "color": "#f9eca8",
+    "what": "heat low (fixture: worker-0003 0.2 % CPU)"
+   },
+   {
+    "x": 235,
+    "y": 175,
+    "color": "#ead5a0",
+    "what": "heat cell separator Name|CPU"
+   },
+   {
+    "x": 308,
+    "y": 175,
+    "color": "#ead5a0",
+    "what": "heat cell separator CPU|Memory"
+   },
+   {
+    "x": 527,
+    "y": 175,
+    "color": "#ead5a0",
+    "what": "heat cell separator after Network"
+   },
+   {
+    "x": 600,
+    "y": 175,
+    "color": "#ffffff",
+    "what": "background right of columns"
+   },
+   {
+    "x": 1022,
+    "y": 140,
+    "color": "#606060",
+    "what": "scroll up arrow apex"
+   },
+   {
+    "x": 1022,
+    "y": 160,
+    "color": "#cdcdcd",
+    "what": "scroll thumb at top"
+   }
+  ],
+  "performance": [
+   {
+    "x": 212,
+    "y": 600,
+    "color": "#d9d9d9",
+    "what": "device list separator"
+   },
+   {
+    "x": 10,
+    "y": 95,
+    "color": "#d9d9d9",
+    "what": "selected device item (CPU) fill"
+   },
+   {
+    "x": 100,
+    "y": 95,
+    "color": "#d9d9d9",
+    "what": "selected item fill right of mini graph"
+   },
+   {
+    "x": 15,
+    "y": 120,
+    "color": "#117dbb",
+    "what": "CPU mini graph left border"
+   },
+   {
+    "x": 74,
+    "y": 120,
+    "color": "#117dbb",
+    "what": "CPU mini graph right border"
+   },
+   {
+    "x": 15,
+    "y": 180,
+    "color": "#8b12ae",
+    "what": "Memory mini graph left border"
+   },
+   {
+    "x": 10,
+    "y": 180,
+    "color": "#ffffff",
+    "what": "unselected item background"
+   },
+   {
+    "x": 30,
+    "y": 58,
+    "color": "#f0f0f0",
+    "what": "unselected tab (Processes) fill",
+    "frame": true
+   },
+   {
+    "x": 241,
+    "y": 230,
+    "color": "#117dbb",
+    "what": "graph cell 1 left border"
+   },
+   {
+    "x": 620,
+    "y": 230,
+    "color": "#117dbb",
+    "what": "graph cell 1 right border"
+   },
+   {
+    "x": 625,
+    "y": 230,
+    "color": "#117dbb",
+    "what": "graph cell 2 left border"
+   },
+   {
+    "x": 1004,
+    "y": 230,
+    "color": "#117dbb",
+    "what": "graph cell 2 right border"
+   },
+   {
+    "x": 250,
+    "y": 151,
+    "color": "#117dbb",
+    "what": "graph top border"
+   },
+   {
+    "x": 250,
+    "y": 305,
+    "color": "#117dbb",
+    "what": "graph cell 1 bottom border"
+   },
+   {
+    "x": 250,
+    "y": 310,
+    "color": "#117dbb",
+    "what": "graph cell 3 top border"
+   },
+   {
+    "x": 622,
+    "y": 230,
+    "color": "#ffffff",
+    "what": "gap between graph cells"
+   },
+   {
+    "x": 300,
+    "y": 167,
+    "color": "#d9eaf4",
+    "what": "horizontal grid line 1 (fixture: no data/vertical line at x 300)"
+   },
+   {
+    "x": 300,
+    "y": 290,
+    "color": "#d9eaf4",
+    "what": "horizontal grid line 9"
+   }
+  ],
+  "details": [
+   {
+    "x": 170,
+    "y": 60,
+    "color": "#ffffff",
+    "what": "selected tab (Details) fill",
+    "frame": true
+   },
+   {
+    "x": 170,
+    "y": 76,
+    "color": "#ffffff",
+    "what": "no bottom line under selected tab",
+    "frame": true
+   },
+   {
+    "x": 30,
+    "y": 66,
+    "color": "#f0f0f0",
+    "what": "unselected tab (Processes) fill",
+    "frame": true
+   },
+   {
+    "x": 300,
+    "y": 89,
+    "color": "#a0a0a0",
+    "what": "list frame line"
+   },
+   {
+    "x": 146,
+    "y": 100,
+    "color": "#e5e5e5",
+    "what": "header separator Name|PID"
+   },
+   {
+    "x": 913,
+    "y": 100,
+    "color": "#e5e5e5",
+    "what": "header separator Memory|empty"
+   },
+   {
+    "x": 1022,
+    "y": 300,
+    "color": "#f0f0f0",
+    "what": "scroll track"
+   }
+  ],
+  "services": [
+   {
+    "x": 220,
+    "y": 60,
+    "color": "#ffffff",
+    "what": "selected tab (Services) fill",
+    "frame": true
+   },
+   {
+    "x": 300,
+    "y": 89,
+    "color": "#a0a0a0",
+    "what": "list frame line"
+   },
+   {
+    "x": 181,
+    "y": 100,
+    "color": "#e5e5e5",
+    "what": "header separator Name|PID"
+   },
+   {
+    "x": 813,
+    "y": 100,
+    "color": "#e5e5e5",
+    "what": "header separator Description|Status"
+   },
+   {
+    "x": 1022,
+    "y": 300,
+    "color": "#ffffff",
+    "what": "no scroll bar when all rows fit (fixture: few services)"
+   }
+  ]
+ },
+ "text": {
+  "common": [
+   {
+    "region": [
+     2,
+     2,
+     300,
+     30
+    ],
+    "x": 9,
+    "y": 11,
+    "what": "title text"
+   },
+   {
+    "region": [
+     2,
+     31,
+     32,
+     49
+    ],
+    "x": 9,
+    "y": 37,
+    "what": "menu File"
+   },
+   {
+    "region": [
+     30,
+     660,
+     200,
+     700
+    ],
+    "x": 36,
+    "y": 675,
+    "what": "Fewer details text"
+   }
+  ],
+  "processes": [
+   {
+    "region": [
+     4,
+     57,
+     64,
+     75
+    ],
+    "x": 10,
+    "y": 60,
+    "what": "selected tab label"
+   },
+   {
+    "region": [
+     66,
+     57,
+     144,
+     75
+    ],
+    "x": 73,
+    "y": 62,
+    "what": "Performance tab label"
+   },
+   {
+    "region": [
+     240,
+     90,
+     306,
+     112
+    ],
+    "x": 281,
+    "y": 96,
+    "what": "CPU summary (ink right edge \u2248 302)",
+    "right": 302
+   },
+   {
+    "region": [
+     2,
+     112,
+     100,
+     130
+    ],
+    "x": 9,
+    "y": 117,
+    "what": "Name header"
+   }
+  ],
+  "performance": [
+   {
+    "region": [
+     4,
+     57,
+     64,
+     75
+    ],
+    "x": 10,
+    "y": 62,
+    "what": "Processes tab label"
+   },
+   {
+    "region": [
+     66,
+     55,
+     144,
+     75
+    ],
+    "x": 73,
+    "y": 60,
+    "what": "selected tab label"
+   }
+  ],
+  "details": [],
+  "services": []
+ }
+}

@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Mission Center
-Exec=missioncenter
-Icon=io.missioncenter.MissionCenter
-Terminal=false
-Type=Application
-Categories=GTK;System;Monitor;
-StartupNotify=true
-Keywords=Task manager;Resource monitor;System monitor;Processor;Processes;Performance monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service Manager;Service List;System Services;User Services;systemd;systemctl

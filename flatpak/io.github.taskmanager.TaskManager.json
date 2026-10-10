@@ -1,0 +1,361 @@
+{
+  "app-id": "io.github.taskmanager.TaskManager",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "25.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "taskmanager",
+  "build-options": {
+    "no-debuginfo": true,
+    "append-path": "/app/rust-toolchain-glibc/cargo/bin",
+    "prepend-path": "/app/clang-glibc/bin",
+    "env": {
+      "RUSTUP_HOME": "/app/rust-toolchain-glibc/rustup",
+      "RUST_BACKTRACE": "full"
+    },
+    "arch": {
+      "x86_64": {
+        "env": {
+          "LD_LIBRARY_PATH": "/app/clang-glibc/lib/x86_64-unknown-linux-gnu"
+        }
+      },
+      "aarch64": {
+        "env": {
+          "LD_LIBRARY_PATH": "/app/clang-glibc/lib/aarch64-unknown-linux-gnu"
+        }
+      }
+    }
+  },
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=fallback-x11",
+    "--device=shm",
+    "--device=all",
+    "--socket=wayland",
+    "--talk-name=org.freedesktop.Flatpak",
+    "--talk-name=org.gnome.Settings",
+    "--system-talk-name=org.freedesktop.systemd1",
+    "--system-talk-name=org.freedesktop.NetworkManager",
+    "--filesystem=xdg-data/flatpak/exports/share:ro",
+    "--filesystem=/var/lib/flatpak/exports/share:ro",
+    "--filesystem=xdg-data/flatpak/app:ro",
+    "--filesystem=/var/lib/flatpak/app:ro",
+    "--filesystem=/snap:ro",
+    "--filesystem=/var/lib/snapd:ro",
+    "--env=XDG_DATA_DIRS=/app/share:/usr/share:/usr/share/runtime/share:/run/host/user-share:/run/host/share:/var/lib/flatpak/exports/share:/var/lib/snapd/desktop:~/.local/share/flatpak/exports/share",
+    "--env=LD_PRELOAD="
+  ],
+  "cleanup": [
+    "/sbin",
+    "/etc",
+    "/sbin",
+    "/include",
+    "/lib/pkgconfig",
+    "/lib/python*",
+    "/man",
+    "/share/doc",
+    "/share/gtk-doc",
+    "/share/man",
+    "/share/pkgconfig",
+    "*.la",
+    "*.a"
+  ],
+  "modules": [
+    {
+      "name": "build-tools",
+      "buildsystem": "simple",
+      "build-commands": [
+        "mkdir rootfs-glibc && cd rootfs-glibc && (tar xf ../ubuntu-14.04-*.tar.zst || true) && rm ../ubuntu-14.04-*.tar.zst",
+        "mkdir rootfs-musl && cd rootfs-musl && (tar xf ../alpine-*.tar.zst || true) && rm ../alpine-*.tar.zst",
+        "",
+        "rm -rf rootfs-glibc/usr/share/vim/vimfiles",
+        "cp -ar clang-glibc/cmake/usr rootfs-glibc/",
+        "cp -ar clang-glibc/cmake/usr/* /app/",
+        "rm -rf clang-glibc/cmake",
+        "",
+        "rm -rf rootfs-musl/usr/share/vim/vimfiles",
+        "cp -ar clang-musl/cmake/usr rootfs-musl/",
+        "rm -rf clang-musl/cmake",
+        "",
+        "rm clang-glibc/lib/$(arch)-unknown-linux-gnu/crtbeginS.o",
+        "rm clang-glibc/lib/$(arch)-unknown-linux-gnu/crtendS.o",
+        "rm clang-glibc/lib/$(arch)-unknown-linux-gnu/libgcc.a",
+        "",
+        "ln -sf /opt/clang/bin/clang   rootfs-glibc/usr/bin/cc",
+        "ln -sf /opt/clang/bin/ld.lld  rootfs-glibc/usr/bin/ld",
+        "ln -sf /opt/clang/bin/llvm-ar rootfs-glibc/usr/bin/ar",
+        "ln -sf /opt/clang/bin/llvm-as rootfs-glibc/usr/bin/as",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-gnu/libc++.so.1    rootfs-glibc/usr/lib/$(arch)-linux-gnu/",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-gnu/libc++abi.so.1 rootfs-glibc/usr/lib/$(arch)-linux-gnu/",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-gnu/libunwind.so.1 rootfs-glibc/usr/lib/$(arch)-linux-gnu/",
+        "",
+        "ln -sf /opt/clang/bin/clang   rootfs-musl/usr/bin/cc",
+        "ln -sf /opt/clang/bin/ld.lld  rootfs-musl/usr/bin/ld",
+        "ln -sf /opt/clang/bin/llvm-ar rootfs-musl/usr/bin/ar",
+        "ln -sf /opt/clang/bin/llvm-as rootfs-musl/usr/bin/as",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-musl/libc++.so.1    rootfs-musl/usr/lib/",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-musl/libc++abi.so.1 rootfs-musl/usr/lib/",
+        "ln -sf /opt/clang/lib/$(arch)-unknown-linux-musl/libunwind.so.1 rootfs-musl/usr/lib/",
+        "",
+        "rm clang-musl/lib/$(arch)-unknown-linux-musl/libunwind.so",
+        "",
+        "ln -sf libc.so rootfs-musl/usr/lib/libgcc_s.so",
+        "",
+        "# Make GNOME Builder happy",
+        "mkdir -p /app/bin",
+        "mkdir -p /app/lib",
+        "ln -s /app/clang-glibc/bin/clang /app/bin/clang",
+        "ln -s /app/clang-glibc/bin/clang++ /app/bin/clang++",
+        "ln -s /app/clang-glibc/bin/ld.lld /app/bin/lld",
+        "ln -s /app/clang-glibc/lib/$(arch)-unknown-linux-gnu/libc++.so.1 /app/lib/",
+        "ln -s /app/clang-glibc/lib/$(arch)-unknown-linux-gnu/libc++abi.so.1 /app/lib/",
+        "ln -s /app/clang-glibc/lib/$(arch)-unknown-linux-gnu/libunwind.so.1 /app/lib/",
+        "",
+        "mv * /app/"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://missioncenter.io/build-tools/ubuntu-14.04-x86_64_r4.tar.zst",
+          "sha256": "fe6621b3d7c29ecf410df0e31a0184fb7653ca6e35fb8c9fe1edeb1d804eb585",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "file",
+          "url": "https://missioncenter.io/build-tools/alpine-3.11-x86_64_r1.tar.zst",
+          "sha256": "02c49c10bf53365f026fb8764f9f1d1ed6aa8bac75ea5f089de833bc1da41569",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/rust-toolchain-glibc-1.96.1-x86_64.tar.zst",
+          "dest": "rust-toolchain-glibc",
+          "sha256": "49a27488bba5142ee76313787ef9ce7fd10a08502bdf4c8bcf30fb3acdff0eba",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/rust-toolchain-musl-1.96.1-x86_64.tar.zst",
+          "dest": "rust-toolchain-musl",
+          "sha256": "baac1b66aa45535bbff11c33a8ff0caf1d71099f918e606a70db65507ae6ef62",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/llvm-tooling-x86_64-gnu-22.1.8.tar.zst",
+          "dest": "clang-glibc",
+          "sha256": "63890fd1ff0cd3c8eda9ff21291703714683a1d2deaa8e68012b192b1f54b789",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/llvm-tooling-x86_64-musl-22.1.8.tar.zst",
+          "dest": "clang-musl",
+          "sha256": "542dbc139c4751ef2f780ab25eb955af725d6e9328004c98aa5517f2078bf38f",
+          "only-arches": [
+            "x86_64"
+          ]
+        },
+        {
+          "type": "file",
+          "url": "https://missioncenter.io/build-tools/ubuntu-14.04-aarch64_r4.tar.zst",
+          "sha256": "78ae2fbc2e9d4f78287748e4183111f98c11a2ab2f0665f187702395fe29039d",
+          "only-arches": [
+            "aarch64"
+          ]
+        },
+        {
+          "type": "file",
+          "url": "https://missioncenter.io/build-tools/alpine-3.11-aarch64_r1.tar.zst",
+          "sha256": "558d87fefd65175d50dccfd2f79ce583a232297822809dd0bee92925e875efa4",
+          "only-arches": [
+            "aarch64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/rust-toolchain-glibc-1.96.1-aarch64.tar.zst",
+          "dest": "rust-toolchain-glibc",
+          "sha256": "a1a1380e8394388f2fd48a023b512a7b043da04f77f8c12c5caf0a1abbbcc1a3",
+          "only-arches": [
+            "aarch64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/rust-toolchain-musl-1.96.1-aarch64.tar.zst",
+          "dest": "rust-toolchain-musl",
+          "sha256": "b2b498c82784c491425a7f53a584bbbbbc29a230a9d46c03a1b95fb0c723b61b",
+          "only-arches": [
+            "aarch64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/llvm-tooling-aarch64-gnu-22.1.8.tar.zst",
+          "dest": "clang-glibc",
+          "sha256": "062adc3a7b53be67e6c82d802b2a6cc62cdacfde420b8f0d9082c045961b2ef4",
+          "only-arches": [
+            "aarch64"
+          ]
+        },
+        {
+          "type": "archive",
+          "url": "https://missioncenter.io/build-tools/llvm-tooling-aarch64-musl-22.1.8.tar.zst",
+          "dest": "clang-musl",
+          "sha256": "71e0f984d8a580d3f868897bd13fc37310ad2043893c9c7ec150bff40574f0ac",
+          "only-arches": [
+            "aarch64"
+          ]
+        }
+      ],
+      "cleanup": [
+        "*"
+      ]
+    },
+    {
+      "name": "missioncenter",
+      "buildsystem": "simple",
+      "build-options": {
+        "env": {
+          "CC": "clang",
+          "CXX": "clang++",
+          "CC_LD": "lld",
+          "CXX_LD": "lld",
+          "LDFLAGS": "-lgcc",
+          "CARGO_HOME": "/run/build/missioncenter/cargo",
+          "MC_LOCALEDIR": "/app/share/locale"
+        }
+      },
+      "sources": [
+        {
+          "type": "dir",
+          "path": ".."
+        },
+        {
+          "type": "inline",
+          "contents": "[source.vendored-sources]\ndirectory = \"cargo/vendor\"\n\n[source.crates-io]\nreplace-with = \"vendored-sources\"\n",
+          "dest": ".cargo",
+          "dest-filename": "config.toml"
+        },
+        "cargo-sources.json"
+      ],
+      "modules": [
+        {
+          "name": "spawner",
+          "buildsystem": "simple",
+          "build-commands": [
+            "rustc -C opt-level=3 -C linker=clang -C link-arg=-fuse-ld=lld -C linker-plugin-lto -C codegen-units=1 crates/mc-magpie/spawner/spawner.rs",
+            "install -v -p -m 755 spawner /app/bin/missioncenter-spawner",
+            "strip /app/bin/missioncenter-spawner"
+          ],
+          "sources": [
+            {
+              "type": "dir",
+              "path": ".."
+            }
+          ]
+        },
+        {
+          "name": "magpie",
+          "buildsystem": "simple",
+          "build-commands": [
+            "rm -rf subprojects/magpie/target",
+            "mkdir -p subprojects/magpie/target/release/build/native && cp -ar nvtop-* subprojects/magpie/target/release/build/native/",
+            "/app/bin/proot -b /app/rust-toolchain-glibc:/opt/rust -b /app/clang-glibc:/opt/clang -b $PWD:/build-dir -R /app/rootfs-glibc /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ env CFLAGS=-flto env CXXFLAGS=-flto cargo build --offline --release'",
+            "install -v -p -m 755 subprojects/magpie/target/release/magpie /app/bin/missioncenter-magpie-glibc",
+            "",
+            "rm -rf subprojects/magpie/target",
+            "mkdir -p subprojects/magpie/target/release/build/native && cp -ar nvtop-* subprojects/magpie/target/release/build/native/",
+            "/app/bin/proot -b /app/rust-toolchain-musl:/opt/rust -b /app/clang-musl:/opt/clang -b $PWD:/build-dir -R /app/rootfs-musl /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ cargo build --offline --release'",
+            "install -v -p -m 755 subprojects/magpie/target/release/magpie /app/bin/missioncenter-magpie-musl",
+            "",
+            "strip /app/bin/missioncenter-magpie-glibc /app/bin/missioncenter-magpie-musl",
+            "",
+            "sh -c 'cd subprojects/magpie/platform-linux/hwdb && ./generate_hwdb.py -o . 20-pci-vendor-model.hwdb 20-usb-vendor-model.hwdb'",
+            "mkdir /app/share/missioncenter/ && mv subprojects/magpie/platform-linux/hwdb/hw.db /app/share/missioncenter/"
+          ],
+          "sources": [
+            {
+              "type": "dir",
+              "path": ".."
+            },
+            {
+              "type": "archive",
+              "url": "https://github.com/Syllo/nvtop/archive/3d4a953da02bc18886734613bb9f60ff80669de7.tar.gz",
+              "sha256": "e1c8651d299cab61f3e178b9fa97dcf4651f9cc526a51818fca1a47f7838cbd3",
+              "dest": "nvtop-3d4a953da02bc18886734613bb9f60ff80669de7"
+            },
+            {
+              "type": "shell",
+              "commands": [
+                "cd nvtop-* && find ../subprojects/magpie/platform-linux/3rdparty/nvtop/patches -type f -iname \"*.patch\" -exec sh -c 'patch -p1 < {}' \\;"
+              ]
+            },
+            {
+              "type": "file",
+              "path": "magpie-cargo-config.toml",
+              "dest": "subprojects/magpie/.cargo",
+              "dest-filename": "config.toml"
+            },
+            "cargo-sources-magpie.json"
+          ],
+          "modules": [
+            {
+              "name": "proot",
+              "buildsystem": "simple",
+              "build-commands": [
+                "make -C src loader.elf build.h",
+                "make -C src proot",
+                "install -v -p -m 755 src/proot /app/bin/proot"
+              ],
+              "sources": [
+                {
+                  "type": "git",
+                  "url": "https://github.com/proot-me/proot.git",
+                  "tag": "v5.4.0",
+                  "commit": "bd5a5f63d72f8210d8cee76195eb9f0749e5bd70"
+                }
+              ],
+              "modules": [
+                {
+                  "name": "libtalloc",
+                  "buildsystem": "autotools",
+                  "sources": [
+                    {
+                      "type": "archive",
+                      "url": "https://www.samba.org/ftp/talloc/talloc-2.4.1.tar.gz",
+                      "sha256": "410a547f08557007be0e88194f218868358edc0ab98c98ba8c167930db3d33f9"
+                    }
+                  ],
+                  "cleanup": [
+                    "*"
+                  ]
+                }
+              ],
+              "cleanup": [
+                "*"
+              ]
+            }
+          ]
+        }
+      ],
+      "build-commands": [
+        "cargo --offline build --release -p taskmanager-app",
+        "install -Dm755 target/release/taskmanager /app/bin/taskmanager",
+        "strip /app/bin/taskmanager",
+        "cargo --offline run --release -p xtask -- install --data-only --prefix /app"
+      ]
+    }
+  ]
+}

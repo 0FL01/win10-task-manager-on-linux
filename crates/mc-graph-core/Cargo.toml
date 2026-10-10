@@ -1,0 +1,9 @@
+[package]
+name = "mc-graph-core"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "Toolkit-agnostic time-series scaling and geometry for Mission Center graphs"
+repository = "https://gitlab.com/mission-center-devs/graph-widget"
+
+[dependencies]

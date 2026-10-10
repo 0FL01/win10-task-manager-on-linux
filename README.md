@@ -1,10 +1,12 @@
-<img align="left"  src="https://gitlab.com/mission-center-devs/mission-center/-/raw/main/data/icons/hicolor/scalable/apps/io.missioncenter.MissionCenter.svg" alt="drawing" width="64"/> 
+<img align="left" src="data/icons/hicolor/64x64/apps/io.github.taskmanager.TaskManager.png" alt="Task Manager icon" width="64"/>
 
-# Mission Center
+# Task Manager
 
-Monitor your CPU, Memory, Disk, Network and GPU usage with [Mission Center](https://missioncenter.io/)
+See your processes, performance, process details and services in a familiar tabbed task manager.
 
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0001-cpu.png)
+Task Manager is based on [Mission Center](https://missioncenter.io/): it uses the Mission Center statistics
+backend (magpie, shipped as `missioncenter-magpie`) and code from the Mission Center project by the Mission Center
+Developers. The user interface is written from scratch with egui; see [Based on Mission Center](#based-on-mission-center).
 
 ## Features
 
@@ -19,9 +21,10 @@ Monitor your CPU, Memory, Disk, Network and GPU usage with [Mission Center](http
 * Monitor overall GPU usage, video encoder and decoder usage, memory usage and power consumption, powered by the popular
   NVTOP project
 * See a breakdown of resource usage by app and process
-* Supports a minified summary view for simple monitoring
+* Familiar interface in the style of the Windows 10 Task Manager (Processes, Performance, Details and Services tabs),
+  re-created clean-room from measurements; compact "Fewer details" view for simple monitoring
 * Use hardware accelerated rendering for all the graphs in an effort to reduce CPU and overall resource usage
-* Uses GTK4 and Libadwaita
+* Pure-Rust user interface ([egui](https://github.com/emilk/egui)/eframe); repaints only when new data arrives
 * Written in Rust
 
 ## Limitations
@@ -35,67 +38,16 @@ Please note there is ongoing work to overcome all of these.
 * When using Linux Mint/Cinnamon, launched applications may not show up in the "Applications" section. (Upstream
   issue: https://github.com/linuxmint/cinnamon/issues/12015)
 
-Please also note that as Mission Center is a libadwaita application, it will not follow system-defined stylesheets
-(themes).
+Please also note that Task Manager draws its own widgets (egui) and its own window decorations in a fixed light style;
+it does not follow the system light/dark preference or system-defined stylesheets (themes).
 
 ## Installing
 
-[AppImage (x86_64)](https://gitlab.com/mission-center-devs/mission-center/-/jobs/15536631699/artifacts/raw/MissionCenter-1.2.0-x86_64.AppImage)  
-[AppImage (ARM64)](https://gitlab.com/mission-center-devs/mission-center/-/jobs/15536631700/artifacts/raw/MissionCenter-1.2.0-aarch64.AppImage)  
-[Flatpak](https://flathub.org/apps/io.missioncenter.MissionCenter)  
-[Snap](https://snapcraft.io/mission-center)
+Task Manager is built from source (see below). On Fedora, `cargo xtask rpm` builds an RPM package
+(`taskmanager`, which replaces earlier builds of this project packaged as `missioncenter`).
 
-Also available from https://portable-linux-apps.github.io/apps/mission-center.html
-
-Might also be available in your distribution's repository:  
-[![](https://repology.org/badge/vertical-allrepos/mission-center.svg)](https://repology.org/project/mission-center/versions)
-
-Installed by default in:
-
-* [Aurora](https://getaurora.dev/)
-* [Bazzite](https://bazzite.gg)
-* [Bluefin](https://projectbluefin.io/)
-* [DeLinuxCo](https://www.delinuxco.com/)
-
-Source code is available at [GitLab](https://gitlab.com/mission-center-devs/mission-center)
-
-## Screenshots
-
-<details>
-  <summary><b>Show</b></summary>
-
-  <br/>
-
-*CPU view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0001-cpu.png)
-
-*Memory view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0002-memory.png)
-
-*Disk view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0003-disk.png)
-
-*Ethernet and Wi-Fi view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0004-ethernet.png)
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0005-wifi.png)
-
-*GPU view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0006-gpu.png)
-
-*Fan view*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0007-fan.png)
-
-*Apps page*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0008-apps.png)
-
-*Services page*
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0008-services.png)
-
-*Dark mode*  
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0009-cpu-dark.png)
-![](https://gitlab.com/mission-center-devs/mission-center/-/raw/main/screenshots/0010-disk-dark.png)
-
-  </details>
+Settings live in `~/.config/taskmanager/config.toml`; settings of earlier builds
+(`~/.config/missioncenter/config.toml`) are copied on the first start.
 
 ## Building and running
 
@@ -103,93 +55,71 @@ Source code is available at [GitLab](https://gitlab.com/mission-center-devs/miss
 
 **Requirements:**
 
-| Dependency                   | Comment                    | Minimum Version |
-|------------------------------|----------------------------|----------------:|
-| Meson                        |                            |           1.0.2 |
-| Rust                         |                            |            1.90 |
-| CMake                        |                            |            3.15 |
-| Python3                      |                            |            3.10 |
-| Python GObject Introspection | Used by Blueprint Compiler |             N/A |
-| DRM development libraries    |                            |             N/A |
-| GBM development libraries    |                            |             N/A |
-| udev development libraries   |                            |             N/A |
-| GTK 4                        |                            |            4.22 |
-| libadwaita                   |                            |             1.9 |
+| Dependency                | Comment                                         | Minimum Version |
+|---------------------------|-------------------------------------------------|----------------:|
+| Rust                      |                                                 |            1.92 |
+| CMake                     | builds the bundled NNG library                  |            3.15 |
+| C/C++ compiler, pkg-config, patch | native backend libraries and upstream patches |          N/A |
+| Python3                   | generates the hardware database for magpie      |            3.10 |
+| gettext                   | `msgfmt`, compiles translations                 |             N/A |
+| DRM development libraries | magpie                                          |             N/A |
+| GBM development libraries | magpie                                          |             N/A |
+| udev development libraries| magpie                                          |             N/A |
+| Vulkan or OpenGL driver   | run time only (wgpu or glow renderer)           |             N/A |
+
+No UI toolkit development packages are needed: the interface is written with egui and talks to Wayland/X11 directly.
 
 **Build instructions**
 
-Note: A native build requires, at least, GTK 4.22 and libadwaita 1.9. That means ArchLinux >= 20260501, Fedora >= 44,
-Ubuntu >= 26.04.
-
 ```bash
-# Avoid using "--depth=1" flag as it will not include the submodules which will result in failed build
-git clone https://gitlab.com/mission-center-devs/mission-center --recursive
-cd mission-center
+git clone --recurse-submodules https://github.com/0FL01/win10-task-manager-on-linux.git
+cd win10-task-manager-on-linux
 
 # On Ubuntu 26.04 all dependencies, except for the Rust toolchain, can be installed with:
-sudo apt install build-essential cmake curl desktop-file-utils gettext git libadwaita-1-dev libdbus-1-dev libdrm-dev libgbm-dev libudev-dev meson pkg-config protobuf-compiler python3-gi python3-pip
+sudo apt install build-essential cmake curl desktop-file-utils gettext git libdbus-1-dev libdrm-dev libgbm-dev libudev-dev pkg-config python3
 
-BUILD_ROOT="$(pwd)/build-meson-debug"
+# Fedora alternative:
+# sudo dnf install gcc gcc-c++ cmake curl desktop-file-utils gettext git libdrm-devel mesa-libgbm-devel systemd-devel pkgconf-pkg-config python3 patch
 
-meson setup "$BUILD_ROOT" -Dbuildtype=debug # Alternatively pass `-Dbuildtype=release` for a release build
-ninja -C "$BUILD_ROOT"
+cargo build --release -p taskmanager-app
 ```
 
-If you want to run the application from the build directory (for development or debugging) some set up is required:
+To run the application from the source tree (builds the magpie daemon and the translations on first use):
 
 ```bash
-export PATH="$BUILD_ROOT/subprojects/magpie/src:$PATH"
-export GSETTINGS_SCHEMA_DIR="$BUILD_ROOT/data"
-export MC_MAGPIE_HW_DB="$BUILD_ROOT/subprojects/magpie/platform-linux/hwdb/hw.db"
-export MC_RESOURCE_DIR="$BUILD_ROOT/resources"
-
-glib-compile-schemas --strict "$(pwd)/data" && mv "$(pwd)/data/gschemas.compiled" "$BUILD_ROOT/data/"
+cargo xtask run-dev
 ```
 
-And then to run the app:
+Useful flags of the `taskmanager` binary:
+
+* `--renderer wgpu|glow` — select the renderer; glow (OpenGL) is the default, both are compiled in by default builds
+  (`cargo build -p taskmanager-app --no-default-features --features glow` produces an OpenGL-only build)
+* `--synthetic N` — run on generated data with `N` processes, without the daemon
+* `--perf-overlay` (or F12) — show frame and UI pass timings
+
+Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
+`RUST_LOG` (logging).
+
+To install the app (binaries, daemon, translations, desktop entry, icons):
 
 ```bash
-"$BUILD_ROOT/src/missioncenter"
-```
-
-If you want to install the app just run:
-
-```bash
-ninja -C $BUILD_ROOT install
+cargo xtask install --prefix /usr/local        # add `--destdir DIR` for staged installs
 ```
 
 And run the app from your launcher or from the command-line:
 
 ```bash
-missioncenter
+taskmanager
 ```
 
 ### Building - AppImage
 
-**Note:** Creating a fully distro-agnostic AppImage requires an running the `support/create-appimage.sh` script in an
-ArchLinux container. The process described here is just informative.
+**Note:** Creating a fully distro-agnostic AppImage requires running the `support/create-appimage.sh` script in an
+ArchLinux container after installing Task Manager into that container (`cargo xtask install --prefix /usr`).
 
-```bash
-# On Ubuntu 26.04 all dependencies, except for the Rust toolchain, can be installed with:
-sudo apt install build-essential cmake curl desktop-file-utils gettext git libadwaita-1-dev libdbus-1-dev libdrm-dev libgbm-dev libudev-dev meson pkg-config protobuf-compiler python3-gi python3-pip
+### Building - Snap
 
-meson setup _build -Dbuildtype=debug # Alternatively pass `-Dbuildtype=release` for a release build
-ninja -C _build
-```
-
-And then build the AppImage:
-
-```bash
-meson install -C _build --no-rebuild --destdir "AppDir"
-
-appimage-builder --appdir _build/AppDir/ 
-```
-
-And run the app from the command-line:
-
-```bash
-./"Mission Center-${version}-${arch}.AppImage"
-```
+The Snap package is built from the portable tree produced by `support/build-portable.sh`.
 
 ### Building - Flatpak
 
@@ -197,6 +127,13 @@ And run the app from the command-line:
 
 * Flatpak
 * Flatpak-Builder
+
+The frontend vendor list `flatpak/cargo-sources.json` is generated from the root `Cargo.lock`.
+After changing that lockfile, regenerate it with the
+[official Cargo generator](https://github.com/flatpak/flatpak-builder-tools/tree/master/cargo):
+`python3 flatpak-cargo-generator.py Cargo.lock -o flatpak/cargo-sources.json`
+(the generator requires `aiohttp` and `tomlkit`). The backend's vendor list is separate:
+`flatpak/cargo-sources-magpie.json` corresponds to the pinned magpie submodule.
 
 Add the `flathub` repo is not already present:
 
@@ -209,65 +146,48 @@ Install the required Flatpak runtimes and SDKs:
 ```bash
 flatpak install -y \
     org.freedesktop.Platform//25.08 \
-    org.freedesktop.Sdk//25.08 \
-    org.gnome.Platform//50 \
-    org.gnome.Sdk//50
+    org.freedesktop.Sdk//25.08
 ```
 
 Finally build a Flatpak package:
 
 ```bash
 cd flatpak
-flatpak-builder --repo=repo --ccache --force-clean build io.missioncenter.MissionCenter.json
-flatpak build-bundle repo missioncenter.flatpak io.missioncenter.MissionCenter
+flatpak-builder --repo=repo --ccache --force-clean build io.github.taskmanager.TaskManager.json
+flatpak build-bundle repo taskmanager.flatpak io.github.taskmanager.TaskManager
 ```
 
 Install the package:
 
 ```bash
-flatpak uninstall -y io.missioncenter.MissionCenter
-flatpak install -y missioncenter.flatpak
+flatpak uninstall -y io.github.taskmanager.TaskManager
+flatpak install -y taskmanager.flatpak
 ```
 
 Run the app from your launcher or from the command-line:
 
 ```bash
-flatpak run io.missioncenter.MissionCenter
+flatpak run io.github.taskmanager.TaskManager
 ```
 
-## Contributing
+## Based on Mission Center
 
-### Issues
+Task Manager borrows, with thanks and under the GPL, from [Mission Center](https://missioncenter.io/)
+(© 2023-2025 Mission Center Developers, GPL-3.0-or-later):
 
-Report issues to GitLab [issue tracking system](https://gitlab.com/mission-center-devs/mission-center/-/issues).
+* the statistics backend **magpie** (`subprojects/magpie`, installed as `missioncenter-magpie`) and the graph data
+  library (the upstream graph-widget core, now local at `crates/mc-graph-core`);
+* the application logic ported from the Mission Center GTK application (data model, formatting, settings, translations
+  in `po/`);
+* the Mission Center GTK application as the historical source of the port. Its `src/`, `resources/` and Meson build
+  have been removed from the active tree; the original sources remain in repository history.
 
-### Discord
+See [provenance](docs/PROVENANCE.md) for original authors, source revisions and preserved historical notices.
 
-Join [the Discord server](https://discord.gg/RG7QTeB9yk) and let's talk about what you think is missing or can be
-improved.
-
-### Translations
-
-If you'd like to help translating Mission Center into your language, please head over
-to [Weblate](https://hosted.weblate.org/engage/mission-center/).
-
-<a href="https://hosted.weblate.org/engage/mission-center/">
-  <img src="https://hosted.weblate.org/widgets/mission-center/-/mission-center/multi-auto.svg" alt="Translation status" />
-</a>
-
-### Monetary Contributions
-
-Instead of donating to Mission Center directly, consider supporting the projects that Mission Center depends on:
-
-* [GNOME](https://donate.gnome.org/)
-* [NNG](https://github.com/gdamore)
-* [NVTOP](https://github.com/Syllo/nvtop)
-* [Rust Foundation](https://rustfoundation.org/get-involved/)
-
-If you'd, still, like to support the development of Mission Center financially, please visit
-our [Open Collective page](https://opencollective.com/mission-center).
-
-Comments, suggestions, bug reports and contributions are welcome.
+The interface (`crates/mc-ui/src/win10/`) is new and was implemented clean-room from measurements
+(`docs/win10-spec/`). Bugs of Task Manager are not Mission Center's; to support the backend, see the
+[Mission Center project](https://gitlab.com/mission-center-devs/mission-center) and
+[Weblate](https://hosted.weblate.org/engage/mission-center/) for translations.
 
 ## License
 
@@ -278,6 +198,14 @@ version.
 Please see COPYING file in the root of this repository for the complete license text. Alternatively see
 [the official license](https://www.gnu.org/licenses/gpl-3.0.html) as written by the Free Software Foundation.
 
+The bundled Selawik font is licensed under the SIL Open Font License 1.1, see `crates/mc-ui/assets/fonts/OFL.txt`; if
+Segoe UI is installed, it is used instead. Windows is a trademark of Microsoft Corporation; Task Manager is not
+affiliated with or endorsed by Microsoft, and contains no Microsoft code, fonts or image files.
+
+The application icon (`data/icons/hicolor/*/apps/io.github.taskmanager.TaskManager.png`) is a fan-made redraw
+provided by the project owner; it is not part of the clean-room interface work.
+
 ## Code of Conduct
 
-Mission Center follows the GNOME Code of Conduct. All communications in project spaces are expected to follow it.
+Task Manager follows the GNOME Code of Conduct, like Mission Center. All communications in project spaces are expected to
+follow it.

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Task Manager
+GenericName=Task Manager
+Comment=Monitor processes, performance and services
+Exec=taskmanager
+Icon=io.github.taskmanager.TaskManager
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+StartupNotify=true
+StartupWMClass=io.github.taskmanager.TaskManager
+Keywords=Task manager;Resource monitor;System monitor;Processor;Processes;Performance monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service Manager;Service List;System Services;User Services;systemd;systemctl

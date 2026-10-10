@@ -1,0 +1,19 @@
+[package]
+name = "mc-magpie"
+version.workspace = true
+edition = "2021"
+license.workspace = true
+rust-version.workspace = true
+description = "Toolkit agnostic client for the Magpie statistics daemon"
+
+[dependencies]
+arrayvec.workspace = true
+libc.workspace = true
+log.workspace = true
+magpie-types.workspace = true
+nng-c.workspace = true
+nng-c-sys.workspace = true
+rand.workspace = true
+rust-ini.workspace = true
+serde.workspace = true
+serde_json.workspace = true

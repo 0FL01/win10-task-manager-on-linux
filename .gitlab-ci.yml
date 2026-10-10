@@ -39,7 +39,6 @@ stages:
 .shared:
   checkout_submodule:
     - apt-get install -y git
-    - sed -i 's/= ..\//= https:\/\/gitlab.com\/mission-center-devs\//g' .gitmodules
     - git submodule update --init --recursive
 
   setup_version:
@@ -75,7 +74,7 @@ stages:
     - apt-get update && apt-get dist-upgrade -y
 
   install_rust:
-    - apt-get install -y blueprint-compiler build-essential curl cmake git gettext python3-pip libadwaita-1-dev libdbus-1-dev python3-gi libudev-dev libdrm-dev libgbm-dev desktop-file-utils lld
+    - apt-get install -y build-essential curl cmake git gettext python3 libdbus-1-dev libudev-dev libdrm-dev libgbm-dev libxkbcommon0 libwayland-client0 mesa-vulkan-drivers desktop-file-utils lld
     - ln -sf /usr/bin/python3 /usr/local/bin/python
     - ln -sf /usr/bin/ld.lld /usr/bin/ld
 
@@ -85,7 +84,7 @@ stages:
   install_flatpak:
     - apt-get install -y build-essential flatpak flatpak-builder
     - flatpak --system remote-add flathub https://flathub.org/repo/flathub.flatpakrepo
-    - flatpak install -y org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08 org.gnome.Platform//50 org.gnome.Sdk//50
+    - flatpak install -y org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 
   ready_to_merge:
     - if: "$CI_MERGE_REQUEST_LABELS =~ /CI::Skip Build/"
@@ -94,10 +93,10 @@ stages:
 check-fmt:
   stage: test
   interruptible: true
-  allow_failure: true
   before_script:
     - !reference [ ".shared", "setup_apt" ]
     - !reference [ ".shared", "install_rust" ]
+    - !reference [ ".shared", "checkout_submodule" ]
   script:
     - ./support/check-cargo-fmt.sh
     - echo $CI_MERGE_REQUEST_LABELS
@@ -113,16 +112,14 @@ test-job-x86:
     - !reference [ ".shared", "install_rust" ]
     - !reference [ ".shared", "checkout_submodule" ]
 
-    - pip install meson ninja --break-system-packages
   script:
-    - meson setup _build -Dbuildtype=debug
-    - meson test -C _build --suite missioncenter --print-errorlogs
+    - cargo clippy --workspace --all-targets -- -D warnings
+    # UI snapshots render offscreen through wgpu (lavapipe from mesa-vulkan-drivers)
+    - cargo test --workspace
   artifacts:
     when: always
     paths:
-      - "_build/meson-logs/testlog.txt"
-    reports:
-      junit: "_build/meson-logs/testlog.junit.xml"
+      - "target/ui-snapshots/"
   rules:
     - !reference [ ".shared", "ready_to_merge" ]
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -137,16 +134,14 @@ test-job-arm:
     - !reference [ ".shared", "install_rust" ]
     - !reference [ ".shared", "checkout_submodule" ]
 
-    - pip install meson ninja --break-system-packages
   script:
-    - meson setup _build -Dbuildtype=debug
-    - meson test -C _build --suite missioncenter --print-errorlogs
+    - cargo clippy --workspace --all-targets -- -D warnings
+    # UI snapshots render offscreen through wgpu (lavapipe from mesa-vulkan-drivers)
+    - cargo test --workspace
   artifacts:
     when: always
     paths:
-      - "_build/meson-logs/testlog.txt"
-    reports:
-      junit: "_build/meson-logs/testlog.junit.xml"
+      - "target/ui-snapshots/"
   rules:
     - !reference [ ".shared", "ready_to_merge" ]
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -160,11 +155,9 @@ build-job-x86:
     - !reference [ ".shared", "checkout_submodule" ]
     - !reference [ ".shared", "setup_version" ]
 
-    - pip install meson ninja --break-system-packages
   script:
-    - meson setup _build -Dbuildtype=release -Dversion=$VERSION_STRING
-    - ninja -C _build
-    - glib-compile-schemas --strict data/
+    - cargo build --release -p taskmanager-app
+    - cargo xtask install --prefix /usr --destdir "$PWD/install-root"
   needs: []
   rules:
     - !reference [ ".shared", "ready_to_merge" ]
@@ -181,11 +174,9 @@ build-job-arm:
     - !reference [ ".shared", "checkout_submodule" ]
     - !reference [ ".shared", "setup_version" ]
 
-    - pip install meson ninja --break-system-packages
   script:
-    - meson setup _build -Dbuildtype=release -Dversion=$VERSION_STRING
-    - ninja -C _build
-    - glib-compile-schemas --strict data/
+    - cargo build --release -p taskmanager-app
+    - cargo xtask install --prefix /usr --destdir "$PWD/install-root"
   needs: []
   rules:
     - !reference [ ".shared", "ready_to_merge" ]
@@ -201,12 +192,12 @@ flatpak-job-x86:
     - !reference [ ".shared", "install_flatpak" ]
     - !reference [ ".shared", "checkout_submodule" ]
   script:
-    - cd flatpak && flatpak-builder --repo=repo --ccache --force-clean build io.missioncenter.MissionCenter.json
-    - flatpak build-bundle repo missioncenter-$(arch).flatpak io.missioncenter.MissionCenter
+    - cd flatpak && flatpak-builder --repo=repo --ccache --force-clean build io.github.taskmanager.TaskManager.json
+    - flatpak build-bundle repo taskmanager-$(arch).flatpak io.github.taskmanager.TaskManager
   needs: []
   artifacts:
     paths:
-      - flatpak/missioncenter-x86_64.flatpak
+      - flatpak/taskmanager-x86_64.flatpak
   rules:
     - if: "'true' == '$[[ inputs.BUILD_FLATPAK ]]'"
     - !reference [ ".shared", "ready_to_merge" ]
@@ -222,12 +213,12 @@ flatpak-job-arm:
     - !reference [ ".shared", "install_flatpak" ]
     - !reference [ ".shared", "checkout_submodule" ]
   script:
-    - cd flatpak && flatpak-builder --repo=repo --ccache --force-clean build io.missioncenter.MissionCenter.json
-    - flatpak build-bundle repo missioncenter-$(arch).flatpak io.missioncenter.MissionCenter
+    - cd flatpak && flatpak-builder --repo=repo --ccache --force-clean build io.github.taskmanager.TaskManager.json
+    - flatpak build-bundle repo taskmanager-$(arch).flatpak io.github.taskmanager.TaskManager
   needs: []
   artifacts:
     paths:
-      - flatpak/missioncenter-aarch64.flatpak
+      - flatpak/taskmanager-aarch64.flatpak
   rules:
     - if: "'true' == '$[[ inputs.BUILD_ARM ]]' && 'true' == '$[[ inputs.BUILD_FLATPAK ]]'"
     - !reference [ ".shared", "ready_to_merge" ]
@@ -244,7 +235,7 @@ package-build-job-x86:
     - !reference [ ".shared", "checkout_submodule" ]
     - !reference [ ".shared", "setup_version" ]
   script:
-    - SRC_PATH=$PWD OUT_PATH=$PWD/portable bash support/build-with-gtk-libadwaita.sh &> logs.txt || (tail -n 500 logs.txt && exit 1)
+    - SRC_PATH=$PWD OUT_PATH=$PWD/portable bash support/build-portable.sh &> logs.txt || (tail -n 500 logs.txt && exit 1)
     - cd portable && tar zcf ../portable-x86_64.tar.gz *
   needs: []
 
@@ -269,7 +260,7 @@ package-build-job-arm:
     - !reference [ ".shared", "checkout_submodule" ]
     - !reference [ ".shared", "setup_version" ]
   script:
-    - SRC_PATH=$PWD OUT_PATH=$PWD/portable bash support/build-with-gtk-libadwaita.sh &> logs.txt || (tail -n 500 logs.txt && exit 1)
+    - SRC_PATH=$PWD OUT_PATH=$PWD/portable bash support/build-portable.sh &> logs.txt || (tail -n 500 logs.txt && exit 1)
     - cd portable && tar zcf ../portable-aarch64.tar.gz *
   needs: []
 

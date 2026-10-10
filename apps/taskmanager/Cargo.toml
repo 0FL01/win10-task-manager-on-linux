@@ -1,0 +1,25 @@
+[package]
+name = "taskmanager-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Task Manager: processes, performance and services (egui; Mission Center backend)"
+
+[[bin]]
+name = "taskmanager"
+path = "src/main.rs"
+
+[features]
+default = ["glow", "wgpu"]
+wgpu = ["eframe/wgpu"]
+glow = ["eframe/glow"]
+
+[dependencies]
+eframe.workspace = true
+egui.workspace = true
+env_logger.workspace = true
+log.workspace = true
+mc-core.workspace = true
+mc-magpie.workspace = true
+mc-ui.workspace = true
