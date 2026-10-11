@@ -1,6 +1,6 @@
 # Goal: Win10 Performance parity with Unix memory semantics
 
-Status: active
+Status: complete
 Source: user screenshots, audited plan, and “Реализовать и коммит пуш; делай копию плана в цель и итеративно реализовать”.
 Last updated: 2026-10-12
 
@@ -46,9 +46,13 @@ affected constraints remain satisfied.
   - Acceptance: intended clean commit on origin; required jobs and expected artifacts/releases
     successful for that SHA.
   - Primary evidence: Git SHA/ref, GitHub Actions jobs and artifacts/release.
-  - Status: in_progress
-  - Evidence: local fmt/POT/workspace/strict Clippy and fresh synthetic smoke passed;
-    commit, remote SHA and CI verification pending.
+  - Status: verified
+  - Evidence: implementation 666972682d4cf4006160d683f8d7c6ea9eac391e pushed to origin/main;
+    [Actions 38175799892](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38175799892)
+    succeeded (checks, metadata, five native jobs, publish). Six nonempty CI artifacts verified:
+    ui-snapshots and native packages for Arch, Debian 13, Fedora 44, Tumbleweed and Ubuntu 26.04.
+    [v1.2.12](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.12)
+    is published for that SHA with five uploaded packages and one source archive.
 
 ### Constraints
 - Preserve Mission Center attribution, clean-room assets, i18n and bounded/event-driven UI.
@@ -131,13 +135,10 @@ One fresh `--no-config --synthetic 300` smoke; real ZFS readings optional if ava
 Commit, push and verify required GitHub Actions jobs and expected artifacts/releases.
 
 ## Current Checkpoint
-- Closes: R4 and final affected-constraint gates.
-- Smallest next action: commit/push the inspected diff and verify Actions outputs.
-- Expected evidence: successful gates, clean commit, matching remote SHA and CI artifacts/release.
-- Stop or replan if: a required gate or remote operation exposes a concrete blocker.
+- Closed: R1–R4 and affected constraints. No runtime work remains.
 
 ## Current State
-- Resolved: R1–R3 implemented and targeted assertions verified; baseline main 0ef2e66.
+- Resolved: R1–R4 verified; implementation 6669726, baseline main 0ef2e66.
 - Last relevant evidence: `cargo +1.96.1 fmt --all --check`, `cargo +1.96.1 xtask pot`,
   `cargo +1.96.1 test --locked --workspace -- --test-threads=1` (155 passed, 5 existing ignored),
   `cargo +1.96.1 clippy --locked --workspace --all-targets -- -D warnings` all passed.
@@ -145,8 +146,7 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
   --synthetic 300 --bench-seconds 3` exited successfully. Actual Memory/Disk renders reviewed
   under target/ui-snapshots; all five focused UI scenarios and frozen CPU/frame probes passed.
 - Blocker: none.
-- Next: R4. CI itself uses serial tests; an older GPU goal also records a
-  parallel offscreen SIGSEGV, so use `--test-threads=1` rather than a redundant parallel run.
+- Next: none. Serial offscreen tests match the required CI gate.
 
 ## Checkpoint History
 - 2026-10-11: frozen user-approved contract and copied corrected plan; no implementation yet.
@@ -155,6 +155,14 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
 - 2026-10-12: final gates and synthetic smoke successful; closure diff stays within the envelope.
   No backend/config/dependency changes or generated images included. GitHub Actions tools can
   access the native workflow; local `gh` is absent, so use those tools to verify CI after push.
+- 2026-10-12: 6669726 pushed, all eight CI jobs succeeded, six artifacts and release v1.2.12
+  verified against its exact SHA. Frozen outcomes and closure check complete.
 
 ## Completion
-- Pending implementation, verification, commit/push and CI.
+- Resolved outcomes: R1–R4 verified, no pending or blocked requirements.
+- Commands and artifacts: local gates/smoke above; Actions 38175799892 and published v1.2.12.
+- Constraint and diff-scope check: confined to listed views, renderer/metrics, synthetic example,
+  tests, spec, localization template and goal. No backend/IPC/settings/dependency changes;
+  attribution and event-driven/cache behavior preserved, saved sizes unchanged, CPU/GPU
+  regressions passed. No private/reference/build artifacts committed.
+- Final status: complete.
