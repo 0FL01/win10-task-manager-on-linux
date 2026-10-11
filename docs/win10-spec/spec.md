@@ -207,8 +207,8 @@ typefaces, grid and one-pixel paint helpers; the following geometry is our own a
   double-click toggles summary; its background can drag the window.
 - GPU numbering is session-stable hardware identity, not sidebar order. Utilization is the
   busiest measured engine; group rows deduplicate shared clients before per-engine sums.
-  Unknown/stale values are `—`, graph gaps are NaN, and partial counters use a neutral `~`
-  marker plus a reason. NVML overall utilization is never mislabeled as 3D/Compute.
+  Unknown/stale values are `—`, graph gaps are NaN, and partial counters show the plain
+  value with the reason in the tooltip. NVML overall utilization is never mislabeled as 3D/Compute.
 - Frozen pixel probes keep their measured four-resource-column configuration. New GPU
   views are verified separately by real offscreen renders, not invented reference probes.
 

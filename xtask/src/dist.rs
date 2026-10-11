@@ -284,7 +284,7 @@ pub fn rpm(_args: &[String]) -> Result<(), String> {
     }
     let version = env!("CARGO_PKG_VERSION");
     // Release number of the package (`MC_RPM_RELEASE`, default 9 in the spec)
-    let release = std::env::var("MC_RPM_RELEASE").unwrap_or_else(|_| "9".into());
+    let release = std::env::var("MC_RPM_RELEASE").unwrap_or_else(|_| "10".into());
     run(Command::new("rpmbuild")
         .arg("-bb")
         .arg(root.join("packaging/rpm/taskmanager.spec"))

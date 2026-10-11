@@ -69,19 +69,8 @@ pub struct GpuUsage {
 
 impl GpuUsage {
     pub fn text(&self) -> String {
-        self.percent.map_or_else(
-            || "—".into(),
-            |value| {
-                format!(
-                    "{}{value:.0}%",
-                    if self.state == TelemetryState::Partial {
-                        "~"
-                    } else {
-                        ""
-                    }
-                )
-            },
-        )
+        self.percent
+            .map_or_else(|| "—".into(), |value| format!("{value:.0}%"))
     }
 
     pub fn engine_text(&self) -> String {

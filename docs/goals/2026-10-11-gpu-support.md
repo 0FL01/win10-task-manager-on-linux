@@ -95,3 +95,5 @@ Finish when every required outcome is resolved and affected constraints remain s
   passed; full Flatpak/Snap/AppImage builds were not run.
 - Limitations: no NVIDIA, Intel or multi-GPU hardware and no hotplug were exercised physically;
   those paths are covered by synthetic and parser tests only.
+- Follow-up: partial GPU values drop the `~` prefix (reason stays in the tooltip); RPM
+  1.2.0-10 rebuilt, root gates (138 passed, 4 ignored) and packaged GPU smoke re-passed.
