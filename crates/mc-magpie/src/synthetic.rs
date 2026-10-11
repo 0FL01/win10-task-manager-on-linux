@@ -69,11 +69,17 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
 
     let gib = 1024u64 * 1024 * 1024;
     let used = (wave(step, 29., 0., 0.35, 0.6) * 32. * gib as f32) as u64;
+    let cached = 8 * gib;
+    let shared = gib;
+    let buffers = gib / 2;
+    let cache = cached - shared;
     r.mem_info = Memory {
         mem_total: 32 * gib,
-        mem_free: 4 * gib,
+        mem_free: 32 * gib - used - buffers - cache,
         mem_available: 32 * gib - used,
-        cached: 8 * gib,
+        cached,
+        sh_mem: shared,
+        buffers,
         committed: used + 2 * gib,
         dirty: 64 * 1024 * 1024,
         swap_total: 8 * gib,
@@ -489,5 +495,38 @@ mod tests {
         assert_eq!(r.running_processes[&1].children.len(), 199);
         assert_eq!(r.running_apps.len(), 3);
         assert_eq!(r.cpu.core_usage_percent.len(), 8);
+
+        let gib = 1024 * 1024 * 1024;
+        for step in [0, 7, 22] {
+            let memory = synthetic_readings(step, 1).mem_info;
+            let used = memory.mem_total - memory.mem_available;
+            let cache = memory.cached - memory.sh_mem;
+            let used_bar =
+                memory.mem_total - memory.mem_free - memory.sh_mem - memory.buffers - cache;
+            assert_eq!(memory.cached, 8 * gib);
+            assert_eq!(memory.sh_mem, gib);
+            assert_eq!(memory.buffers, gib / 2);
+            assert_eq!(memory.s_reclaimable, 0);
+            assert_eq!(memory.slab, 0);
+            assert_eq!(memory.k_reclaimable, 0);
+            assert_eq!(
+                memory.mem_available,
+                memory.mem_free + memory.buffers + cache
+            );
+            assert_eq!(used_bar, used - memory.sh_mem);
+            assert_eq!(
+                used_bar + cache + memory.sh_mem + memory.buffers + memory.mem_free,
+                memory.mem_total
+            );
+            assert!([
+                used_bar,
+                cache,
+                memory.sh_mem,
+                memory.buffers,
+                memory.mem_free
+            ]
+            .into_iter()
+            .all(|bytes| bytes > 0));
+        }
     }
 }

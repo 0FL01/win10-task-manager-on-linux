@@ -224,6 +224,7 @@ impl DevicePage for FanPage {
             panels,
             stats,
             info: vec![],
+            composition: None,
         }
     }
 

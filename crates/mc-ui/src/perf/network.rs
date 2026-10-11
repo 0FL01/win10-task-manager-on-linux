@@ -276,6 +276,7 @@ impl DevicePage for NetworkPage {
             )],
             stats,
             info,
+            composition: None,
         }
     }
 

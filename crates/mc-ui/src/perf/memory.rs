@@ -46,10 +46,7 @@ struct Labels {
     swap_used: Option<String>,
     compressed: Option<String>,
     savings: Option<String>,
-    tt_in_use: String,
-    tt_modified: String,
-    tt_standby: String,
-    tt_free: String,
+    usage_tooltip: String,
 }
 
 pub struct MemoryPage {
@@ -187,7 +184,6 @@ impl DevicePage for MemoryPage {
             mem.mem_available
         };
         let used = mem.mem_total.saturating_sub(mem_avail);
-        let standby = mem.mem_total.saturating_sub(used + mem.mem_free);
 
         self.usage.set_all_datasets_max_scale(mem.mem_total as f32);
         self.usage.add_data_point(vec![
@@ -226,10 +222,12 @@ impl DevicePage for MemoryPage {
             l.compressed = None;
             l.savings = None;
         }
-        l.tt_in_use = h(used);
-        l.tt_modified = h(mem.dirty);
-        l.tt_standby = h(standby);
-        l.tt_free = h(mem.mem_free);
+        l.usage_tooltip = i18n_f(
+            n_(
+                "Memory usage ({})\n\nTotal minus MemAvailable; falls back to MemFree when MemAvailable exceeds total. This is separate from Used in the composition bar.",
+            ),
+            &[&l.in_use],
+        );
         self.total_swap = h(mem.swap_total);
 
         // Sidebar
@@ -298,6 +296,7 @@ impl DevicePage for MemoryPage {
             self.max_graph_ram.clone(),
             &mut self.usage,
         )];
+        panels[0].tooltips = std::slice::from_ref(&l.usage_tooltip);
         if show_swap {
             panels.push(GraphPanel::single(
                 over(n_("Swap usage over "), &self.max_duration),
@@ -311,6 +310,7 @@ impl DevicePage for MemoryPage {
             panels,
             stats,
             info,
+            composition: Some(&self.composition),
         }
     }
 

@@ -107,3 +107,8 @@ pub const GPU_AUX_MIN_H: f32 = 52.;
 pub const GPU_PANEL_GAP: f32 = 24.;
 pub const GPU_INFO_GAP: f32 = 24.;
 pub const GPU_COMPACT_INSET: f32 = 12.;
+
+/// Own Unix Performance adaptation: thin disk transfer strip and memory composition.
+pub const DISK_TRANSFER_H: f32 = 66.;
+pub const MEMORY_COMPOSITION_H: f32 = 52.;
+pub const MEMORY_GRAPH_MIN_H: f32 = 52.;

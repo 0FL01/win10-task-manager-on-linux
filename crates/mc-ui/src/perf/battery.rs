@@ -442,6 +442,7 @@ impl DevicePage for BatteryPage {
             panels,
             stats,
             info,
+            composition: None,
         }
     }
 

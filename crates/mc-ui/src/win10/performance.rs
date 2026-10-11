@@ -77,6 +77,8 @@ pub struct PerformanceView {
     menu_slot: Option<usize>,
     gpu_scroll: listview::ListState,
     scroll_device: String,
+    memory_scroll: listview::ListState,
+    memory_active: bool,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
 }
@@ -124,6 +126,11 @@ impl PerformanceView {
         }
         let mut toggle_summary = response.double_clicked();
         let kind = perf.devices[index].device_type();
+        let memory_active = kind == DeviceType::Memory && !perf.summary_mode;
+        if memory_active && !self.memory_active {
+            self.memory_scroll = listview::ListState::default();
+        }
+        self.memory_active = memory_active;
         let colors = device_colors(kind);
         let tiles = perf.devices[index].win10_graph_tiles(cx.config);
         let view = perf.devices[index].win10_view(cx.config);
@@ -133,7 +140,7 @@ impl PerformanceView {
             content.max,
         );
         let graph_response = if perf.summary_mode {
-            summary_ui(ui, page, view, &tiles, colors)
+            summary_ui(ui, page, view, &tiles, colors, &perf.selected)
         } else if kind == DeviceType::Gpu {
             if self.scroll_device != perf.selected {
                 self.gpu_scroll.offset = 0.;
@@ -141,7 +148,47 @@ impl PerformanceView {
             }
             gpu_page_ui(ui, page, view, &tiles, colors, &mut self.gpu_scroll)
         } else {
-            page_ui(ui, shifted, view, colors);
+            if memory_active {
+                let count = view.panels.len().max(1) as f32;
+                let stack_h = count * m::MEMORY_GRAPH_MIN_H
+                    + count * (PANEL_GAP + 13.)
+                    + m::MEMORY_COMPOSITION_H;
+                let total_h = shifted.height().max(
+                    GRAPH_TOP + stack_h + PANEL_GAP + stats_height(view.stats.len()) + PANEL_GAP,
+                );
+                if ui.rect_contains_pointer(page) {
+                    self.memory_scroll.offset -= wheel_delta(ui);
+                }
+                self.memory_scroll.offset = self
+                    .memory_scroll
+                    .offset
+                    .clamp(0., (total_h - page.height()).max(0.))
+                    .round();
+                let mut child = ui.new_child(
+                    egui::UiBuilder::new()
+                        .id_salt(("memory-performance-page", &perf.selected))
+                        .max_rect(page),
+                );
+                child.set_clip_rect(page.intersect(ui.clip_rect()));
+                let track =
+                    Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
+                listview::scrollbar(
+                    &mut child,
+                    track,
+                    &mut self.memory_scroll,
+                    INFO_PITCH,
+                    total_h,
+                    page.height(),
+                );
+                let top = shifted.top() - self.memory_scroll.offset;
+                let virtual_page = Rect::from_min_max(
+                    pos2(shifted.left(), top),
+                    pos2(shifted.right(), top + total_h),
+                );
+                page_ui(&mut child, virtual_page, view, colors, kind, &perf.selected);
+            } else {
+                page_ui(ui, shifted, view, colors, kind, &perf.selected);
+            }
             GraphResponse::default()
         };
         toggle_summary |= graph_response.double_clicked;
@@ -540,6 +587,7 @@ fn summary_ui(
     mut view: PageView<'_>,
     tiles: &[GraphTile],
     colors: pal::DeviceColors,
+    device: &str,
 ) -> GraphResponse {
     let area = content.shrink(m::GPU_COMPACT_INSET);
     let count = view.panels.len().max(1);
@@ -565,7 +613,7 @@ fn summary_ui(
         .collect();
     let mut child = ui.new_child(
         egui::UiBuilder::new()
-            .id_salt("perf-summary-graphs")
+            .id_salt(("perf-summary-graphs", device))
             .max_rect(content),
     );
     child.set_clip_rect(content.intersect(ui.clip_rect()));
@@ -691,6 +739,10 @@ fn graph_panels_ui(
                     Align::Max,
                 );
                 response.on_hover_text(&tile.tooltip);
+            } else if let Some(tooltip) = panel.tooltips.get(slot) {
+                let mut response = response;
+                response.rect = response.rect.intersect(ui.clip_rect());
+                response.on_hover_text(tooltip);
             }
         }
         graph_top += height + m::GPU_PANEL_GAP + 13.;
@@ -699,7 +751,14 @@ fn graph_panels_ui(
 }
 
 /// Draws a device page into `content` (device list excluded).
-fn page_ui(ui: &mut Ui, content: Rect, mut view: PageView<'_>, colors: pal::DeviceColors) {
+fn page_ui(
+    ui: &mut Ui,
+    content: Rect,
+    mut view: PageView<'_>,
+    colors: pal::DeviceColors,
+    kind: DeviceType,
+    device: &str,
+) {
     let painter = ui.painter().clone();
     let left = content.left();
     let top = content.top();
@@ -729,8 +788,7 @@ fn page_ui(ui: &mut Ui, content: Rect, mut view: PageView<'_>, colors: pal::Devi
     );
 
     // Statistics and key/value rows at the bottom
-    let stat_rows = view.stats.len().max(1) as f32;
-    let stats_h = 5. + STAT_PITCH * (stat_rows - 1.) + STAT_VALUE_DY + 14.;
+    let stats_h = stats_height(view.stats.len());
     let stats_top = (content.bottom() - PANEL_GAP - stats_h).round();
     let mut stats_right = gx0;
     for (r, row) in view.stats.iter().enumerate() {
@@ -815,10 +873,26 @@ fn page_ui(ui: &mut Ui, content: Rect, mut view: PageView<'_>, colors: pal::Devi
     let panels = view.panels.len().max(1) as f32;
     let first_top = top + GRAPH_TOP;
     let graphs_bottom = stats_top - PANEL_GAP - 1.;
-    let available = graphs_bottom - first_top + 1. - (panels - 1.) * (PANEL_GAP + 13.);
+    let composition_h = if view.composition.is_some() {
+        PANEL_GAP + 13. + m::MEMORY_COMPOSITION_H
+    } else {
+        0.
+    };
+    let available =
+        graphs_bottom - first_top + 1. - (panels - 1.) * (PANEL_GAP + 13.) - composition_h;
     let panel_h = (available / panels).floor().max(20.);
+    let mut heights = vec![panel_h; view.panels.len()];
+    if kind == DeviceType::Disk && heights.len() == 2 {
+        heights[0] = available - m::DISK_TRANSFER_H;
+        heights[1] = m::DISK_TRANSFER_H;
+    } else if view.composition.is_some()
+        && let Some(last) = heights.last_mut()
+    {
+        // Give the last panel the rounding remainder so the bar ends at the stats gap.
+        *last += available - panel_h * panels;
+    }
     let mut graph_top = first_top;
-    for panel in view.panels.iter_mut() {
+    for (index, (panel, height)) in view.panels.iter_mut().zip(heights).enumerate() {
         let cap = graph_top - 13.;
         paint::text(
             &painter,
@@ -849,11 +923,47 @@ fn page_ui(ui: &mut Ui, content: Rect, mut view: PageView<'_>, colors: pal::Devi
             let (c, r) = (k % cols, k / cols);
             let x0 = gx0 + edge(c, cols, total_w);
             let x1 = gx0 + edge(c + 1, cols, total_w) - GRAPH_GAP;
-            let y0 = graph_top + edge(r, rows, panel_h);
-            let y1 = graph_top + edge(r + 1, rows, panel_h) - GRAPH_GAP;
+            let y0 = graph_top + edge(r, rows, height);
+            let y1 = graph_top + edge(r + 1, rows, height) - GRAPH_GAP;
             style_graph(graph, colors);
-            graph.paint(ui, Rect::from_min_max(pos2(x0, y0), pos2(x1, y1)));
+            let rect = Rect::from_min_max(pos2(x0, y0), pos2(x1, y1));
+            graph.paint(ui, rect);
+            if rect.width() >= 3.
+                && rect.height() >= 3.
+                && ui.is_rect_visible(rect)
+                && let Some(tooltip) = panel.tooltips.get(k)
+            {
+                ui.interact(
+                    rect.intersect(ui.clip_rect()),
+                    ui.id().with(("perf-hover", device, index, k)),
+                    Sense::hover(),
+                )
+                .on_hover_text(tooltip);
+            }
         }
-        graph_top += panel_h + PANEL_GAP + 13.;
+        graph_top += height + PANEL_GAP + 13.;
     }
+    if let Some(composition) = view.composition {
+        paint::text(
+            &painter,
+            gx0,
+            graph_top - 13.,
+            &i18n("Memory composition"),
+            Font::Caption,
+            pal::LABEL,
+            Align::Min,
+        );
+        composition.ui(
+            ui,
+            Rect::from_min_max(
+                pos2(gx0, graph_top),
+                pos2(gx1 + 1., graph_top + m::MEMORY_COMPOSITION_H),
+            ),
+            colors,
+        );
+    }
+}
+
+fn stats_height(rows: usize) -> f32 {
+    5. + STAT_PITCH * (rows.max(1) - 1) as f32 + STAT_VALUE_DY + 14.
 }

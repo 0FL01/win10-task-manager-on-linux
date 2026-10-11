@@ -18,138 +18,377 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-//! Horizontal "memory composition" bar: in use, modified, standby, free.
+//! Disjoint Unix memory composition: Used, Cache, Shared, Buff and Free.
 
-use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
+use egui::{Pos2, Rect, Sense, Ui};
 use mc_core::format::{DataType, to_human_readable_nice};
-use mc_core::i18n::i18n_f;
-use mc_core::i18n::n_;
+use mc_core::i18n::{i18n, i18n_f, n_};
 use mc_magpie::Memory;
 
-const GRAPH_RADIUS: u8 = 7;
-const FILL_ALPHA: u8 = 50;
+use crate::win10::{paint, palette};
 
 #[derive(Default)]
 pub struct MemComposition {
     total: u64,
-    used: u64,
-    modified: u64,
-    standby: u64,
-    free: u64,
-    tooltips: [String; 4],
+    // Draw order; Free, Shared, Buff and Cache are clamped before Used is derived.
+    bytes: [u64; 5],
+    tooltips: [String; 5],
 }
 
 impl MemComposition {
     pub fn update(&mut self, mem: &Memory) {
-        let total = if mem.mem_total == 0 { 1 } else { mem.mem_total };
-        let mem_avail = if mem.mem_available > mem.mem_total {
-            mem.mem_free
-        } else {
-            mem.mem_available
-        };
-        self.total = total;
-        self.used = total.saturating_sub(mem_avail);
-        self.modified = mem.dirty;
-        self.standby = total.saturating_sub(self.used + mem.mem_free);
-        self.free = mem.mem_free;
+        self.total = mem.mem_total;
+        if self.total == 0 {
+            self.bytes = [0; 5];
+            self.tooltips = std::array::from_fn(|_| {
+                i18n(n_(
+                    "Memory composition unavailable\n\nTotal memory is unknown.",
+                ))
+            });
+            return;
+        }
 
-        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
+        let cached_without_shared = mem.cached.saturating_sub(mem.sh_mem);
+        let raw_cache = cached_without_shared.saturating_add(mem.s_reclaimable);
+        let mut remaining = self.total;
+        let free = mem.mem_free.min(remaining);
+        remaining -= free;
+        let shared = mem.sh_mem.min(remaining);
+        remaining -= shared;
+        let buff = mem.buffers.min(remaining);
+        remaining -= buff;
+        let cache = raw_cache.min(remaining);
+        remaining -= cache;
+        self.bytes = [remaining, cache, shared, buff, free];
+
+        let adjusted = mem.cached < mem.sh_mem
+            || cached_without_shared
+                .checked_add(mem.s_reclaimable)
+                .is_none()
+            || free != mem.mem_free
+            || shared != mem.sh_mem
+            || buff != mem.buffers
+            || cache != raw_cache;
+        let values = self.bytes.map(|v| {
+            if v < 1024 {
+                i18n_f(n_("{} B"), &[&v.to_string()])
+            } else {
+                to_human_readable_nice(v as f32, &DataType::MemoryBytes)
+            }
+        });
+        let overview = i18n_f(
+            n_("Used: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}"),
+            &[&values[0], &values[1], &values[2], &values[3], &values[4]],
+        );
         self.tooltips = [
             i18n_f(
-                n_("In use ({})\n\nMemory used by the operating system and running applications"),
-                &[&h(self.used)],
+                n_(
+                    "Used ({})\n\nMemory remaining after Free, Shared, Buff and Cache are accounted for. This is not In use (total minus MemAvailable).",
+                ),
+                &[&values[0]],
             ),
             i18n_f(
                 n_(
-                    "Modified ({})\n\nMemory whose contents must be written to disk before it can be used by another process",
+                    "Cache ({})\n\nFile cache excluding Shared, plus reclaimable slab: max(Cached - Shmem, 0) + SReclaimable. This is not the raw Cached counter.",
                 ),
-                &[&h(self.modified)],
+                &[&values[1]],
             ),
             i18n_f(
                 n_(
-                    "Standby ({})\n\nMemory that contains cached data and code that is not actively in use",
+                    "Shared ({})\n\nShared memory (Shmem), including tmpfs. Counted separately from Cache.",
                 ),
-                &[&h(self.standby)],
+                &[&values[2]],
+            ),
+            i18n_f(
+                n_("Buff ({})\n\nKernel buffers (Buffers), accounted for separately from Cache."),
+                &[&values[3]],
             ),
             i18n_f(
                 n_(
-                    "Free ({})\n\nMemory that is not currently in use, and that will be repurposed first when the operating system, drivers, or applications need more memory",
+                    "Free ({})\n\nCollector-reported free memory (MemFree). It may include reclaimable ZFS ARC.",
                 ),
-                &[&h(self.free)],
+                &[&values[4]],
             ),
         ];
+        let adjustment = adjusted.then(|| {
+            i18n(n_(
+                "Adjusted counters: Cached below Shmem is treated as zero before adding SReclaimable; overflow is saturated; Free, Shared, Buff, then Cache are limited to remaining total memory. Values shown are the displayed partition.",
+            ))
+        });
+        for tooltip in &mut self.tooltips {
+            tooltip.push_str("\n\n");
+            tooltip.push_str(&overview);
+            if let Some(adjustment) = &adjustment {
+                tooltip.push_str("\n\n");
+                tooltip.push_str(adjustment);
+            }
+        }
     }
 
-    pub fn ui(&self, ui: &mut Ui, size: Vec2, color: Color32) {
-        let (rect, response) = ui.allocate_exact_size(size, Sense::hover());
-        let painter = ui.painter_at(rect);
-        let fill = Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), FILL_ALPHA);
-        let stroke = Stroke::new(1., color);
-        let total = self.total.max(1) as f32;
-        let width = rect.width();
-
-        let mut x = rect.left();
-        let mut anchors = [0f32; 4];
-
-        // used: filled
-        let w_used = (width * self.used as f32 / total).trunc();
-        let used = Rect::from_min_size(rect.min, Vec2::new(w_used, rect.height()));
-        painter.rect_filled(used, 0., fill);
-        painter.line_segment([used.right_top(), used.right_bottom()], stroke);
-        x += w_used;
-        anchors[0] = x;
-
-        // modified: filled + hatched
-        let w_mod = (width * self.modified as f32 / total).trunc();
-        let modified =
-            Rect::from_min_size(Pos2::new(x, rect.top()), Vec2::new(w_mod, rect.height()));
-        painter.rect_filled(modified, 0., fill);
-        hatch(&painter, modified, fill);
-        painter.line_segment([modified.right_top(), modified.right_bottom()], stroke);
-        x += w_mod;
-        anchors[1] = x;
-
-        // standby: hatched only
-        let w_standby = (width * self.standby as f32 / total).trunc();
-        let standby = Rect::from_min_size(
-            Pos2::new(x, rect.top()),
-            Vec2::new(w_standby, rect.height()),
+    pub fn ui(&self, ui: &mut Ui, rect: Rect, colors: palette::DeviceColors) {
+        if rect.width() <= 0. || rect.height() <= 0. || !ui.is_rect_visible(rect) {
+            return;
+        }
+        let clipped = rect.intersect(ui.clip_rect());
+        let painter = ui.painter_at(clipped);
+        paint::fill(
+            &painter,
+            rect.left(),
+            rect.top(),
+            rect.right() - 1.,
+            rect.bottom() - 1.,
+            palette::WHITE,
         );
-        hatch(&painter, standby, fill);
-        painter.line_segment([standby.right_top(), standby.right_bottom()], stroke);
-        x += w_standby;
-        anchors[2] = x;
-        anchors[3] = rect.right() + 1.;
-
-        painter.rect_stroke(
-            rect.shrink(0.5),
-            CornerRadius::same(GRAPH_RADIUS),
-            stroke,
-            StrokeKind::Middle,
+        let segments = self.segment_rects(rect);
+        for (index, segment) in segments.iter().enumerate() {
+            if segment.width() < 1. {
+                continue;
+            }
+            paint::fill(
+                &painter,
+                segment.left(),
+                segment.top(),
+                segment.right() - 1.,
+                segment.bottom() - 1.,
+                if index == 4 {
+                    palette::WHITE
+                } else {
+                    colors.fill
+                },
+            );
+            if segment.left() > rect.left() {
+                paint::vline(
+                    &painter,
+                    segment.left(),
+                    rect.top(),
+                    rect.bottom() - 1.,
+                    colors.line,
+                );
+            }
+        }
+        paint::outline(
+            &painter,
+            rect.left(),
+            rect.top(),
+            rect.right() - 1.,
+            rect.bottom() - 1.,
+            colors.line,
         );
 
-        let response = if let Some(pos) = response.hover_pos() {
-            let index = anchors.iter().position(|a| *a >= pos.x).unwrap_or(0);
-            response.on_hover_text(&self.tooltips[index])
-        } else {
-            response
-        };
-        let _ = response;
+        let response = ui.interact(clipped, ui.id().with("memory-composition"), Sense::hover());
+        if self.total == 0 {
+            let _ = response.on_hover_text(&self.tooltips[0]);
+        } else if let Some(pos) = response.hover_pos()
+            && let Some(index) = Self::segment_at(&segments, pos)
+        {
+            let _ = response.on_hover_text(&self.tooltips[index]);
+        }
+    }
+
+    fn segment_rects(&self, rect: Rect) -> [Rect; 5] {
+        let mut cumulative = 0u64;
+        let mut left = rect.left();
+        std::array::from_fn(|index| {
+            cumulative += self.bytes[index];
+            let right = if self.total == 0 || cumulative == 0 {
+                rect.left()
+            } else if cumulative == self.total {
+                rect.right()
+            } else {
+                (rect.left() as f64 + rect.width() as f64 * cumulative as f64 / self.total as f64)
+                    .round()
+                    .clamp(rect.left() as f64, rect.right() as f64) as f32
+            };
+            let segment =
+                Rect::from_min_max(Pos2::new(left, rect.top()), Pos2::new(right, rect.bottom()));
+            left = right;
+            segment
+        })
+    }
+
+    fn segment_at(segments: &[Rect; 5], pos: Pos2) -> Option<usize> {
+        segments.iter().position(|segment| {
+            segment.width() >= 1.
+                && pos.x >= segment.left()
+                && pos.x < segment.right()
+                && pos.y >= segment.top()
+                && pos.y < segment.bottom()
+        })
     }
 }
 
-fn hatch(painter: &egui::Painter, rect: Rect, color: Color32) {
-    if rect.width() < 1. {
-        return;
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unix_partition_removes_shared_overlap_and_adds_reclaimable_slab() {
+        let gib = 1024 * 1024 * 1024;
+        let mut memory = Memory {
+            mem_total: 16 * gib,
+            mem_free: 2 * gib,
+            mem_available: 9 * gib,
+            sh_mem: 2 * gib,
+            buffers: gib,
+            cached: 6 * gib,
+            s_reclaimable: gib,
+            dirty: gib,
+            ..Default::default()
+        };
+        let mut composition = MemComposition::default();
+        composition.update(&memory);
+        assert_eq!(composition.bytes, [6 * gib, 5 * gib, 2 * gib, gib, 2 * gib]);
+        assert_eq!(composition.bytes.iter().sum::<u64>(), memory.mem_total);
+        assert_ne!(
+            composition.bytes[0],
+            memory.mem_total - memory.mem_available
+        );
+        assert_ne!(composition.bytes[1], memory.cached);
+        assert!(composition.tooltips[0].starts_with("Used (6.00 GiB)\n\n"));
+        assert!(composition.tooltips[1].starts_with("Cache (5.00 GiB)\n\n"));
+        assert!(composition.tooltips[4].contains("reclaimable ZFS ARC"));
+        assert!(composition.tooltips.iter().all(|tip| tip.contains(
+            "Used: 6.00 GiB\nCache: 5.00 GiB\nShared: 2.00 GiB\nBuff: 1.00 GiB\nFree: 2.00 GiB"
+        ) && !tip.contains("Adjusted counters")));
+
+        memory.mem_available = 3 * gib;
+        composition.update(&memory);
+        assert_eq!(composition.bytes, [6 * gib, 5 * gib, 2 * gib, gib, 2 * gib]);
     }
-    let step = 4.;
-    let mut shapes = vec![];
-    let mut x = rect.left() - rect.height();
-    while x < rect.right() {
-        let a = Pos2::new(x, rect.bottom());
-        let b = Pos2::new(x + rect.height(), rect.top());
-        shapes.push(Shape::line_segment([a, b], Stroke::new(1., color)));
-        x += step;
+
+    #[test]
+    fn unknown_and_inconsistent_counters_do_not_invent_memory() {
+        let mut composition = MemComposition::default();
+        composition.update(&Memory {
+            mem_free: 100,
+            cached: 100,
+            ..Default::default()
+        });
+        assert_eq!(composition.total, 0);
+        assert_eq!(composition.bytes, [0; 5]);
+        assert!(composition.tooltips[0].contains("Total memory is unknown."));
+
+        composition.update(&Memory {
+            mem_total: 100,
+            mem_free: 20,
+            sh_mem: 30,
+            buffers: 10,
+            cached: 5,
+            s_reclaimable: 10,
+            ..Default::default()
+        });
+        assert_eq!(composition.bytes, [30, 10, 30, 10, 20]);
+        assert!(composition.tooltips[1].starts_with("Cache (10 B)\n\n"));
+        assert!(composition.tooltips[1].contains("Cached below Shmem"));
+
+        composition.update(&Memory {
+            mem_total: 100,
+            mem_free: 20,
+            sh_mem: 30,
+            buffers: 10,
+            cached: u64::MAX,
+            s_reclaimable: u64::MAX,
+            ..Default::default()
+        });
+        assert_eq!(composition.bytes, [0, 40, 30, 10, 20]);
+        assert!(composition.tooltips[1].starts_with("Cache (40 B)\n\n"));
+        assert!(composition.tooltips[1].contains("overflow is saturated"));
+        assert!(composition.tooltips[1].contains("Used: 0 B"));
+
+        composition.update(&Memory {
+            mem_total: 100,
+            mem_free: 20,
+            sh_mem: 30,
+            buffers: 100,
+            cached: 100,
+            ..Default::default()
+        });
+        assert_eq!(composition.bytes, [0, 0, 30, 50, 20]);
+        composition.update(&Memory {
+            mem_total: 100,
+            mem_free: 120,
+            sh_mem: 130,
+            buffers: 140,
+            cached: 150,
+            ..Default::default()
+        });
+        assert_eq!(composition.bytes, [0, 0, 0, 0, 100]);
+        assert!(composition.tooltips[4].starts_with("Free (100 B)\n\n"));
+        assert!(
+            composition.tooltips[4]
+                .contains("Used: 0 B\nCache: 0 B\nShared: 0 B\nBuff: 0 B\nFree: 100 B")
+        );
     }
-    painter.with_clip_rect(rect).extend(shapes);
+
+    #[test]
+    fn cumulative_boundaries_match_hits_and_skip_invisible_segments() {
+        let rect = Rect::from_min_max(Pos2::new(10., 20.), Pos2::new(110., 72.));
+        let mut composition = MemComposition::default();
+        composition.update(&Memory {
+            mem_total: 100,
+            mem_free: 20,
+            sh_mem: 10,
+            buffers: 10,
+            cached: 40,
+            ..Default::default()
+        });
+        let segments = composition.segment_rects(rect);
+        assert_eq!(
+            segments.map(|segment| segment.right()),
+            [40., 70., 80., 90., 110.]
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(39.9, 30.)),
+            Some(0)
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(40., 30.)),
+            Some(1)
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(70., 30.)),
+            Some(2)
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(80., 30.)),
+            Some(3)
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(90., 30.)),
+            Some(4)
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(110., 30.)),
+            None
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(30., 72.)),
+            None
+        );
+
+        composition.update(&Memory {
+            mem_total: 1000,
+            mem_free: 500,
+            sh_mem: 1,
+            cached: 1,
+            ..Default::default()
+        });
+        let segments = composition.segment_rects(rect);
+        assert_eq!(
+            segments.map(|segment| segment.right()),
+            [60., 60., 60., 60., 110.]
+        );
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(60., 30.)),
+            Some(4)
+        );
+
+        composition.update(&Memory::default());
+        let segments = composition.segment_rects(rect);
+        assert!(segments.iter().all(|segment| segment.width() == 0.));
+        assert_eq!(
+            MemComposition::segment_at(&segments, Pos2::new(10., 30.)),
+            None
+        );
+    }
 }

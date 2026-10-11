@@ -13,7 +13,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use egui_kittest::Harness;
+use egui_kittest::{Harness, kittest::Queryable};
 use image::RgbaImage;
 use mc_core::config::Config;
 use mc_ui::{AlwaysOnTopMode, App, AppOptions, DataSource};
@@ -475,6 +475,57 @@ fn app_harness(config_path: PathBuf) -> Harness<'static, Option<App>> {
         )
 }
 
+/// Performance acceptance uses one repeating sample: tooltip time must not change its bytes.
+fn performance_harness(
+    config: Config,
+    reading: mc_magpie::Readings,
+    pixels_per_point: f32,
+) -> Harness<'static, Option<App>> {
+    let config = Config {
+        window_selected_page: "performance-page".into(),
+        ..config
+    };
+    let mut harness = Harness::builder()
+        .with_size(egui::vec2(
+            config.window_width as f32,
+            config.window_height as f32,
+        ))
+        .with_pixels_per_point(pixels_per_point)
+        .with_step_dt(1. / 60.)
+        .with_max_steps(400)
+        .wgpu()
+        .build_ui_state(
+            move |ui, state: &mut Option<App>| {
+                if state.is_none() {
+                    let ctx = ui.ctx().clone();
+                    *state = Some(App::new(
+                        &ctx,
+                        AppOptions {
+                            source: DataSource::Fixture(vec![reading.clone()], HashMap::new()),
+                            config_path: None,
+                            perf_overlay: false,
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
+                            fonts: Default::default(),
+                            initial_config: Some(config.clone()),
+                        },
+                    ));
+                    ctx.request_repaint();
+                    return;
+                }
+                let app = state.as_mut().unwrap();
+                app.logic(&ui.ctx().clone());
+                app.ui(ui);
+            },
+            None,
+        );
+    wait_ready(&mut harness);
+    assert!(
+        harness.state().as_ref().unwrap().have_readings(),
+        "fixed performance fixture did not arrive within the bounded wait"
+    );
+    harness
+}
+
 fn wait_ready(harness: &mut Harness<'static, Option<App>>) {
     for _ in 0..100 {
         harness.run_steps(1);
@@ -611,4 +662,526 @@ fn window_size_survives_restart() {
     let saved = mc_core::config::Config::load(&path).unwrap();
     assert_eq!((saved.window_width, saved.window_height), (1200, 800));
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn performance_cpu_hover_preserves_menu_and_summary() {
+    let mut h = performance_harness(
+        Config {
+            performance_page_cpu_graph: 2,
+            performance_page_cpu_graph_bottom: 0,
+            ..Default::default()
+        },
+        mc_magpie::synthetic_readings(0, 50),
+        1.,
+    );
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    let cpu0 = egui::pos2(300., 200.);
+    let cpu1 = egui::pos2(500., 200.);
+    h.hover_at(cpu0);
+    h.run_steps(40);
+    assert!(h.query_by_label("CPU 0").is_some());
+    assert!(h.query_by_label("CPU 1").is_none());
+    h.hover_at(cpu1);
+    h.run_steps(40);
+    assert!(h.query_by_label("CPU 1").is_some());
+    assert!(h.query_by_label("CPU 0").is_none());
+    let image = h.render().expect("offscreen wgpu render unavailable");
+    image
+        .save(out.join("win10-performance-cpu-hover.png"))
+        .unwrap();
+    assert_eq!(hex(&image, 241, 200), "#117dbb", "CPU 0 left edge");
+    assert_eq!(hex(&image, 433, 200), "#117dbb", "CPU 1 left edge");
+
+    // Hover-only graph regions must leave the page's secondary click intact.
+    for pressed in [true, false] {
+        h.event(egui::Event::PointerButton {
+            pos: cpu1,
+            button: egui::PointerButton::Secondary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.run_steps(1);
+    }
+    h.run_steps(4);
+    for label in ["Change Top Graph To", "Graph summary view", "Copy"] {
+        assert!(
+            h.output().shapes.iter().any(|shape| {
+                matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == label)
+            }),
+            "CPU context menu is missing {label}"
+        );
+    }
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-cpu-hover-menu.png"))
+        .unwrap();
+    h.key_press(egui::Key::Escape);
+    h.run_steps(4);
+    assert!(!h.output().shapes.iter().any(|shape| {
+        matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == "Graph summary view")
+    }));
+
+    h.hover_at(cpu0);
+    h.run_steps(40); // Start a fresh primary-click sequence after the secondary click.
+    click(&mut h, cpu0);
+    click(&mut h, cpu0);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(400., 380.));
+    let summary_cpu0 = egui::pos2(60., 60.);
+    h.hover_at(summary_cpu0);
+    h.run_steps(40);
+    assert!(h.query_by_label("CPU 0").is_some(), "CPU hover in summary");
+    let summary = h.render().expect("offscreen wgpu render unavailable");
+    summary
+        .save(out.join("win10-performance-cpu-summary-hover.png"))
+        .unwrap();
+    assert_eq!(hex(&summary, 13, 60), "#117dbb", "summary graph edge");
+    click(&mut h, summary_cpu0);
+    click(&mut h, summary_cpu0);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(1030., 705.));
+    h.remove_cursor();
+    h.run_steps(3);
+    let restored = h.render().expect("offscreen wgpu render unavailable");
+    assert_eq!(hex(&restored, 212, 600), "#d9d9d9", "sidebar restored");
+    assert_eq!(hex(&restored, 241, 200), "#117dbb", "CPU page restored");
+}
+
+#[test]
+fn performance_memory_composition_regions_and_ram_hover() {
+    use mc_core::format::{DataType, to_human_readable_nice};
+
+    let reading = mc_magpie::synthetic_readings(0, 50);
+    let mem = &reading.mem_info;
+    let gib = 1024 * 1024 * 1024;
+    let bytes = [
+        mem.mem_total - mem.mem_available - gib,
+        7 * gib,
+        gib,
+        gib / 2,
+        mem.mem_free,
+    ];
+    assert_eq!(bytes.iter().sum::<u64>(), mem.mem_total);
+    let values = bytes.map(|v| to_human_readable_nice(v as f32, &DataType::MemoryBytes));
+    let overview = format!(
+        "Used: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}",
+        values[0], values[1], values[2], values[3], values[4]
+    );
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    let image = h.render().expect("offscreen wgpu render unavailable");
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    image
+        .save(out.join("win10-performance-memory-composition.png"))
+        .unwrap();
+    // The 52-point bar has exclusive bounds [241, 1005) × [413, 465).
+    let edges = [241, 580, 747, 771, 783, 1005];
+    for x in 241..1005 {
+        for y in [413, 464] {
+            assert_eq!(hex(&image, x, y), "#8b12ae", "composition frame ({x},{y})");
+        }
+        let expected = if edges[..5].contains(&x) || x == 1004 {
+            "#8b12ae"
+        } else if x < 783 {
+            "#f4f2f4"
+        } else {
+            "#ffffff"
+        };
+        assert_eq!(
+            hex(&image, x, 438),
+            expected,
+            "composition boundary/fill at {x}"
+        );
+    }
+    assert_eq!(hex(&image, 1005, 438), "#ffffff", "exclusive right edge");
+    assert_eq!(hex(&image, 990, 412), "#ffffff", "above composition");
+    assert_eq!(hex(&image, 990, 465), "#ffffff", "below composition");
+
+    for (index, (category, explanation)) in [
+        ("Used", "MemAvailable"),
+        ("Cache", "SReclaimable"),
+        ("Shared", "Shmem"),
+        ("Buff", "Buffers"),
+        ("Free", "ZFS ARC"),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let x = (edges[index] + edges[index + 1]) as f32 / 2.;
+        h.hover_at(egui::pos2(x, 438.));
+        h.run_steps(40);
+        let header = format!("{category} ({})\n\n", values[index]);
+        let tooltip = h
+            .query_by_label_contains(&header)
+            .unwrap_or_else(|| panic!("no selected {category} tooltip at x={x}"))
+            .value()
+            .unwrap();
+        assert!(
+            tooltip.starts_with(&header),
+            "selected region must lead the tooltip"
+        );
+        assert!(tooltip.contains(explanation), "definition of {category}");
+        assert!(tooltip.contains(&overview), "all-five byte overview");
+    }
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-memory-composition-hover.png"))
+        .unwrap();
+    h.hover_at(egui::pos2(600., 200.));
+    h.run_steps(40);
+    let ram_tip = h.get_by_label_contains("MemAvailable").value().unwrap();
+    assert!(
+        !ram_tip.starts_with("Used ("),
+        "RAM graph has its own explanation"
+    );
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-memory-ram-hover.png"))
+        .unwrap();
+}
+
+#[test]
+fn performance_memory_composition_hidpi_logical_geometry() {
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        mc_magpie::synthetic_readings(0, 50),
+        2.,
+    );
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(1030., 705.));
+    let image = h.render().expect("offscreen wgpu render unavailable");
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    image
+        .save(out.join("win10-performance-memory-composition-2x.png"))
+        .unwrap();
+    assert_eq!(image.dimensions(), (2060, 1410));
+    // Physical pixels verify the same logical bar, including two-pixel square lines.
+    for x in 482..2010 {
+        for y in [826, 827, 928, 929] {
+            assert_eq!(hex(&image, x, y), "#8b12ae", "2x bar frame ({x},{y})");
+        }
+        let logical_x = x / 2;
+        let expected = if [241, 580, 747, 771, 783, 1004].contains(&logical_x) {
+            "#8b12ae"
+        } else if logical_x < 783 {
+            "#f4f2f4"
+        } else {
+            "#ffffff"
+        };
+        assert_eq!(hex(&image, x, 876), expected, "2x composition at {x}");
+    }
+    assert_eq!(hex(&image, 2010, 876), "#ffffff", "2x exclusive right edge");
+    assert_eq!(hex(&image, 1980, 825), "#ffffff", "above 2x bar");
+    assert_eq!(hex(&image, 1980, 930), "#ffffff", "below 2x bar");
+}
+
+#[test]
+fn performance_disk_transfer_strip_and_graph_hover() {
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "disk-nvme0n1".into(),
+            ..Default::default()
+        },
+        mc_magpie::synthetic_readings(0, 50),
+        1.,
+    );
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    for (name, size, lower_top, lower_bottom, right) in [
+        ("default", egui::vec2(1030., 705.), 399, 465, 1004),
+        ("minimum", egui::vec2(760., 540.), 234, 300, 734),
+        ("tall", egui::vec2(1030., 785.), 479, 545, 1004),
+    ] {
+        h.set_size(size);
+        h.remove_cursor();
+        h.run_steps(4);
+        let image = h.render().expect("offscreen wgpu render unavailable");
+        image
+            .save(out.join(format!("win10-performance-disk-{name}.png")))
+            .unwrap();
+        assert_eq!(lower_bottom - lower_top, 66);
+        for y in lower_top..lower_bottom {
+            assert_eq!(hex(&image, 241, y), "#4da60c", "{name} lower left at {y}");
+            assert_eq!(
+                hex(&image, right, y),
+                "#4da60c",
+                "{name} lower right at {y}"
+            );
+        }
+        for x in 241..=right {
+            assert_eq!(hex(&image, x, lower_top), "#4da60c", "{name} lower top");
+            assert_eq!(
+                hex(&image, x, lower_bottom - 1),
+                "#4da60c",
+                "{name} lower bottom"
+            );
+        }
+        assert_eq!(hex(&image, 300, 151), "#4da60c", "{name} upper top");
+        assert_eq!(
+            hex(&image, 300, lower_top - 38),
+            "#4da60c",
+            "{name} upper bottom"
+        );
+        assert_eq!(
+            hex(&image, 300, lower_top - 37),
+            "#ffffff",
+            "{name} gap after upper graph"
+        );
+        assert_eq!(
+            hex(&image, 300, lower_bottom),
+            "#ffffff",
+            "{name} strip ends before stats"
+        );
+
+        if name == "default" {
+            h.hover_at(egui::pos2(300., 200.));
+            h.run_steps(40);
+            assert!(
+                h.query_by_label(
+                    "Percentage of time the drive is processing read or write requests"
+                )
+                .is_some()
+            );
+            h.hover_at(egui::pos2(300., 430.));
+            h.run_steps(40);
+            assert!(
+                h.query_by_label("Read and write activity on this drive")
+                    .is_some()
+            );
+            h.render()
+                .unwrap()
+                .save(out.join("win10-performance-disk-transfer-hover.png"))
+                .unwrap();
+        }
+    }
+}
+
+#[test]
+fn performance_memory_minimum_overflow_scroll_and_reset() {
+    use mc_core::format::{DataType, to_human_readable_nice};
+
+    let mut reading = mc_magpie::synthetic_readings(0, 50);
+    reading.mem_info.zswapped = 32 * 1024 * 1024;
+    reading.mem_info.zswap = 16 * 1024 * 1024;
+    let compressed_value =
+        to_human_readable_nice(reading.mem_info.zswap as f32, &DataType::MemoryBytes);
+    let mut h = performance_harness(
+        Config {
+            window_width: 760,
+            window_height: 540,
+            performance_selected_page: "memory".into(),
+            performance_page_memory_swap_visible: true,
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    let initial = h.render().expect("offscreen wgpu render unavailable");
+    initial
+        .save(out.join("win10-performance-memory-minimum-extras.png"))
+        .unwrap();
+    assert_eq!(
+        hex(&initial, 300, 329),
+        "#8b12ae",
+        "initial composition top"
+    );
+    assert_eq!(
+        hex(&initial, 300, 380),
+        "#8b12ae",
+        "initial 52-point composition bottom"
+    );
+    assert_eq!(hex(&initial, 241, 151), "#8b12ae", "52-point RAM top");
+    assert_eq!(hex(&initial, 241, 202), "#8b12ae", "52-point RAM bottom");
+    assert_eq!(hex(&initial, 241, 240), "#8b12ae", "52-point Swap top");
+    assert_eq!(hex(&initial, 241, 291), "#8b12ae", "52-point Swap bottom");
+    let in_use = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "In use" => Some(text.pos),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(in_use.y, 407., "stats start at 405, caption at 410");
+    assert!(
+        ink_box(&initial, &[241, 410, 280, 421]).is_some(),
+        "first stats row has rendered ink"
+    );
+
+    h.hover_at(egui::pos2(300., 350.));
+    h.run_steps(40);
+    assert!(h.query_by_label_contains("Used (").is_some());
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::vec2(0., -1000.),
+        phase: egui::TouchPhase::Move,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(40);
+    assert!(
+        h.query_by_label_contains("Used (").is_none(),
+        "scrolled bar no longer under cursor"
+    );
+    h.hover_at(egui::pos2(300., 76.));
+    h.run_steps(40);
+    assert!(
+        h.query_by_label_contains("Used (").is_none(),
+        "no tooltip outside the clipped page"
+    );
+    let scrolled = h.render().expect("offscreen wgpu render unavailable");
+    scrolled
+        .save(out.join("win10-performance-memory-minimum-scrolled.png"))
+        .unwrap();
+    // Virtual 545 - viewport 413 = 132 points of reachable overflow.
+    assert_eq!(
+        hex(&scrolled, 300, 329 - 132),
+        "#8b12ae",
+        "scroll clamps at 132"
+    );
+    assert_eq!(
+        hex(&scrolled, 300, 380 - 132),
+        "#8b12ae",
+        "scrolled composition bottom"
+    );
+    for label in ["Swap used", "Swap available", "Compressed", "Savings"] {
+        let (clip, text) = h
+            .output()
+            .shapes
+            .iter()
+            .find_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) if text.galley.job.text == label => {
+                    Some((shape.clip_rect, text))
+                }
+                _ => None,
+            })
+            .unwrap();
+        assert!(
+            clip.contains(text.pos) && clip.contains(text.pos + text.galley.size()),
+            "{label} is inside the page clip"
+        );
+        assert!(
+            ink_box(
+                &scrolled,
+                &[
+                    text.pos.x as u32,
+                    text.pos.y as u32,
+                    (text.pos.x + text.galley.size().x).ceil() as u32,
+                    (text.pos.y + text.galley.size().y).ceil() as u32,
+                ]
+            )
+            .is_some(),
+            "{label} has rendered ink"
+        );
+    }
+    assert!(
+        ink_box(&scrolled, &[241, 452, 330, 468]).is_some(),
+        "compressed byte value is visible"
+    );
+    assert!(
+        h.output().shapes.iter().any(|shape| {
+            matches!(&shape.shape, egui::Shape::Text(text)
+            if text.galley.job.text == compressed_value && text.pos == egui::pos2(241., 446.))
+        }),
+        "compressed value is the formatter's 16 MiB fixture value"
+    );
+    assert_eq!(hex(&scrolled, 212, 400), "#d9d9d9", "sidebar remains fixed");
+    assert_eq!(hex(&scrolled, 300, 490), "#a0a0a0", "footer remains fixed");
+
+    h.set_size(egui::vec2(1030., 705.));
+    h.remove_cursor();
+    h.run_steps(4);
+    let resized = h.render().expect("offscreen wgpu render unavailable");
+    resized
+        .save(out.join("win10-performance-memory-extras-resized.png"))
+        .unwrap();
+    assert_eq!(
+        hex(&resized, 241, 151),
+        "#8b12ae",
+        "resize clamps overflow to zero"
+    );
+    assert!(
+        h.output().shapes.iter().any(|shape| {
+            matches!(&shape.shape, egui::Shape::Text(text)
+            if text.galley.job.text == "Memory" && text.pos == egui::pos2(238., 95.))
+        }),
+        "resize restores the title's unscrolled position"
+    );
+    assert!(
+        ink_box(&resized, &[238, 102, 340, 128]).is_some(),
+        "unscrolled Memory title"
+    );
+    h.set_size(egui::vec2(760., 540.));
+    h.run_steps(4);
+    h.hover_at(egui::pos2(500., 420.));
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::vec2(0., -1000.),
+        phase: egui::TouchPhase::Move,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(3);
+    h.key_press(egui::Key::F1);
+    h.run_steps(4);
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "cpu"
+    );
+    h.key_press(egui::Key::F2);
+    h.run_steps(4);
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "memory"
+    );
+    let returned = h.render().expect("offscreen wgpu render unavailable");
+    assert_eq!(
+        hex(&returned, 300, 329),
+        "#8b12ae",
+        "Memory → CPU → Memory resets scroll"
+    );
+
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::vec2(0., -1000.),
+        phase: egui::TouchPhase::Move,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(3);
+    h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(400., 380.));
+    assert!(!h.output().shapes.iter().any(|shape| {
+        matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == "Memory composition")
+    }), "summary contains graphs without composition");
+    h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(760., 540.));
+    let returned = h.render().expect("offscreen wgpu render unavailable");
+    assert_eq!(
+        hex(&returned, 300, 329),
+        "#8b12ae",
+        "summary transition resets scroll"
+    );
 }

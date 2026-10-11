@@ -23,7 +23,7 @@ use egui::Ui;
 use mc_core::config::Config;
 use mc_core::format::{DataType, to_human_readable_nice, to_uptime};
 use mc_core::i18n::n_;
-use mc_core::i18n::{i18n, strip_mnemonic};
+use mc_core::i18n::{i18n, i18n_f, strip_mnemonic};
 use mc_core::sidebar::DeviceType;
 use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
 use mc_magpie::Readings;
@@ -70,6 +70,7 @@ pub struct CpuPage {
     overall: Graph,
     thread_wise: Graph,
     per_core: Vec<Graph>,
+    core_tooltips: Vec<String>,
     bottom: Graph,
     is_bogomips: bool,
     has_power: bool,
@@ -128,6 +129,7 @@ impl CpuPage {
             overall: Graph::new(),
             thread_wise: Graph::new(),
             per_core: vec![],
+            core_tooltips: vec![],
             bottom,
             is_bogomips: false,
             has_power: false,
@@ -181,6 +183,10 @@ impl CpuPage {
                 g.add_dataset(kernel);
                 g
             })
+            .collect();
+        // The backend exposes array ordinals, not kernel CPU IDs or physical core IDs.
+        self.core_tooltips = (0..cpu_count)
+            .map(|index| i18n_f(n_("CPU {}"), &[&index.to_string()]))
             .collect();
     }
 
@@ -449,6 +455,11 @@ impl DevicePage for CpuPage {
             right: i18n("100%"),
             graphs,
             columns,
+            tooltips: if selection == GRAPH_SELECTION_ALL {
+                &self.core_tooltips
+            } else {
+                &[]
+            },
         }];
         if bottom != GRAPH_NONE {
             let label = match bottom {
@@ -468,6 +479,7 @@ impl DevicePage for CpuPage {
             panels,
             stats,
             info,
+            composition: None,
         }
     }
 
@@ -605,5 +617,32 @@ mod tests {
         assert!(s.contains("    Virtual processors: 4\n"));
         assert!(page.summary.info1.starts_with("42% "));
         assert!(page.summary.info2.is_empty());
+    }
+
+    #[test]
+    fn logical_processor_tooltips_follow_graph_ordinals_and_count() {
+        let mut readings = mc_magpie::synthetic_readings(0, 0);
+        let mut config = Config::default();
+        let mut page = CpuPage::new(&readings, &config);
+        for mode in [1, 2, 3, 4] {
+            config.performance_page_cpu_graph = mode;
+            let view = page.win10_view(&config);
+            let tips = view.panels[0].tooltips;
+            if mode == GRAPH_SELECTION_ALL {
+                assert_eq!(tips.len(), view.panels[0].graphs.len());
+                assert_eq!(tips[0], "CPU 0");
+                assert_eq!(tips[1], "CPU 1");
+                assert_eq!(tips.last().unwrap(), "CPU 7");
+            } else {
+                assert!(tips.is_empty());
+            }
+        }
+        readings.cpu.core_usage_percent.truncate(2);
+        readings.cpu.core_kernel_usage_percent.truncate(2);
+        page.update(&readings, &UpdateEnv::new(&config));
+        config.performance_page_cpu_graph = GRAPH_SELECTION_ALL;
+        let view = page.win10_view(&config);
+        assert_eq!(view.panels[0].graphs.len(), 2);
+        assert_eq!(view.panels[0].tooltips, ["CPU 0", "CPU 1"]);
     }
 }

@@ -97,6 +97,7 @@ pub struct DiskPage {
     partitions: Vec<Partition>,
     labels: Labels,
     max_duration: String,
+    graph_tooltips: [String; 2],
 }
 
 impl DiskPage {
@@ -155,6 +156,10 @@ impl DiskPage {
             partitions: vec![],
             labels: Labels::default(),
             max_duration: super::max_duration(config),
+            graph_tooltips: [
+                i18n("Percentage of time the drive is processing read or write requests"),
+                i18n("Read and write activity on this drive"),
+            ],
         };
         // Throughput in binary bytes (MiB/s)
         page.transfer
@@ -325,23 +330,27 @@ impl DevicePage for DiskPage {
             info.push((format!("{}:", p.devname), value));
         }
         let max_y = l.max_y.clone();
+        let mut panels = vec![
+            GraphPanel::single(
+                over(n_("Active time over "), &self.max_duration),
+                i18n("100%"),
+                &mut self.usage,
+            ),
+            GraphPanel::single(
+                over(n_("Throughput over "), &self.max_duration),
+                max_y,
+                &mut self.transfer,
+            ),
+        ];
+        panels[0].tooltips = &self.graph_tooltips[..1];
+        panels[1].tooltips = &self.graph_tooltips[1..];
         PageView {
             title: self.title.clone(),
             model: self.model.clone(),
-            panels: vec![
-                GraphPanel::single(
-                    over(n_("Active time over "), &self.max_duration),
-                    i18n("100%"),
-                    &mut self.usage,
-                ),
-                GraphPanel::single(
-                    over(n_("Throughput over "), &self.max_duration),
-                    max_y,
-                    &mut self.transfer,
-                ),
-            ],
+            panels,
             stats,
             info,
+            composition: None,
         }
     }
 

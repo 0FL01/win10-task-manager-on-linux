@@ -103,6 +103,7 @@ pub struct GraphPanel<'a> {
     pub right: String,
     pub graphs: Vec<&'a mut Graph>,
     pub columns: usize,
+    pub tooltips: &'a [String],
 }
 
 /// GPU engine captions and selection targets, kept outside `PageView` so existing page literals
@@ -127,6 +128,7 @@ impl<'a> GraphPanel<'a> {
             right,
             graphs,
             columns,
+            tooltips: &[],
         }
     }
 
@@ -136,6 +138,7 @@ impl<'a> GraphPanel<'a> {
             right,
             graphs: vec![graph],
             columns: 1,
+            tooltips: &[],
         }
     }
 }
@@ -149,6 +152,7 @@ pub struct PageView<'a> {
     pub stats: Vec<Vec<(String, String)>>,
     /// Key/value rows right of the statistics
     pub info: Vec<(String, String)>,
+    pub composition: Option<&'a mem_composition::MemComposition>,
 }
 
 /// `"<label><duration>"`, e.g. "Utilization over 1 minute".

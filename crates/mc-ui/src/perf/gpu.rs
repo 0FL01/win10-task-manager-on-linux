@@ -742,6 +742,7 @@ impl DevicePage for GpuPage {
             panels,
             stats: self.stats.clone(),
             info: self.info.clone(),
+            composition: None,
         }
     }
 

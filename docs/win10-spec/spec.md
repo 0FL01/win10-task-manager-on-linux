@@ -178,7 +178,7 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - Fill is opaque and drawn under the grid; the line on top.
   - Grid of cells: cell k starts at `floor(k·(total + 4)/n)` and ends 4 px before the next one.
   - Single-graph pages use one cell x 241–1004, y 151–465.
-  - Several graph panels (CPU bottom graph, swap, disk throughput, GPU) share the height; each
+  - Several graph panels (CPU bottom graph, swap) share the height; each
     further caption has its cap top 24 px below the previous graph, its graph 13 px lower.
   - Graph area ends 24 px above the statistics; statistics end 24 px above the footer line.
 - Stat block (below graphs):
@@ -193,6 +193,31 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   "used/total (percent)" on one line, so these items are 60 px like the reference.
 - Footer: "Fewer details" as Processes, then a 16 px own icon at x 120 and link
   "Open Resource Monitor"-style text (ours: none — no external tool; the slot stays empty).
+
+### Unix Performance parity (own adaptation, not historical pixel probes)
+
+- Keep the 1030×705 default, 760×540 minimum and 211-point default device list; restored
+  user window/list sizes are not reset. All sizes below are logical points and scale with DPI.
+- Disk transfer rate is a 66-point strip; Active time receives the remaining graph height.
+  Retain the three Unix statistic rows and existing metadata. At the default/minimum/tall
+  (1030×785) sizes the upper graph is respectively 211/46/291 points high.
+- Ordinary graph cells are hover-only, preserving page context menu and double-click ownership.
+  Logical CPU labels are array ordinals (CPU 0, CPU 1, ...), not kernel or physical core IDs.
+  RAM/Disk graphs explain their metrics; graph summary retains these tooltips.
+- Memory composition is always shown in the full page, after RAM and optional Swap and before
+  statistics, with a caption and a 52-point square bar. Segments use existing memory fill/line,
+  Free stays white, boundaries are cumulative and zero-width segments have no artificial width.
+- The disjoint draw order is Used / Cache / Shared / Buff / Free: Shared = Shmem, Buff = Buffers,
+  Cache = max(Cached − Shmem, 0) + SReclaimable, Free = collector-reported MemFree, Used = remainder.
+  Free may include reclaimable ZFS ARC. Free → Shared → Buff → Cache are limited to remaining
+  MemTotal for inconsistent counters, with a tooltip note; zero total is unavailable.
+  Used differs from existing MemAvailable-based In use, Cache from the raw Cached card.
+  Every region tooltip explains its volume and includes all five values, including invisible ones.
+- RAM/Swap graphs have a 52-point minimum. Only Memory scrolls its entire vertical page when
+  its graphs/composition/statistics cannot fit, using the existing scrollbar. Sidebar/footer
+  remain fixed; horizontal metadata rules are unchanged. At 760×540, Swap plus compression
+  needs a 545-point virtual page and 132 points of scroll. Device/summary transitions reset it.
+  Graph-only summary omits composition. CPU probes and GPU layout remain unchanged.
 
 ## GPU monitoring (own adaptation, not measured)
 
