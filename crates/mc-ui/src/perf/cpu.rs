@@ -190,15 +190,12 @@ impl CpuPage {
                 .set_dataset_scaling(0, ScalingSettings::Stacking);
             self.thread_wise
                 .set_dataset_max_scale(0, 100. * cpu_count as f32);
-            self.thread_wise.set_dataset_opacity(0, 100. / 255.);
             self.thread_wise
                 .set_filled(0, FillingSettings::FillToBottom);
         } else {
             self.thread_wise
                 .set_dataset_scaling(0, ScalingSettings::Fixed);
             self.thread_wise.set_dataset_max_scale(0, 100.);
-            self.thread_wise
-                .set_dataset_opacity(0, 100. / 255. / cpu_count.max(1) as f32);
         }
     }
 

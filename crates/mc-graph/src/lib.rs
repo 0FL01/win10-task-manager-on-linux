@@ -26,32 +26,18 @@
 //! only translates cached shapes.
 
 use egui::epaint::{Mesh, PathStroke, Vertex, WHITE_UV};
-use egui::{
-    Color32, CornerRadius, Pos2, Rect, Response, Sense, Shape, Stroke, StrokeKind, Ui, Vec2,
-};
+use egui::{Color32, Pos2, Rect, Shape, Stroke, Ui, Vec2};
 
 pub use mc_graph_core::{
     Dataset, DatasetGroup, DatasetPoints, DatasetSettings, FillingSettings, MAX_DATA_POINTS,
     MIN_DATA_POINTS, RoundingSettings, ScalingSettings,
 };
 
-const GRAPH_RADIUS: f32 = 7.;
 /// Win10 style: the grid is the line colour mixed into white at this ratio
 const WIN10_GRID_MIX: f32 = 0.16;
 /// Win10 style: horizontal grid rows; vertical lines every 1/6 of the width (10 s of 60 s)
 const WIN10_GRID_ROWS: u32 = 10;
 const WIN10_GRID_COLUMNS: f32 = 6.;
-
-/// Visual style of a graph.
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
-pub enum GraphStyle {
-    /// Rounded outline, translucent fill and grid (former GNOME look)
-    #[default]
-    Rounded,
-    /// Win10 Task Manager look: square 1 px border, white background, opaque `fill` under a light
-    /// grid, 1 px line. `rect` passed to [`Graph::paint`] includes the border.
-    Win10 { fill: Color32 },
-}
 
 fn mix_white(color: Color32, ratio: f32) -> Color32 {
     let c = |v: u8| (255. - (255. - v as f32) * ratio).round() as u8;
@@ -64,31 +50,8 @@ fn pixel_rect(out: &mut Vec<Shape>, rect: Rect, color: Color32) {
     mesh.add_colored_rect(rect, color);
     out.push(Shape::mesh(mesh));
 }
-// 20% opacity for the gridline overlay
-const GRID_LINE_ALPHA: f32 = 51. / 255.;
-const GRID_VERTICAL_LINE_IDEAL_PIXEL_WIDTH: f32 = 60.;
-const GRID_HORIZONTAL_LINE_IDEAL_PIXEL_WIDTH: f32 = 50.;
 /// History length of every graph: one minute at the normal update speed.
 pub const DEFAULT_DATA_POINTS: u32 = 60;
-
-fn compute_line_count(pixel_size: f32, ideal_pix: f32, force_divisible: f32) -> u32 {
-    let raw_num_lines = pixel_size / ideal_pix;
-    let num_lines = if force_divisible > 1. {
-        (raw_num_lines / force_divisible).round() * force_divisible - 1.0
-    } else {
-        raw_num_lines.round()
-    };
-    num_lines.max(force_divisible - 1.0) as u32
-}
-
-fn with_alpha(color: Color32, alpha: f32) -> Color32 {
-    Color32::from_rgba_unmultiplied(
-        color.r(),
-        color.g(),
-        color.b(),
-        (alpha.clamp(0., 1.) * 255.).round() as u8,
-    )
-}
 
 /// Cached geometry: (key, fills under the grid, grid, data)
 type GeometryCache = (CacheKey, Vec<Shape>, Vec<Shape>, Vec<Shape>);
@@ -105,14 +68,13 @@ pub struct Graph {
     groups: Vec<DatasetGroup>,
 
     data_points: u32,
+    /// Line, border and (mixed into white) grid colour
     base_color: Color32,
-    scroll: bool,
+    /// Opaque area fill under the grid
+    fill: Color32,
     grid_visible: bool,
-    force_vertical_line_count_divisible_by: f32,
-    force_horizontal_line_count_divisible_by: f32,
 
     scroll_offset: u32,
-    style: GraphStyle,
 
     /// Bumped on every data or style change; invalidates the geometry cache.
     generation: u64,
@@ -131,12 +93,9 @@ impl Graph {
             groups: vec![],
             data_points: DEFAULT_DATA_POINTS,
             base_color: Color32::BLACK,
-            scroll: true,
+            fill: Color32::WHITE,
             grid_visible: true,
-            force_vertical_line_count_divisible_by: 1.,
-            force_horizontal_line_count_divisible_by: 2.,
             scroll_offset: 0,
-            style: GraphStyle::Rounded,
             generation: 0,
             cache: None,
         }
@@ -159,10 +118,6 @@ impl Graph {
         &mut self.groups
     }
 
-    pub fn data_points(&self) -> u32 {
-        self.data_points
-    }
-
     pub fn set_data_points(&mut self, count: u32) {
         if self.data_points != count {
             for group in self.groups.iter_mut() {
@@ -173,10 +128,6 @@ impl Graph {
         }
     }
 
-    pub fn base_color(&self) -> Color32 {
-        self.base_color
-    }
-
     pub fn set_base_color(&mut self, color: Color32) {
         if self.base_color != color {
             self.base_color = color;
@@ -184,20 +135,9 @@ impl Graph {
         }
     }
 
-    pub fn style(&self) -> GraphStyle {
-        self.style
-    }
-
-    pub fn set_style(&mut self, style: GraphStyle) {
-        if self.style != style {
-            self.style = style;
-            self.invalidate();
-        }
-    }
-
-    pub fn set_scroll(&mut self, scroll: bool) {
-        if self.scroll != scroll {
-            self.scroll = scroll;
+    pub fn set_fill(&mut self, fill: Color32) {
+        if self.fill != fill {
+            self.fill = fill;
             self.invalidate();
         }
     }
@@ -205,23 +145,6 @@ impl Graph {
     pub fn set_grid_visible(&mut self, visible: bool) {
         if self.grid_visible != visible {
             self.grid_visible = visible;
-            self.invalidate();
-        }
-    }
-
-    pub fn set_force_horizontal_line_count_divisible_by(&mut self, v: f32) {
-        self.force_horizontal_line_count_divisible_by = v;
-        self.invalidate();
-    }
-
-    pub fn set_force_vertical_line_count_divisible_by(&mut self, v: f32) {
-        self.force_vertical_line_count_divisible_by = v;
-        self.invalidate();
-    }
-
-    pub fn set_dashed(&mut self, index: usize, dashed: bool) {
-        if let Some(g) = self.groups.get_mut(index) {
-            g.dataset_settings.dashed = dashed;
             self.invalidate();
         }
     }
@@ -298,20 +221,6 @@ impl Graph {
         }
     }
 
-    pub fn set_dataset_rounding(&mut self, index: usize, rounder: RoundingSettings) {
-        if let Some(g) = self.groups.get_mut(index) {
-            g.dataset_settings.rounding_settings = rounder;
-            self.invalidate();
-        }
-    }
-
-    pub fn set_dataset_opacity(&mut self, index: usize, opacity: f32) {
-        if let Some(g) = self.groups.get_mut(index) {
-            g.dataset_settings.opacity = opacity;
-            self.invalidate();
-        }
-    }
-
     pub fn set_all_datasets_scaling(&mut self, scaler: ScalingSettings) {
         for g in self.groups.iter_mut() {
             g.dataset_settings.scaling_settings = scaler.clone();
@@ -354,13 +263,6 @@ impl Graph {
             .unwrap_or_default()
     }
 
-    pub fn set_dataset_min_scale(&mut self, index: usize, min: f32) {
-        if let Some(g) = self.groups.get_mut(index) {
-            g.dataset_settings.low_watermark = min;
-            self.invalidate();
-        }
-    }
-
     pub fn dataset_min_scale(&self, index: usize) -> f32 {
         self.groups
             .get(index)
@@ -399,19 +301,10 @@ impl Graph {
         true
     }
 
-    /// Draws the graph filling `size` (or the available space when `None`).
-    pub fn ui(&mut self, ui: &mut Ui, size: Vec2) -> Response {
-        let (rect, response) = ui.allocate_exact_size(size, Sense::hover());
-        if ui.is_rect_visible(rect) {
-            self.paint(ui, rect);
-        }
-        response
-    }
-
     pub fn paint(&mut self, ui: &Ui, rect: Rect) {
-        let win10 = matches!(self.style, GraphStyle::Win10 { .. });
-        // Win10: data and grid live inside the 1 px border
-        let area = if win10 { rect.shrink(1.) } else { rect };
+        // Square 1 px border, white background, opaque fill under a light grid, 1 px line; data
+        // and grid live inside the border (`rect` includes it)
+        let area = rect.shrink(1.);
         let size = area.size();
         if size.x < 1. || size.y < 1. {
             return;
@@ -425,7 +318,7 @@ impl Graph {
 
         let rebuild = !matches!(&self.cache, Some((k, ..)) if *k == key);
         if rebuild {
-            let (under, grid, data) = self.build_shapes(size, key.pixels_per_point);
+            let (under, grid, data) = self.build_shapes(size);
             self.cache = Some((key, under, grid, data));
         }
 
@@ -442,67 +335,36 @@ impl Graph {
             }
         };
 
-        if win10 {
-            let outer = ui.painter_at(rect);
-            let mut frame = vec![];
-            pixel_rect(&mut frame, rect, self.base_color);
-            pixel_rect(&mut frame, area, Color32::WHITE);
-            outer.extend(frame);
-            let painter = ui.painter_at(area);
-            add(&painter, under, origin);
-            add(&painter, grid, origin);
-            add(&painter, data, origin);
-            return;
-        }
-
-        let painter = ui.painter_at(rect);
+        let outer = ui.painter_at(rect);
+        let mut frame = vec![];
+        pixel_rect(&mut frame, rect, self.base_color);
+        pixel_rect(&mut frame, area, Color32::WHITE);
+        outer.extend(frame);
+        let painter = ui.painter_at(area);
+        add(&painter, under, origin);
         add(&painter, grid, origin);
         add(&painter, data, origin);
-
-        // Rounded "clip": mask the corners with the panel colour, then draw the outline
-        let bg = ui.visuals().panel_fill;
-        paint_corner_masks(&painter, rect, GRAPH_RADIUS, bg);
-        painter.rect_stroke(
-            rect.shrink(0.5),
-            CornerRadius::same(GRAPH_RADIUS as u8),
-            Stroke::new(1., self.base_color),
-            StrokeKind::Middle,
-        );
     }
 
-    fn build_shapes(
-        &self,
-        size: Vec2,
-        pixels_per_point: f32,
-    ) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
+    fn build_shapes(&self, size: Vec2) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
         let (width, height) = (size.x, size.y);
         let mut grid = vec![];
         if self.grid_visible {
-            match self.style {
-                GraphStyle::Rounded => self.build_grid(&mut grid, width, height, pixels_per_point),
-                GraphStyle::Win10 { .. } => self.build_win10_grid(&mut grid, width, height),
-            }
+            self.build_grid(&mut grid, width, height);
         }
 
         let mut under = vec![];
         let mut data = vec![];
         for group in &self.groups {
-            self.build_group(
-                &mut under,
-                &mut data,
-                group,
-                width,
-                height,
-                pixels_per_point,
-            );
+            self.build_group(&mut under, &mut data, group, width, height);
         }
 
         (under, grid, data)
     }
 
-    /// Win10 grid inside the border: rows at `ceil(k · (h + 1) / 10)` from the top border
+    /// Grid inside the border: rows at `ceil(k · (h + 1) / 10)` from the top border
     /// (measured on the reference), columns every width/6 scrolling with the data.
-    fn build_win10_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32) {
+    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32) {
         let color = mix_white(self.base_color, WIN10_GRID_MIX);
         let span = height + 1.;
         for k in 1..WIN10_GRID_ROWS {
@@ -517,7 +379,7 @@ impl Graph {
         }
         let col_width = width / WIN10_GRID_COLUMNS;
         let point_spacing = width * self.point_spacing_factor();
-        let offset = if self.scroll && col_width > 0. {
+        let offset = if col_width > 0. {
             (point_spacing as f64 * -(self.scroll_offset as f64)).rem_euclid(col_width as f64)
                 as f32
         } else {
@@ -537,53 +399,6 @@ impl Graph {
         }
     }
 
-    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32, pixels_per_point: f32) {
-        let color = with_alpha(self.base_color, GRID_LINE_ALPHA);
-        let stroke = Stroke::new(1. / pixels_per_point.max(1.), color);
-        let half = 0.5 / pixels_per_point.max(1.);
-
-        let horizontal_line_count = compute_line_count(
-            height,
-            GRID_HORIZONTAL_LINE_IDEAL_PIXEL_WIDTH,
-            self.force_horizontal_line_count_divisible_by,
-        ) + 1;
-        let vertical_line_count = compute_line_count(
-            width,
-            GRID_VERTICAL_LINE_IDEAL_PIXEL_WIDTH,
-            self.force_vertical_line_count_divisible_by,
-        ) + 1;
-
-        let point_spacing = width * self.point_spacing_factor();
-
-        let frame_height = height / horizontal_line_count as f32;
-        for i in 1..horizontal_line_count {
-            let y = (frame_height * i as f32).round() + half;
-            out.push(Shape::line_segment(
-                [Pos2::new(0., y), Pos2::new(width, y)],
-                stroke,
-            ));
-        }
-
-        let col_width = (width + point_spacing) / vertical_line_count as f32;
-        let scroll_offset = if self.scroll && col_width > 0. {
-            let raw = point_spacing as f64 * -(self.scroll_offset as f64);
-            raw.rem_euclid(col_width as f64) as f32
-        } else {
-            0.
-        };
-
-        for i in 0..=vertical_line_count {
-            let x = (col_width * i as f32 + scroll_offset - point_spacing).round() + half;
-            if x < 0. || x > width {
-                continue;
-            }
-            out.push(Shape::line_segment(
-                [Pos2::new(x, 0.), Pos2::new(x, height)],
-                stroke,
-            ));
-        }
-    }
-
     fn build_group(
         &self,
         under: &mut Vec<Shape>,
@@ -591,7 +406,6 @@ impl Graph {
         group: &DatasetGroup,
         width: f32,
         height: f32,
-        pixels_per_point: f32,
     ) {
         let Some(series) = group.geometry(width, height, self.point_spacing_factor()) else {
             return;
@@ -599,12 +413,6 @@ impl Graph {
 
         let settings = &group.dataset_settings;
         let stroke_color = self.base_color;
-        let (fill_color, fill_out_of_line) = match self.style {
-            GraphStyle::Rounded => (with_alpha(self.base_color, settings.opacity), false),
-            // Opaque fill, scaled down for secondary datasets (e.g. kernel time)
-            GraphStyle::Win10 { fill } => (fill, true),
-        };
-        let _ = pixels_per_point;
         let stroke_width = 1.;
 
         let baseline = match settings.fill {
@@ -633,12 +441,7 @@ impl Graph {
                     && (settings.scaling_settings != ScalingSettings::Stacking
                         || set_index == series_count - 1);
                 if fill {
-                    let mesh = Shape::mesh(area_mesh(&points, baseline, fill_color));
-                    if fill_out_of_line {
-                        under.push(mesh);
-                    } else {
-                        out.push(mesh);
-                    }
+                    under.push(Shape::mesh(area_mesh(&points, baseline, self.fill)));
                 }
 
                 if settings.dashed {
@@ -760,43 +563,6 @@ fn area_mesh(points: &[Pos2], baseline: f32, color: Color32) -> Mesh {
     mesh
 }
 
-/// Paints the area between the rectangle corners and the rounded outline, emulating a rounded
-/// clip (egui only clips to axis aligned rectangles).
-fn paint_corner_masks(painter: &egui::Painter, rect: Rect, radius: f32, color: Color32) {
-    const STEPS: usize = 6;
-    let corners = [
-        (rect.left_top(), Vec2::new(1., 1.)),
-        (rect.right_top(), Vec2::new(-1., 1.)),
-        (rect.left_bottom(), Vec2::new(1., -1.)),
-        (rect.right_bottom(), Vec2::new(-1., -1.)),
-    ];
-
-    for (corner, dir) in corners {
-        let center = corner + Vec2::new(dir.x * radius, dir.y * radius);
-        let mut mesh = Mesh::default();
-        mesh.vertices.push(Vertex {
-            pos: corner,
-            uv: WHITE_UV,
-            color,
-        });
-        for s in 0..=STEPS {
-            let angle = std::f32::consts::FRAC_PI_2 * s as f32 / STEPS as f32;
-            let p =
-                center + Vec2::new(-dir.x * radius * angle.cos(), -dir.y * radius * angle.sin());
-            mesh.vertices.push(Vertex {
-                pos: p,
-                uv: WHITE_UV,
-                color,
-            });
-        }
-        for s in 1..=STEPS as u32 {
-            mesh.add_triangle(0, s, s + 1);
-        }
-        painter.add(Shape::mesh(mesh));
-    }
-}
-
-/// Settings shared by every graph on the performance page.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -812,13 +578,6 @@ mod tests {
     }
 
     #[test]
-    fn line_counts_match_gtk() {
-        assert_eq!(compute_line_count(300., 60., 1.), 5);
-        assert_eq!(compute_line_count(200., 50., 2.), 3);
-        assert_eq!(compute_line_count(10., 50., 2.), 1);
-    }
-
-    #[test]
     fn data_changes_invalidate_cache() {
         let mut g = graph_with(&[1., 2.]);
         let before = g.generation();
@@ -829,9 +588,9 @@ mod tests {
     #[test]
     fn shapes_cover_fill_and_line() {
         let g = graph_with(&[10., 50., 90.]);
-        let (_, grid, data) = g.build_shapes(Vec2::new(200., 100.), 1.);
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.));
         assert!(!grid.is_empty());
-        assert!(data.iter().any(|s| matches!(s, Shape::Mesh(_))));
+        assert!(under.iter().any(|s| matches!(s, Shape::Mesh(_))));
         assert!(data.iter().any(|s| matches!(s, Shape::Path(_))));
     }
 
@@ -840,8 +599,8 @@ mod tests {
         let mut g = graph_with(&[10., 50.]);
         g.set_data_visible(0, false);
         g.set_grid_visible(false);
-        let (_, grid, data) = g.build_shapes(Vec2::new(200., 100.), 1.);
-        assert!(grid.is_empty() && data.is_empty());
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.));
+        assert!(under.is_empty() && grid.is_empty() && data.is_empty());
     }
 
     #[test]
@@ -871,13 +630,9 @@ mod tests {
     #[test]
     fn win10_grid_rows_match_reference() {
         // Reference: graph border rows 151 and 305, grid rows at 167, 182, …, 290
-        let mut g = graph_with(&[0.5; 10]);
-        g.set_style(GraphStyle::Win10 {
-            fill: Color32::WHITE,
-        });
-        g.set_scroll(false);
+        let g = graph_with(&[0.5; 10]);
         let mut grid = vec![];
-        g.build_win10_grid(&mut grid, 378., 153.);
+        g.build_grid(&mut grid, 378., 153.);
         let rows: Vec<f32> = grid
             .iter()
             .filter_map(|s| match s {
@@ -894,10 +649,8 @@ mod tests {
     #[test]
     fn win10_fill_goes_under_the_grid() {
         let mut g = graph_with(&[0.2, 0.4, 0.6]);
-        g.set_style(GraphStyle::Win10 {
-            fill: Color32::LIGHT_BLUE,
-        });
-        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.), 1.);
+        g.set_fill(Color32::LIGHT_BLUE);
+        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.));
         assert!(!under.is_empty());
         assert!(data.iter().all(|s| !matches!(s, Shape::Mesh(_))));
     }

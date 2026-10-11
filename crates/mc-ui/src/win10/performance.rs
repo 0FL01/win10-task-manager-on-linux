@@ -24,7 +24,7 @@
 use egui::{Align, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
 use mc_core::i18n::i18n;
 use mc_core::sidebar::DeviceType;
-use mc_graph::{Graph, GraphStyle};
+use mc_graph::Graph;
 
 use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
@@ -67,7 +67,7 @@ pub fn device_colors(kind: DeviceType) -> pal::DeviceColors {
 
 fn style_graph(graph: &mut Graph, colors: pal::DeviceColors) {
     graph.set_base_color(colors.line);
-    graph.set_style(GraphStyle::Win10 { fill: colors.fill });
+    graph.set_fill(colors.fill);
 }
 
 #[derive(Default)]

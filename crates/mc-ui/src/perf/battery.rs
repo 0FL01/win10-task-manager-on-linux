@@ -161,7 +161,6 @@ impl BatteryPage {
             d.dataset_settings.fill = FillingSettings::FillToZero;
             d.dataset_settings.rounding_settings = RoundingSettings::Pow10;
             rate_graph.add_dataset(d);
-            rate_graph.set_force_horizontal_line_count_divisible_by(2.);
         } else {
             let mut d = DatasetGroup::new();
             d.dataset_settings.high_watermark = 1.;
@@ -245,14 +244,12 @@ impl BatteryPage {
         let mut interpol = DatasetGroup::new_with_datas(vec![his_interpol]);
         interpol.dataset_settings.high_watermark = 1.;
         interpol.dataset_settings.dashed = true;
-        interpol.dataset_settings.opacity = 0.1;
         interpol.dataset_settings.vertical_dropoff_lines = false;
 
         let g = &mut self.history_graph;
         g.clear_datasets();
         g.set_data_points(TOTAL_SECS as u32);
         g.add_dataset(main);
-        g.set_force_vertical_line_count_divisible_by(7.);
         g.add_dataset(interpol);
         for group in g.groups_mut() {
             for set in group.datas.iter_mut() {
