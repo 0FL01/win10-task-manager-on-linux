@@ -45,6 +45,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `cargo fmt --all --check` — nonmutating formatting check.
 - `cargo test --workspace` — includes local graph core and xtask, Win10 pixel probes (`tests/win10_probes.rs`) and offscreen snapshots (needs a wgpu adapter); renders go to `target/ui-snapshots/`.
 - The native-release CI pins Rust 1.96.1 and runs `cargo clippy --locked --workspace --all-targets -- -D warnings`. Before push, run Clippy with that exact toolchain and fix every diagnostic; fmt/tests or Clippy on another toolchain do not substitute, and do not silence a lint without a documented reason.
+- After every push, use GitHub Actions tools to wait for CI/CD on the pushed SHA and verify all required jobs and expected artifacts/releases; only then report success.
 - Backend edits: `cargo fmt --manifest-path subprojects/magpie/Cargo.toml --all --check`; `cargo test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform-linux -p magpie-types --locked --release` (not included in root `--workspace`).
 - `cargo run -p taskmanager-app -- --synthetic 300` — run without the daemon (glow renderer by default, `--renderer wgpu` optional); `cargo xtask run-dev` — run with the real magpie.
 - `cargo xtask bench-idle` — egui wgpu/glow idle and synthetic-table benchmarks (see `perf/README.md`).
