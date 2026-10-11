@@ -29,7 +29,7 @@ fn run(cmd: &mut Command) -> Result<(), String> {
 pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
     let target = root.join("target/magpie");
     run(Command::new("cargo")
-        .args(["build", "--release", "--manifest-path"])
+        .args(["build", "--locked", "--release", "--manifest-path"])
         .arg(root.join("subprojects/magpie/Cargo.toml"))
         .arg("--target-dir")
         .arg(&target))?;
@@ -183,7 +183,7 @@ pub fn install(args: &[String]) -> Result<(), String> {
         let locale_dir = prefix.join("share/locale");
         run(Command::new("cargo")
             .current_dir(&root)
-            .args(["build", "--release", "-p", "taskmanager-app"])
+            .args(["build", "--locked", "--release", "-p", "taskmanager-app"])
             .env("MC_LOCALEDIR", &locale_dir))?;
 
         mkdir(&base.join("bin"))?;

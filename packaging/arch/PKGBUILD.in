@@ -1,0 +1,21 @@
+pkgname=taskmanager
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc='Task Manager based on Mission Center for processes and performance'
+arch=('x86_64')
+url='https://github.com/0FL01/win10-task-manager-on-linux'
+license=('GPL-3.0-or-later' 'OFL-1.1' 'MIT' 'LGPL-2.1-or-later' 'GPL-3.0-with-GCC-exception-3.1')
+depends=('gcc-libs' 'libx11' 'libxcb' 'libxcursor' 'libxi' 'libxkbcommon' 'libxkbcommon-x11'
+         'wayland' 'libglvnd' 'vulkan-icd-loader' 'mesa' 'hicolor-icon-theme')
+conflicts=('missioncenter' 'mission-center')
+options=('!strip')
+source=()
+sha256sums=()
+
+package() {
+    cp -a "${TASKMANAGER_STAGE}/." "${pkgdir}/"
+    install -Dm644 "${TASKMANAGER_ROOT}/COPYING" \
+        "${pkgdir}/usr/share/licenses/taskmanager/COPYING"
+    install -Dm644 "${TASKMANAGER_ROOT}/crates/mc-ui/assets/fonts/OFL.txt" \
+        "${pkgdir}/usr/share/licenses/taskmanager/Selawik-OFL.txt"
+}

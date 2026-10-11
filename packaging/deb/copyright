@@ -1,0 +1,34 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Task Manager
+Source: https://github.com/0FL01/win10-task-manager-on-linux
+Upstream-Contact: Task Manager Developers
+
+Files: *
+Copyright: 2026 Task Manager Developers
+           2023-2026 Mission Center Developers
+License: GPL-3.0-or-later
+ Task Manager is based on Mission Center. It includes the Mission Center statistics
+ backend (magpie), ported application logic, translations and graph data code. The
+ Mission Center Developers' copyright notices and attribution are retained.
+ .
+ The complete GNU General Public License version 3 text is installed as
+ /usr/share/doc/taskmanager/COPYING. On Debian systems it is also available in
+ /usr/share/common-licenses/GPL-3.
+
+Files: crates/mc-ui/assets/fonts/*
+Copyright: 2015 Microsoft Corporation
+License: OFL-1.1
+ Selawik is distributed under the SIL Open Font License 1.1. The complete license
+ text is installed as /usr/share/doc/taskmanager/Selawik-OFL.txt.
+
+Files: usr/lib/taskmanager/gpu/*.so.* usr/lib/taskmanager/gpu/manifest.json
+Copyright: See the corresponding bundled library notices
+License: see bundled notices
+ The private open GPU userspace libraries retain their source, version, checksum,
+ license and notice provenance in /usr/lib/taskmanager/gpu/manifest.json and the
+ corresponding files under /usr/lib/taskmanager/gpu/licenses/.
+
+Files: usr/lib/taskmanager/gpu/licenses/*
+Copyright: See the corresponding upstream notices
+License: see bundled notices
+ These are the matching license notices for the private GPU libraries listed above.

@@ -1,0 +1,16 @@
+Package: taskmanager
+Version: @VERSION@
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Task Manager Developers <0FL01@users.noreply.github.com>
+Homepage: https://github.com/0FL01/win10-task-manager-on-linux
+Depends: libc6, libgcc-s1, libwayland-client0, libwayland-egl1,
+ libx11-6, libx11-xcb1, libxcursor1, libxi6, libxcb1,
+ libxkbcommon0, libxkbcommon-x11-0, libgl1, libegl1,
+ libvulkan1, mesa-vulkan-drivers, hicolor-icon-theme
+Conflicts: missioncenter, mission-center
+Description: Task Manager for processes, performance, details and services
+ Task Manager monitors system resources and services in a familiar tabbed interface.
+ It is based on Mission Center and retains its statistics backend (magpie) and
+ attribution to the Mission Center Developers.

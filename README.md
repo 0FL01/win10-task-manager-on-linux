@@ -43,8 +43,14 @@ it does not follow the system light/dark preference or system-defined stylesheet
 
 ## Installing
 
-Task Manager is built from source (see below). On Fedora, `cargo xtask rpm` builds an RPM package
-(`taskmanager`, which replaces earlier builds of this project packaged as `missioncenter`).
+Native packages are published in [GitHub Releases](https://github.com/0FL01/win10-task-manager-on-linux/releases)
+for Fedora 44 (`.rpm`), openSUSE Tumbleweed (`.rpm`), Arch Linux (`.pkg.tar.zst`), Debian 13 (`.deb`)
+and Ubuntu 26.04 (`.deb`, x86_64). Builds run on every branch push; only successful `main` builds are
+released. The application patch version increases for each workflow run, so gaps are expected when
+other branches or failed runs consume version numbers. The packages replace/conflict with older
+Mission Center package names where they install the same `missioncenter-magpie` daemon.
+
+For local Fedora development, `cargo xtask rpm` still builds an RPM using the current workspace version.
 
 Settings live in `~/.config/taskmanager/config.toml`; settings of earlier builds
 (`~/.config/missioncenter/config.toml`) are copied on the first start.

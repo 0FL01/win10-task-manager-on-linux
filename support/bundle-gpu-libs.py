@@ -137,12 +137,29 @@ def paragraphs(text):
         yield fields
 
 
-def package_metadata(root, path):
+def pacman_fields(text):
+    fields = {}
+    current = None
+    for line in text.splitlines():
+        if line.startswith("%") and line.endswith("%") and len(line) > 2:
+            current = line[1:-1]
+            fields.setdefault(current, [])
+        elif current is not None and line:
+            fields[current].append(line)
+    return fields
+
+
+def package_metadata(root, path, package_path=None):
+    # `path` may already be the resolved target of a SONAME symlink. Keep the
+    # resolved name for existing package managers, and retain the lookup name
+    # separately for pacman's file list, which may assign the SONAME symlink.
     virtual = "/" + str(path.relative_to(root))
-    status = root / "var/lib/dpkg/status"
+    lookup_virtual = (virtual if package_path is None else
+                      "/" + os.path.normpath("/" + str(package_path).lstrip("/")).lstrip("/"))
+    status = in_root(root, "/var/lib/dpkg/status")
     if status.is_file():
         packages = {p.get("Package"): p for p in paragraphs(status.read_text())}
-        for listing in sorted((root / "var/lib/dpkg/info").glob("*.list")):
+        for listing in sorted(in_root(root, "/var/lib/dpkg/info").glob("*.list")):
             if virtual not in listing.read_text().splitlines():
                 continue
             package = listing.name[:-5].split(":")[0]
@@ -153,7 +170,7 @@ def package_metadata(root, path):
                 "package": package, "license_expression": "see Debian copyright",
                 "licenses": [f"/usr/share/doc/{package}/copyright"],
             }
-    apk = root / "lib/apk/db/installed"
+    apk = in_root(root, "/lib/apk/db/installed")
     if apk.is_file():
         for entry in apk.read_text().split("\n\n"):
             info = next(paragraphs(entry))
@@ -177,9 +194,86 @@ def package_metadata(root, path):
                     "licenses": ["/" + str(p.relative_to(root)) for p in sorted(notices.rglob("*"))
                                  if p.is_file()] if notices.is_dir() else [],
                 }
+
+    pacman_virtual = "/var/lib/pacman/local"
+    pacman = in_root(root, pacman_virtual)
+    if pacman.is_dir():
+        for desc in sorted(pacman.glob("*/desc")):
+            package_db = desc.parent.name
+            desc_virtual = f"{pacman_virtual}/{package_db}/desc"
+            desc_path = in_root(root, desc_virtual)
+            if not desc_path.is_file():
+                continue
+            fields = pacman_fields(desc_path.read_text())
+            files_virtual = f"{pacman_virtual}/{package_db}/files"
+            file_list = in_root(root, files_virtual)
+            if not file_list.is_file():
+                continue
+            entries = pacman_fields(file_list.read_text()).get("FILES", [])
+            owned = any(
+                not entry.endswith("/")
+                and os.path.normpath("/" + entry.lstrip("/")) in (lookup_virtual, virtual)
+                for entry in entries
+            )
+            if not owned:
+                continue
+
+            values = {name: field[0] if field else "" for name, field in fields.items()}
+            package = values.get("NAME", "")
+            version = values.get("VERSION", "")
+            base = values.get("BASE") or package
+            license_values = fields.get("LICENSE", [])
+            notices = []
+            seen = set()
+
+            def add_notice(notice):
+                if notice not in seen:
+                    seen.add(notice)
+                    notices.append(notice)
+
+            # Binary package and source-base license directories can both
+            # contain notices, especially when a split package is installed.
+            for owner in dict.fromkeys((package, base)):
+                if not owner or Path(owner).name != owner:
+                    continue
+                directory = in_root(root, f"/usr/share/licenses/{owner}")
+                if directory.is_dir():
+                    for notice in sorted(directory.rglob("*")):
+                        relative_notice = notice.relative_to(directory)
+                        notice_virtual = f"/usr/share/licenses/{owner}/{relative_notice}"
+                        if in_root(root, notice_virtual).is_file():
+                            add_notice(notice_virtual)
+
+            # Pacman's license array uses SPDX identifiers; preserve declared
+            # expression text while bundling matching standard license and
+            # exception texts when the distribution includes them.
+            for license_value in license_values:
+                exception = False
+                for identifier in re.findall(r"[A-Za-z0-9][A-Za-z0-9.+-]*", license_value):
+                    if identifier in ("AND", "OR"):
+                        continue
+                    if identifier == "WITH":
+                        exception = True
+                        continue
+                    location = (f"/usr/share/licenses/spdx/exceptions/{identifier}.txt"
+                                if exception else f"/usr/share/licenses/spdx/{identifier}.txt")
+                    exception = False
+                    standard = in_root(root, location)
+                    if standard.is_file():
+                        add_notice(location)
+
+            source = f"pacman-source:{base}@{version}"
+            if values.get("URL"):
+                source += f" {values['URL']}"
+            return {
+                "package": package, "version": version, "source": source,
+                "license_expression": " AND ".join(license_values), "licenses": notices,
+            }
+
     # Query only the selected sysroot's database, never the builder's database
     # for a foreign rootfs. RPM file flags identify notices, not arbitrary docs.
-    if root == Path("/") or any((root / p).exists() for p in ("usr/lib/sysimage/rpm", "var/lib/rpm")):
+    if any(in_root(root, f"/{p}").exists()
+           for p in ("usr/lib/sysimage/rpm", "var/lib/rpm")):
         rpm = ["rpm", "--root", str(root)]
         values = run(*rpm, "-qf", virtual, "--qf",
                      "%{NAME}\t%{VERSION}-%{RELEASE}\t%{SOURCERPM}\t%{URL}\t%{LICENSE}\n").splitlines()[0].split("\t")
@@ -335,18 +429,21 @@ def main():
             if Path(name).name != name:
                 raise ValueError(f"non-SONAME dependency: {name}")
             path = None
+            package_path = None
             for search in roots:
-                candidate = in_root(root, Path(search) / name)
+                lookup_path = Path(search) / name
+                candidate = in_root(root, lookup_path)
                 if candidate.is_file():
                     check_library(candidate, name, architecture)
                     path = candidate
+                    package_path = lookup_path
                     break
             if path is None:
                 raise ValueError(f"missing mandatory library {name} in sysroot {root}, roots {roots}")
             info = elf(path)
             metadata = overrides.get(name, {})
             if not metadata.get("version") or not metadata.get("source"):
-                metadata = {**package_metadata(root, path), **metadata}
+                metadata = {**package_metadata(root, path, package_path), **metadata}
             if not metadata.get("version") or not metadata.get("source"):
                 raise ValueError(f"missing actual source/version for {name}")
             licenses = metadata.get("licenses", []) + extra_licenses.get(name, [])

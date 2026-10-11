@@ -24,12 +24,41 @@ Conflicts:      mission-center
 BuildRequires:  python3
 BuildRequires:  binutils
 
-# Loaded at run time (dlopen) by the egui/eframe front-end
-Requires:       libwayland-client
+# Loaded at run time (dlopen) by the egui/eframe front-end. Package names differ on
+# openSUSE; keep its library names out of Fedora's native dependency set.
+%if 0%{?suse_version}
+Requires:       libX11-6
+Requires:       libX11-xcb1
+Requires:       libXcursor1
+Requires:       libXi6
+Requires:       libxcb1
+Requires:       libxkbcommon0
+Requires:       libxkbcommon-x11-0
+Requires:       libwayland-client0
+Requires:       libwayland-egl1
+Requires:       Mesa-libGL1
+Requires:       Mesa-libEGL1
+Requires:       libvulkan1
+Requires:       Mesa-dri
+Requires:       libvulkan_intel
+Requires:       libvulkan_radeon
+Requires:       libvulkan_lvp
+%else
+Requires:       libX11
+Requires:       libX11-xcb
+Requires:       libXcursor
+Requires:       libXi
+Requires:       libxcb
 Requires:       libxkbcommon
+Requires:       libxkbcommon-x11
+Requires:       libwayland-client
+Requires:       libwayland-egl
+Requires:       libglvnd-glx
+Requires:       libglvnd-egl
 Requires:       vulkan-loader
 Requires:       mesa-vulkan-drivers
 Requires:       mesa-libEGL
+%endif
 Requires:       hicolor-icon-theme
 
 %description
