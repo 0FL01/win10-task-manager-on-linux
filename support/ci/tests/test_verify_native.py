@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class VerifyNativeTests(unittest.TestCase):
-    def install_arguments(self, distro, manager):
+    def install_arguments(self, distro, manager, *, helpers=False):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             package = root / "taskmanager.pkg"
@@ -21,6 +21,8 @@ class VerifyNativeTests(unittest.TestCase):
                 f"#!{sys.executable}\n"
                 "import json, pathlib, sys\n"
                 "args = sys.argv[1:]\n"
+                f"if {helpers!r} and {str(package)!r} in args:\n"
+                "    raise SystemExit(0)\n"
                 "if 'install' not in args and '-U' not in args:\n"
                 "    raise SystemExit(0)\n"
                 "result = {'args': args}\n"
@@ -30,8 +32,18 @@ class VerifyNativeTests(unittest.TestCase):
                 "raise SystemExit(79)\n"
             )
             command.chmod(0o755)
+            arguments = ["bash", str(ROOT / "support/ci/verify-native.sh"), distro, str(package), "1.2.7"]
+            if helpers:
+                # Skip installed-host probes; stop at the helper install, before private ABI/GUI checks.
+                arguments = [
+                    "bash", "-c",
+                    "rpm() { printf '%s\\n' '1.2.7-1.tw'; }; "
+                    "test() { return 0; }; grep() { return 0; }; ldconfig() { return 0; }; "
+                    'export -f rpm test grep ldconfig; exec "$@"',
+                    "verify-helpers", *arguments,
+                ]
             result = subprocess.run(
-                ["bash", str(ROOT / "support/ci/verify-native.sh"), distro, str(package), "1.2.7"],
+                arguments,
                 env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}"},
                 capture_output=True,
                 text=True,
@@ -50,6 +62,13 @@ class VerifyNativeTests(unittest.TestCase):
             result["config"],
             "[options]\nInclude = /etc/pacman.conf\n[options]\nNoExtract = !usr/share/locale/*\n",
         )
+
+    def test_opensuse_helpers_include_xvfb_dependencies_and_session_daemon(self):
+        result = self.install_arguments("opensuse-tumbleweed", "zypper", helpers=True)
+        self.assertIn("gawk", result["args"])
+        self.assertIn("dbus-1-daemon", result["args"])
+        self.assertIn("xvfb-run", result["args"])
+        self.assertNotIn("--allow-unsigned-rpm", result["args"])
 
 
 if __name__ == "__main__":

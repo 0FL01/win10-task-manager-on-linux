@@ -78,7 +78,7 @@ case $distro in
         dnf install -y binutils dbus-x11 python3 xorg-x11-server-Xvfb xorg-x11-xauth mesa-dri-drivers mesa-vulkan-drivers
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install binutils dbus-1 python3 xorg-x11-server xvfb-run xauth Mesa-dri libvulkan_lvp
+        zypper --non-interactive install binutils dbus-1-daemon gawk python3 xorg-x11-server xvfb-run xauth Mesa-dri libvulkan_lvp
         ;;
     arch)
         pacman -S --needed --noconfirm binutils dbus python xorg-server-xvfb xorg-xauth mesa vulkan-swrast
