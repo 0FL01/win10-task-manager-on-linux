@@ -118,7 +118,7 @@ run_gui() {
         args+=(--synthetic 300)
     fi
     if ! timeout --signal=TERM --kill-after=5s 45s \
-        xvfb-run -a dbus-run-session -- env \
+        xvfb-run -a -s '-screen 0 1280x1024x24' dbus-run-session -- env \
             HOME="$tmp" XDG_CONFIG_HOME="$tmp/config" XDG_CACHE_HOME="$tmp/cache" \
             XDG_DATA_HOME="$tmp/data" MC_MAGPIE_HW_DB=/usr/share/missioncenter/hw.db \
             LIBGL_ALWAYS_SOFTWARE=1 RUST_LOG=debug \

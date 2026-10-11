@@ -70,6 +70,28 @@ class VerifyNativeTests(unittest.TestCase):
         self.assertIn("xvfb-run", result["args"])
         self.assertNotIn("--allow-unsigned-rpm", result["args"])
 
+    def test_gui_smoke_uses_truecolor_screen_instead_of_distribution_default(self):
+        script = (ROOT / "support/ci/verify-native.sh").read_text()
+        definition = script[script.index("run_gui() {"):script.index("\nrun_gui glow synthetic")]
+        with tempfile.TemporaryDirectory() as temporary:
+            result = subprocess.run(
+                ["bash", "-c", """
+timeout() {
+    "$VERIFY_TEST_PYTHON" -c 'import json, sys; print(json.dumps(sys.argv[1:]))' "$@"
+    return 79
+}
+tmp=$VERIFY_TEST_TMPDIR
+""" + definition + "\nrun_gui glow synthetic"],
+                env={**os.environ, "VERIFY_TEST_PYTHON": sys.executable, "VERIFY_TEST_TMPDIR": temporary},
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stderr)
+            arguments = json.loads((Path(temporary) / "glow-synthetic.log").read_text())
+            self.assertIn("xvfb-run", arguments)
+            self.assertIn("-s", arguments)
+            self.assertEqual(arguments[arguments.index("-s") + 1], "-screen 0 1280x1024x24")
+
 
 if __name__ == "__main__":
     unittest.main()
