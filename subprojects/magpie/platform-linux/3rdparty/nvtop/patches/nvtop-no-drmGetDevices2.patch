@@ -1,0 +1,39 @@
+diff --git a/src/extract_gpuinfo_amdgpu.c b/src/extract_gpuinfo_amdgpu.c
+index d0ff539..65d55c2 100644
+--- a/src/extract_gpuinfo_amdgpu.c
++++ b/src/extract_gpuinfo_amdgpu.c
+@@ -54,7 +54,7 @@ const char *amdgpu_parse_marketing_name(struct amdgpu_gpu_info *info);
+ 
+ // Local function pointers to DRM interface
+ static typeof(drmGetDevices) *_drmGetDevices;
+-static typeof(drmGetDevices2) *_drmGetDevices2;
++static typeof(int(uint32_t, drmDevicePtr *, int)) *_drmGetDevices2;
+ static typeof(drmFreeDevices) *_drmFreeDevices;
+ static typeof(drmGetVersion) *_drmGetVersion;
+ static typeof(drmFreeVersion) *_drmFreeVersion;
+diff --git a/src/extract_gpuinfo_msm.c b/src/extract_gpuinfo_msm.c
+index f05b7fe..a84f6ca 100644
+--- a/src/extract_gpuinfo_msm.c
++++ b/src/extract_gpuinfo_msm.c
+@@ -103,7 +103,7 @@ static const char *local_error_string = didnt_call_gpuinfo_init;
+ 
+ // Local function pointers to DRM interface
+ static typeof(drmGetDevices) *_drmGetDevices;
+-static typeof(drmGetDevices2) *_drmGetDevices2;
++static typeof(int(uint32_t, drmDevicePtr *, int)) *_drmGetDevices2;
+ static typeof(drmFreeDevices) *_drmFreeDevices;
+ static typeof(drmGetVersion) *_drmGetVersion;
+ static typeof(drmFreeVersion) *_drmFreeVersion;
+diff --git a/src/mali_common.h b/src/mali_common.h
+index dd3f167..a25cf2e 100644
+--- a/src/mali_common.h
++++ b/src/mali_common.h
+@@ -33,7 +33,7 @@ extern int drmGetDeviceFromDevId(dev_t dev_id, uint32_t flags, drmDevicePtr *dev
+ 
+ struct drmFuncTable {
+   typeof(drmGetDevices) *drmGetDevices;
+-  typeof(drmGetDevices2) *drmGetDevices2;
++  typeof(int(uint32_t, drmDevicePtr *, int)) *drmGetDevices2;
+   typeof(drmFreeDevices) *drmFreeDevices;
+   typeof(drmGetVersion) *drmGetVersion;
+   typeof(drmFreeVersion) *drmFreeVersion;

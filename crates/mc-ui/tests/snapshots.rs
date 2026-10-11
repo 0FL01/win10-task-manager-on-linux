@@ -31,6 +31,7 @@ struct State {
     legacy: bool,
     /// Per-process network data unavailable (as reported without nethogs)
     no_network: bool,
+    gpu: bool,
 }
 
 fn series(no_network: bool) -> Vec<mc_magpie::Readings> {
@@ -61,6 +62,30 @@ fn render(
             |ui, state: &mut State| {
                 if state.app.is_none() {
                     let ctx = ui.ctx().clone();
+                    let mut config = if state.legacy {
+                        Config {
+                            window_selected_page: state.page.into(),
+                            first_time_running: false,
+                            window_width: 600,
+                            window_height: 400,
+                            performance_page_cpu_graph: 1,
+                            performance_page_cpu_graph_bottom: 1,
+                            layout_version: 0,
+                            ..Default::default()
+                        }
+                    } else {
+                        Config {
+                            window_selected_page: state.page.into(),
+                            first_time_running: false,
+                            ..Default::default()
+                        }
+                    };
+                    if state.gpu {
+                        config.performance_selected_page = "gpu-0000:01:00.0".into();
+                        config.details_page_visible_columns =
+                            "name;pid;cpu;gpu;gpu_engine;dedicated_gpu_memory;shared_gpu_memory"
+                                .into();
+                    }
                     state.app = Some(App::new(
                         &ctx,
                         AppOptions {
@@ -68,24 +93,7 @@ fn render(
                             config_path: None,
                             perf_overlay: false,
                             fonts: Default::default(),
-                            initial_config: Some(if state.legacy {
-                                Config {
-                                    window_selected_page: state.page.into(),
-                                    first_time_running: false,
-                                    window_width: 600,
-                                    window_height: 400,
-                                    performance_page_cpu_graph: 1,
-                                    performance_page_cpu_graph_bottom: 1,
-                                    layout_version: 0,
-                                    ..Default::default()
-                                }
-                            } else {
-                                Config {
-                                    window_selected_page: state.page.into(),
-                                    first_time_running: false,
-                                    ..Default::default()
-                                }
-                            }),
+                            initial_config: Some(config),
                         },
                     ));
                     if let Some(dialog) = state.dialog.take() {
@@ -104,6 +112,7 @@ fn render(
                 dialog,
                 legacy: name.starts_with("legacy"),
                 no_network: name.starts_with("no-network"),
+                gpu: name.starts_with("gpu-"),
             },
         );
 
@@ -117,6 +126,16 @@ fn render(
     }
     std::thread::sleep(std::time::Duration::from_millis(300));
     harness.run_steps(8);
+    if name == "gpu-performance" {
+        for _ in 0..22 {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            harness.run_steps(1);
+        }
+    }
+    if name == "gpu-summary" {
+        harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
+        harness.run_steps(2);
+    }
 
     let image = harness.render().expect("offscreen wgpu render unavailable");
     image.save(out_dir().join(format!("{name}.png"))).unwrap();
@@ -185,4 +204,18 @@ fn min_size_processes() {
 #[test]
 fn no_network_data_processes() {
     render("no-network-processes", "apps-page", (1030., 705.), 1., None);
+}
+
+#[test]
+fn gpu_views_render_with_engine_choices_and_memory() {
+    render("gpu-processes", "apps-page", (1030., 705.), 1., None);
+    render("gpu-details", "details-page", (1030., 705.), 1., None);
+    render(
+        "gpu-performance",
+        "performance-page",
+        (1030., 705.),
+        1.,
+        None,
+    );
+    render("gpu-summary", "performance-page", (400., 380.), 1., None);
 }

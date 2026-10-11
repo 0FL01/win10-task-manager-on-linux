@@ -166,7 +166,7 @@ fn random_string<const CAP: usize>() -> ArrayString<CAP> {
 }
 
 fn magpie_command(socket_addr: &str) -> std::process::Command {
-    fn executable() -> String {
+    fn executable() -> std::path::PathBuf {
         let exe_simple = "missioncenter-magpie".to_owned();
 
         if is_flatpak() {
@@ -185,7 +185,7 @@ fn magpie_command(socket_addr: &str) -> std::process::Command {
                     "Magpie executable name: {}",
                     &exe_glibc
                 );
-                return exe_glibc;
+                return exe_glibc.into();
             }
 
             let cmd_musl_status = cmd_flatpak_host!(&format!(
@@ -201,7 +201,30 @@ fn magpie_command(socket_addr: &str) -> std::process::Command {
                     "Magpie executable name: {}",
                     &exe_musl
                 );
-                return exe_musl;
+                return exe_musl.into();
+            }
+        }
+
+        // Installed/portable builds keep their matching daemon beside the UI.
+        // PATH is useful only when running the UI from a Cargo development tree.
+        if !is_flatpak() {
+            if let Ok(current) = std::env::current_exe() {
+                if let Some(directory) = current.parent() {
+                    let sibling = directory.join(&exe_simple);
+                    let development_tree = directory
+                        .file_name()
+                        .is_some_and(|name| name == "debug" || name == "release");
+                    // A missing installed sibling is an incomplete installation;
+                    // spawning its absolute path reports that error directly.
+                    if sibling.is_file() || !development_tree {
+                        g_debug!(
+                            "TaskManager::Gatherer",
+                            "Magpie executable name: {}",
+                            sibling.display()
+                        );
+                        return sibling;
+                    }
+                }
             }
         }
 
@@ -211,7 +234,7 @@ fn magpie_command(socket_addr: &str) -> std::process::Command {
             &exe_simple
         );
 
-        exe_simple
+        exe_simple.into()
     }
 
     let mut command = if is_flatpak() {
@@ -332,7 +355,10 @@ fn make_request(
     {
         match error_code {
             nng::NNG_EAGAIN => {
-                g_critical!("TaskManager::Gatherer","Failed to send request: The operation would block, but NNG_FLAG_NONBLOCK was specified");
+                g_critical!(
+                    "TaskManager::Gatherer",
+                    "Failed to send request: The operation would block, but NNG_FLAG_NONBLOCK was specified"
+                );
             }
             nng::NNG_ECLOSED => {
                 g_critical!(
@@ -392,7 +418,10 @@ fn make_request(
         Err(error_code) => {
             match error_code {
                 nng::NNG_EAGAIN => {
-                    g_critical!("TaskManager::Gatherer","Failed to read message: The operation would block, but NNG_FLAG_NONBLOCK was specified");
+                    g_critical!(
+                        "TaskManager::Gatherer",
+                        "Failed to read message: The operation would block, but NNG_FLAG_NONBLOCK was specified"
+                    );
                 }
                 nng::NNG_ECLOSED => {
                     g_critical!(
@@ -409,9 +438,9 @@ fn make_request(
                 }
                 nng::NNG_EMSGSIZE => {
                     g_critical!(
-                    "TaskManager::Gatherer",
-                    "Failed to read message: The received message did not fit in the size provided"
-                );
+                        "TaskManager::Gatherer",
+                        "Failed to read message: The received message did not fit in the size provided"
+                    );
                 }
                 nng::NNG_ENOMEM => {
                     g_critical!(
@@ -421,9 +450,9 @@ fn make_request(
                 }
                 nng::NNG_ENOTSUP => {
                     g_critical!(
-                    "TaskManager::Gatherer",
-                    "Failed to read message: The protocol for socket does not support receiving"
-                );
+                        "TaskManager::Gatherer",
+                        "Failed to read message: The protocol for socket does not support receiving"
+                    );
                 }
                 nng::NNG_ESTATE => {
                     g_critical!(

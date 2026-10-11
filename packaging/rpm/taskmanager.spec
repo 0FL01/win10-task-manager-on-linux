@@ -3,19 +3,26 @@
 
 %global debug_package %{nil}
 %global __strip /bin/true
+# Exact SONAMEs (and symbol-version suffixes) from this artifact's closure.
+# Keep every other native dependency, including OS ABI and installed drivers.
+%global __requires_exclude %(cat "%{stagedir}/usr/lib/taskmanager/gpu/rpm-requires-filter.txt")
+%global __provides_exclude_from ^%{_prefix}/lib/taskmanager/gpu/.*$
 
 Name:           taskmanager
 Version:        %{?mc_version}%{!?mc_version:1.2.0}
-Release:        %{?mc_release}%{!?mc_release:8}%{?dist}
+Release:        %{?mc_release}%{!?mc_release:9}%{?dist}
 Summary:        Task Manager: processes, performance and services
-# The binary embeds the Selawik font (OFL-1.1)
-License:        GPL-3.0-or-later AND OFL-1.1
+# Selawik, libdrm, libudev and the Fedora libgcc runtime closure.
+License:        GPL-3.0-or-later AND OFL-1.1 AND MIT AND LGPL-2.1-or-later AND (GPL-3.0-or-later WITH GCC-exception-3.1)
 URL:            https://github.com/0FL01/win10-task-manager-on-linux
 
 # Replaces the earlier build of this project, packaged as "missioncenter"
 Obsoletes:      missioncenter < 1.2.0-8
 # Installs the same statistics backend binary as Fedora's Mission Center package
 Conflicts:      mission-center
+
+BuildRequires:  python3
+BuildRequires:  binutils
 
 # Loaded at run time (dlopen) by the egui/eframe front-end
 Requires:       libwayland-client
@@ -38,6 +45,8 @@ Mission Center Developers (https://missioncenter.io).
 
 %prep
 test -d "%{stagedir}/usr/bin" || { echo "stagedir is not set or empty: %{stagedir}"; exit 1; }
+python3 "%{srcroot}/support/bundle-gpu-libs.py" --verify --dest "%{stagedir}/usr/lib/taskmanager/gpu" --binary "%{stagedir}/usr/bin/missioncenter-magpie"
+"%{stagedir}/usr/bin/missioncenter-magpie" --test
 cp -p "%{srcroot}/COPYING" .
 cp -p "%{srcroot}/crates/mc-ui/assets/fonts/OFL.txt" Selawik-OFL.txt
 
@@ -51,6 +60,12 @@ cp -a %{stagedir}/. %{buildroot}/
 %license COPYING Selawik-OFL.txt
 %{_bindir}/taskmanager
 %{_bindir}/missioncenter-magpie
+%dir %{_prefix}/lib/taskmanager
+%dir %{_prefix}/lib/taskmanager/gpu
+%{_prefix}/lib/taskmanager/gpu/*.so.*
+%{_prefix}/lib/taskmanager/gpu/manifest.json
+%{_prefix}/lib/taskmanager/gpu/rpm-requires-filter.txt
+%license %{_prefix}/lib/taskmanager/gpu/licenses/
 %{_datadir}/missioncenter/hw.db
 %{_datadir}/applications/io.github.taskmanager.TaskManager.desktop
 %{_datadir}/metainfo/io.github.taskmanager.TaskManager.metainfo.xml
@@ -58,6 +73,10 @@ cp -a %{stagedir}/. %{buildroot}/
 %{_datadir}/locale/*/LC_MESSAGES/taskmanager.mo
 
 %changelog
+* Sun Oct 11 2026 Task Manager Developers - 1.2.0-9
+- Bundle the open GPU userspace ABI privately, with relative RUNPATHs, notices,
+  source/checksum manifests and a device-independent daemon bootstrap check.
+
 * Sat Oct 10 2026 Task Manager Developers - 1.2.0-8
 - Renamed to Task Manager (binary taskmanager, app id io.github.taskmanager.TaskManager,
   settings in ~/.config/taskmanager, copied once from ~/.config/missioncenter); new icon.

@@ -1,0 +1,19 @@
+{
+  "package-name": "nvtop",
+  "directory": "nvtop-3d4a953da02bc18886734613bb9f60ff80669de7",
+  "source-url": "https://github.com/Syllo/nvtop/archive/3d4a953da02bc18886734613bb9f60ff80669de7.tar.gz",
+  "source-hash": "e1c8651d299cab61f3e178b9fa97dcf4651f9cc526a51818fca1a47f7838cbd3",
+  "patches": [
+    "patches/nvtop-amdgpu-h.patch",
+    "patches/nvtop-amdgpu_drm-h.patch",
+    "patches/nvtop-dont-add-gtt-amd-integrated.patch",
+    "patches/nvtop-constructors.patch",
+    "patches/nvtop-dont-require-ncurses.patch",
+    "patches/nvtop-i915-drm-query.patch",
+    "patches/nvtop-kcmp-h.patch",
+    "patches/nvtop-msm_drm-h.patch",
+    "patches/nvtop-no-drmGetDevices2.patch",
+    "patches/nvtop-xf86drm-h.patch",
+    "patches/nvtop-msm-utils-array-size.patch"
+  ]
+}

@@ -18,7 +18,7 @@ SCRIPT_RUST_VERSION=1.96.1
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata curl build-essential cmake gettext git \
-    python3 pkg-config libdbus-1-dev libdrm-dev libgbm-dev libudev-dev desktop-file-utils patch
+    python3 python3-venv pkg-config libdbus-1-dev libdrm-dev libdrm-amdgpu1 libgbm-dev libudev-dev desktop-file-utils patch
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile=minimal --default-toolchain="$SCRIPT_RUST_VERSION" -y
 
@@ -27,5 +27,13 @@ mkdir -p "$OUT_PATH" "$DEPS_PATH"
 echo "No bundled UI toolkit is required by the egui front-end." > "$DEPS_PATH/README"
 
 cd "$SRC_PATH"
+# A pinned builder-only tool supports modern ELF layouts even on older builders.
+# Keep the venv outside the portable tree and its staged dependency directory.
+python3 -m venv --clear target/gpu-patchelf-venv
+target/gpu-patchelf-venv/bin/pip install patchelf==0.19.1.0
+export PATCHELF="$SRC_PATH/target/gpu-patchelf-venv/bin/patchelf"
 cargo build --release -p taskmanager-app
 cargo xtask install --prefix /usr --destdir "$OUT_PATH"
+python3 support/bundle-gpu-libs.py --verify --dest "$OUT_PATH/usr/lib/taskmanager/gpu" \
+    --binary "$OUT_PATH/usr/bin/missioncenter-magpie"
+"$OUT_PATH/usr/bin/missioncenter-magpie" --test

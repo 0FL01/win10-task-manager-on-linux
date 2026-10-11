@@ -1,0 +1,191 @@
+/* src/gpus.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.gpus;
+
+enum OpenGLVariant {
+  OpenGL = 0;
+  OpenGLES = 1;
+  Invalid = 255;
+}
+
+message ApiVersion {
+  required uint32 major = 1;
+  required uint32 minor = 2;
+  optional uint32 patch = 3;
+}
+
+message Process {
+  enum Kind {
+    Graphical = 0;
+    Compute = 1;
+    GraphicalCompute = 2;
+  }
+
+  optional Kind kind = 1;
+  optional uint64 memory_usage_bytes = 2;
+  optional float gpu_usage_percent = 3;
+  optional float encode_usage_percent = 4;
+  optional float decode_usage_percent = 5;
+}
+
+message Gpu {
+  required string id = 1;
+  optional string device_name = 2;
+  required uint32 vendor_id = 3;
+  required uint32 device_id = 4;
+  optional float temperature_c = 5;
+  optional float fan_speed_percent = 6;
+  optional float utilization_percent = 7;
+  optional float power_draw_watts = 8;
+  optional float max_power_draw_watts = 9;
+  optional uint32 clock_speed_mhz = 10;
+  optional uint32 max_clock_speed_mhz = 11;
+  optional uint32 memory_speed_mhz = 12;
+  optional uint32 max_memory_speed_mhz = 13;
+  optional uint64 total_memory = 14;
+  optional uint64 used_memory = 15;
+  optional uint64 total_shared_memory = 16;
+  optional uint64 used_shared_memory = 17;
+  optional float encoder_percent = 18;
+  optional float decoder_percent = 19;
+  optional uint32 pcie_gen = 20;
+  optional uint32 pcie_lanes = 21;
+  optional uint32 max_pcie_gen = 22;
+  optional uint32 max_pcie_lanes = 23;
+  optional OpenGLVariant opengl_variant = 24;
+  optional ApiVersion opengl_version = 25;
+  optional ApiVersion vulkan_version = 26;
+  optional ApiVersion metal_version = 27;
+  optional ApiVersion directx_version = 28;
+  optional ApiVersion opencl_version = 29;
+  optional ApiVersion cuda_version = 30;
+  required bool encode_decode_shared = 32;
+  map<uint32, Process> processes = 33;
+  optional GpuTelemetry telemetry = 34;
+}
+
+// Unknown is deliberately not equivalent to an observed idle value.
+enum TelemetryState {
+  Unknown = 0;
+  Available = 1;
+  Partial = 2;
+  Unsupported = 3;
+  PermissionDenied = 4;
+  Warmup = 5;
+  Stale = 6;
+  DriverUnavailable = 7;
+}
+
+enum EngineKind {
+  Other = 0;
+  Render = 1;
+  Copy = 2;
+  Compute = 3;
+  Encode = 4;
+  Decode = 5;
+  Video = 6;
+  VideoEnhance = 7;
+}
+
+message EngineTelemetry {
+  required string id = 1;
+  required string name = 2;
+  required EngineKind kind = 3;
+  optional float usage_percent = 4;
+  required TelemetryState state = 5;
+  optional bool client_derived = 6;
+}
+
+message ProcessIdentity {
+  required uint32 pid = 1;
+  required uint64 start_time_ticks = 2;
+}
+
+// A DRM client can be shared by multiple processes; account it once in a group.
+message ClientTelemetry {
+  required string id = 1;
+  repeated ProcessIdentity owners = 2;
+  repeated EngineTelemetry engines = 3;
+  optional float overall_usage_percent = 4;
+  optional uint64 dedicated_memory_bytes = 5;
+  optional uint64 shared_memory_bytes = 6;
+  optional uint64 allocated_memory_bytes = 7;
+  required TelemetryState usage_state = 8;
+  required TelemetryState memory_state = 9;
+  optional bool memory_is_resident = 10;
+}
+
+// Available with no client means an observed idle process, not missing data.
+message ProcessObservation {
+  required uint32 pid = 1;
+  optional uint64 start_time_ticks = 2;
+  required TelemetryState state = 3;
+}
+
+message MemoryTelemetry {
+  optional uint64 dedicated_total_bytes = 1;
+  optional uint64 dedicated_used_bytes = 2;
+  optional uint64 shared_total_bytes = 3;
+  optional uint64 shared_used_bytes = 4;
+  optional uint64 reserved_bytes = 5;
+  required TelemetryState dedicated_state = 6;
+  required TelemetryState shared_state = 7;
+}
+
+message DriverInfo {
+  optional string kernel_driver = 1;
+  optional string version = 2;
+  optional string date = 3;
+  optional string model = 4;
+  optional string vulkan_driver = 5;
+  optional bool integrated = 6;
+}
+
+message GpuTelemetry {
+  required uint64 epoch = 1;
+  required uint64 sequence = 2;
+  required uint64 sample_age_ms = 3;
+  required TelemetryState state = 4;
+  repeated EngineTelemetry engines = 5;
+  repeated ClientTelemetry clients = 6;
+  repeated ProcessObservation observations = 7;
+  optional MemoryTelemetry memory = 8;
+  optional DriverInfo driver = 9;
+  optional float overall_usage_percent = 10;
+  optional bool overall_is_partial = 11;
+}
+
+message GpusRequest {}
+
+message GpusResponse {
+  message GpuMap {
+    map<string, Gpu> gpus = 1;
+  }
+
+  oneof response {
+    GpuMap gpus = 1;
+    GpusResponseError error = 2;
+  }
+}
+
+message GpusResponseError {}

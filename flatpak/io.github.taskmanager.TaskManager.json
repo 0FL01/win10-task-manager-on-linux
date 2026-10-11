@@ -11,18 +11,6 @@
     "env": {
       "RUSTUP_HOME": "/app/rust-toolchain-glibc/rustup",
       "RUST_BACKTRACE": "full"
-    },
-    "arch": {
-      "x86_64": {
-        "env": {
-          "LD_LIBRARY_PATH": "/app/clang-glibc/lib/x86_64-unknown-linux-gnu"
-        }
-      },
-      "aarch64": {
-        "env": {
-          "LD_LIBRARY_PATH": "/app/clang-glibc/lib/aarch64-unknown-linux-gnu"
-        }
-      }
     }
   },
   "finish-args": [
@@ -270,17 +258,37 @@
           "name": "magpie",
           "buildsystem": "simple",
           "build-commands": [
+            "# The checksum-pinned wheel supplies a builder-only patchelf >= 0.18; no pip/network installation in the sandbox.",
+            "python3 -c 'from pathlib import Path; import zipfile; z = zipfile.ZipFile(\"gpu-patchelf.whl\"); names = [n for n in z.namelist() if n.endswith(\"/scripts/patchelf\")]; assert len(names) == 1; p = Path(\"gpu-patchelf\"); p.write_bytes(z.read(names[0])); p.chmod(0o755)'",
+            "./gpu-patchelf --version",
+            "tar -xjf libdrm-2.4.100.tar.bz2 && tar -xzf eudev-3.2.9.tar.gz",
+            "# Keep the archive's generated configure: no modern Meson/Python or new runtime toolchain requirements.",
+            "/app/bin/proot -b /app/clang-glibc:/opt/clang -b $PWD:/build-dir -R /app/rootfs-glibc /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD -u PKG_CONFIG_PATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u CPPFLAGS /bin/sh -c 'cd /build-dir/libdrm-2.4.100 && export PATH=/opt/clang/bin:/usr/bin:/bin CC=clang CFLAGS=-O2 LDFLAGS= && ./configure --prefix=/opt/taskmanager-gpu --disable-static --enable-amdgpu --disable-udev --disable-libkms --disable-intel --disable-radeon --disable-nouveau --disable-vmwgfx --disable-omap-experimental-api --disable-exynos-experimental-api --disable-freedreno --disable-freedreno-kgsl --disable-tegra-experimental-api --disable-vc4 --disable-etnaviv-experimental-api --disable-install-test-programs --disable-cairo-tests --disable-manpages --disable-valgrind && make -j${FLATPAK_BUILDER_N_JOBS:-2} libdrm.la && make -C amdgpu -j${FLATPAK_BUILDER_N_JOBS:-2} libdrm_amdgpu.la && make install-libdrm_laLTLIBRARIES && make -C amdgpu install-libdrm_amdgpu_laLTLIBRARIES'",
+            "python3 support/bundle-gpu-libs.py --source-notices libdrm-2.4.100 --source-archive libdrm-2.4.100.tar.bz2 --source-url https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2 --source-sha256 c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d --dest /app/rootfs-glibc/opt/taskmanager-gpu/share/licenses/libdrm/notices.txt",
+            "mkdir -p /app/rootfs-musl/usr/share/licenses/libdrm && cp /app/rootfs-glibc/opt/taskmanager-gpu/share/licenses/libdrm/notices.txt /app/rootfs-musl/usr/share/licenses/libdrm/notices.txt",
+            "python3 support/bundle-gpu-libs.py --source-notices eudev-3.2.9 --source-archive eudev-3.2.9.tar.gz --source-url https://dev.gentoo.org/~blueness/eudev/eudev-3.2.9.tar.gz --source-sha256 89618619084a19e1451d373c43f141b469c9fd09767973d73dd268b92074d4fc --dest /app/rootfs-musl/usr/share/licenses/eudev-libs/notices.txt",
+            "# eudev's COPYING contains GPL-2, but its libudev source notices also require LGPL-2.1. Copy that full text from the pinned rootfs.",
+            "cp /app/rootfs-glibc/usr/share/common-licenses/LGPL-2.1 /app/rootfs-musl/usr/share/licenses/eudev-libs/LGPL-2.1",
+            "# The glibc overrides describe the new private build; musl supplements its original APK versions/source packages.",
             "rm -rf subprojects/magpie/target",
             "mkdir -p subprojects/magpie/target/release/build/native && cp -ar nvtop-* subprojects/magpie/target/release/build/native/",
-            "/app/bin/proot -b /app/rust-toolchain-glibc:/opt/rust -b /app/clang-glibc:/opt/clang -b $PWD:/build-dir -R /app/rootfs-glibc /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ env CFLAGS=-flto env CXXFLAGS=-flto cargo build --offline --release'",
+            "/app/bin/proot -b /app/rust-toolchain-glibc:/opt/rust -b /app/clang-glibc:/opt/clang -b $PWD:/build-dir -R /app/rootfs-glibc /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD -u PKG_CONFIG_PATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u CPPFLAGS /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ env CFLAGS=-flto env CXXFLAGS=-flto cargo build --offline --release'",
             "install -v -p -m 755 subprojects/magpie/target/release/magpie /app/bin/missioncenter-magpie-glibc",
+            "PATCHELF=$PWD/gpu-patchelf python3 support/bundle-gpu-libs.py --sysroot /app/rootfs-glibc --search-root /opt/taskmanager-gpu/lib --search-root /usr/lib/$(arch)-linux-gnu --search-root /lib/$(arch)-linux-gnu --search-root /usr/lib --search-root /lib --metadata gpu-metadata-glibc.json --binary /app/bin/missioncenter-magpie-glibc --dest /app/lib/taskmanager/gpu/glibc",
+            "/app/bin/proot -b /app:/app -R /app/rootfs-glibc /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD /app/bin/missioncenter-magpie-glibc --test",
             "",
             "rm -rf subprojects/magpie/target",
             "mkdir -p subprojects/magpie/target/release/build/native && cp -ar nvtop-* subprojects/magpie/target/release/build/native/",
-            "/app/bin/proot -b /app/rust-toolchain-musl:/opt/rust -b /app/clang-musl:/opt/clang -b $PWD:/build-dir -R /app/rootfs-musl /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ cargo build --offline --release'",
+            "/app/bin/proot -b /app/rust-toolchain-musl:/opt/rust -b /app/clang-musl:/opt/clang -b $PWD:/build-dir -R /app/rootfs-musl /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD -u PKG_CONFIG_PATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u CPPFLAGS /bin/sh -c 'cd /build-dir/subprojects/magpie && env PATH=/opt/rust/cargo/bin:/opt/clang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin env RUSTUP_HOME=/opt/rust/rustup env CC=clang env CXX=clang++ cargo build --offline --release'",
             "install -v -p -m 755 subprojects/magpie/target/release/magpie /app/bin/missioncenter-magpie-musl",
+            "PATCHELF=$PWD/gpu-patchelf python3 support/bundle-gpu-libs.py --sysroot /app/rootfs-musl --search-root /usr/lib --search-root /lib --metadata gpu-metadata-musl.json --binary /app/bin/missioncenter-magpie-musl --dest /app/lib/taskmanager/gpu/musl",
+            "/app/bin/proot -b /app:/app -R /app/rootfs-musl /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD /app/bin/missioncenter-magpie-musl --test",
             "",
             "strip /app/bin/missioncenter-magpie-glibc /app/bin/missioncenter-magpie-musl",
+            "python3 support/bundle-gpu-libs.py --verify --binary /app/bin/missioncenter-magpie-glibc --dest /app/lib/taskmanager/gpu/glibc",
+            "python3 support/bundle-gpu-libs.py --verify --binary /app/bin/missioncenter-magpie-musl --dest /app/lib/taskmanager/gpu/musl",
+            "/app/bin/proot -b /app:/app -R /app/rootfs-glibc /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD /app/bin/missioncenter-magpie-glibc --test",
+            "/app/bin/proot -b /app:/app -R /app/rootfs-musl /usr/bin/env -u LD_LIBRARY_PATH -u LD_PRELOAD /app/bin/missioncenter-magpie-musl --test",
             "",
             "sh -c 'cd subprojects/magpie/platform-linux/hwdb && ./generate_hwdb.py -o . 20-pci-vendor-model.hwdb 20-usb-vendor-model.hwdb'",
             "mkdir /app/share/missioncenter/ && mv subprojects/magpie/platform-linux/hwdb/hw.db /app/share/missioncenter/"
@@ -289,6 +297,44 @@
             {
               "type": "dir",
               "path": ".."
+            },
+            {
+              "type": "file",
+              "url": "https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2",
+              "sha256": "c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d"
+            },
+            {
+              "type": "file",
+              "url": "https://dev.gentoo.org/~blueness/eudev/eudev-3.2.9.tar.gz",
+              "sha256": "89618619084a19e1451d373c43f141b469c9fd09767973d73dd268b92074d4fc"
+            },
+            {
+              "type": "file",
+              "url": "https://files.pythonhosted.org/packages/e7/03/afd9bdd2ba5f96997196109f25dadbe5141bc6e70dffd85f3f84cc85d69c/patchelf-0.19.1.0-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.musllinux_1_1_x86_64.whl",
+              "sha256": "a8f6331ccf40c345507279f755f4a38c2cb00b9efda746fd43c17713cce0aba4",
+              "dest-filename": "gpu-patchelf.whl",
+              "only-arches": [
+                "x86_64"
+              ]
+            },
+            {
+              "type": "file",
+              "url": "https://files.pythonhosted.org/packages/cc/e6/1c78ad10adfc4b00a642ab518c246dd88dc826d641eb31faca5eaddc8b97/patchelf-0.19.1.0-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.musllinux_1_1_aarch64.whl",
+              "sha256": "b5c3dec03b89db2bb0df301d316360847eeaf72c6fb6ddde0227326655edabb4",
+              "dest-filename": "gpu-patchelf.whl",
+              "only-arches": [
+                "aarch64"
+              ]
+            },
+            {
+              "type": "inline",
+              "dest-filename": "gpu-metadata-glibc.json",
+              "contents": "{\"libdrm.so.2\": {\"version\": \"2.4.100\", \"source\": \"upstream:libdrm-2.4.100 (built in Ubuntu 14.04 rootfs)\", \"source_archive\": {\"url\": \"https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2\", \"sha256\": \"c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d\"}, \"license_expression\": \"MIT\", \"licenses\": [\"/opt/taskmanager-gpu/share/licenses/libdrm/notices.txt\"]}, \"libdrm_amdgpu.so.1\": {\"version\": \"2.4.100\", \"source\": \"upstream:libdrm-2.4.100 (built in Ubuntu 14.04 rootfs)\", \"source_archive\": {\"url\": \"https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2\", \"sha256\": \"c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d\"}, \"license_expression\": \"MIT\", \"licenses\": [\"/opt/taskmanager-gpu/share/licenses/libdrm/notices.txt\"]}}\n"
+            },
+            {
+              "type": "inline",
+              "dest-filename": "gpu-metadata-musl.json",
+              "contents": "{\"libdrm.so.2\": {\"source_archive\": {\"url\": \"https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2\", \"sha256\": \"c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d\"}, \"licenses\": [\"/usr/share/licenses/libdrm/notices.txt\"]}, \"libdrm_amdgpu.so.1\": {\"source_archive\": {\"url\": \"https://dri.freedesktop.org/libdrm/libdrm-2.4.100.tar.bz2\", \"sha256\": \"c77cc828186c9ceec3e56ae202b43ee99eb932b4a87255038a80e8a1060d0a5d\"}, \"licenses\": [\"/usr/share/licenses/libdrm/notices.txt\"]}, \"libudev.so.1\": {\"source_archive\": {\"url\": \"https://dev.gentoo.org/~blueness/eudev/eudev-3.2.9.tar.gz\", \"sha256\": \"89618619084a19e1451d373c43f141b469c9fd09767973d73dd268b92074d4fc\"}, \"licenses\": [\"/usr/share/licenses/eudev-libs/notices.txt\", \"/usr/share/licenses/eudev-libs/LGPL-2.1\"]}}\n"
             },
             {
               "type": "archive",

@@ -32,6 +32,14 @@ pub fn min_window_size_i32() -> [i32; 2] {
 /// own: "Fewer details" window
 pub const COMPACT_WINDOW_SIZE: [f32; 2] = [400., 380.];
 pub const COMPACT_MIN_SIZE: [f32; 2] = [300., 240.];
+/// Own GPU table adaptation: keep default Processes columns usable at the minimum width.
+pub const GPU_ENGINE_W: f32 = 140.;
+pub const GPU_DROPDOWN_W: f32 = 7.;
+pub const GPU_DROPDOWN_H: usize = 4;
+pub const GPU_DROPDOWN_GAP: f32 = 4.;
+pub const GPU_DROPDOWN_DY: f32 = 7.;
+pub const GPU_MEMORY_W: f32 = 180.;
+pub const TABLE_HORIZONTAL_STEP: f32 = 72.;
 /// Width of the invisible resize zone along the window edges.
 pub const RESIZE_GRIP: f32 = 4.;
 
@@ -90,3 +98,13 @@ pub const FOOTER_LINK_TEXT_X: f32 = 142.;
 pub const SCROLLBAR_W: f32 = 14.;
 pub const SCROLL_ARROW_H: f32 = 17.;
 pub const SCROLL_THUMB_MIN: f32 = 17.;
+
+/// GPU page own adaptation: engine tile captions, separate memory panels and vertically flowing
+/// metadata. These extend the measured Performance typography/grid, rather than measured GPU pixels.
+pub const GPU_TILE_CAPTION_H: f32 = 18.;
+pub const GPU_ENGINE_MIN_H: f32 = 84.;
+pub const GPU_MEMORY_MIN_H: f32 = 52.;
+pub const GPU_AUX_MIN_H: f32 = 52.;
+pub const GPU_PANEL_GAP: f32 = 24.;
+pub const GPU_INFO_GAP: f32 = 24.;
+pub const GPU_COMPACT_INSET: f32 = 12.;

@@ -1,0 +1,19 @@
+[package]
+name = "magpie-types"
+version = "1.2.0"
+edition = "2021"
+
+[dependencies]
+prost = "0.14"
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.strum]
+version = "0.28"
+features = ["derive"]
+
+[build-dependencies]
+prost-build = "0.14"
+protox = "0.9"

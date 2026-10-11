@@ -159,6 +159,7 @@ impl ServicesView {
                     e.status.clone(),
                     e.group.clone(),
                 ],
+                tooltips: vec![],
             })
             .collect();
     }

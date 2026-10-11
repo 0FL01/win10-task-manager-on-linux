@@ -75,7 +75,14 @@ pub fn serialize_widths<'a>(widths: impl IntoIterator<Item = (&'a str, f32)>) ->
 }
 
 /// Version of the interface defaults applied by [`Config::migrate_layout`].
-pub const LAYOUT_VERSION: u32 = 2;
+pub const LAYOUT_VERSION: u32 = 3;
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GpuGraphSettings {
+    pub single: bool,
+    pub engines: Vec<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "kebab-case")]
@@ -121,6 +128,7 @@ pub struct Config {
     pub details_page_sorting_order: SortOrder,
     pub details_page_column_widths: String,
     pub details_page_column_order: String,
+    pub details_page_visible_columns: String,
     pub services_page_column_widths: String,
 
     /// Options → Always on top
@@ -159,6 +167,7 @@ pub struct Config {
     pub performance_page_memory_swap_visible: bool,
     pub performance_page_gpu_graph_middle: i32,
     pub performance_page_gpu_graph_bottom: i32,
+    pub performance_page_gpu_graphs: std::collections::BTreeMap<String, GpuGraphSettings>,
 
     pub performance_sidebar_order: String,
     /// Width of the Performance tab device list in points (draggable separator)
@@ -200,7 +209,7 @@ impl Default for Config {
             apps_page_sorting_column_name: String::new(),
             apps_page_sorting_order: SortOrder::None,
             apps_page_column_order: String::new(),
-            apps_page_visible_columns: "cpu;memory;drive;network".into(),
+            apps_page_visible_columns: "cpu;memory;drive;network;gpu;gpu_engine".into(),
             apps_page_group_by_type: true,
             apps_page_column_widths: String::new(),
             apps_page_expanded: String::new(),
@@ -208,6 +217,7 @@ impl Default for Config {
             details_page_sorting_order: SortOrder::Ascending,
             details_page_column_widths: String::new(),
             details_page_column_order: String::new(),
+            details_page_visible_columns: "name;pid;status;user;cpu;memory".into(),
             services_page_column_widths: String::new(),
             window_always_on_top: false,
             window_fewer_details: false,
@@ -237,6 +247,7 @@ impl Default for Config {
             performance_page_memory_swap_visible: false,
             performance_page_gpu_graph_middle: 1,
             performance_page_gpu_graph_bottom: 2,
+            performance_page_gpu_graphs: Default::default(),
             performance_sidebar_order: String::new(),
             performance_sidebar_width: 211,
             performance_sidebar_hidden_graphs: String::new(),
@@ -256,6 +267,10 @@ impl Config {
         self.performance_page_cpu_graph_bottom = self.performance_page_cpu_graph_bottom.clamp(0, 3);
         self.performance_page_gpu_graph_middle = self.performance_page_gpu_graph_middle.clamp(0, 5);
         self.performance_page_gpu_graph_bottom = self.performance_page_gpu_graph_bottom.clamp(0, 5);
+        for graphs in self.performance_page_gpu_graphs.values_mut() {
+            graphs.engines.truncate(4);
+            graphs.engines.retain(|id| !id.is_empty());
+        }
         self.performance_sidebar_width = self.performance_sidebar_width.clamp(211, 1200);
         self.window_width = self.window_width.max(1);
         self.window_height = self.window_height.max(1);
@@ -341,6 +356,9 @@ impl Config {
             // The interface state (sorting, column order and widths) is kept by default
             self.apps_page_remember_sorting = true;
             self.apps_page_remember_column_order = true;
+        }
+        if self.layout_version < 3 && self.apps_page_visible_columns == "cpu;memory;drive;network" {
+            self.apps_page_visible_columns = defaults.apps_page_visible_columns;
         }
         self.layout_version = LAYOUT_VERSION;
         true
@@ -546,8 +564,34 @@ mod tests {
         c.window_always_on_top = true;
         c.window_fewer_details = true;
         c.apps_page_expanded = "!processes;apps/aorg.example.App".into();
+        c.details_page_visible_columns =
+            "name;pid;gpu;gpu_engine;dedicated_gpu_memory;shared_gpu_memory".into();
+        c.performance_page_gpu_graphs.insert(
+            "0000:01:00.0".into(),
+            GpuGraphSettings {
+                single: true,
+                engines: vec!["copy".into(), "copy".into()],
+            },
+        );
         let back = Config::from_toml(&c.to_toml()).unwrap();
         assert_eq!(back, c);
+    }
+
+    #[test]
+    fn gpu_defaults_migrate_once_without_replacing_custom_columns() {
+        let mut old = Config::from_toml(
+            "layout-version=2\napps-page-visible-columns='cpu;memory;drive;network'\n",
+        )
+        .unwrap();
+        assert!(old.migrate_layout([760, 540]));
+        assert!(old.apps_page_visible_columns.ends_with(";gpu;gpu_engine"));
+        old.apps_page_visible_columns = "cpu;memory".into();
+        assert!(!old.migrate_layout([760, 540]));
+        let mut custom =
+            Config::from_toml("layout-version=2\napps-page-visible-columns='cpu;memory;pid'\n")
+                .unwrap();
+        custom.migrate_layout([760, 540]);
+        assert_eq!(custom.apps_page_visible_columns, "cpu;memory;pid");
     }
 
     #[test]

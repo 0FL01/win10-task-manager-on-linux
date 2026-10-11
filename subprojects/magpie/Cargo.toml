@@ -1,0 +1,41 @@
+[package]
+name = "magpie"
+version = "1.2.0"
+authors = [
+    "Jan Luca <janluca.oster@proton.me>",
+    "jojo2357",
+    "Romeo Calota <mail@romeocalota.me>",
+]
+edition = "2021"
+
+[workspace]
+members = [
+    "platform",
+    "platform-linux",
+    "types",
+]
+
+[dependencies]
+env_logger = "0.11"
+libc = "0.2"
+log = "0.4"
+prost = "0.14"
+signal-hook = "0.4"
+
+[dependencies.clap]
+version = "4.5"
+features = ["derive"]
+
+[dependencies.magpie-platform]
+path = "platform"
+
+[target.'cfg(target_os = "linux")'.dependencies.magpie-platform-linux]
+path = "platform-linux"
+
+[dependencies.nng-c-sys]
+version = "1.11"
+default-features = false
+
+[profile.release]
+opt-level = 3
+codegen-units = 1

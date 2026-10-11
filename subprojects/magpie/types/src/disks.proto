@@ -1,0 +1,200 @@
+/* src/disks.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.disks;
+
+import "common.proto";
+
+enum DiskKind {
+  HDD = 0;
+  SSD = 1;
+  NVMe = 2;
+  eMMC = 3;
+  SD = 4;
+  iSCSI = 5;
+  Floppy = 6;
+  Optical = 7;
+  ThumbDrive = 8;
+}
+
+message SMARTInterface {
+  enum Kind {
+    ATA = 0;
+    NVMe = 1;
+  }
+}
+
+message Disk {
+  required string id = 1;
+  optional string model = 2;
+  optional DiskKind kind = 3;
+  optional SMARTInterface.Kind smart_interface = 4;
+  required uint64 capacity_bytes = 5;
+  optional uint64 formatted_bytes = 6;
+  required bool is_system = 7;
+  required float busy_percent = 8;
+  required float response_time_ms = 9;
+  required uint64 rx_speed_bytes_ps = 10;
+  required uint64 rx_bytes_total = 11;
+  required uint64 tx_speed_bytes_ps = 12;
+  required uint64 tx_bytes_total = 13;
+  required bool ejectable = 14;
+  optional uint32 temperature_milli_k = 15;
+  optional string serial_number = 16;
+  optional string world_wide_name = 17;
+  optional uint64 rotation_rate = 18;
+  required uint64 sector_size = 19;
+
+  map<string, PartitionInfo> partitions = 20;
+}
+
+message PartitionInfo {
+  required string devname = 1;
+  optional uint64 size = 2;
+  optional uint64 used = 3;
+  optional string filesystem = 4;
+  repeated string mountpoints = 5;
+}
+
+message SmartData {
+  enum TestResult {
+    Success = 0;
+    Aborted = 1;
+    FatalError = 2;
+    InProgress = 3;
+    // ATA only
+    Interrupted = 4;
+    ErrorUnknown = 5;
+    ErrorElectrical = 6;
+    ErrorServo =7;
+    ErrorRead = 8;
+    ErrorHandling = 9;
+    //NVMe only
+    CtrlReset = 10;
+    NsRemoved = 11;
+    AbortedFormat = 12 ;
+    UnknownSegmentFailed = 13;
+    KnownSegmentFailed = 14;
+    AbortedUnknown = 15;
+    AbortedSanitize = 16;
+  }
+
+  message Ata {
+    enum PrettyUnit {
+      Unknown = 0;
+      Dimentionless = 1;
+      Milliseconds = 2;
+      Sectors = 3;
+      Millikelvin = 4;
+    }
+
+    message Attribute {
+      required uint32 id = 1;
+      required string name = 2;
+      required uint32 flags = 3;
+      required int32 value = 4;
+      required int32 worst = 5;
+      required int32 threshold = 6;
+      required int64 pretty = 7;
+      required PrettyUnit pretty_unit = 8;
+    }
+
+    repeated Attribute attributes = 1;
+  }
+
+  message Nvme {
+    optional uint32 avail_spare = 1;
+    optional uint32 spare_thresh = 2;
+    optional uint32 percent_used = 3;
+    optional uint64 total_data_read = 4;
+    optional uint64 total_data_written = 5;
+    optional uint64 ctrl_busy_minutes = 6;
+    optional uint64 power_cycles = 7;
+    optional uint64 unsafe_shutdowns = 8;
+    optional uint64 media_errors = 9;
+    optional uint64 num_err_log_entries = 10;
+    repeated uint32 temp_sensors = 11;
+    optional uint32 warn_composite_temp_thresh = 12;
+    optional uint32 crit_composite_temp_thresh = 13;
+    optional uint32 warn_composite_temp_time = 14;
+    optional uint32 crit_composite_temp_time = 15;
+  }
+
+  required uint64 powered_on_seconds = 1;
+  required uint64 last_update_time = 2;
+  optional TestResult test_result = 3;
+
+  oneof data {
+    Ata ata = 4;
+    Nvme nvme = 5;
+  }
+}
+
+message EjectRequest {
+  required string id = 1;
+}
+
+message SmartRequest {
+  required string id = 1;
+}
+
+message DisksRequest {
+  oneof request {
+    magpie.common.Empty disks = 1;
+    EjectRequest eject = 2;
+    SmartRequest smart = 3;
+  }
+}
+
+message DisksResponse {
+  message DiskList {
+    repeated Disk disks = 1;
+  }
+
+  message OptionalSmartData {
+    optional SmartData smart = 1;
+  }
+
+  oneof response {
+    DiskList disks = 2;
+    OptionalSmartData smart = 3;
+    magpie.common.Empty eject = 4;
+    DisksResponseError error = 5;
+  }
+}
+
+message ErrorEjectFailed {
+  message Blocker {
+    required uint32 pid = 1;
+    repeated string files = 2;
+    repeated string dirs = 3;
+  }
+
+  repeated Blocker blockers = 2;
+}
+
+message DisksResponseError {
+  oneof error {
+    ErrorEjectFailed eject = 1;
+    magpie.common.Empty unknown_request = 5;
+  }
+}

@@ -540,10 +540,14 @@ fn process_details(ctx: &Context, cx: &mut Cx, node: Option<&mc_core::table::Nod
                         i18n("Network"),
                         h(s.network_usage, DataType::NetworkBytesPerSecond),
                     ),
-                    (i18n("GPU"), format!("{}%", s.gpu_usage.round() as u32)),
+                    (i18n("GPU"), node.gpu.usage.text()),
+                    (i18n("GPU engine"), node.gpu.usage.engine_text()),
                     (
                         i18n("GPU Memory"),
-                        h(s.gpu_memory_usage as f32, DataType::MemoryBytes),
+                        node.gpu.memory.map_or_else(
+                            || "—".into(),
+                            |value| h(value as f32, DataType::MemoryBytes),
+                        ),
                     ),
                 ] {
                     ui.label(label);

@@ -34,9 +34,31 @@ use super::menu;
 use crate::cx::{Command, Cx};
 
 /// Name, PID, Status, User name, CPU, Memory (separators at x 146, 196, 713, 793, 833, 913)
-const WIDTHS: [f32; 6] = [145., 49., 516., 79., 39., 79.];
+const WIDTHS: [f32; 10] = [
+    145.,
+    49.,
+    516.,
+    79.,
+    39.,
+    79.,
+    72.,
+    super::metrics::GPU_ENGINE_W,
+    super::metrics::GPU_MEMORY_W,
+    super::metrics::GPU_MEMORY_W,
+];
 /// Persistent column ids (settings `details-page-*`)
-const IDS: [&str; 6] = ["name", "pid", "status", "user", "cpu", "memory"];
+const IDS: [&str; 10] = [
+    "name",
+    "pid",
+    "status",
+    "user",
+    "cpu",
+    "memory",
+    "gpu",
+    "gpu_engine",
+    "dedicated_gpu_memory",
+    "shared_gpu_memory",
+];
 
 struct Entry {
     pid: u32,
@@ -45,6 +67,7 @@ struct Entry {
     user: String,
     cpu: f32,
     memory: u64,
+    gpu: mc_core::gpu::GpuStats,
     icon: RowIcon,
 }
 
@@ -79,6 +102,7 @@ pub struct DetailsPage {
     entries: Vec<Entry>,
     rows: Vec<FlatRow>,
     menu: Option<(String, Pos2)>,
+    header_menu: Option<Pos2>,
 }
 
 impl Default for DetailsPage {
@@ -88,12 +112,13 @@ impl Default for DetailsPage {
             entries: vec![],
             rows: vec![],
             menu: None,
+            header_menu: None,
         }
     }
 }
 
 impl DetailsPage {
-    pub fn update(&mut self, readings: &Readings) {
+    pub fn update(&mut self, readings: &Readings, gpu: &mc_core::gpu::GpuSnapshot) {
         let app_of: HashMap<u32, &str> = readings
             .running_apps
             .values()
@@ -113,6 +138,7 @@ impl DetailsPage {
                     .unwrap_or_else(|| i18n("N/A")),
                 cpu: p.usage_stats.cpu_usage,
                 memory: p.usage_stats.memory_usage,
+                gpu: gpu.processes.get(&p.pid).cloned().unwrap_or_default(),
                 icon: app_of
                     .get(&p.pid)
                     .map_or(RowIcon::Default, |id| RowIcon::App((*id).to_owned())),
@@ -124,12 +150,31 @@ impl DetailsPage {
     fn rebuild(&mut self) {
         let column = self.list.sort_column;
         self.entries.sort_by(|a, b| {
+            let known = |e: &Entry| match column {
+                6 => e.gpu.usage.percent.is_some(),
+                7 => e.gpu.usage.engine.is_some(),
+                8 => e.gpu.dedicated.is_some(),
+                9 => e.gpu.shared.is_some(),
+                _ => true,
+            };
+            if column >= 6 && known(a) != known(b) {
+                return known(b).cmp(&known(a));
+            }
             let ordering = match column {
                 1 => a.pid.cmp(&b.pid),
                 2 => a.status.cmp(&b.status),
                 3 => a.user.cmp(&b.user),
                 4 => a.cpu.partial_cmp(&b.cpu).unwrap_or(Ordering::Equal),
                 5 => a.memory.cmp(&b.memory),
+                6 => a
+                    .gpu
+                    .usage
+                    .percent
+                    .partial_cmp(&b.gpu.usage.percent)
+                    .unwrap_or(Ordering::Equal),
+                7 => a.gpu.usage.engine.cmp(&b.gpu.usage.engine),
+                8 => a.gpu.dedicated.cmp(&b.gpu.dedicated),
+                9 => a.gpu.shared.cmp(&b.gpu.shared),
                 _ => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
             }
             .then(a.pid.cmp(&b.pid));
@@ -152,6 +197,22 @@ impl DetailsPage {
                     e.user.clone(),
                     format!("{:02}", e.cpu.round() as u32),
                     kib(e.memory),
+                    e.gpu.usage.text(),
+                    e.gpu.usage.engine_text(),
+                    e.gpu.dedicated.map_or_else(|| "—".into(), kib),
+                    e.gpu.shared.map_or_else(|| "—".into(), kib),
+                ],
+                tooltips: vec![
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(e.gpu.usage.tooltip()),
+                    Some(e.gpu.usage.tooltip()),
+                    Some(e.gpu.memory_tooltip(e.gpu.dedicated_state)),
+                    Some(e.gpu.memory_tooltip(e.gpu.shared_state)),
                 ],
             })
             .collect();
@@ -159,6 +220,7 @@ impl DetailsPage {
 
     /// Saved sort, column widths and order.
     pub fn restore(&mut self, config: &mc_core::config::Config) {
+        self.list.set_visible(&config.details_page_visible_columns);
         let remember = config.apps_page_remember_column_order;
         let sort = config.apps_page_remember_sorting;
         self.list.restore(
@@ -193,9 +255,13 @@ impl DetailsPage {
             (i18n("User name"), Align::Min),
             (i18n("CPU"), Align::Max),
             (i18n("Memory"), Align::Max),
+            (i18n("GPU"), Align::Max),
+            (i18n("GPU engine"), Align::Min),
+            (i18n("Dedicated GPU memory"), Align::Max),
+            (i18n("Shared GPU memory"), Align::Max),
         ]
         .into_iter()
-        .zip(self.list.list.widths.iter())
+        .zip(WIDTHS.iter())
         .map(|((title, align), &width)| FlatColumn {
             title,
             width,
@@ -216,6 +282,27 @@ impl DetailsPage {
         }
         if let Some(menu) = response.context_menu {
             self.menu = Some(menu);
+        }
+        if let Some(pos) = response.header_context_menu {
+            self.header_menu = Some(pos);
+        }
+        if let Some(pos) = self.header_menu {
+            let mut open = true;
+            menu::context(ui, Id::new("details-columns-menu"), pos, &mut open, |ui| {
+                for (index, column) in columns.iter().enumerate() {
+                    if index == 0 {
+                        ui.add_enabled_ui(false, |ui| {
+                            menu::check(ui, &column.title, true);
+                        });
+                    } else if menu::check(ui, &column.title, self.list.column_visible(index)) {
+                        self.list.toggle_column(index);
+                        cx.config.details_page_visible_columns = self.list.visible_columns();
+                    }
+                }
+            });
+            if !open {
+                self.header_menu = None;
+            }
         }
         if let Some((key, pos)) = self.menu.clone() {
             let pid: u32 = key.parse().unwrap_or_default();
@@ -241,6 +328,42 @@ impl DetailsPage {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn gpu_columns_sort_numeric_values_and_preserve_missing_data() {
+        let mut readings = mc_magpie::synthetic_readings(3, 6);
+        for gpu in readings.gpus.values_mut() {
+            let telemetry = gpu.telemetry.as_mut().unwrap();
+            telemetry.observations.retain(|p| p.pid != 100);
+            telemetry
+                .clients
+                .retain(|c| c.owners.iter().all(|p| p.pid != 100));
+        }
+        let gpu =
+            mc_core::gpu::GpuSnapshot::from_readings(&readings, &mut Default::default(), 1000);
+        let mut details = super::DetailsPage::default();
+        for sort_order in [
+            mc_core::config::SortOrder::Ascending,
+            mc_core::config::SortOrder::Descending,
+        ] {
+            details.list.sort_column = 6;
+            details.list.sort_order = sort_order;
+            details.update(&readings, &gpu);
+            assert_eq!(details.entries.last().unwrap().pid, 100);
+            assert_eq!(details.rows.last().unwrap().cells[6], "—");
+            let values: Vec<_> = details
+                .entries
+                .iter()
+                .filter_map(|e| e.gpu.usage.percent)
+                .collect();
+            assert!(values.windows(2).all(|v| {
+                if sort_order == mc_core::config::SortOrder::Ascending {
+                    v[0] <= v[1]
+                } else {
+                    v[0] >= v[1]
+                }
+            }));
+        }
+    }
     #[test]
     fn kib_groups_thousands() {
         assert_eq!(super::kib(25_972_736), "25,364 K");

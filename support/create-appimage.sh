@@ -11,7 +11,7 @@ ARCH="$(uname -m)"
 SHARUN="https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh"
 EXTRA_PACKAGES="https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/get-debloated-pkgs.sh"
 
-pacman -Syu --noconfirm base-devel zsync wget patchelf libxkbcommon wayland libglvnd vulkan-icd-loader mesa
+pacman -Syu --noconfirm base-devel zsync wget python patchelf libxkbcommon wayland libglvnd vulkan-icd-loader mesa
 
 wget "$SHARUN" -O ./quick-sharun
 chmod +x ./quick-sharun
@@ -32,5 +32,17 @@ export OUTNAME=TaskManager-"$VERSION"-"$ARCH".AppImage
 export DEPLOY_OPENGL=1
 export DEPLOY_VULKAN=1
 
-./quick-sharun /usr/bin/taskmanager /usr/bin/missioncenter-magpie
+export APPDIR=${APPDIR:-"$PWD/AppDir"}
+GPU_LIBS=/usr/lib/taskmanager/gpu
+python3 "$SRC_PATH/support/bundle-gpu-libs.py" --verify --dest "$GPU_LIBS" \
+    --binary /usr/bin/missioncenter-magpie
+# Explicit library arguments include the dlopened AMD ABI and its full closure.
+# Passing the directory also carries license notices and the source manifest.
+./quick-sharun /usr/bin/taskmanager /usr/bin/missioncenter-magpie "$GPU_LIBS"/*.so.* "$GPU_LIBS"
+# sharun relocates the real binaries into shared/bin (shared/lib -> ../lib).
+# Reapply private RUNPATHs and verify build IDs, ABI and notices after relocation.
+python3 "$SRC_PATH/support/bundle-gpu-libs.py" --relocate-manifest "$GPU_LIBS/manifest.json" \
+    --dest "$APPDIR/lib/taskmanager/gpu" \
+    --binary "$APPDIR/shared/bin/missioncenter-magpie"
+"$APPDIR/bin/missioncenter-magpie" --test
 ./quick-sharun --make-appimage

@@ -143,4 +143,25 @@ mod tests {
         assert!(readings[0].batteries[0].history[1].y.is_nan());
         assert_eq!(loaded_icons.len(), 1);
     }
+
+    #[test]
+    fn old_gpu_and_process_json_without_telemetry_fields_still_loads() {
+        let mut json = serde_json::to_value(crate::synthetic_readings(3, 10)).unwrap();
+        for gpu in json["gpus"].as_object_mut().unwrap().values_mut() {
+            gpu.as_object_mut().unwrap().remove("telemetry");
+        }
+        for process in json["running_processes"]
+            .as_object_mut()
+            .unwrap()
+            .values_mut()
+        {
+            process.as_object_mut().unwrap().remove("start_time_ticks");
+        }
+        let reading: Readings = serde_json::from_value(json).unwrap();
+        assert!(reading.gpus.values().all(|gpu| gpu.telemetry.is_none()));
+        assert!(reading
+            .running_processes
+            .values()
+            .all(|p| p.start_time_ticks.is_none()));
+    }
 }

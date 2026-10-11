@@ -1,0 +1,93 @@
+/* src/services.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.services;
+
+import "common.proto";
+
+message Service {
+  required uint64 id = 1;
+  required string name = 2;
+  optional string description = 3;
+  required bool enabled = 4;
+  required bool running = 5;
+  required bool failed = 6;
+  optional uint32 pid = 7;
+  optional string user = 8;
+  optional string group = 9;
+  optional string file_path = 10;
+}
+
+message RequestServiceList {}
+message RequestServiceLogs {
+  required uint64 service_id = 1;
+  optional uint32 pid = 2;
+}
+message RequestServiceStart {
+  required uint64 service_id = 1;
+}
+message RequestServiceStop {
+  required uint64 service_id = 1;
+}
+message RequestServiceRestart {
+  required uint64 service_id = 1;
+}
+message RequestServiceEnable {
+  required uint64 service_id = 1;
+}
+message RequestServiceDisable {
+  required uint64 service_id = 1;
+}
+
+message ServicesRequest {
+  oneof request {
+    RequestServiceList system_service_list = 1;
+    RequestServiceList user_service_list = 2;
+    RequestServiceLogs service_logs = 3;
+    RequestServiceStart service_start = 4;
+    RequestServiceStop service_stop = 5;
+    RequestServiceRestart service_restart = 6;
+    RequestServiceEnable service_enable = 7;
+    RequestServiceDisable service_disable = 8;
+  }
+}
+
+message ServicesResponse {
+  message ServiceList {
+    repeated Service services = 1;
+  }
+
+  oneof response {
+    ServiceList services = 1;
+    string logs = 2;
+    magpie.common.Empty empty = 3;
+    ServicesResponseError error = 4;
+  }
+}
+
+message ServicesResponseError {
+  oneof error {
+    magpie.common.Empty permission_denied = 1;
+    magpie.common.Empty service_not_found = 2;
+    magpie.common.Empty empty_request = 3;
+  }
+}

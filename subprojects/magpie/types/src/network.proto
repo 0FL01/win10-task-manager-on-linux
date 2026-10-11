@@ -1,0 +1,91 @@
+/* src/network.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.network;
+
+enum ConnectionKind {
+  Bluetooth = 1;
+  Bridge = 2;
+  Docker = 3;
+  InfiniBand = 4;
+  Multipass = 5;
+  Virtual = 6;
+  VPN = 7;
+  Wired = 8;
+  Wireless = 9;
+  WWAN = 10;
+  Other = 255;
+}
+
+enum ConnectionState {
+  Unknown = 1;
+  Unavailable = 2;
+  Disconnected = 3;
+  Loading = 4;
+  Connecting = 5;
+  NeedsAuth = 6;
+  ConfiguringIP = 7;
+  Connected = 8;
+  Disconnecting = 9;
+  Failed = 10;
+}
+
+message WirelessConnection {
+  optional string ssid = 1;
+  optional uint32 frequency_mhz = 2;
+  optional uint32 bitrate_kbps = 3;
+  optional uint32 signal_strength_percent = 4;
+}
+
+message Connection {
+  required string id = 1;
+  optional string device_name = 2;
+  required ConnectionKind kind = 3;
+  optional WirelessConnection wireless_connection = 4;
+  required string hw_address = 5;
+
+  required float tx_rate_bytes_ps = 6;
+  required uint64 tx_total_bytes = 7;
+  required float rx_rate_bytes_ps = 8;
+  required uint64 rx_total_bytes = 9;
+  optional uint64 max_speed_bytes_ps = 10;
+
+  optional string ipv4_address = 11;
+  optional string ipv6_address = 12;
+
+  required ConnectionState state = 13;
+}
+
+message ConnectionsRequest {}
+
+message ConnectionsResponse {
+  message ConnectionList {
+    map <string, Connection> connections = 1;
+  }
+
+  oneof response {
+    ConnectionList connections = 1;
+    ConnectionsResponseError error = 2;
+  }
+}
+
+message ConnectionsResponseError {}

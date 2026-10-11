@@ -24,10 +24,6 @@ fn spec() -> Value {
     serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
 }
 
-fn render(page: &'static str) -> RgbaImage {
-    render_with(page, "", (1030., 705.), 0, |_| {})
-}
-
 fn render_with(
     page: &'static str,
     suffix: &str,
@@ -137,7 +133,13 @@ fn ink_box(image: &RgbaImage, region: &[u32]) -> Option<(u32, u32, u32)> {
 /// Checks the probes of `groups`; `frame_only` restricts colour probes to the window frame.
 fn check(page: &'static str, groups: &[&str], frame_only: bool) {
     let spec = spec();
-    let image = render(page);
+    // Frozen probes were measured with four resource columns. Exercise the new
+    // default GPU layout separately rather than changing historical pixel evidence.
+    let image = render_with(page, "", (1030., 705.), 0, |app| {
+        app.configure_for_test(|config| {
+            config.apps_page_visible_columns = "cpu;memory;drive;network".into()
+        });
+    });
     let mut failures = vec![];
     for group in groups {
         for probe in spec["probes"][group].as_array().unwrap() {

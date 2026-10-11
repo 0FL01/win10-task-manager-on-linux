@@ -1,0 +1,15 @@
+diff --git a/src/extract_gpuinfo_msm_utils.c b/src/extract_gpuinfo_msm_utils.c
+index 25ddc0f..6068fe4 100644
+--- a/src/extract_gpuinfo_msm_utils.c
++++ b/src/extract_gpuinfo_msm_utils.c
+@@ -20,6 +20,10 @@
+ #include "nvtop/interface_internal_common.h"
+ #include <stdint.h>
+ 
++#ifndef ARRAY_SIZE
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++#endif
++
+ struct msm_id_struct {
+   uint64_t chip_id;
+   const char *name;

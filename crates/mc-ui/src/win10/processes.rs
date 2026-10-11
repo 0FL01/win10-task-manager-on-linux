@@ -53,7 +53,7 @@ const DISK_HEAT_FULL: f32 = 100e6;
 const NETWORK_HEAT_FULL: f32 = 12.5e6;
 
 /// Numeric columns the user can show (header context menu), in display order.
-const OPTIONAL: [Column; 7] = [
+const OPTIONAL: [Column; 11] = [
     Column::Pid,
     Column::Cpu,
     Column::Memory,
@@ -61,8 +61,11 @@ const OPTIONAL: [Column; 7] = [
     Column::Drive,
     Column::Network,
     Column::Gpu,
+    Column::GpuEngine,
+    Column::GpuMemory,
+    Column::GpuDedicatedMemory,
+    Column::GpuSharedMemory,
 ];
-const OPTIONAL_GPU_MEMORY: Column = Column::GpuMemory;
 
 pub fn column_title(column: Column) -> String {
     match column {
@@ -74,7 +77,10 @@ pub fn column_title(column: Column) -> String {
         Column::Drive => i18n("Disk"),
         Column::Network => i18n("Network"),
         Column::Gpu => i18n("GPU"),
+        Column::GpuEngine => i18n("GPU engine"),
         Column::GpuMemory => i18n("GPU Memory"),
+        Column::GpuDedicatedMemory => i18n("Dedicated GPU memory"),
+        Column::GpuSharedMemory => i18n("Shared GPU memory"),
     }
 }
 
@@ -138,10 +144,11 @@ impl ProcessesPage {
         self.list.widths = columns
             .iter()
             .map(|c| {
-                saved.get(c.id()).copied().unwrap_or(if *c == Column::Name {
-                    NAME_W
-                } else {
-                    VALUE_W
+                saved.get(c.id()).copied().unwrap_or(match c {
+                    Column::Name => NAME_W,
+                    Column::GpuEngine => m::GPU_ENGINE_W,
+                    Column::GpuDedicatedMemory | Column::GpuSharedMemory => m::GPU_MEMORY_W,
+                    _ => VALUE_W,
                 })
             })
             .collect();
@@ -219,9 +226,13 @@ impl ProcessesPage {
             Column::Swap => share(s.swap_usage as f64, table.swap_total),
             Column::Drive => s.disk_usage * 100. / DISK_HEAT_FULL,
             Column::Network => s.network_usage * 100. / NETWORK_HEAT_FULL,
-            Column::Gpu => s.gpu_usage,
-            Column::GpuMemory => share(s.gpu_memory_usage as f64, table.gpu_mem_total),
-            Column::Name | Column::Pid => return None,
+            Column::Gpu => node.gpu.usage.percent?,
+            Column::GpuMemory => share(node.gpu.memory? as f64, table.gpu_mem_total?),
+            Column::GpuDedicatedMemory => {
+                share(node.gpu.dedicated? as f64, table.gpu_dedicated_total?)
+            }
+            Column::GpuSharedMemory => share(node.gpu.shared? as f64, table.gpu_shared_total?),
+            Column::Name | Column::Pid | Column::GpuEngine => return None,
         })
     }
 
@@ -233,8 +244,14 @@ impl ProcessesPage {
             Column::Memory => pct(t.memory_percent),
             Column::Swap => pct(t.swap_percent),
             Column::Drive => pct(t.drive_percent),
-            Column::Gpu => pct(t.gpu_percent),
-            Column::GpuMemory => pct(t.gpu_memory_percent),
+            Column::Gpu => (
+                Some(table.gpu_summary.clone()),
+                t.gpu_percent.is_some_and(|v| v >= 90.),
+            ),
+            Column::GpuMemory => t
+                .gpu_memory_percent
+                .map(pct)
+                .unwrap_or((Some("—".into()), false)),
             // System-wide (available without per-process data, includes traffic not attributed
             // to a process): link utilisation like the reference, the rate when no link speed is
             // known
@@ -249,7 +266,11 @@ impl ProcessesPage {
                 )),
                 false,
             ),
-            Column::Name | Column::Pid => (None, false),
+            Column::Name
+            | Column::Pid
+            | Column::GpuEngine
+            | Column::GpuDedicatedMemory
+            | Column::GpuSharedMemory => (None, false),
         }
     }
 
@@ -276,21 +297,25 @@ impl ProcessesPage {
         let group = cx.config.apps_page_group_by_type;
         table.handle_keys(ui);
         self.sync_rows(table, group);
+        let horizontal = listview::horizontal_scrollbar(ui, content, &mut self.list);
 
         let header_rect = Rect::from_min_max(
             content.min,
             pos2(
-                content.right(),
+                content.right() - m::SCROLLBAR_W,
                 content.top() + HeaderKind::Summary.height(),
             ),
         );
         let body = Rect::from_min_max(
             pos2(content.left(), header_rect.bottom() + 1.),
-            pos2(content.right() - m::SCROLLBAR_W, content.bottom()),
+            pos2(
+                content.right() - m::SCROLLBAR_W,
+                content.bottom() - horizontal,
+            ),
         );
         let track = Rect::from_min_max(
             pos2(body.right(), body.top()),
-            pos2(content.right(), content.bottom()),
+            pos2(content.right(), body.bottom()),
         );
         paint::hline(
             ui.painter(),
@@ -309,7 +334,7 @@ impl ProcessesPage {
                 ColumnHeader {
                     title: column_title(c),
                     summary,
-                    align: if c == Column::Name {
+                    align: if matches!(c, Column::Name | Column::GpuEngine) {
                         Align::Min
                     } else {
                         Align::Max
@@ -360,8 +385,22 @@ impl ProcessesPage {
             } else if table.network_tcp_only {
                 tip = format!("{tip}\n\n{}", i18n(NETWORK_TCP_HINT));
             }
-            ui.interact(cell, Id::new("network-header-tip"), egui::Sense::hover())
-                .on_hover_text(tip);
+            ui.interact(
+                cell.intersect(header_rect),
+                Id::new("network-header-tip"),
+                egui::Sense::hover(),
+            )
+            .on_hover_text(tip);
+        }
+        if let Some(i) = self.columns.iter().position(|c| *c == Column::Gpu) {
+            let (x0, sep) = self.list.columns(content.left())[i];
+            let cell =
+                Rect::from_min_max(pos2(x0, header_rect.top()), pos2(sep, header_rect.bottom()))
+                    .intersect(header_rect);
+            if cell.is_positive() {
+                ui.interact(cell, Id::new("gpu-header-tip"), egui::Sense::hover())
+                    .on_hover_text(table.gpu_usage.tooltip());
+            }
         }
 
         // Rows
@@ -475,15 +514,51 @@ impl ProcessesPage {
                     );
                 } else {
                     let text = Self::cell_text(table, column, node);
+                    let rect =
+                        Rect::from_min_max(pos2(x0, top), pos2(sep, bottom + 1.)).intersect(body);
+                    let cell = painter.with_clip_rect(rect);
+                    let align = if column == Column::GpuEngine {
+                        Align::Min
+                    } else {
+                        Align::Max
+                    };
+                    let text = paint::elide(&cell, &text, Font::Body, sep - x0 - 10.);
                     paint::text(
-                        &painter,
-                        sep - 5.,
+                        &cell,
+                        if align == Align::Min {
+                            x0 + 8.
+                        } else {
+                            sep - 5.
+                        },
                         top + 9.,
                         &text,
                         Font::Body,
                         pal::TEXT,
-                        Align::Max,
+                        align,
                     );
+                    if rect.is_positive() && ui.rect_contains_pointer(rect) {
+                        let tooltip = match column {
+                            Column::Gpu | Column::GpuEngine => Some(node.gpu.usage.tooltip()),
+                            Column::GpuMemory => {
+                                Some(node.gpu.memory_tooltip(node.gpu.memory_state))
+                            }
+                            Column::GpuDedicatedMemory => {
+                                Some(node.gpu.memory_tooltip(node.gpu.dedicated_state))
+                            }
+                            Column::GpuSharedMemory => {
+                                Some(node.gpu.memory_tooltip(node.gpu.shared_state))
+                            }
+                            _ => None,
+                        };
+                        if let Some(tooltip) = tooltip {
+                            ui.interact(
+                                rect,
+                                Id::new((&node.key, column.id(), "gpu-tip")),
+                                egui::Sense::hover(),
+                            )
+                            .on_hover_text(tooltip);
+                        }
+                    }
                 }
             }
         }
@@ -579,7 +654,7 @@ impl ProcessesPage {
             pos,
             &mut open,
             |ui| {
-                for column in OPTIONAL.into_iter().chain([OPTIONAL_GPU_MEMORY]) {
+                for column in OPTIONAL {
                     let shown = self.columns.contains(&column);
                     if menu::check(ui, &column_title(column), shown) {
                         let mut visible: Vec<Column> = self

@@ -238,6 +238,7 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
         cmd: vec!["/usr/lib/systemd/systemd".into()],
         exe: "/usr/lib/systemd/systemd".into(),
         pid: 1,
+        start_time_ticks: Some(2),
         parent: 0,
         task_count: 1,
         ..Default::default()
@@ -253,6 +254,7 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
                 cmd: vec![format!("/usr/bin/{name}"), "--serve".into()],
                 exe: format!("/usr/bin/{name}"),
                 pid,
+                start_time_ticks: Some(u64::from(pid) + 1),
                 parent: 1,
                 task_count: 2,
                 usage_stats: ProcessUsageStats {
@@ -337,6 +339,115 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
         },
     );
 
+    // Both a discrete and an integrated adapter, without any host GPU I/O.
+    // Samples model actual engine/client identities, not ProcessUsageStats sums.
+    use magpie_types::gpus::{
+        ClientTelemetry, DriverInfo, EngineKind, EngineTelemetry, GpuTelemetry, MemoryTelemetry,
+        ProcessIdentity, ProcessObservation, TelemetryState,
+    };
+    let engine = |id: &str, name: &str, kind: EngineKind, load: f32| EngineTelemetry {
+        id: id.into(),
+        name: name.into(),
+        kind: kind as i32,
+        usage_percent: Some(load),
+        state: TelemetryState::Available as i32,
+        client_derived: Some(true),
+    };
+    r.gpus.insert(
+        "0000:03:00.0".into(),
+        Gpu {
+            id: "0000:03:00.0".into(),
+            device_name: Some("Synthetic integrated GPU".into()),
+            vendor_id: 0x8086,
+            utilization_percent: Some(wave(step, 11., 1., 0., 75.)),
+            total_memory: Some(0),
+            used_memory: Some(0),
+            total_shared_memory: Some(8 * gib),
+            used_shared_memory: Some(gib),
+            ..Default::default()
+        },
+    );
+    for (id, gpu) in &mut r.gpus {
+        let integrated = id == "0000:03:00.0";
+        let load = gpu.utilization_percent.unwrap();
+        let observations = r
+            .running_processes
+            .values()
+            .map(|p| ProcessObservation {
+                pid: p.pid,
+                start_time_ticks: p.start_time_ticks,
+                state: TelemetryState::Available as i32,
+            })
+            .collect();
+        let clients = r
+            .running_processes
+            .values()
+            .filter(|p| p.pid != 1 && p.pid.is_multiple_of(if integrated { 5 } else { 3 }))
+            .map(|p| {
+                let render = wave(step + p.pid as usize, 9., 0., 0., 25.);
+                ClientTelemetry {
+                    id: format!("synthetic-{}", p.pid),
+                    owners: vec![ProcessIdentity {
+                        pid: p.pid,
+                        start_time_ticks: p.start_time_ticks.unwrap(),
+                    }],
+                    engines: vec![
+                        engine("render", "3D", EngineKind::Render, render),
+                        engine("copy", "Copy", EngineKind::Copy, render * 0.3),
+                    ],
+                    overall_usage_percent: Some(render),
+                    dedicated_memory_bytes: Some(if integrated { 0 } else { 64 * 1024 * 1024 }),
+                    shared_memory_bytes: Some(8 * 1024 * 1024),
+                    allocated_memory_bytes: Some(if integrated { 8 } else { 72 } * 1024 * 1024),
+                    memory_is_resident: Some(true),
+                    usage_state: TelemetryState::Available as i32,
+                    memory_state: TelemetryState::Available as i32,
+                }
+            })
+            .collect();
+        gpu.telemetry = Some(GpuTelemetry {
+            epoch: 1,
+            sequence: step as u64 + 1,
+            state: TelemetryState::Available as i32,
+            engines: vec![
+                engine("render", "3D", EngineKind::Render, load),
+                engine("copy", "Copy", EngineKind::Copy, load * 0.2),
+                engine(
+                    "video-encode",
+                    "Video Encode",
+                    EngineKind::Encode,
+                    load * 0.1,
+                ),
+                engine(
+                    "video-decode",
+                    "Video Decode",
+                    EngineKind::Decode,
+                    load * 0.5,
+                ),
+                engine("compute", "Compute", EngineKind::Compute, load * 0.3),
+            ],
+            clients,
+            observations,
+            overall_usage_percent: Some(load),
+            overall_is_partial: Some(false),
+            memory: Some(MemoryTelemetry {
+                dedicated_total_bytes: gpu.total_memory,
+                dedicated_used_bytes: gpu.used_memory,
+                shared_total_bytes: Some(8 * gib),
+                shared_used_bytes: Some(gib),
+                reserved_bytes: Some(128 * 1024 * 1024),
+                dedicated_state: TelemetryState::Available as i32,
+                shared_state: TelemetryState::Available as i32,
+            }),
+            driver: Some(DriverInfo {
+                kernel_driver: Some("synthetic".into()),
+                version: Some("1.0".into()),
+                integrated: Some(integrated),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+    }
     r
 }
 

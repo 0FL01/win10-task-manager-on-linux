@@ -26,6 +26,7 @@ use std::collections::{HashMap, HashSet};
 use egui::{Color32, Ui};
 use mc_core::config::Config;
 use mc_core::format::{UnitSettings, to_short_human_readable_time};
+use mc_core::gpu::GpuSnapshot;
 use mc_core::i18n::i18n;
 use mc_core::sidebar::{
     self, DeviceOverride, DeviceType, parse_device_overrides, resolve_device_visibility,
@@ -92,6 +93,8 @@ pub trait DevicePage {
     fn summary_mut(&mut self) -> &mut SummaryGraph;
     /// Feeds a new snapshot. Returns `false` if the device disappeared from the readings.
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool;
+    /// Normalized GPU telemetry, delivered before the ordinary device update.
+    fn update_gpu(&mut self, _snapshot: &GpuSnapshot) {}
     fn apply_graph_settings(&mut self, settings: &GraphSettings);
     /// Returns `true` if a repaint is needed for the animation.
     fn animate(&mut self, frame: AnimationFrame) -> bool;
@@ -100,6 +103,11 @@ pub trait DevicePage {
     fn win10_view(&mut self, config: &Config) -> PageView<'_>;
     /// Page specific entries of the Win10 context menu.
     fn win10_menu(&mut self, _ui: &mut Ui, _cx: &mut Cx) {}
+    /// Optional per-tile captions for the first graph panel. Other device layouts are unchanged.
+    fn win10_graph_tiles(&mut self, _config: &Config) -> Vec<GraphTile> {
+        vec![]
+    }
+    fn win10_graph_menu(&mut self, _ui: &mut Ui, _cx: &mut Cx, _slot: usize) {}
     /// Shown sidebar index for devices with siblings ("Disk 0", "GPU 1"...).
     fn set_index(&mut self, _index: Option<usize>) {}
 }
@@ -112,7 +120,31 @@ pub struct GraphPanel<'a> {
     pub columns: usize,
 }
 
+/// GPU engine captions and selection targets, kept outside `PageView` so existing page literals
+/// and the reference CPU geometry remain compatible.
+#[derive(Clone)]
+pub struct GraphTile {
+    pub caption: String,
+    pub right: String,
+    pub tooltip: String,
+    pub slot: usize,
+}
+
 impl<'a> GraphPanel<'a> {
+    pub fn grid(
+        caption: String,
+        right: String,
+        graphs: Vec<&'a mut Graph>,
+        columns: usize,
+    ) -> Self {
+        Self {
+            caption,
+            right,
+            graphs,
+            columns,
+        }
+    }
+
     pub fn single(caption: String, right: String, graph: &'a mut Graph) -> Self {
         Self {
             caption,
@@ -289,6 +321,10 @@ impl PerformancePage {
         }
         let mut seen: HashMap<u8, usize> = HashMap::new();
         for d in self.devices.iter_mut() {
+            // GPU indices belong to the normalized snapshot, including GPU 0 for one adapter.
+            if d.device_type() == DeviceType::Gpu {
+                continue;
+            }
             let kind = device_prefix_index(d.name());
             let i = seen.entry(kind).or_default();
             let index = (counts[&kind] > 1).then_some(*i);
@@ -298,7 +334,7 @@ impl PerformancePage {
     }
 
     /// Applies a new snapshot. `config` may be updated (sidebar order, migrated keys).
-    pub fn update(&mut self, readings: &Readings, config: &mut Config) {
+    pub fn update(&mut self, readings: &Readings, gpu: &GpuSnapshot, config: &mut Config) {
         migrate_hidden_graphs(config);
         self.create_missing_devices(readings, config);
 
@@ -313,7 +349,10 @@ impl PerformancePage {
         }
 
         let before = self.devices.len();
-        self.devices.retain_mut(|d| d.update(readings, &env));
+        self.devices.retain_mut(|d| {
+            d.update_gpu(gpu);
+            d.update(readings, &env)
+        });
         if self.devices.len() != before || !self.loaded {
             self.assign_indices();
         }

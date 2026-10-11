@@ -1,0 +1,129 @@
+/* src/memory.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.memory;
+
+message Memory {
+  required uint64 mem_total = 1;
+  required uint64 mem_free = 2;
+  required uint64 mem_available = 3;
+  required uint64 buffers = 4;
+  required uint64 cached = 5;
+  required uint64 swap_cached = 6;
+  required uint64 active = 7;
+  required uint64 inactive = 8;
+  required uint64 active_anon = 9;
+  required uint64 inactive_anon =  10;
+  required uint64 active_file =  11;
+  required uint64 inactive_file = 12;
+  required uint64 unevictable = 13;
+  required uint64 m_locked = 14;
+  required uint64 swap_total = 15;
+  required uint64 swap_free = 16;
+  required uint64 zswap = 17;
+  required uint64 zswapped = 18;
+  required uint64 dirty = 19;
+  required uint64 writeback = 20;
+  required uint64 anon_pages = 21;
+  required uint64 mapped = 22;
+  required uint64 sh_mem = 23;
+  required uint64 k_reclaimable = 24;
+  required uint64 slab = 25;
+  required uint64 s_reclaimable = 26;
+  required uint64 s_unreclaim = 27;
+  required uint64 kernel_stack = 28;
+  required uint64 page_tables = 29;
+  required uint64 sec_page_tables = 30;
+  required uint64 nfs_unstable = 31;
+  required uint64 bounce = 32;
+  required uint64 writeback_tmp = 33;
+  required uint64 commit_limit = 34;
+  required uint64 committed = 35;
+  required uint64 vmalloc_total = 36;
+  required uint64 vmalloc_used = 37;
+  required uint64 vmalloc_chunk = 38;
+  required uint64 percpu = 39;
+  required uint64 hardware_corrupted = 40;
+  required uint64 anon_huge_pages = 41;
+  required uint64 shmem_huge_pages = 42;
+  required uint64 shmem_pmd_mapped = 43;
+  required uint64 file_huge_pages = 44;
+  required uint64 file_pmd_mapped = 45;
+  required uint64 cma_total = 46;
+  required uint64 cma_free = 47;
+  required uint64 huge_pages_total = 48;
+  required uint64 huge_pages_free = 49;
+  required uint64 huge_pages_rsvd = 50;
+  required uint64 huge_pages_surp = 51;
+  required uint64 hugepagesize = 52;
+  required uint64 hugetlb = 53;
+  required uint64 direct_map4k = 54;
+  required uint64 direct_map2m = 55;
+  required uint64 direct_map1g = 56;
+  required uint64 max_devices = 57;
+
+  // zram compression statistics (aggregated across all zram devices)
+  required uint64 zram_orig_size = 58;   // Original uncompressed data size
+  required uint64 zram_compr_size = 59;  // Compressed data size
+  required uint64 zram_mem_used = 60;    // Total memory allocated by zram
+}
+
+message MemoryDevice {
+  required uint64 size = 1;
+  required string form_factor = 2;
+  required string locator = 3;
+  required string bank_locator = 4;
+  required string ram_type = 5;
+  required uint64 speed = 6;
+  required uint32 rank = 7;
+}
+
+message MemoryRequest {
+  enum Kind {
+    Memory = 1;
+    MemoryDevices = 2;
+  }
+
+  required Kind kind = 1;
+}
+
+message MemoryResponse {
+  message MemoryDeviceList {
+    repeated MemoryDevice devices = 1;
+  }
+
+  message MemoryInfo {
+    oneof response {
+      Memory memory = 1;
+      MemoryDeviceList memory_devices = 2;
+    }
+  }
+
+  required MemoryRequest.Kind kind = 1;
+
+  oneof response {
+    MemoryInfo memory_info = 2;
+    MemoryResponseError error = 3;
+  }
+}
+
+message MemoryResponseError {}

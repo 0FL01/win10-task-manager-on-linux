@@ -1,0 +1,100 @@
+image: "ubuntu:26.04"
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
+stages:
+  - build
+  - test
+
+.shared:
+  checkout_submodule:
+    - apt-get install -y git
+    - sed -i 's/= ..\/app-detection.git/= https:\/\/gitlab.com\/mission-center-devs\/app-detection.git/g' .gitmodules
+    - git submodule update --init --recursive
+
+  setup_apt:
+    - rm -rf /etc/apt/sources.list.d
+    - echo 'deb http://archive.ubuntu.com/ubuntu resolute main restricted universe multiverse' > /etc/apt/sources.list
+    - echo 'deb http://archive.ubuntu.com/ubuntu resolute-updates main restricted universe multiverse' >> /etc/apt/sources.list
+    - echo 'deb http://archive.ubuntu.com/ubuntu resolute-security main restricted universe multiverse' >> /etc/apt/sources.list
+    - apt-get update && apt-get dist-upgrade -y
+
+  setup_apt_ports:
+    - rm -rf /etc/apt/sources.list.d
+    - echo 'deb http://ports.ubuntu.com/ubuntu-ports resolute main restricted universe multiverse' > /etc/apt/sources.list
+    - echo 'deb http://ports.ubuntu.com/ubuntu-ports resolute-updates main restricted universe multiverse' >> /etc/apt/sources.list
+    - echo 'deb http://ports.ubuntu.com/ubuntu-ports resolute-security main restricted universe multiverse' >> /etc/apt/sources.list
+    - apt-get update && apt-get dist-upgrade -y
+
+  install_deps:
+    - apt-get install -y build-essential curl cmake meson ninja-build git libdrm-dev libgbm-dev libudev-dev pkg-config
+
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.96.1 -y
+    - export PATH="$HOME/.cargo/bin:$PATH"
+
+build-job-x86:
+  stage: build
+  interruptible: true
+  before_script:
+    - !reference [ ".shared", "setup_apt" ]
+    - !reference [ ".shared", "install_deps" ]
+    - !reference [ ".shared", "checkout_submodule" ]
+  script:
+    - meson setup _build -Dbuildtype=release
+    - ninja -C _build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+build-job-arm:
+  stage: build
+  interruptible: true
+  tags:
+    - saas-linux-medium-arm64
+  before_script:
+    - !reference [ ".shared", "setup_apt_ports" ]
+    - !reference [ ".shared", "install_deps" ]
+    - !reference [ ".shared", "checkout_submodule" ]
+  script:
+    - meson setup _build -Dbuildtype=release
+    - ninja -C _build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+check-fmt:
+  stage: test
+  interruptible: true
+  before_script:
+    - !reference [ ".shared", "setup_apt" ]
+    - !reference [ ".shared", "install_deps" ]
+    - !reference [ ".shared", "checkout_submodule" ]
+  script:
+    - cargo fmt --all --check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+check-clippy:
+  stage: test
+  interruptible: true
+  before_script:
+    - !reference [ ".shared", "setup_apt" ]
+    - !reference [ ".shared", "install_deps" ]
+    - !reference [ ".shared", "checkout_submodule" ]
+  script:
+    - cargo clippy --all-targets --all-features -- -D warnings
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+run-tests:
+  stage: test
+  interruptible: true
+  before_script:
+    - !reference [ ".shared", "setup_apt" ]
+    - !reference [ ".shared", "install_deps" ]
+    - !reference [ ".shared", "checkout_submodule" ]
+  script:
+    - cargo test --workspace --all-features
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+

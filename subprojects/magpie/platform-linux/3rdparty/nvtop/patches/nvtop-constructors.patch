@@ -1,0 +1,234 @@
+diff --git a/src/extract_gpuinfo_amdgpu.c b/src/extract_gpuinfo_amdgpu.c
+index a548cda..c7b5365 100644
+--- a/src/extract_gpuinfo_amdgpu.c
++++ b/src/extract_gpuinfo_amdgpu.c
+@@ -156,7 +156,7 @@ struct gpu_vendor gpu_vendor_amdgpu = {
+ 
+ static int readAttributeFromDevice(nvtop_device *dev, const char *sysAttr, const char *format, ...);
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_amdgpu(void) { register_gpu_vendor(&gpu_vendor_amdgpu); }
++void init_extract_gpuinfo_amdgpu(void) { register_gpu_vendor(&gpu_vendor_amdgpu); }
+ 
+ static int wrap_drmGetDevices(drmDevicePtr devices[], int max_devices) {
+   assert(_drmGetDevices2 || _drmGetDevices);
+diff --git a/src/extract_gpuinfo_ascend.c b/src/extract_gpuinfo_ascend.c
+index e8b1599..13e0e89 100644
+--- a/src/extract_gpuinfo_ascend.c
++++ b/src/extract_gpuinfo_ascend.c
+@@ -68,7 +68,7 @@ struct gpu_vendor gpu_vendor_ascend = {
+     .name = "Ascend",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_ascend(void) { register_gpu_vendor(&gpu_vendor_ascend); }
++void init_extract_gpuinfo_ascend(void) { register_gpu_vendor(&gpu_vendor_ascend); }
+ 
+ static bool gpuinfo_ascend_init(void) {
+   last_dcmi_return_status = dcmi_init();
+@@ -249,4 +249,4 @@ static void gpuinfo_ascend_get_running_processes(struct gpu_info *_gpu_info) {
+     }
+   }
+   free(proc_info);
+-}
+\ No newline at end of file
++}
+diff --git a/src/extract_gpuinfo_intel.c b/src/extract_gpuinfo_intel.c
+index b80b4f0..6653b5c 100644
+--- a/src/extract_gpuinfo_intel.c
++++ b/src/extract_gpuinfo_intel.c
+@@ -64,7 +64,7 @@ static struct gpu_info_intel *gpu_infos;
+ // Discrete GPU are others
+ #define INTEGRATED_I915_GPU_PCI_ID "0000:00:02.0"
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_intel(void) { register_gpu_vendor(&gpu_vendor_intel); }
++void init_extract_gpuinfo_intel(void) { register_gpu_vendor(&gpu_vendor_intel); }
+ 
+ bool gpuinfo_intel_init(void) { return true; }
+ void gpuinfo_intel_shutdown(void) {
+diff --git a/src/extract_gpuinfo_ixml.c b/src/extract_gpuinfo_ixml.c
+index 231e782..8aa86ae 100644
+--- a/src/extract_gpuinfo_ixml.c
++++ b/src/extract_gpuinfo_ixml.c
+@@ -210,7 +210,7 @@ struct gpu_vendor gpu_vendor_ixml = {
+     .name = "Iluvatar",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_ixml(void) { register_gpu_vendor(&gpu_vendor_ixml); }
++void init_extract_gpuinfo_ixml(void) { register_gpu_vendor(&gpu_vendor_ixml); }
+ 
+ static bool gpuinfo_ixml_init(void) {
+   libixml_handle = dlopen("/usr/local/corex/lib/libixml.so", RTLD_LAZY);
+diff --git a/src/extract_gpuinfo_metax.c b/src/extract_gpuinfo_metax.c
+index 02d46d0..313689f 100644
+--- a/src/extract_gpuinfo_metax.c
++++ b/src/extract_gpuinfo_metax.c
+@@ -212,7 +212,7 @@ struct gpu_vendor gpu_vendor_metax = {
+   .name = "METAX",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_metax(void) { register_gpu_vendor(&gpu_vendor_metax); }
++void init_extract_gpuinfo_metax(void) { register_gpu_vendor(&gpu_vendor_metax); }
+ 
+ /*
+  *
+diff --git a/src/extract_gpuinfo_msm.c b/src/extract_gpuinfo_msm.c
+index 94efbc8..ca0ede4 100644
+--- a/src/extract_gpuinfo_msm.c
++++ b/src/extract_gpuinfo_msm.c
+@@ -147,7 +147,7 @@ static void authenticate_drm(int fd) {
+ #define STRINGIFY(x) STRINGIFY_HELPER_(x)
+ #define STRINGIFY_HELPER_(x) #x
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_msm(void) { register_gpu_vendor(&gpu_vendor_msm); }
++void init_extract_gpuinfo_msm(void) { register_gpu_vendor(&gpu_vendor_msm); }
+ 
+ bool gpuinfo_msm_init(void) {
+   libdrm_handle = dlopen("libdrm.so", RTLD_LAZY);
+diff --git a/src/extract_gpuinfo_nvidia.c b/src/extract_gpuinfo_nvidia.c
+index 33670a6..79741ec 100644
+--- a/src/extract_gpuinfo_nvidia.c
++++ b/src/extract_gpuinfo_nvidia.c
+@@ -299,7 +299,7 @@ struct gpu_vendor gpu_vendor_nvidia = {
+     .name = "NVIDIA",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_nvidia(void) { register_gpu_vendor(&gpu_vendor_nvidia); }
++void init_extract_gpuinfo_nvidia(void) { register_gpu_vendor(&gpu_vendor_nvidia); }
+ 
+ /*
+  *
+diff --git a/src/extract_gpuinfo_panfrost.c b/src/extract_gpuinfo_panfrost.c
+index ef67f5c..5ebc244 100644
+--- a/src/extract_gpuinfo_panfrost.c
++++ b/src/extract_gpuinfo_panfrost.c
+@@ -59,7 +59,8 @@ static struct gpu_vendor gpu_vendor_panfrost = {
+ static struct drmFuncTable drmFuncs;
+ static struct mali_gpu_state mali_state;
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_panfrost(void) { register_gpu_vendor(&gpu_vendor_panfrost); }
++void init_extract_gpuinfo_panfrost(void);
++void init_extract_gpuinfo_panfrost(void) { register_gpu_vendor(&gpu_vendor_panfrost); }
+ 
+ bool gpuinfo_panfrost_init(void) {
+   return mali_init_drm_funcs(&drmFuncs, &mali_state);
+diff --git a/src/extract_gpuinfo_panthor.c b/src/extract_gpuinfo_panthor.c
+index 0eba82b..e7f33a8 100644
+--- a/src/extract_gpuinfo_panthor.c
++++ b/src/extract_gpuinfo_panthor.c
+@@ -52,7 +52,8 @@ static struct gpu_vendor gpu_vendor_panthor = {
+ static struct drmFuncTable drmFuncs;
+ static struct mali_gpu_state mali_state;
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_panthor(void) { register_gpu_vendor(&gpu_vendor_panthor); }
++void init_extract_gpuinfo_panthor(void);
++void init_extract_gpuinfo_panthor(void) { register_gpu_vendor(&gpu_vendor_panthor); }
+ 
+ bool gpuinfo_panthor_init(void) {
+   return mali_init_drm_funcs(&drmFuncs, &mali_state);
+diff --git a/src/extract_gpuinfo_radeon.c b/src/extract_gpuinfo_radeon.c
+index fee23dc..1003777 100644
+--- a/src/extract_gpuinfo_radeon.c
++++ b/src/extract_gpuinfo_radeon.c
+@@ -284,7 +284,7 @@ static struct gpu_info_radeon_s gpu_infos[RADEON_GPU_COUNT_MAX];
+ 
+ 
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_radeon(void) { register_gpu_vendor(&gpu_vendor_radeon); }
++void init_extract_gpuinfo_radeon(void) { register_gpu_vendor(&gpu_vendor_radeon); }
+ 
+ 
+ 
+diff --git a/src/extract_gpuinfo_tenstorrent.c b/src/extract_gpuinfo_tenstorrent.c
+index 3fc7e73..b75eb9f 100644
+--- a/src/extract_gpuinfo_tenstorrent.c
++++ b/src/extract_gpuinfo_tenstorrent.c
+@@ -372,6 +372,6 @@ struct gpu_vendor gpu_vendor_tenstorrent = {
+   .name = "Tenstorrent",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_tenstorrent(void) {
++void init_extract_gpuinfo_tenstorrent(void) {
+   register_gpu_vendor(&gpu_vendor_tenstorrent);
+ }
+diff --git a/src/extract_gpuinfo_tpu.c b/src/extract_gpuinfo_tpu.c
+index 21e9897..6e5765d 100644
+--- a/src/extract_gpuinfo_tpu.c
++++ b/src/extract_gpuinfo_tpu.c
+@@ -68,7 +68,7 @@ struct gpu_vendor gpu_vendor_tpu = {
+     .name = "TPU",
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_tpu(void) { 
++void init_extract_gpuinfo_tpu(void) {
+   register_gpu_vendor(&gpu_vendor_tpu);
+ }
+ 
+@@ -87,7 +87,7 @@ static struct gpu_info_tpu *gpu_infos;
+ #define int64 long long
+ 
+ int (*_tpu_chip_count)(void);
+-int (*_tpu_metrics)(int port, int64 *device_ids, int64 *memory_usage, 
++int (*_tpu_metrics)(int port, int64 *device_ids, int64 *memory_usage,
+                     int64 *total_memory, double *duty_cycle_pct, int n);
+ int (*_tpu_pids)(int64 *pids, int n);
+ 
+@@ -95,7 +95,7 @@ char *libname = "libtpuinfo.so";
+ // -1 means allowing libtpuinfo to select the default port
+ // env LIBTPUINFO_GRPC_PORT={int} allows setting the port via an environment variable
+ // $ env LIBTPUINFO_GRPC_PORT=8431 nvtop
+-int tpu_runtime_monitoring_port = -1;  
++int tpu_runtime_monitoring_port = -1;
+ 
+ /* TPU info cache ------------------------------------------------------------------------------- */
+ struct tpu_chip_usage_data *latest_chips_usage_data = NULL;
+@@ -149,7 +149,7 @@ bool gpuinfo_tpu_init(void) {
+   char* error_msg;
+   nvtop_get_current_time(&last_cache_refresh);
+   // invalidate cache by putting it in the past
+-  last_cache_refresh = nvtop_substract_time(last_cache_refresh, (nvtop_time){10, 0}); 
++  last_cache_refresh = nvtop_substract_time(last_cache_refresh, (nvtop_time){10, 0});
+ 
+   // Load dynamic library symbols
+   void *handle = dlopen(libname, RTLD_LAZY);
+diff --git a/src/extract_gpuinfo_v3d.c b/src/extract_gpuinfo_v3d.c
+index c92757c..97e70a2 100644
+--- a/src/extract_gpuinfo_v3d.c
++++ b/src/extract_gpuinfo_v3d.c
+@@ -90,7 +90,7 @@ struct gpu_vendor gpu_vendor_v3d = {
+ unsigned v3d_gpu_count;
+ static struct gpu_info_v3d *gpu_infos;
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_v3d(void) { register_gpu_vendor(&gpu_vendor_v3d); }
++void init_extract_gpuinfo_v3d(void) { register_gpu_vendor(&gpu_vendor_v3d); }
+ 
+ bool gpuinfo_v3d_init(void) { return true; }
+ void gpuinfo_v3d_shutdown(void) {
+diff --git a/src/extract_npuinfo_rockchip.c b/src/extract_npuinfo_rockchip.c
+index 7e9ba87..8b8155a 100644
+--- a/src/extract_npuinfo_rockchip.c
++++ b/src/extract_npuinfo_rockchip.c
+@@ -132,7 +132,7 @@ static int set_gpuinfo_dynamic_memory(struct gpuinfo_dynamic_info *dynamic_info)
+     SET_GPUINFO_DYNAMIC(dynamic_info, mem_util_rate,
+                         (dynamic_info->total_memory - dynamic_info->free_memory) * 100 / dynamic_info->total_memory);
+   }
+-  return 0; 
++  return 0;
+ }
+ 
+ static void gpuinfo_rknpu_refresh_dynamic_info(struct gpu_info *_gpu_info) {
+@@ -142,7 +142,7 @@ static void gpuinfo_rknpu_refresh_dynamic_info(struct gpu_info *_gpu_info) {
+   int gpu_clock_speed = read_int_from_file("/sys/class/devfreq/fdab0000.npu/cur_freq") / 1000000;
+   int gpu_clock_speed_max = read_int_from_file("/sys/class/devfreq/fdab0000.npu/max_freq") / 1000000;
+   int gpu_util_rate = read_npu_load("/sys/kernel/debug/rknpu/load");
+-  if (gpu_util_rate >= 0) 
++  if (gpu_util_rate >= 0)
+     SET_GPUINFO_DYNAMIC(dynamic_info, gpu_util_rate, gpu_util_rate);
+ 
+   SET_GPUINFO_DYNAMIC(dynamic_info, gpu_clock_speed, gpu_clock_speed);
+@@ -169,6 +169,6 @@ struct gpu_vendor gpu_vendor_rknpu = {
+   .name = "RK-NPU"
+ };
+ 
+-__attribute__((constructor)) static void init_extract_gpuinfo_rknpu(void) {
++void init_extract_gpuinfo_rknpu(void) {
+   register_gpu_vendor(&gpu_vendor_rknpu);
+ }

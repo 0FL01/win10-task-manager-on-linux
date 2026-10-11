@@ -1,0 +1,61 @@
+/* src/cpu.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.cpu;
+
+message Cpu {
+  optional string name = 1;
+  optional uint32 socket_count = 2;
+  optional uint64 base_freq_khz = 3;
+  optional string virtualization_technology = 4;
+  optional bool is_virtual_machine = 5;
+  optional uint64 l1_combined_cache_bytes = 6;
+  optional uint64 l2_cache_bytes = 7;
+  optional uint64 l3_cache_bytes = 8;
+  optional uint64 l4_cache_bytes = 9;
+
+  required float total_usage_percent = 10;
+  required float kernel_usage_percent = 11;
+  repeated float core_usage_percent = 12;
+  repeated float core_kernel_usage_percent = 13;
+  required uint64 current_frequency_mhz = 14;
+  optional float temperature_celsius = 15;
+  required uint64 total_process_count = 16;
+  required uint64 total_thread_count = 17;
+  required uint64 total_handle_count = 18;
+  required uint64 uptime_seconds = 19;
+  optional string frequency_driver = 20;
+  optional string frequency_governor = 21;
+  optional string power_preference = 22;
+  optional float power_draw_w = 23;
+}
+
+message CpuRequest {}
+
+message CpuResponse {
+  oneof response {
+    Cpu cpu = 1;
+    CpuResponseError error = 2;
+  }
+}
+
+message CpuResponseError {}

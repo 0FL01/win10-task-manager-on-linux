@@ -33,6 +33,7 @@ use mc_magpie::{App, Process, Readings, Service};
 use textdistance::nstr::levenshtein;
 
 use crate::config::SortOrder;
+use crate::gpu::{GpuSnapshot, GpuStats};
 use crate::i18n::i18n;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -107,6 +108,7 @@ pub struct Node {
     pub command_line: String,
     pub icon: RowIcon,
     pub stats: ProcessUsageStats,
+    pub gpu: GpuStats,
     pub service: Option<ServiceInfo>,
     /// For app rows: every pid belonging to the app.
     pub app_pids: Vec<u32>,
@@ -124,6 +126,7 @@ impl Node {
             command_line: String::new(),
             icon: RowIcon::None,
             stats: ProcessUsageStats::default(),
+            gpu: GpuStats::default(),
             service: None,
             app_pids: vec![],
             children: vec![],
@@ -141,11 +144,14 @@ pub enum Column {
     Drive,
     Network,
     Gpu,
+    GpuEngine,
     GpuMemory,
+    GpuDedicatedMemory,
+    GpuSharedMemory,
 }
 
 impl Column {
-    pub const ALL: [Column; 9] = [
+    pub const ALL: [Column; 12] = [
         Column::Name,
         Column::Pid,
         Column::Cpu,
@@ -154,7 +160,10 @@ impl Column {
         Column::Drive,
         Column::Network,
         Column::Gpu,
+        Column::GpuEngine,
         Column::GpuMemory,
+        Column::GpuDedicatedMemory,
+        Column::GpuSharedMemory,
     ];
 
     /// Identifier persisted in the settings (same as the GTK column ids).
@@ -168,7 +177,10 @@ impl Column {
             Column::Drive => "drive",
             Column::Network => "network",
             Column::Gpu => "gpu",
+            Column::GpuEngine => "gpu_engine",
             Column::GpuMemory => "gpu_memory",
+            Column::GpuDedicatedMemory => "dedicated_gpu_memory",
+            Column::GpuSharedMemory => "shared_gpu_memory",
         }
     }
 
@@ -185,9 +197,11 @@ impl Column {
             Column::Swap => s.swap_usage as f64,
             Column::Drive => s.disk_usage as f64,
             Column::Network => s.network_usage as f64,
-            Column::Gpu => s.gpu_usage as f64,
-            Column::GpuMemory => s.gpu_memory_usage as f64,
-            Column::Name | Column::Pid => return None,
+            Column::Gpu => node.gpu.usage.percent? as f64,
+            Column::GpuMemory => node.gpu.memory? as f64,
+            Column::GpuDedicatedMemory => node.gpu.dedicated? as f64,
+            Column::GpuSharedMemory => node.gpu.shared? as f64,
+            Column::Name | Column::Pid | Column::GpuEngine => return None,
         })
     }
 
@@ -210,11 +224,26 @@ impl Column {
                 .network_usage
                 .partial_cmp(&r.network_usage)
                 .unwrap_or(Ordering::Equal),
-            Column::Gpu => l
-                .gpu_usage
-                .partial_cmp(&r.gpu_usage)
+            Column::Gpu => lhs
+                .gpu
+                .usage
+                .percent
+                .partial_cmp(&rhs.gpu.usage.percent)
                 .unwrap_or(Ordering::Equal),
-            Column::GpuMemory => l.gpu_memory_usage.cmp(&r.gpu_memory_usage),
+            Column::GpuEngine => lhs.gpu.usage.engine.cmp(&rhs.gpu.usage.engine),
+            Column::GpuMemory => lhs.gpu.memory.cmp(&rhs.gpu.memory),
+            Column::GpuDedicatedMemory => lhs.gpu.dedicated.cmp(&rhs.gpu.dedicated),
+            Column::GpuSharedMemory => lhs.gpu.shared.cmp(&rhs.gpu.shared),
+        }
+    }
+
+    fn gpu_known(&self, node: &Node) -> Option<bool> {
+        match self {
+            Self::GpuEngine => Some(node.gpu.usage.engine.is_some()),
+            Self::Gpu | Self::GpuMemory | Self::GpuDedicatedMemory | Self::GpuSharedMemory => {
+                Some(self.numeric_value(node).is_some())
+            }
+            _ => None,
         }
     }
 }
@@ -603,6 +632,31 @@ impl Tree {
         self.nodes.iter().position(|n| n.key == key)
     }
 
+    /// GPU groups use unique process/client identities, independently of the legacy scalar stats.
+    pub fn apply_gpu(&mut self, readings: &Readings, gpu: &GpuSnapshot, merged: bool) {
+        for node in &mut self.nodes {
+            if node.kind == RowKind::SectionHeader {
+                continue;
+            }
+            let descend = node.kind != RowKind::Process || merged;
+            let mut pending = if node.kind == RowKind::App {
+                node.app_pids.clone()
+            } else {
+                vec![node.pid]
+            };
+            let mut pids = HashSet::new();
+            while let Some(pid) = pending.pop() {
+                if pids.insert(pid)
+                    && descend
+                    && let Some(process) = readings.running_processes.get(&pid)
+                {
+                    pending.extend(process.children.iter().copied());
+                }
+            }
+            node.gpu = gpu.aggregate(pids);
+        }
+    }
+
     fn matches_search(node: &Node, query: &str) -> bool {
         if query.is_empty() || node.kind == RowKind::SectionHeader {
             return true;
@@ -634,11 +688,19 @@ impl Tree {
 
         children.sort_by(|&a, &b| {
             let (lhs, rhs) = (&self.nodes[a], &self.nodes[b]);
+            if lhs.section == rhs.section
+                && lhs.kind == rhs.kind
+                && let (Some(l), Some(r)) = (column.gpu_known(lhs), column.gpu_known(rhs))
+                && l != r
+            {
+                return r.cmp(&l); // Unknown stays last in either direction.
+            }
             let ordering = lhs
                 .section
                 .cmp(&rhs.section)
                 .then(lhs.kind.cmp(&rhs.kind))
-                .then_with(|| column.compare(lhs, rhs));
+                .then_with(|| column.compare(lhs, rhs))
+                .then(lhs.pid.cmp(&rhs.pid));
             if descending {
                 ordering.reverse()
             } else {
@@ -739,12 +801,12 @@ pub struct ColumnTotals {
     pub system_network_bytes_ps: f32,
     /// Summed link speed of those interfaces, when known (0 otherwise)
     pub system_network_capacity_bytes_ps: f32,
-    pub gpu_percent: f32,
-    pub gpu_memory_percent: f32,
+    pub gpu_percent: Option<f32>,
+    pub gpu_memory_percent: Option<f32>,
 }
 
 impl ColumnTotals {
-    pub fn from_readings(readings: &Readings) -> Self {
+    pub fn from_readings(readings: &Readings, gpu: &GpuSnapshot) -> Self {
         let mem = &readings.mem_info;
         let mem_total = mem.mem_total.max(1);
         // https://gitlab.com/procps-ng/procps/-/blob/master/library/meminfo.c?ref_type=heads#L736
@@ -791,24 +853,28 @@ impl ColumnTotals {
             .map(|s| s as f32)
             .sum();
 
-        let (gpu_percent, gpu_memory_percent) = if readings.gpus.is_empty() {
-            (0., 0.)
-        } else {
-            let mut sum_util = 0.;
-            let mut sum_mem_used = 0.;
-            let mut sum_mem_total = 0.;
-            for gpu in readings.gpus.values() {
-                sum_util += gpu.utilization_percent.unwrap_or(0.);
-                sum_mem_used += gpu.used_memory.unwrap_or(0) as f32;
-                sum_mem_total += gpu.total_memory.unwrap_or(0) as f32;
-            }
-            let mem = if sum_mem_total > 0. {
-                sum_mem_used * 100. / sum_mem_total
-            } else {
-                0.
-            };
-            (sum_util / readings.gpus.len() as f32, mem)
-        };
+        let gpu_percent = gpu.usage.percent;
+        let gpu_memory_percent = gpu
+            .devices
+            .values()
+            .try_fold((0u64, 0u64), |(used, total), device| {
+                let memory = &device.memory;
+                Some((
+                    used.checked_add(
+                        memory
+                            .dedicated_used_bytes?
+                            .checked_add(memory.shared_used_bytes?)?,
+                    )?,
+                    total.checked_add(
+                        memory
+                            .dedicated_total_bytes?
+                            .checked_add(memory.shared_total_bytes?)?,
+                    )?,
+                ))
+            })
+            .filter(|(_, total)| *total > 0)
+            .map(|(used, total)| used as f64 * 100. / total as f64)
+            .map(|value| value as f32);
 
         Self {
             cpu_percent: readings.cpu.total_usage_percent,
@@ -827,6 +893,50 @@ impl ColumnTotals {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn gpu_numeric_sort_keeps_unknown_last_in_both_directions() {
+        let mut readings = mc_magpie::synthetic_readings(3, 6);
+        for gpu in readings.gpus.values_mut() {
+            let telemetry = gpu.telemetry.as_mut().unwrap();
+            telemetry.observations.retain(|p| p.pid != 100);
+            telemetry
+                .clients
+                .retain(|c| c.owners.iter().all(|p| p.pid != 100));
+        }
+        let gpu =
+            GpuSnapshot::from_readings(&readings, &mut crate::gpu::GpuIndices::default(), 1000);
+        let mut tree = Tree::apps(&readings, false);
+        tree.apply_gpu(&readings, &gpu, false);
+        let header = tree.find_by_key("processes").unwrap();
+        for column in [Column::Gpu, Column::GpuDedicatedMemory] {
+            for sort_order in [SortOrder::Ascending, SortOrder::Descending] {
+                let mut rows = tree.nodes[header].children.clone();
+                tree.sort_children(
+                    &mut rows,
+                    &ViewOptions {
+                        sort_column: Some(column),
+                        sort_order,
+                        ..Default::default()
+                    },
+                );
+                assert_eq!(tree.nodes[*rows.last().unwrap()].pid, 100);
+                let values: Vec<_> = rows
+                    .iter()
+                    .filter_map(|&r| column.numeric_value(&tree.nodes[r]))
+                    .collect();
+                assert!(
+                    values
+                        .windows(2)
+                        .all(|pair| if sort_order == SortOrder::Ascending {
+                            pair[0] <= pair[1]
+                        } else {
+                            pair[0] >= pair[1]
+                        })
+                );
+            }
+        }
+    }
 
     fn process(pid: u32, parent: u32, name: &str, children: &[u32], cpu: f32) -> Process {
         Process {
@@ -1050,7 +1160,7 @@ mod tests {
             );
         }
         assert_eq!(
-            ColumnTotals::from_readings(&r).system_network_bytes_ps,
+            ColumnTotals::from_readings(&r, &GpuSnapshot::default()).system_network_bytes_ps,
             3000.
         );
     }

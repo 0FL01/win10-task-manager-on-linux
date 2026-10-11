@@ -1,0 +1,130 @@
+/* src/processes.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.processes;
+
+import "common.proto";
+
+enum ProcessState {
+  Running = 0;
+  Sleeping = 1;
+  SleepingUninterruptible = 2;
+  Zombie = 3;
+  Stopped = 4;
+  Tracing = 5;
+  Dead = 6;
+  WakeKill = 7;
+  Waking = 8;
+  Parked = 9;
+  Unknown = 10;
+}
+
+message ProcessUsageStats {
+  required float cpu_usage = 1;
+  required uint64 memory_usage = 2;
+  required uint64 swap_usage = 3;
+  required float disk_usage = 4;
+  required float network_usage = 5;
+  required float gpu_usage = 6;
+  required uint64 gpu_memory_usage = 7;
+}
+
+message Process {
+  required string name = 1;
+  repeated string cmd = 2;
+  required string exe = 3;
+  required ProcessState state = 4;
+  required uint32 pid = 5;
+  required uint32 parent = 6;
+  required ProcessUsageStats usage_stats = 7;
+  required uint64 task_count = 8;
+  repeated uint32 children = 9;
+  optional uint64 start_time_ticks = 10;
+}
+
+message TerminateProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message KillProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message InterruptProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message User1ProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message User2ProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message HangupProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message ContinueProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message SuspendProcessesRequest {
+  repeated uint32 pids = 1;
+}
+
+message ProcessesRequest {
+  oneof request {
+    magpie.common.Empty process_map = 1;
+    TerminateProcessesRequest terminate = 2;
+    KillProcessesRequest kill = 3;
+    InterruptProcessesRequest interrupt = 4;
+    HangupProcessesRequest hangup = 5;
+    ContinueProcessesRequest continue = 6;
+    SuspendProcessesRequest suspend = 7;
+    User1ProcessesRequest user1 = 8;
+    User2ProcessesRequest user2 = 9;
+  }
+}
+
+message ProcessesResponse {
+  message ProcessMap {
+    map<uint32, Process> processes = 1;
+    oneof network_stats_error {
+      LibraryMissingError library_missing = 2;
+      PermissionsError permissions_error = 3;
+    }
+  }
+
+  oneof response {
+    ProcessMap processes = 1;
+    magpie.common.Empty term_kill = 2;
+    ProcessesResponseError error = 3;
+  }
+}
+
+message ProcessesResponseError {}
+
+message LibraryMissingError {}
+
+message PermissionsError {}

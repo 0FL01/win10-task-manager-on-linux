@@ -1,0 +1,41 @@
+diff --git a/src/extract_gpuinfo_intel_i915.c b/src/extract_gpuinfo_intel_i915.c
+index 69641dd..0a972e0 100644
+--- a/src/extract_gpuinfo_intel_i915.c
++++ b/src/extract_gpuinfo_intel_i915.c
+@@ -66,6 +66,36 @@ struct drm_i915_query_memory_regions {
+ };
+ #endif // not defined(DRM_I915_QUERY_MEMORY_REGIONS)
+ 
++#ifndef DRM_I915_QUERY
++#define DRM_I915_QUERY 0x39
++#endif
++
++#ifndef DRM_IOCTL_I915_QUERY
++#define DRM_IOCTL_I915_QUERY DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_QUERY, struct drm_i915_query)
++
++struct drm_i915_query_item {
++	__u64 query_id;
++#define DRM_I915_QUERY_TOPOLOGY_INFO		1
++#define DRM_I915_QUERY_ENGINE_INFO		2
++#define DRM_I915_QUERY_PERF_CONFIG		3
++#define DRM_I915_QUERY_MEMORY_REGIONS		4
++#define DRM_I915_QUERY_HWCONFIG_BLOB		5
++#define DRM_I915_QUERY_GEOMETRY_SUBSLICES	6
++	__s32 length;
++	__u32 flags;
++#define DRM_I915_QUERY_PERF_CONFIG_LIST          1
++#define DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_UUID 2
++#define DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_ID   3
++	__u64 data_ptr;
++};
++
++struct drm_i915_query {
++	__u32 num_items;
++	__u32 flags;
++	__u64 items_ptr;
++};
++#endif
++
+ // Copied from https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/intel/common/intel_gem.h
+ static inline int intel_ioctl(int fd, unsigned long request, void *arg) {
+   int ret;

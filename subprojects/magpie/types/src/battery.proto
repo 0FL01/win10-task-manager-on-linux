@@ -1,0 +1,135 @@
+/* src/battery.proto
+ *
+ * Copyright 2026 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License; or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful;
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not; see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+package magpie.battery;
+
+/*
+ * All enums are according to https://upower.freedesktop.org/docs/Device.html
+ * without Unknown states, these are to be set to None
+ */
+
+enum BatteryState {
+    Charging = 1;
+    Discharging = 2;
+    Empty = 3;
+    FullyCharged = 4;
+    PendingCharge = 5;
+    PendingDischarge = 6;
+}
+
+enum BatteryType {
+    LinePower = 1;
+    Bat = 2;
+    Ups = 3;
+    Monitor = 4;
+    Mouse = 5;
+    Keyboard = 6;
+    Pda = 7;
+    Phone = 8;
+    MediaPlayer = 9;
+    Tablet = 10;
+    Computer = 11;
+    GamingInput = 12;
+    Pen = 13;
+    Touchpad = 14;
+    Modem = 15;
+    Network = 16;
+    Headset = 17;
+    Speakers = 18;
+    Headphones = 19;
+    Video = 20;
+    OtherAudio = 21;
+    RemoteControl = 22;
+    Printer = 23;
+    Scanner = 24;
+    Camera = 25;
+    Wearable = 26;
+    Toy = 27;
+    BluetoothGeneric = 28;
+}
+
+enum BatteryTechnology {
+    Unknown = 0;
+    LithiumIon = 1;
+    LithiumPolymer = 2;
+    LithiumIronPhosphate = 3;
+    LeadAcid = 4;
+    NickelCadmium = 5;
+    NickelMetalHydride = 6;
+}
+
+message HistoryPoint {
+    required float x = 1;
+    required float y = 2;
+}
+
+message Battery {
+  required string name = 1;
+  optional string vendor = 2;
+  optional string model = 3;
+  optional string serial = 4;
+
+  optional BatteryType kind = 5;
+  optional BatteryTechnology technology = 6;
+  optional bool power_supply = 7;
+
+  optional uint32 energy_empty = 8;
+  optional uint32 energy_full = 9;
+  optional uint32 energy_full_design = 10;
+  optional float capacity = 11;
+  optional float voltage_min_design = 12;
+  optional float voltage_max_design = 13;
+  optional uint32 charge_cycles = 14;
+
+  required float percentage = 15;
+  optional uint32 energy = 16;
+  optional float voltage = 17;
+  optional float power = 18;
+  optional uint32 time_to_full = 19;
+  optional uint32 time_to_empty = 20;
+  optional string icon_name = 21;
+  optional BatteryState state = 22;
+  optional float temp = 23;
+
+  required bool charge_threshold_enabled = 24;
+  required uint32 charge_threshold_supported = 25;
+  optional uint32 charge_start_threshold = 26;
+  optional uint32 charge_end_threshold = 27;
+
+  repeated HistoryPoint history = 28;
+  required bool history_changed = 29;
+}
+
+message BatteryRequest {}
+
+message BatteryResponse {
+  message BatteryList {
+    repeated Battery batteries = 1;
+  }
+
+  oneof response {
+    BatteryList batteries = 1;
+    BatteryResponseError error = 2;
+  }
+}
+
+message BatteryResponseError {}

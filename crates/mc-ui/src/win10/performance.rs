@@ -27,9 +27,9 @@ use mc_core::sidebar::DeviceType;
 use mc_graph::{Graph, GraphStyle};
 
 use super::paint::{self, Font};
-use super::{menu, palette as pal};
+use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
-use crate::perf::{PageView, PerformancePage};
+use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage};
 
 /// Reference device list width (separator at content left + 211); the separator can be dragged
 /// wider (own design), the page keeps at least `PAGE_MIN_W`
@@ -74,12 +74,18 @@ fn style_graph(graph: &mut Graph, colors: pal::DeviceColors) {
 pub struct PerformanceView {
     offset: f32,
     menu: Option<Pos2>,
+    menu_slot: Option<usize>,
+    gpu_scroll: listview::ListState,
+    scroll_device: String,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
 }
 
 impl PerformanceView {
     pub fn ui(&mut self, ui: &mut Ui, cx: &mut Cx, perf: &mut PerformancePage, content: Rect) {
+        if !perf.loaded {
+            return;
+        }
         let max_w = (content.width() - PAGE_MIN_W).max(LIST_W);
         let list_w = self
             .dragging
@@ -87,34 +93,79 @@ impl PerformanceView {
             .clamp(LIST_W, max_w)
             .round();
         let list = Rect::from_min_max(content.min, pos2(content.left() + list_w, content.bottom()));
-        self.separator(ui, cx, list, list_w, max_w);
-        if !perf.loaded {
-            return;
+        if !perf.summary_mode {
+            self.separator(ui, cx, list, list_w, max_w);
+            self.list_ui(ui, cx, perf, list);
         }
-        self.list_ui(ui, cx, perf, list);
 
         let Some(index) = perf.device_index(&perf.selected) else {
             return;
         };
-        let page = Rect::from_min_max(pos2(list.right() + 1., content.top()), content.max);
-        let response = ui.interact(page, Id::new("perf-page"), Sense::click());
+        let page = if perf.summary_mode {
+            content
+        } else {
+            Rect::from_min_max(pos2(list.right() + 1., content.top()), content.max)
+        };
+        let response = ui.interact(
+            page,
+            Id::new("perf-page"),
+            if perf.summary_mode {
+                Sense::click_and_drag()
+            } else {
+                Sense::click()
+            },
+        );
+        if perf.summary_mode && response.drag_started() {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+        }
         if response.secondary_clicked() {
             self.menu = response.interact_pointer_pos();
+            self.menu_slot = None;
         }
-        let colors = device_colors(perf.devices[index].device_type());
+        let mut toggle_summary = response.double_clicked();
+        let kind = perf.devices[index].device_type();
+        let colors = device_colors(kind);
+        let tiles = perf.devices[index].win10_graph_tiles(cx.config);
         let view = perf.devices[index].win10_view(cx.config);
         // The page geometry is relative to the reference list width
         let shifted = Rect::from_min_max(
             pos2(content.left() + list_w - LIST_W, content.top()),
             content.max,
         );
-        page_ui(ui, shifted, view, colors);
+        let graph_response = if perf.summary_mode {
+            summary_ui(ui, page, view, &tiles, colors)
+        } else if kind == DeviceType::Gpu {
+            if self.scroll_device != perf.selected {
+                self.gpu_scroll.offset = 0.;
+                self.scroll_device.clone_from(&perf.selected);
+            }
+            gpu_page_ui(ui, page, view, &tiles, colors, &mut self.gpu_scroll)
+        } else {
+            page_ui(ui, shifted, view, colors);
+            GraphResponse::default()
+        };
+        toggle_summary |= graph_response.double_clicked;
+        if toggle_summary {
+            cx.send(Command::ToggleSummaryMode);
+        }
+        if let Some((pos, slot)) = graph_response.menu {
+            self.menu = Some(pos);
+            self.menu_slot = slot;
+        }
 
         if let Some(pos) = self.menu {
             let mut open = true;
             let device = &mut perf.devices[index];
             menu::context(ui, Id::new("perf-menu"), pos, &mut open, |ui| {
+                if let Some(slot) = self.menu_slot {
+                    device.win10_graph_menu(ui, cx, slot);
+                    menu::separator(ui);
+                }
                 device.win10_menu(ui, cx);
+                menu::separator(ui);
+                if menu::check(ui, &i18n("Graph summary view"), perf.summary_mode) {
+                    cx.send(Command::ToggleSummaryMode);
+                }
                 menu::separator(ui);
                 if menu::item(
                     ui,
@@ -127,6 +178,7 @@ impl PerformanceView {
             });
             if !open {
                 self.menu = None;
+                self.menu_slot = None;
             }
         }
     }
@@ -281,6 +333,368 @@ impl PerformanceView {
             perf.select(&name, cx.config);
         }
     }
+}
+
+#[derive(Default)]
+struct GraphResponse {
+    menu: Option<(Pos2, Option<usize>)>,
+    double_clicked: bool,
+}
+
+/// GPU-only own adaptation: minimum usable graph heights and a vertical flow ensure every
+/// statistic and actual driver field stays reachable even in a short window.
+fn gpu_page_ui(
+    ui: &mut Ui,
+    page: Rect,
+    mut view: PageView<'_>,
+    tiles: &[GraphTile],
+    colors: pal::DeviceColors,
+    scroll: &mut listview::ListState,
+) -> GraphResponse {
+    let gx0 = page.left() + GRAPH_X - LIST_W - 1.;
+    let gx1 = page.right() - RIGHT_INSET;
+    let room = gx1 - gx0 + 1.;
+    let painter = ui.painter().clone();
+    let mut stat_rows = vec![];
+    for row in &view.stats {
+        let mut line = vec![];
+        let mut width = 0.;
+        for entry in row {
+            let entry_w = paint::text_width(&painter, &entry.0, Font::Body).max(paint::text_width(
+                &painter,
+                &entry.1,
+                Font::StatValue,
+            ));
+            if !line.is_empty() && width + entry_w > room {
+                stat_rows.push(line);
+                line = vec![];
+                width = 0.;
+            }
+            line.push((entry, entry_w));
+            width += entry_w + STAT_COLUMN_GAP;
+        }
+        if !line.is_empty() {
+            stat_rows.push(line);
+        }
+    }
+    let heights: Vec<f32> = view
+        .panels
+        .iter()
+        .enumerate()
+        .map(|(index, panel)| {
+            if index == 0 {
+                let rows = panel.graphs.len().div_ceil(panel.columns.max(1)).max(1);
+                (m::GPU_ENGINE_MIN_H + m::GPU_TILE_CAPTION_H + GRAPH_GAP) * rows as f32 - GRAPH_GAP
+            } else if index <= 2 {
+                m::GPU_MEMORY_MIN_H
+            } else {
+                m::GPU_AUX_MIN_H
+            }
+        })
+        .collect();
+    let graphs_h = heights.iter().sum::<f32>()
+        + heights.len().saturating_sub(1) as f32 * (m::GPU_PANEL_GAP + 13.);
+    let stats_y = GRAPH_TOP + graphs_h + m::GPU_PANEL_GAP;
+    let info_y = stats_y + stat_rows.len() as f32 * STAT_PITCH + m::GPU_INFO_GAP;
+    let total_h = info_y + view.info.len() as f32 * INFO_PITCH + m::GPU_INFO_GAP;
+    if ui.rect_contains_pointer(page) {
+        scroll.offset -= wheel_delta(ui);
+    }
+    scroll.offset = scroll
+        .offset
+        .clamp(0., (total_h - page.height()).max(0.))
+        .round();
+    let track = Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .id_salt("gpu-performance-page")
+            .max_rect(page),
+    );
+    child.set_clip_rect(page.intersect(ui.clip_rect()));
+    listview::scrollbar(
+        &mut child,
+        track,
+        scroll,
+        INFO_PITCH,
+        total_h,
+        page.height(),
+    );
+    let top = page.top() - scroll.offset;
+    let painter = child.painter().clone();
+    let title_x = page.left() + TITLE_X - LIST_W - 1.;
+    paint::text(
+        &painter,
+        title_x,
+        top + TITLE_CAP,
+        &view.title,
+        Font::Title,
+        pal::TEXT,
+        Align::Min,
+    );
+    let title_w = paint::text_width(&painter, &view.title, Font::Title);
+    let model = paint::elide(
+        &painter,
+        &view.model,
+        Font::Model,
+        gx1 - title_x - title_w - 16.,
+    );
+    paint::text(
+        &painter,
+        gx1 + 1.,
+        top + MODEL_CAP,
+        &model,
+        Font::Model,
+        pal::TEXT,
+        Align::Max,
+    );
+    let response = graph_panels_ui(
+        &mut child,
+        gx0,
+        gx1,
+        top + GRAPH_TOP,
+        &mut view.panels,
+        tiles,
+        &heights,
+        colors,
+    );
+    for (row, entries) in stat_rows.iter().enumerate() {
+        let cap = top + stats_y + 5. + row as f32 * STAT_PITCH;
+        let mut x = gx0;
+        for ((label, value), width) in entries {
+            paint::text(&painter, x, cap, label, Font::Body, pal::LABEL, Align::Min);
+            let value = paint::elide(&painter, value, Font::StatValue, room);
+            paint::text(
+                &painter,
+                x,
+                cap + STAT_VALUE_DY,
+                &value,
+                Font::StatValue,
+                pal::TEXT,
+                Align::Min,
+            );
+            x += width + STAT_COLUMN_GAP;
+        }
+    }
+    let label_w = view
+        .info
+        .iter()
+        .map(|(label, _)| paint::text_width(&painter, label, Font::Body))
+        .fold(0., f32::max)
+        .min(room * 0.6);
+    let value_x = gx0 + INFO_VALUE_DX.max(label_w + 12.);
+    for (row, (label, value)) in view.info.iter().enumerate() {
+        let cap = top + info_y + row as f32 * INFO_PITCH;
+        let label_short = paint::elide(&painter, label, Font::Body, label_w);
+        let value_short = paint::elide(&painter, value, Font::Body, gx1 + 1. - value_x);
+        paint::text(
+            &painter,
+            gx0,
+            cap,
+            &label_short,
+            Font::Body,
+            pal::LABEL,
+            Align::Min,
+        );
+        paint::text(
+            &painter,
+            value_x,
+            cap,
+            &value_short,
+            Font::Body,
+            pal::TEXT,
+            Align::Min,
+        );
+        child
+            .interact(
+                Rect::from_min_max(pos2(gx0, cap - 3.), pos2(gx1 + 1., cap + 12.)),
+                Id::new(("gpu-info", row)),
+                Sense::hover(),
+            )
+            .on_hover_text(format!("{label} {value}"));
+    }
+    response
+}
+
+fn wheel_delta(ui: &Ui) -> f32 {
+    ui.input(|input| {
+        input
+            .raw
+            .events
+            .iter()
+            .map(|event| match event {
+                egui::Event::MouseWheel { unit, delta, .. } => match unit {
+                    egui::MouseWheelUnit::Point => delta.y,
+                    _ => delta.y * 60.,
+                },
+                _ => 0.,
+            })
+            .sum()
+    })
+}
+
+/// Graph-only summary; the caller also omits the sidebar, and App omits its shell chrome.
+fn summary_ui(
+    ui: &mut Ui,
+    content: Rect,
+    mut view: PageView<'_>,
+    tiles: &[GraphTile],
+    colors: pal::DeviceColors,
+) -> GraphResponse {
+    let area = content.shrink(m::GPU_COMPACT_INSET);
+    let count = view.panels.len().max(1);
+    let rows: Vec<_> = view
+        .panels
+        .iter()
+        .map(|panel| panel.graphs.len().div_ceil(panel.columns.max(1)).max(1))
+        .collect();
+    let caption_h = if tiles.is_empty() {
+        0.
+    } else {
+        rows.first().copied().unwrap_or(1) as f32 * m::GPU_TILE_CAPTION_H
+    };
+    let available =
+        area.height() - 13. - count.saturating_sub(1) as f32 * (m::GPU_PANEL_GAP + 13.) - caption_h;
+    let row_h = (available / rows.iter().sum::<usize>().max(1) as f32)
+        .floor()
+        .max(4.);
+    let heights: Vec<_> = rows
+        .iter()
+        .enumerate()
+        .map(|(index, rows)| row_h * *rows as f32 + if index == 0 { caption_h } else { 0. })
+        .collect();
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .id_salt("perf-summary-graphs")
+            .max_rect(content),
+    );
+    child.set_clip_rect(content.intersect(ui.clip_rect()));
+    graph_panels_ui(
+        &mut child,
+        area.left(),
+        area.right() - 1.,
+        area.top() + 13.,
+        &mut view.panels,
+        tiles,
+        &heights,
+        colors,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn graph_panels_ui(
+    ui: &mut Ui,
+    gx0: f32,
+    gx1: f32,
+    mut graph_top: f32,
+    panels: &mut [GraphPanel<'_>],
+    tiles: &[GraphTile],
+    heights: &[f32],
+    colors: pal::DeviceColors,
+) -> GraphResponse {
+    let mut out = GraphResponse::default();
+    let painter = ui.painter().clone();
+    for (index, (panel, height)) in panels.iter_mut().zip(heights).enumerate() {
+        paint::text(
+            &painter,
+            gx0,
+            graph_top - 13.,
+            &panel.caption,
+            Font::Caption,
+            pal::LABEL,
+            Align::Min,
+        );
+        paint::text(
+            &painter,
+            gx1 + 1.,
+            graph_top - 13.,
+            &panel.right,
+            Font::Caption,
+            pal::LABEL,
+            Align::Max,
+        );
+        let columns = panel.columns.clamp(1, panel.graphs.len().max(1));
+        let rows = panel.graphs.len().div_ceil(columns).max(1);
+        let edge = |position: usize, count: usize, total: f32| {
+            (position as f32 * (total + GRAPH_GAP) / count as f32).floor()
+        };
+        for (slot, graph) in panel.graphs.iter_mut().enumerate() {
+            let x0 = gx0 + edge(slot % columns, columns, gx1 - gx0 + 1.);
+            let x1 = gx0 + edge(slot % columns + 1, columns, gx1 - gx0 + 1.) - GRAPH_GAP;
+            let band_top = graph_top + edge(slot / columns, rows, *height);
+            let y1 = graph_top + edge(slot / columns + 1, rows, *height) - GRAPH_GAP;
+            let tile = if index == 0 { tiles.get(slot) } else { None };
+            let y0 = band_top
+                + if tile.is_some() {
+                    m::GPU_TILE_CAPTION_H
+                } else {
+                    0.
+                };
+            let rect = Rect::from_min_max(pos2(x0, y0), pos2(x1, y1));
+            if !ui.is_rect_visible(Rect::from_min_max(pos2(x0, band_top), rect.max)) {
+                continue;
+            }
+            style_graph(graph, colors);
+            graph.paint(ui, rect);
+            let response = ui.interact(
+                Rect::from_min_max(pos2(x0, band_top), rect.max),
+                ui.id().with(("perf-graph", index, slot)),
+                Sense::click(),
+            );
+            out.double_clicked |= response.double_clicked();
+            let caption_clicked = tile.is_some()
+                && response.clicked()
+                && response
+                    .interact_pointer_pos()
+                    .is_some_and(|pos| pos.y < y0);
+            if (response.secondary_clicked() || caption_clicked)
+                && let Some(pos) = response.interact_pointer_pos()
+            {
+                out.menu = Some((pos, tile.map(|tile| tile.slot)));
+            }
+            if let Some(tile) = tile {
+                let right_w = paint::text_width(&painter, &tile.right, Font::Caption);
+                let caption = paint::elide(
+                    &painter,
+                    &tile.caption,
+                    Font::Caption,
+                    x1 - x0 - right_w - 12. - m::GPU_DROPDOWN_W - m::GPU_DROPDOWN_GAP,
+                );
+                paint::text(
+                    &painter,
+                    x0,
+                    band_top + 4.,
+                    &caption,
+                    Font::Caption,
+                    pal::LABEL,
+                    Align::Min,
+                );
+                let arrow_x =
+                    x0 + paint::text_width(&painter, &caption, Font::Caption) + m::GPU_DROPDOWN_GAP;
+                for row in 0..m::GPU_DROPDOWN_H {
+                    let row = row as f32;
+                    paint::hline(
+                        &painter,
+                        arrow_x + row,
+                        arrow_x + m::GPU_DROPDOWN_W - 1. - row,
+                        band_top + m::GPU_DROPDOWN_DY + row,
+                        pal::LABEL,
+                    );
+                }
+                paint::text(
+                    &painter,
+                    x1 + 1.,
+                    band_top + 4.,
+                    &tile.right,
+                    Font::Caption,
+                    pal::LABEL,
+                    Align::Max,
+                );
+                response.on_hover_text(&tile.tooltip);
+            }
+        }
+        graph_top += height + m::GPU_PANEL_GAP + 13.;
+    }
+    out
 }
 
 /// Draws a device page into `content` (device list excluded).

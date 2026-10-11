@@ -4,7 +4,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 
 ## Map
 - `crates/mc-magpie/` — GUI-free client of the magpie daemon (NNG IPC, gatherer thread, `LatestSlot` hand-off, bounded event channel, fixtures, synthetic data); gatherer-side extras without privileges: `users` (process owners), `sockets` (per-process TCP traffic when magpie/nethogs has none).
-- `crates/mc-core/` — GUI-free logic: settings (`config.rs`, keys = former GSettings keys), formatting, i18n (pure-Rust `.mo` reader), sidebar ordering, process/service tree model.
+- `crates/mc-core/` — GUI-free logic: settings (`config.rs`, keys = former GSettings keys), formatting, i18n (pure-Rust `.mo` reader), sidebar ordering, process/service tree model; `gpu.rs` owns GPU identity, availability and aggregation for every view.
 - `crates/mc-graph-core/` — local, GUI-free graph data/scaling core carried from upstream graph-widget; provenance in `docs/PROVENANCE.md`.
 - `crates/mc-graph/` — egui time-series graph on top of `mc-graph-core`; `GraphStyle::Win10`.
 - `crates/mc-ui/` — egui UI, depends on egui only:
@@ -17,7 +17,8 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `xtask/` — dev/packaging tasks (`cargo xtask help`).
 - `docs/port-spec/` — frozen historical GTK specs (msgids, formats, behaviours); source-history links are in their headers.
 - `docs/win10-spec/` — clean-room visual spec (`spec.md`) and pixel probes (`probes.json`); `tools/measure_refs.py` reproduces the measurements from local screenshots in `references/` (git-ignored, never committed).
-- `subprojects/magpie` (gng) — the only required submodule.
+- `subprojects/magpie` — tracked backend sources, separate Cargo workspace; GPU collectors are in `platform-linux/src/gpus/`. Only its nested `platform-linux/crates/app-rummage` is a required submodule.
+- `support/bundle-gpu-libs.py` — private GPU ABI staging/verification; daemon-only relative RUNPATH, no redistributed NVIDIA driver or global loader override.
 - `po/` — gettext translations (Weblate); `data/` — icons, desktop/metainfo.
 
 ## Rules (Win10 look, clean room)
@@ -31,6 +32,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - Layers: `mc-magpie` → `mc-core` → `mc-graph`/`mc-ui` → app; `mc-graph-core` is GUI-free. `mc-core`/`mc-magpie`/`mc-graph-core` must never depend on egui/eframe/GTK.
 - No I/O, IPC or blocking calls in `App::ui`/`App::logic`; talk to magpie only via `Request`s and `Event`s; persist settings via `ConfigWriter`.
 - No unbounded channels. Snapshots go through `LatestSlot` (overwrite), events through bounded `sync_channel`.
+- GPU percentages use the busiest engine; groups deduplicate PIDs/DRM clients before summing each engine. Unknown is not zero; device memory never comes from process sums. Collect counters on the host-side backend, not the Flatpak GUI.
 - Repaint only on events (new readings, input, icon decoded, sliding animation while it runs — capped by `ANIMATION_FRAME`). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only.
 - Rebuild table rows / format strings / graph geometry only when data, sort, filter, size or expansion change.
 - Translatable strings use `mc_core::i18n::{i18n, i18n_f, ni18n_f, ...}` with msgids identical to the GTK app (see `docs/port-spec/`); mnemonic underscores are part of the msgid, strip them for display with `strip_mnemonic`.
@@ -43,6 +45,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `cargo fmt --all --check` — nonmutating formatting check.
 - `cargo test --workspace` — includes local graph core and xtask, Win10 pixel probes (`tests/win10_probes.rs`) and offscreen snapshots (needs a wgpu adapter); renders go to `target/ui-snapshots/`.
 - `cargo clippy --workspace --all-targets -- -D warnings`.
+- Backend edits: `cargo fmt --manifest-path subprojects/magpie/Cargo.toml --all --check`; `cargo test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform-linux -p magpie-types --locked --release` (not included in root `--workspace`).
 - `cargo run -p taskmanager-app -- --synthetic 300` — run without the daemon (glow renderer by default, `--renderer wgpu` optional); `cargo xtask run-dev` — run with the real magpie.
 - `cargo xtask bench-idle` — egui wgpu/glow idle and synthetic-table benchmarks (see `perf/README.md`).
 

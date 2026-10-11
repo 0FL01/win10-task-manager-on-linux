@@ -60,7 +60,12 @@ pub struct TableView {
     /// Capacities used for heat levels (bytes)
     pub(crate) mem_total: u64,
     pub(crate) swap_total: u64,
-    pub(crate) gpu_mem_total: u64,
+    pub(crate) gpu_mem_total: Option<u64>,
+    pub(crate) gpu_dedicated_total: Option<u64>,
+    pub(crate) gpu_shared_total: Option<u64>,
+    pub(crate) gpu_usage: mc_core::gpu::GpuUsage,
+    pub(crate) gpu_summary: String,
+    gpu_cells: std::collections::HashMap<String, [String; 5]>,
 }
 
 fn sort_from_config(config: &Config, kind: TableKind) -> (Option<Column>, SortOrder) {
@@ -129,28 +134,76 @@ impl TableView {
             scroll_to: None,
             mem_total: 0,
             swap_total: 0,
-            gpu_mem_total: 0,
+            gpu_mem_total: None,
+            gpu_dedicated_total: None,
+            gpu_shared_total: None,
+            gpu_usage: Default::default(),
+            gpu_summary: "—".into(),
+            gpu_cells: Default::default(),
         }
     }
 
-    pub fn update(&mut self, readings: &Readings, config: &Config) {
+    pub fn update(
+        &mut self,
+        readings: &Readings,
+        gpu: &mc_core::gpu::GpuSnapshot,
+        config: &Config,
+    ) {
         let merged = config.apps_page_merged_process_stats;
         self.tree = match self.kind {
             TableKind::Apps => Tree::apps(readings, merged),
             TableKind::Services => Tree::services(readings, merged),
         };
-        self.totals = ColumnTotals::from_readings(readings);
+        self.tree.apply_gpu(readings, gpu, merged);
+        self.totals = ColumnTotals::from_readings(readings, gpu);
+        self.gpu_usage = gpu.usage.clone();
+        self.gpu_summary = gpu.usage.text();
         self.hide_network = readings.network_stats_error.is_some();
         self.network_tcp_only = readings.network_tcp_only;
         self.hide_swap = readings.mem_info.swap_total == 0;
         self.mem_total = readings.mem_info.mem_total;
         self.swap_total = readings.mem_info.swap_total;
-        self.gpu_mem_total = readings
-            .gpus
-            .values()
-            .map(|g| g.total_memory.unwrap_or(0))
-            .sum();
+        self.gpu_dedicated_total = gpu.dedicated_capacity();
+        self.gpu_shared_total = if gpu.devices.is_empty() {
+            None
+        } else {
+            gpu.devices
+                .values()
+                .try_fold(0u64, |sum, d| sum.checked_add(d.memory.shared_total_bytes?))
+        };
+        self.gpu_mem_total = self
+            .gpu_dedicated_total
+            .and_then(|d| d.checked_add(self.gpu_shared_total?));
         self.units = config.units();
+        self.gpu_cells = self
+            .tree
+            .nodes
+            .iter()
+            .map(|node| {
+                let bytes = |value: Option<u64>| {
+                    value.map_or_else(
+                        || "—".into(),
+                        |value| {
+                            to_human_readable_nice(
+                                value as f32,
+                                &DataType::MemoryBytes,
+                                &self.units,
+                            )
+                        },
+                    )
+                };
+                (
+                    node.key.clone(),
+                    [
+                        node.gpu.usage.text(),
+                        node.gpu.usage.engine_text(),
+                        bytes(node.gpu.memory),
+                        bytes(node.gpu.dedicated),
+                        bytes(node.gpu.shared),
+                    ],
+                )
+            })
+            .collect();
         self.rows_dirty = true;
     }
 
@@ -241,9 +294,21 @@ impl TableView {
             Column::Network => {
                 to_human_readable_nice(s.network_usage, &DataType::NetworkBytesPerSecond, u)
             }
-            Column::Gpu => format!("{}%", s.gpu_usage.round() as u32),
-            Column::GpuMemory => {
-                to_human_readable_nice(s.gpu_memory_usage as f32, &DataType::MemoryBytes, u)
+            Column::Gpu
+            | Column::GpuEngine
+            | Column::GpuMemory
+            | Column::GpuDedicatedMemory
+            | Column::GpuSharedMemory => {
+                let index = match column {
+                    Column::Gpu => 0,
+                    Column::GpuEngine => 1,
+                    Column::GpuMemory => 2,
+                    Column::GpuDedicatedMemory => 3,
+                    _ => 4,
+                };
+                self.gpu_cells
+                    .get(&node.key)
+                    .map_or_else(|| "—".into(), |cells| cells[index].clone())
             }
         }
     }

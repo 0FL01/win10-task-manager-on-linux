@@ -116,6 +116,7 @@ test-job-x86:
     - cargo clippy --workspace --all-targets -- -D warnings
     # UI snapshots render offscreen through wgpu (lavapipe from mesa-vulkan-drivers)
     - cargo test --workspace
+    - cargo test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform-linux -p magpie-types --locked --release
   artifacts:
     when: always
     paths:
@@ -138,6 +139,7 @@ test-job-arm:
     - cargo clippy --workspace --all-targets -- -D warnings
     # UI snapshots render offscreen through wgpu (lavapipe from mesa-vulkan-drivers)
     - cargo test --workspace
+    - cargo test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform-linux -p magpie-types --locked --release
   artifacts:
     when: always
     paths:

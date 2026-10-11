@@ -1,0 +1,77 @@
+/* src/ipc.proto
+ *
+ * Copyright 2025 Mission Center Developers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+syntax = "proto2";
+
+import "about.proto";
+import "apps.proto";
+import "battery.proto";
+import "cpu.proto";
+import "disks.proto";
+import "fan.proto";
+import "gpus.proto";
+import "memory.proto";
+import "network.proto";
+import "processes.proto";
+import "services.proto";
+import "setup_script.proto";
+
+package magpie.ipc;
+
+message Request {
+    oneof body {
+        magpie.about.AboutRequest get_about = 1;
+        magpie.apps.AppsRequest get_apps = 2;
+        magpie.apps.AppsIconRequest get_apps_icons = 3;
+        magpie.cpu.CpuRequest get_cpu = 4;
+        magpie.disks.DisksRequest get_disks = 5;
+        magpie.fan.FansRequest get_fans = 6;
+        magpie.gpus.GpusRequest get_gpus = 7;
+        magpie.memory.MemoryRequest get_memory = 8;
+        magpie.network.ConnectionsRequest get_connections = 9;
+        magpie.processes.ProcessesRequest get_processes = 10;
+        magpie.services.ServicesRequest get_services = 11;
+        magpie.battery.BatteryRequest get_battery = 12;
+        magpie.setup_script.ScriptRequest get_script = 13;
+    }
+}
+
+message Response {
+    message Error {
+        required string message = 1;
+    }
+
+    oneof body {
+        magpie.about.AboutResponse about = 1;
+        magpie.apps.AppsResponse apps = 2;
+        magpie.apps.AppsIconResponse app_icons = 3;
+        magpie.cpu.CpuResponse cpu = 4;
+        magpie.disks.DisksResponse disks = 5;
+        magpie.fan.FansResponse fans = 6;
+        magpie.gpus.GpusResponse gpus = 7;
+        magpie.memory.MemoryResponse memory = 8;
+        magpie.network.ConnectionsResponse connections = 9;
+        magpie.processes.ProcessesResponse processes = 10;
+        magpie.services.ServicesResponse services = 11;
+        magpie.battery.BatteryResponse batteries = 12;
+        magpie.setup_script.ScriptResponse script = 13;
+        Error error = 32;
+    }
+}

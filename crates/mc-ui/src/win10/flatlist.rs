@@ -46,6 +46,7 @@ pub struct FlatRow {
     pub key: String,
     pub icon: Option<RowIcon>,
     pub cells: Vec<String>,
+    pub tooltips: Vec<Option<String>>,
 }
 
 #[derive(Default)]
@@ -56,6 +57,7 @@ pub struct FlatResponse {
     pub changed: bool,
     pub double_clicked: Option<String>,
     pub context_menu: Option<(String, Pos2)>,
+    pub header_context_menu: Option<Pos2>,
 }
 
 pub struct FlatList {
@@ -71,6 +73,7 @@ pub struct FlatList {
     widths: Vec<f32>,
     /// Display order: logical column index per position (the first column stays first)
     order: Vec<usize>,
+    visible: Vec<bool>,
 }
 
 impl FlatList {
@@ -89,6 +92,7 @@ impl FlatList {
             ids,
             widths: widths.to_vec(),
             order: (0..widths.len()).collect(),
+            visible: vec![true; widths.len()],
         }
     }
 
@@ -105,7 +109,8 @@ impl FlatList {
             .filter_map(|id| self.ids.iter().position(|x| *x == id))
             .filter(|i| *i != 0)
             .collect();
-        new_order.dedup();
+        let mut seen = std::collections::HashSet::new();
+        new_order.retain(|index| seen.insert(*index));
         let mut full = vec![0];
         full.extend(new_order.iter().copied());
         for i in 1..self.ids.len() {
@@ -136,6 +141,32 @@ impl FlatList {
         (widths, order, self.ids[self.sort_column].to_owned())
     }
 
+    pub fn set_visible(&mut self, ids: &str) {
+        for (index, id) in self.ids.iter().enumerate() {
+            self.visible[index] = index == 0 || ids.split(';').any(|saved| saved == *id);
+        }
+    }
+
+    pub fn visible_columns(&self) -> String {
+        self.ids
+            .iter()
+            .zip(&self.visible)
+            .filter(|(_, visible)| **visible)
+            .map(|(id, _)| *id)
+            .collect::<Vec<_>>()
+            .join(";")
+    }
+
+    pub fn column_visible(&self, index: usize) -> bool {
+        self.visible[index]
+    }
+
+    pub fn toggle_column(&mut self, index: usize) {
+        if index != 0 {
+            self.visible[index] = !self.visible[index];
+        }
+    }
+
     pub fn ui(
         &mut self,
         ui: &mut Ui,
@@ -145,6 +176,16 @@ impl FlatList {
         rows: &[FlatRow],
     ) -> FlatResponse {
         let mut out = FlatResponse::default();
+        let shown: Vec<_> = self
+            .order
+            .iter()
+            .copied()
+            .filter(|&i| self.visible[i])
+            .collect();
+        if !self.list.is_resizing() {
+            self.list.widths = shown.iter().map(|&l| self.widths[l]).collect();
+        }
+        let horizontal = listview::horizontal_scrollbar(ui, content, &mut self.list);
         let frame_y = content.top() + FRAME_DY;
         paint::hline(
             ui.painter(),
@@ -162,14 +203,21 @@ impl FlatList {
         );
         let body = Rect::from_min_max(
             pos2(content.left(), header.bottom()),
-            pos2(content.right() - m::SCROLLBAR_W, content.bottom()),
+            pos2(
+                content.right() - m::SCROLLBAR_W,
+                content.bottom() - horizontal,
+            ),
         );
-        let track = Rect::from_min_max(pos2(body.right(), frame_y + 1.), content.max);
+        let track = Rect::from_min_max(
+            pos2(body.right(), frame_y + 1.),
+            pos2(content.right(), body.bottom()),
+        );
 
         // Header in display order
         let headers: Vec<ColumnHeader> = self
             .order
             .iter()
+            .filter(|&&l| self.visible[l])
             .map(|&l| ColumnHeader {
                 title: columns[l].title.clone(),
                 summary: None,
@@ -182,21 +230,22 @@ impl FlatList {
                 alert: false,
             })
             .collect();
-        if !self.list.is_resizing() {
-            self.list.widths = self.order.iter().map(|&l| self.widths[l]).collect();
-        }
         let response = listview::header(ui, header, HeaderKind::Flat, &headers, &mut self.list);
+        out.header_context_menu = response.context_menu;
         if response.resized {
-            for (pos, &l) in self.order.iter().enumerate() {
+            for (pos, &l) in shown.iter().enumerate() {
                 self.widths[l] = self.list.widths[pos];
             }
             out.changed = true;
         }
         if let Some((from, to)) = response.moved {
-            listview::apply_move(&mut self.order, from, to);
+            let source = self.order.iter().position(|l| *l == shown[from]).unwrap();
+            let target = self.order.iter().position(|l| *l == shown[to]).unwrap();
+            let moved = self.order.remove(source);
+            self.order.insert(target, moved);
             out.changed = true;
         }
-        if let Some(i) = response.clicked.map(|pos| self.order[pos]) {
+        if let Some(i) = response.clicked.map(|pos| shown[pos]) {
             out.changed = true;
             if i == self.sort_column {
                 self.sort_order = match self.sort_order {
@@ -252,9 +301,21 @@ impl FlatList {
                     pal::HOVER,
                 );
             }
-            for (i, &l) in self.order.iter().enumerate() {
+            for (i, &l) in shown.iter().enumerate() {
                 let (column, text) = (&columns[l], &row.cells[l]);
                 let (x0, sep) = spans[i];
+                if let Some(Some(tooltip)) = row.tooltips.get(l) {
+                    let rect =
+                        Rect::from_min_max(pos2(x0, top), pos2(sep, top + ROW_H)).intersect(body);
+                    if rect.is_positive() {
+                        ui.interact(
+                            rect,
+                            Id::new((self.id, index, l, "tip")),
+                            egui::Sense::hover(),
+                        )
+                        .on_hover_text(tooltip);
+                    }
+                }
                 let cell = painter.with_clip_rect(
                     Rect::from_min_max(pos2(x0, top), pos2(sep - 1., top + ROW_H)).intersect(body),
                 );
@@ -365,5 +426,23 @@ mod tests {
         let mut again = FlatList::new("t", &IDS, &[100., 50., 40., 80.], 0);
         again.restore(&widths, &order, &sort, SortOrder::Descending);
         assert_eq!(again.saved(), (widths, order, sort));
+        again.set_visible("memory;cpu");
+        assert_eq!(again.visible_columns(), "name;cpu;memory");
+        assert_eq!(
+            again
+                .order
+                .iter()
+                .copied()
+                .filter(|&l| again.visible[l])
+                .collect::<Vec<_>>(),
+            vec![0, 3, 2]
+        );
+        again.toggle_column(1);
+        assert!(again.column_visible(1));
+        assert_eq!(
+            again.saved(),
+            list.saved(),
+            "hiding never discards order or widths"
+        );
     }
 }

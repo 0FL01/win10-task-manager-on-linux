@@ -65,6 +65,7 @@ Settings live in `~/.config/taskmanager/config.toml`; settings of earlier builds
 | DRM development libraries | magpie                                          |             N/A |
 | GBM development libraries | magpie                                          |             N/A |
 | udev development libraries| magpie                                          |             N/A |
+| patchelf, readelf          | builder-only private GPU library staging        |             N/A |
 | Vulkan or OpenGL driver   | run time only (wgpu or glow renderer)           |             N/A |
 
 No UI toolkit development packages are needed: the interface is written with egui and talks to Wayland/X11 directly.
@@ -76,10 +77,10 @@ git clone --recurse-submodules https://github.com/0FL01/win10-task-manager-on-li
 cd win10-task-manager-on-linux
 
 # On Ubuntu 26.04 all dependencies, except for the Rust toolchain, can be installed with:
-sudo apt install build-essential cmake curl desktop-file-utils gettext git libdbus-1-dev libdrm-dev libgbm-dev libudev-dev pkg-config python3
+sudo apt install build-essential cmake curl desktop-file-utils gettext git libdbus-1-dev libdrm-dev libgbm-dev libudev-dev pkg-config python3 patchelf binutils
 
 # Fedora alternative:
-# sudo dnf install gcc gcc-c++ cmake curl desktop-file-utils gettext git libdrm-devel mesa-libgbm-devel systemd-devel pkgconf-pkg-config python3 patch
+# sudo dnf install gcc gcc-c++ cmake curl desktop-file-utils gettext git libdrm-devel mesa-libgbm-devel systemd-devel pkgconf-pkg-config python3 patch patchelf binutils
 
 cargo build --release -p taskmanager-app
 ```
@@ -99,6 +100,27 @@ Useful flags of the `taskmanager` binary:
 
 Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
 `RUST_LOG` (logging).
+
+### GPU monitoring
+
+Processes includes GPU and GPU engine by default; the header menu also exposes total,
+dedicated and shared GPU memory. Details offers the four GPU columns through its header menu.
+Performance shows each adapter with selectable engine graphs, separate memory graphs,
+available sensors/driver metadata, copy and graph summary (Ctrl+M or double-click).
+
+DRM fdinfo counters are collected inside the host-side magpie backend; NVIDIA uses the installed
+driver's NVML library, not `nvidia-smi`. No GPU monitoring utility or extra monitoring-library
+package is required on the runtime host. Open libraries and notices are staged privately by
+`cargo xtask install`; the OS runtime and matching graphics driver are still required.
+Missing permissions, unsupported counters, warmup and stale samples show `—` with a reason;
+partial values are marked `~`. NVIDIA does not expose a complete per-process 3D/Compute/Copy
+breakdown or portable shared-memory counter, so these are not fabricated.
+
+Native builders must provide the actual libdrm/libdrm_amdgpu/libudev dependency closure and
+matching license notices. If a distribution omits notices (for example Fedora's libdrm package),
+set builder-only `MC_GPU_LICENSES` to a JSON map of SONAMEs to matching-source notice paths;
+the bundle fails instead of silently omitting licenses. `MC_GPU_SYSROOT`, `MC_GPU_LIB_ROOTS`,
+`MC_GPU_METADATA` and `PATCHELF` select controlled builder inputs, not runtime GPU utilities.
 
 To install the app (binaries, daemon, translations, desktop entry, icons):
 
@@ -133,7 +155,8 @@ After changing that lockfile, regenerate it with the
 [official Cargo generator](https://github.com/flatpak/flatpak-builder-tools/tree/master/cargo):
 `python3 flatpak-cargo-generator.py Cargo.lock -o flatpak/cargo-sources.json`
 (the generator requires `aiohttp` and `tomlkit`). The backend's vendor list is separate:
-`flatpak/cargo-sources-magpie.json` corresponds to the pinned magpie submodule.
+`flatpak/cargo-sources-magpie.json` corresponds to `subprojects/magpie/Cargo.lock`.
+The backend sources are tracked here; only the pinned app-rummage dependency is a submodule.
 
 Add the `flathub` repo is not already present:
 

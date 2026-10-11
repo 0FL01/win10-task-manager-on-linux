@@ -189,6 +189,29 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Footer: "Fewer details" as Processes, then a 16 px own icon at x 120 and link
   "Open Resource Monitor"-style text (ours: none — no external tool; the slot stays empty).
 
+## GPU monitoring (own adaptation, not measured)
+
+No GPU-page reference measurement is available. Reuse the existing CPU/GPU palette,
+typefaces, grid and one-pixel paint helpers; the following geometry is our own adaptation:
+- Processes default to GPU and GPU engine after Network. GPU engine width 140 px;
+  optional dedicated/shared memory columns 180 px. Details keeps its measured six-column
+  default; GPU, GPU engine and both memory columns are available through its header menu.
+- Overflow scrolls header and rows together horizontally with the existing 15 px scrollbar
+  style; keyboard/mouse horizontal step 72 px. Hidden columns retain widths and order.
+- GPU Performance has one selected engine or a selectable 2×2 grid; caption band 18 px,
+  minimum engine height 84 px, memory/auxiliary graph height 52 px, panel/info gaps 24 px.
+  Engine selectors have an original painted 7×4 downward triangle, 4 px after the caption,
+  7 px below the caption-band top; no font-dependent glyph or copied icon.
+- Dedicated/shared memory have separate graphs. Statistics/metadata scroll vertically;
+  compact graph summary has 12 px inset and no shell chrome. Ctrl+M, context menu or
+  double-click toggles summary; its background can drag the window.
+- GPU numbering is session-stable hardware identity, not sidebar order. Utilization is the
+  busiest measured engine; group rows deduplicate shared clients before per-engine sums.
+  Unknown/stale values are `—`, graph gaps are NaN, and partial counters use a neutral `~`
+  marker plus a reason. NVML overall utilization is never mislabeled as 3D/Compute.
+- Frozen pixel probes keep their measured four-resource-column configuration. New GPU
+  views are verified separately by real offscreen renders, not invented reference probes.
+
 ## Details tab
 - Frame line `#a0a0a0` at y 89.
 - Header y 90–113: single line, 12 px black, cap top y 97; sort chevron 7×4 `#595959` (darkest

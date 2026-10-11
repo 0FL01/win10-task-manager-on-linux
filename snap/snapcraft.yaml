@@ -13,8 +13,8 @@ description: |
   backend (magpie) and code from the Mission Center project by the Mission Center
   Developers (GPL-3.0-or-later).
 
-  Intel GPU monitoring is supported only for Broadwell and later GPUs and does
-  not support VRAM, power or temperature monitoring.
+  GPU metrics depend on the device, installed driver, kernel interfaces and
+  sandbox permissions. Unavailable metrics are shown as unavailable.
 grade: stable
 confinement: strict
 
@@ -50,6 +50,7 @@ apps:
       - desktop
       - desktop-legacy
       - hardware-observe
+      - opengl
       - network-manager
       - network-observe
       - process-control
@@ -66,4 +67,6 @@ parts:
     source: .
     override-prime: |
       cp -r $SNAPCRAFT_PART_SRC/snap/local/usr $SNAPCRAFT_PRIME/
+      test -f "$SNAPCRAFT_PRIME/usr/lib/taskmanager/gpu/manifest.json"
+      test -f "$SNAPCRAFT_PRIME/usr/lib/taskmanager/gpu/libdrm_amdgpu.so.1"
       sed -i 's|^Icon=.*|Icon=${SNAP}/usr/share/icons/hicolor/256x256/apps/io.github.taskmanager.TaskManager.png|' "$SNAPCRAFT_PRIME/usr/share/applications/io.github.taskmanager.TaskManager.desktop"

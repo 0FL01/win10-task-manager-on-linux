@@ -20,8 +20,27 @@ GSettings schema and Meson files are available in the
 [historical root tree](https://github.com/0FL01/win10-task-manager-on-linux/tree/671bc544ac4f7a3149c53db6df8a453252547d0a).
 `docs/port-spec/` is frozen evidence of those sources, not a map of the active build.
 The SVGs used by the egui application now live in `crates/mc-ui/assets/icons/`.
-The required backend submodule remains `subprojects/magpie`
-([gng upstream](https://gitlab.com/mission-center-devs/gng)).
+`subprojects/magpie` contains the tracked sources from
+[gng upstream](https://gitlab.com/mission-center-devs/gng/-/tree/49573fffefd0c1dc9c2ebcc6a24b0619b3403725)
+at `49573fffefd0c1dc9c2ebcc6a24b0619b3403725`, with local host-side GPU telemetry,
+process-identity and private-library bootstrap changes. Its GPL notice and authors are retained.
+The nested `platform-linux/crates/app-rummage` dependency remains a submodule at
+`26b93b8c6f0de6912f0a17022f7ece76bad87612` from
+[app-detection](https://gitlab.com/mission-center-devs/app-detection).
+
+## GPU libraries
+
+NVTOP is built into magpie from revision `3d4a953da02bc18886734613bb9f60ff80669de7`;
+the archive checksum and existing patches remain in `platform-linux/3rdparty/nvtop/`.
+The new Rust collector reads formal DRM fdinfo counters and dynamically calls the installed
+NVIDIA driver's NVML interface. No NVIDIA library or SDK is redistributed.
+
+Packaged open libraries live in `lib/taskmanager/gpu`, separate from the UI's graphics-driver
+lookup. Their generated `manifest.json` records actual source/package versions, architecture,
+SONAMEs, checksums, symbol versions and preserved notices. Flatpak uses separate glibc/musl
+bundles and checksum-pinned libdrm/eudev source notices; native builds use matching builder
+package notices or explicitly supplied matching-source notices. These binaries are build
+artifacts, not repository source assets.
 
 ## Local graph core
 

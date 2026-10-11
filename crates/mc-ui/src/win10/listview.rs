@@ -61,9 +61,11 @@ pub struct ColumnHeader {
 #[derive(Debug, Clone, Default)]
 pub struct ListState {
     pub offset: f32,
+    pub x_offset: f32,
     pub widths: Vec<f32>,
     resize: Option<(usize, f32, f32)>,
     thumb_grab: Option<f32>,
+    x_thumb_grab: Option<f32>,
     /// Column being dragged to a new position (index, pointer x at the start)
     moving: Option<(usize, f32)>,
 }
@@ -78,7 +80,7 @@ impl ListState {
 
     /// Left edge of each column and the x of the separator after it.
     pub fn columns(&self, left: f32) -> Vec<(f32, f32)> {
-        let mut x = left;
+        let mut x = left - self.x_offset;
         self.widths
             .iter()
             .map(|w| {
@@ -122,7 +124,7 @@ pub fn header(
     columns: &[ColumnHeader],
     state: &mut ListState,
 ) -> HeaderResponse {
-    let painter = ui.painter().clone();
+    let painter = ui.painter().with_clip_rect(rect);
     let mut out = HeaderResponse::default();
     let spans = state.columns(rect.left());
     let bottom = rect.bottom() - 1.;
@@ -135,7 +137,11 @@ pub fn header(
         } else {
             Sense::click_and_drag()
         };
-        let response = ui.interact(cell, ui.id().with(("list-header", i)), sense);
+        let response = ui.interact(
+            cell.intersect(rect),
+            ui.id().with(("list-header", i)),
+            sense,
+        );
         if response.drag_started()
             && let Some(pos) = response.interact_pointer_pos()
         {
@@ -375,7 +381,12 @@ pub fn rows(
                 .events
                 .iter()
                 .map(|e| match e {
-                    egui::Event::MouseWheel { unit, delta, .. } => match unit {
+                    egui::Event::MouseWheel {
+                        unit,
+                        delta,
+                        modifiers,
+                        ..
+                    } if !modifiers.shift => match unit {
                         egui::MouseWheelUnit::Point => delta.y,
                         egui::MouseWheelUnit::Line => delta.y * 3. * row_h,
                         egui::MouseWheelUnit::Page => delta.y * body.height(),
@@ -419,6 +430,156 @@ pub fn rows(
 /// Top of row `index` on screen.
 pub fn row_top(body: Rect, state: &ListState, row_h: f32, index: usize) -> f32 {
     body.top() + index as f32 * row_h - state.offset
+}
+
+/// Returns the bottom space occupied by horizontal overflow. Both header and rows
+/// use `columns`, so dragging/resizing and scrolling retain the same hit-test coordinates.
+pub fn horizontal_scrollbar(ui: &mut Ui, content: Rect, state: &mut ListState) -> f32 {
+    let view = (content.width() - m::SCROLLBAR_W).max(1.);
+    let width: f32 = state.widths.iter().map(|w| w + 1.).sum();
+    let maximum = (width - view).max(0.);
+    if maximum == 0. {
+        state.x_offset = 0.;
+        return 0.;
+    }
+    if ui.rect_contains_pointer(content) {
+        let delta: f32 = ui.input(|i| {
+            i.raw
+                .events
+                .iter()
+                .map(|event| {
+                    if let egui::Event::MouseWheel {
+                        unit,
+                        delta,
+                        modifiers,
+                        ..
+                    } = event
+                    {
+                        let delta = if modifiers.shift { delta.y } else { delta.x };
+                        delta
+                            * match unit {
+                                egui::MouseWheelUnit::Point => 1.,
+                                egui::MouseWheelUnit::Line => m::TABLE_HORIZONTAL_STEP,
+                                egui::MouseWheelUnit::Page => view,
+                            }
+                    } else {
+                        0.
+                    }
+                })
+                .sum()
+        });
+        state.x_offset -= delta;
+    }
+    state.x_offset = state.x_offset.clamp(0., maximum).round();
+    let track = Rect::from_min_max(
+        pos2(content.left(), content.bottom() - m::SCROLLBAR_W),
+        pos2(content.left() + view, content.bottom()),
+    );
+    let painter = ui.painter().with_clip_rect(track);
+    paint::fill(
+        &painter,
+        track.left(),
+        track.top(),
+        track.right() - 1.,
+        track.bottom() - 1.,
+        pal::SCROLL_TRACK,
+    );
+    let left = Rect::from_min_max(
+        track.min,
+        pos2(track.left() + m::SCROLL_ARROW_H, track.bottom()),
+    );
+    let right = Rect::from_min_max(
+        pos2(track.right() - m::SCROLL_ARROW_H, track.top()),
+        track.max,
+    );
+    for (rect, forward) in [(left, false), (right, true)] {
+        let response = ui.interact(
+            rect,
+            ui.id().with(("list-x-arrow", forward)),
+            Sense::click(),
+        );
+        if response.clicked() {
+            state.x_offset += if forward {
+                m::TABLE_HORIZONTAL_STEP
+            } else {
+                -m::TABLE_HORIZONTAL_STEP
+            };
+        }
+        if response.hovered() {
+            paint::fill(
+                &painter,
+                rect.left(),
+                rect.top(),
+                rect.right() - 1.,
+                rect.bottom() - 1.,
+                pal::POPUP_SEPARATOR,
+            );
+        }
+        for d in 0..4 {
+            let x = rect.center().x.round()
+                + if forward {
+                    2. - d as f32
+                } else {
+                    d as f32 - 2.
+                };
+            paint::vline(
+                &painter,
+                x,
+                rect.center().y.round() - d as f32,
+                rect.center().y.round() + d as f32,
+                pal::TEXT,
+            );
+        }
+    }
+    let lane = Rect::from_min_max(
+        pos2(left.right(), track.top()),
+        pos2(right.left(), track.bottom()),
+    );
+    let thumb_width = (lane.width() * view / width)
+        .max(m::SCROLL_THUMB_MIN)
+        .min(lane.width())
+        .round();
+    let travel = (lane.width() - thumb_width).max(0.);
+    let thumb_left = (lane.left() + travel * state.x_offset.clamp(0., maximum) / maximum).round();
+    let thumb = Rect::from_min_max(
+        pos2(thumb_left, track.top()),
+        pos2(thumb_left + thumb_width, track.bottom()),
+    );
+    let response = ui.interact(lane, ui.id().with("list-x-thumb"), Sense::click_and_drag());
+    if response.drag_started()
+        && let Some(pos) = response.interact_pointer_pos()
+    {
+        state.x_thumb_grab = thumb.contains(pos).then_some(pos.x - thumb_left);
+    }
+    if response.dragged()
+        && travel > 0.
+        && let (Some(grab), Some(pos)) = (state.x_thumb_grab, response.interact_pointer_pos())
+    {
+        state.x_offset = (pos.x - grab - lane.left()) / travel * maximum;
+    }
+    if response.drag_stopped() {
+        state.x_thumb_grab = None;
+    }
+    if response.clicked()
+        && let Some(pos) = response.interact_pointer_pos()
+        && !thumb.contains(pos)
+    {
+        state.x_offset += if pos.x < thumb_left { -view } else { view };
+    }
+    state.x_offset = state.x_offset.clamp(0., maximum).round();
+    paint::fill(
+        &painter,
+        thumb.left(),
+        thumb.top(),
+        thumb.right() - 1.,
+        thumb.bottom() - 1.,
+        if response.hovered() || state.x_thumb_grab.is_some() {
+            pal::SCROLL_THUMB_HOVER
+        } else {
+            pal::SCROLL_THUMB
+        },
+    );
+    m::SCROLLBAR_W
 }
 
 /// Vertical scroll bar in `track` (full height including the arrow buttons). Returns `false`

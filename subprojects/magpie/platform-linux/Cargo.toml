@@ -1,0 +1,98 @@
+[package]
+name = "magpie-platform-linux"
+version = "1.2.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+arrayvec = "0.7"
+ash = "0.38"
+drm = "0.14"
+futures-lite = "2.6"
+glob = "0.3"
+libc = "0.2"
+libloading = "0.8"
+log = "0.4"
+regex = "1.11"
+sysinfo = "0.37"
+thiserror = "2.0"
+trim-in-place = "0.1"
+udisks2 = "0.3"
+vt100 = "0.16"
+virtual-terminal = "0.1"
+futures = "0.3" # used to poll dbus streams (disk impl)
+freedesktop-icons = "0.4.0"
+which = "8.0.0"
+smbios-lib = "0.9"
+[dependencies.ahash]
+version = "0.8"
+default-features = false
+features = ["compile-time-rng"]
+
+[dependencies.app-rummage]
+path = "crates/app-rummage"
+
+[dependencies.bitcode]
+version = "0.6"
+features = ["serde"]
+
+[dependencies.egl]
+package = "khronos-egl"
+version = "6.0"
+features = ["libloading", "dynamic"]
+
+[dependencies.gbm]
+version = "0.18"
+default-features = false
+features = ["drm-support"]
+
+[dependencies.magpie-platform]
+path = "../platform"
+
+[dependencies.nix]
+version = "0.31"
+features = ["process", "feature"]
+
+[dependencies.phf]
+version = "0.14"
+default-features = false
+features = ["macros"]
+
+[dependencies.rusqlite]
+version = "0.40"
+features = ["bundled"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.tokio]
+version = "1.47"
+default-features = false
+features = ["rt", "macros"]
+
+[dependencies.uucore]
+version = "0.9"
+features = ["fsext"]
+
+[dependencies.zbus]
+version = "5.14"
+default-features = false
+features = ["tokio"]
+
+[dependencies.upower_dbus]
+git = "https://github.com/pop-os/dbus-settings-bindings.git"
+rev = "87c3c35666b926a24a1e8045fd70be2db1145e34"
+
+[build-dependencies]
+cargo-util = { version = "0.2" }
+cc = { version = "1.2" }
+flate2 = { version = "1.1" }
+pkg-config = { version = "0.3" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+tar = { version = "0.4" }
+ureq = { version = "3.2" }
+
+[dev-dependencies]
+test-log = "0.2"

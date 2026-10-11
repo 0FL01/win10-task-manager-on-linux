@@ -25,8 +25,7 @@ fn run(cmd: &mut Command) -> Result<(), String> {
     }
 }
 
-/// Builds the magpie daemon with cargo and returns
-/// the path of an executable named `missioncenter-magpie`.
+/// Builds a completed relocatable daemon tree (bin + private GPU libraries).
 pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
     let target = root.join("target/magpie");
     run(Command::new("cargo")
@@ -35,9 +34,31 @@ pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
         .arg("--target-dir")
         .arg(&target))?;
     let built = target.join("release/magpie");
-    let named = target.join("release/missioncenter-magpie");
+    fs::create_dir_all(target.join("bin")).map_err(|e| e.to_string())?;
+    let named = target.join("bin/missioncenter-magpie");
     fs::copy(&built, &named).map_err(|e| e.to_string())?;
+    run(Command::new("python3")
+        .arg(root.join("support/bundle-gpu-libs.py"))
+        .arg("--binary")
+        .arg(&named)
+        .arg("--dest")
+        .arg(target.join("lib/taskmanager/gpu")))?;
+    run(Command::new(&named).arg("--test"))?;
     Ok(named)
+}
+
+fn copy_tree(from: &Path, to: &Path) -> Result<(), String> {
+    fs::create_dir_all(to).map_err(|e| e.to_string())?;
+    for entry in fs::read_dir(from).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let destination = to.join(entry.file_name());
+        if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
+            copy_tree(&entry.path(), &destination)?;
+        } else {
+            fs::copy(entry.path(), destination).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
 }
 
 pub fn hwdb(root: &Path, out_dir: &Path) -> Result<PathBuf, String> {
@@ -189,6 +210,21 @@ pub fn install(args: &[String]) -> Result<(), String> {
             &magpie_binary(&root)?,
             &base.join("bin/missioncenter-magpie"),
         )?;
+        let gpu_dir = base.join("lib/taskmanager/gpu");
+        if gpu_dir.exists() {
+            fs::remove_dir_all(&gpu_dir).map_err(|e| e.to_string())?;
+        }
+        copy_tree(&root.join("target/magpie/lib/taskmanager/gpu"), &gpu_dir)?;
+        // Only the daemon uses monitoring libraries; do not alter the UI's driver lookup.
+        // Verify the staged tree too, so an incomplete install cannot be packaged.
+        run(Command::new("python3")
+            .arg(root.join("support/bundle-gpu-libs.py"))
+            .arg("--verify")
+            .arg("--dest")
+            .arg(&gpu_dir)
+            .arg("--binary")
+            .arg(base.join("bin/missioncenter-magpie")))?;
+        run(Command::new(base.join("bin/missioncenter-magpie")).arg("--test"))?;
 
         mkdir(&share.join("missioncenter"))?;
         copy(
@@ -247,8 +283,8 @@ pub fn rpm(_args: &[String]) -> Result<(), String> {
         fs::create_dir_all(topdir.join(d)).map_err(|e| e.to_string())?;
     }
     let version = env!("CARGO_PKG_VERSION");
-    // Release number of the package (`MC_RPM_RELEASE`, default 8 in the spec)
-    let release = std::env::var("MC_RPM_RELEASE").unwrap_or_else(|_| "8".into());
+    // Release number of the package (`MC_RPM_RELEASE`, default 9 in the spec)
+    let release = std::env::var("MC_RPM_RELEASE").unwrap_or_else(|_| "9".into());
     run(Command::new("rpmbuild")
         .arg("-bb")
         .arg(root.join("packaging/rpm/taskmanager.spec"))

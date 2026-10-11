@@ -103,6 +103,7 @@ pub struct App {
 
     page: MainPage,
     perf: PerformancePage,
+    gpu_indices: mc_core::gpu::GpuIndices,
     apps: TableView,
     processes: ProcessesPage,
     performance: PerformanceView,
@@ -190,6 +191,7 @@ impl App {
             icons: IconCache::new(waker),
             page,
             perf,
+            gpu_indices: Default::default(),
             apps,
             processes: ProcessesPage::default(),
             performance: PerformanceView::default(),
@@ -246,11 +248,14 @@ impl App {
     }
 
     fn apply_readings(&mut self, readings: Readings) {
-        self.perf.update(&readings, &mut self.config);
+        let interval_ms = self.refresh_interval().as_millis() as u64;
+        let gpu =
+            mc_core::gpu::GpuSnapshot::from_readings(&readings, &mut self.gpu_indices, interval_ms);
+        self.perf.update(&readings, &gpu, &mut self.config);
         if readings.includes_app_data {
-            self.apps.update(&readings, &self.config);
-            self.services.update(&readings, &self.config);
-            self.details.update(&readings);
+            self.apps.update(&readings, &gpu, &self.config);
+            self.services.update(&readings, &gpu, &self.config);
+            self.details.update(&readings, &gpu);
             self.services_view.update(&self.services);
         }
         self.last_refresh = Instant::now();
@@ -344,6 +349,7 @@ impl App {
         if maximized != Some(true)
             && !minimized
             && !self.config.window_fewer_details
+            && !self.perf.summary_mode
             && size.x >= min[0]
             && size.y >= min[1]
         {
@@ -399,7 +405,26 @@ impl App {
             Command::OpenUrl(url) => ctx.open_url(egui::OpenUrl::new_tab(url)),
             Command::OpenDialog(dialog) => self.dialogs.open(dialog, &self.magpie),
             Command::SetPage(page) => self.set_page(page),
-            Command::ToggleSummaryMode => self.perf.summary_mode = !self.perf.summary_mode,
+            Command::ToggleSummaryMode => {
+                self.perf.summary_mode = !self.perf.summary_mode;
+                let size = if self.perf.summary_mode {
+                    self.full_size = ctx.input(|i| i.viewport().inner_rect.map(|r| r.size()));
+                    egui::Vec2::from(metrics::COMPACT_WINDOW_SIZE)
+                } else {
+                    self.full_size.unwrap_or(egui::vec2(
+                        self.config.window_width as f32,
+                        self.config.window_height as f32,
+                    ))
+                };
+                ctx.send_viewport_cmd(egui::ViewportCommand::MinInnerSize(egui::Vec2::from(
+                    if self.perf.summary_mode {
+                        metrics::COMPACT_MIN_SIZE
+                    } else {
+                        metrics::MIN_WINDOW_SIZE
+                    },
+                )));
+                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(size));
+            }
             Command::SelectDeviceCategory(action) => {
                 self.perf.select_category(action, &mut self.config)
             }
@@ -704,9 +729,12 @@ impl App {
         let ui = &mut root;
         let maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
         chrome::window_background(ui, window, !maximized);
-        chrome::title_bar(ui, window, crate::APP_NAME, maximized);
         let compact = self.config.window_fewer_details;
-        if !compact {
+        let graph_summary = self.page == MainPage::Performance && self.perf.summary_mode;
+        if !graph_summary {
+            chrome::title_bar(ui, window, crate::APP_NAME, maximized);
+        }
+        if !compact && !graph_summary {
             let menus = [i18n("File"), i18n("Options"), i18n("View")];
             chrome::menu_bar(ui, window, &menus, |ui, index| {
                 self.menu(ui, index, &mut commands)
@@ -722,14 +750,19 @@ impl App {
             }
         }
 
-        let line_y = chrome::footer_line(ui, window);
+        let line_y = if graph_summary {
+            window.bottom() - 1.
+        } else {
+            chrome::footer_line(ui, window)
+        };
         let expanded = !self.config.window_fewer_details;
         let toggle = if expanded {
             i18n("Fewer details")
         } else {
             i18n("More details")
         };
-        if chrome::details_toggle(ui, window, line_y, &toggle, expanded).clicked() {
+        if !graph_summary && chrome::details_toggle(ui, window, line_y, &toggle, expanded).clicked()
+        {
             self.toggle_fewer_details(&ctx);
         }
         if !compact && self.page == MainPage::Details {
@@ -746,7 +779,9 @@ impl App {
             }
         }
 
-        let content_top = if compact {
+        let content_top = if graph_summary {
+            1.
+        } else if compact {
             metrics::TITLE_BOTTOM + 1.
         } else {
             metrics::CONTENT_TOP
