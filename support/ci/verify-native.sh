@@ -58,7 +58,8 @@ test -s /usr/share/applications/io.github.taskmanager.TaskManager.desktop
 grep -Fq "<release version=\"$version\"" \
     /usr/share/metainfo/io.github.taskmanager.TaskManager.metainfo.xml
 test -d /usr/share/locale
-test -n "$(find /usr/share/locale -type f -name taskmanager.mo -print -quit)"
+translations=(/usr/share/locale/*/LC_MESSAGES/taskmanager.mo)
+test -f "${translations[0]}"
 test -d /usr/share/licenses/taskmanager || test -d /usr/share/doc/taskmanager
 
 # Check the app's dlopen dependencies before installing extra smoke-test libraries.
