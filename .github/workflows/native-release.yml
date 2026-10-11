@@ -203,15 +203,11 @@ jobs:
               }, output, indent=2, sort_keys=True)
               output.write("\n")
           PY
-          find target/ci-packages -maxdepth 1 -type f \( -name '*.rpm' -o -name '*.deb' -o -name '*.pkg.tar.zst' \) -print0 \
-            | xargs -0 sha256sum > target/ci-packages/SHA256SUMS
-      - name: Upload verified package and pinned sources
+      - name: Upload verified package and internal build metadata
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: native-${{ matrix.distro }}
-          path: |
-            target/ci-packages/*
-            target/ci-source-inputs/libdrm/*
+          path: target/ci-packages/*
           if-no-files-found: error
           retention-days: 14
 
@@ -249,9 +245,6 @@ jobs:
           python3 support/ci/collect-release.py \
             --downloads target/native-artifacts \
             --output target/release-assets \
-            --version "$VERSION" \
-            --commit "$GITHUB_SHA" \
-            --run-number "$GITHUB_RUN_NUMBER" \
             --source-archive "target/taskmanager-${VERSION}-source.tar.gz"
       - name: Create immutable draft release and publish assets
         env:
@@ -287,11 +280,11 @@ jobs:
             --draft \
             --target "$GITHUB_SHA" \
             --title "Task Manager $VERSION" \
-            --notes "Automated native packages for Fedora 44, openSUSE Tumbleweed, Arch Linux, Debian 13 and Ubuntu 26.04 (x86_64). Built from commit $GITHUB_SHA. See BUILD-MANIFEST.json and SHA256SUMS."
+            --notes "Automated native packages for Fedora 44, openSUSE Tumbleweed, Arch Linux, Debian 13 and Ubuntu 26.04 (x86_64). Built from commit $GITHUB_SHA."
           shopt -s nullglob
           assets=(target/release-assets/*)
-          if [[ ${#assets[@]} -lt 7 ]]; then
-            echo "Release asset assembly is incomplete" >&2
+          if [[ ${#assets[@]} -ne 6 ]]; then
+            echo "Expected five native packages and one project source archive" >&2
             exit 1
           fi
           gh release upload "$tag" "${assets[@]}"
