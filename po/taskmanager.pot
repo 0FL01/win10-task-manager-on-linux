@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 12:59+0300\n"
+"POT-Creation-Date: 2026-10-11 14:20+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -137,16 +137,16 @@ msgstr ""
 msgid "GPU telemetry is not available for this process"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:98
+#: crates/mc-core/src/gpu.rs:87
 #, rust-format
 msgid "GPU {} - {}"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:110
+#: crates/mc-core/src/gpu.rs:99
 msgid "Only overall utilization is available; the active engine is unknown"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:135
+#: crates/mc-core/src/gpu.rs:124
 msgid "Driver-reported allocation; residency is not available"
 msgstr ""
 
@@ -204,67 +204,71 @@ msgstr ""
 msgid "Collapse all"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:617
-msgid "Update speed"
-msgstr ""
-
-#: crates/mc-ui/src/app.rs:618
-msgid "High"
-msgstr ""
-
-#: crates/mc-ui/src/app.rs:618
-msgid "Normal"
-msgstr ""
-
-#: crates/mc-ui/src/app.rs:618
-msgid "Low"
+#: crates/mc-ui/src/app.rs:620
+msgid "Show virtual network adapters"
 msgstr ""
 
 #: crates/mc-ui/src/app.rs:627
+msgid "Update speed"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:628
+msgid "High"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:628
+msgid "Normal"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:628
+msgid "Low"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:637
 msgid "Paused"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:669
+#: crates/mc-ui/src/app.rs:679
 msgid "Create new task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:677
+#: crates/mc-ui/src/app.rs:687
 msgid "Type the name of a program and Task Manager will start it."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:681
+#: crates/mc-ui/src/app.rs:691
 msgid "Open:"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:694
+#: crates/mc-ui/src/app.rs:704
 msgid "Cancel"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:699
+#: crates/mc-ui/src/app.rs:709
 msgid "OK"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:738
+#: crates/mc-ui/src/app.rs:748
 msgid "File"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:738
+#: crates/mc-ui/src/app.rs:748
 msgid "Options"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:738
+#: crates/mc-ui/src/app.rs:748
 msgid "View"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:760
+#: crates/mc-ui/src/app.rs:770
 msgid "Fewer details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:762
+#: crates/mc-ui/src/app.rs:772
 msgid "More details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:770 crates/mc-ui/src/app.rs:777
+#: crates/mc-ui/src/app.rs:780 crates/mc-ui/src/app.rs:787
 #: crates/mc-ui/src/win10/details.rs:311
 #: crates/mc-ui/src/win10/processes.rs:626
 msgid "End task"

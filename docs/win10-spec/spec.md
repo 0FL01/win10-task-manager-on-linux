@@ -143,6 +143,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Device list: x 1–211, separator `#d9d9d9` at x 212. Own: the separator can be dragged (hover/drag
   colour `#0078d7`, resize cursor) to widen the list; the page keeps ≥ 547 px and shifts right;
   the width is saved (`performance-sidebar-width`) when the drag ends.
+  Own: virtual network adapters (Docker, bridges, veth, Multipass) are hidden by default;
+  View → "Show virtual network adapters" (`performance-show-network-virtual`) shows them.
   - Items: 2 text lines → 60 px tall, 3 lines → 66 px tall; first item top y 89, no gaps
     (CPU 89, Memory 149, Disk 0 209, Disk 1 275, Ethernet 341).
   - Selected item fill `#d9d9d9` from x 5 to x 208, full item height.

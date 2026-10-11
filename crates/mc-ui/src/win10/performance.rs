@@ -214,6 +214,7 @@ impl PerformanceView {
 
     fn list_ui(&mut self, ui: &mut Ui, cx: &mut Cx, perf: &mut PerformancePage, list: Rect) {
         let shown = perf.shown_names(cx.config);
+        perf.keep_selection_shown(&shown, cx.config);
         let heights: Vec<f32> = shown
             .iter()
             .map(|name| {

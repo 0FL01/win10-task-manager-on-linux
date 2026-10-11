@@ -614,6 +614,16 @@ impl App {
                     self.apps.collapse_all();
                 }
                 menu::separator(ui);
+                // Own addition: Docker, bridge, veth and Multipass adapters (hidden by default)
+                if menu::check(
+                    ui,
+                    &i18n("Show virtual network adapters"),
+                    self.config.performance_show_network_virtual,
+                ) {
+                    self.config.performance_show_network_virtual =
+                        !self.config.performance_show_network_virtual;
+                }
+                menu::separator(ui);
                 menu::submenu(ui, &i18n("Update speed"), |ui| {
                     for (label, interval) in [(n_("High"), 10), (n_("Normal"), 20), (n_("Low"), 80)]
                     {

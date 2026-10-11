@@ -360,9 +360,8 @@ impl PerformancePage {
         let present: Vec<String> = self.devices.iter().map(|d| d.name().to_owned()).collect();
         self.order = sidebar::rebuild_order(config, &present);
 
-        if !self.order.contains(&self.selected) {
-            self.select_nearest_shown(config);
-        }
+        let shown = self.shown_names(config);
+        self.keep_selection_shown(&shown, config);
         self.loaded = true;
     }
 
@@ -410,10 +409,12 @@ impl PerformancePage {
         }
     }
 
-    fn select_nearest_shown(&mut self, config: &mut Config) {
-        let shown = self.shown_names(config);
-        if let Some(first) = shown.first().cloned() {
-            self.select(&first, config);
+    /// Moves the selection to the first shown device when the selected one is gone or hidden.
+    pub(crate) fn keep_selection_shown(&mut self, shown: &[String], config: &mut Config) {
+        if !shown.contains(&self.selected)
+            && let Some(first) = shown.first()
+        {
+            self.select(first, config);
         }
     }
 
@@ -468,4 +469,40 @@ pub fn fixed_group(max: f32) -> DatasetGroup {
     g.dataset_settings.scaling_settings = ScalingSettings::Fixed;
     g.dataset_settings.high_watermark = max;
     g
+}
+
+#[cfg(test)]
+mod tests {
+    use mc_magpie::magpie_types::network::ConnectionKind;
+
+    use super::*;
+
+    fn with_veth() -> Readings {
+        let mut r = mc_magpie::synthetic_readings(0, 8);
+        let mut veth = r.network_connections["wlan0"].clone();
+        veth.id = "veth0".into();
+        veth.kind = ConnectionKind::Virtual as i32;
+        veth.wireless_connection = None;
+        r.network_connections.insert("veth0".into(), veth);
+        r
+    }
+
+    #[test]
+    fn hidden_virtual_adapter_loses_selection() {
+        let veth = network::page_name("veth0");
+        let mut config = Config {
+            performance_selected_page: veth.clone(),
+            performance_show_network_virtual: true,
+            ..Config::default()
+        };
+        let mut page = PerformancePage::new(&config);
+        page.update(&with_veth(), &GpuSnapshot::default(), &mut config);
+        assert_eq!(page.selected, veth, "shown while the group is enabled");
+
+        config.performance_show_network_virtual = false;
+        page.update(&with_veth(), &GpuSnapshot::default(), &mut config);
+        assert!(!page.shown_names(&config).contains(&veth));
+        assert_ne!(page.selected, veth);
+        assert_eq!(config.performance_selected_page, page.selected);
+    }
 }

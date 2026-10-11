@@ -10,7 +10,7 @@
 
 Name:           taskmanager
 Version:        %{?mc_version}%{!?mc_version:1.2.0}
-Release:        %{?mc_release}%{!?mc_release:10}%{?dist}
+Release:        %{?mc_release}%{!?mc_release:11}%{?dist}
 Summary:        Task Manager: processes, performance and services
 # Selawik, libdrm, libudev and the Fedora libgcc runtime closure.
 License:        GPL-3.0-or-later AND OFL-1.1 AND MIT AND LGPL-2.1-or-later AND (GPL-3.0-or-later WITH GCC-exception-3.1)
@@ -73,6 +73,10 @@ cp -a %{stagedir}/. %{buildroot}/
 %{_datadir}/locale/*/LC_MESSAGES/taskmanager.mo
 
 %changelog
+* Sun Oct 11 2026 Task Manager Developers - 1.2.0-11
+- Hide virtual network adapters (Docker, bridges, veth, Multipass) by default; View menu
+  toggle "Show virtual network adapters".
+
 * Sun Oct 11 2026 Task Manager Developers - 1.2.0-10
 - Show partial GPU utilization as a plain percentage; the reason stays in the tooltip.
 

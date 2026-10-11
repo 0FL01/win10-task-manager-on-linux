@@ -75,7 +75,7 @@ pub fn serialize_widths<'a>(widths: impl IntoIterator<Item = (&'a str, f32)>) ->
 }
 
 /// Version of the interface defaults applied by [`Config::migrate_layout`].
-pub const LAYOUT_VERSION: u32 = 3;
+pub const LAYOUT_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -238,7 +238,7 @@ impl Default for Config {
             performance_show_network_wired: true,
             performance_show_network_wireless: true,
             performance_show_network_vpn: true,
-            performance_show_network_virtual: true,
+            performance_show_network_virtual: false,
             performance_show_network_other: true,
             performance_show_gpus: true,
             performance_show_fans: true,
@@ -335,7 +335,8 @@ impl Config {
     /// defaults (and a warning) so a broken file never prevents startup.
     /// Applies the Win10 interface defaults once to settings written by older versions: the
     /// reference window size when the stored one is smaller than `min_size`, per-processor CPU
-    /// graphs without the bottom graph, swap graph hidden. Returns `true` if anything changed.
+    /// graphs without the bottom graph, swap graph hidden, GPU columns, virtual network adapters
+    /// (Docker, bridges, veth, Multipass) hidden. Returns `true` if anything changed.
     pub fn migrate_layout(&mut self, min_size: [i32; 2]) -> bool {
         if self.layout_version >= LAYOUT_VERSION {
             return false;
@@ -359,6 +360,9 @@ impl Config {
         }
         if self.layout_version < 3 && self.apps_page_visible_columns == "cpu;memory;drive;network" {
             self.apps_page_visible_columns = defaults.apps_page_visible_columns;
+        }
+        if self.layout_version < 4 {
+            self.performance_show_network_virtual = false;
         }
         self.layout_version = LAYOUT_VERSION;
         true
@@ -592,6 +596,19 @@ mod tests {
                 .unwrap();
         custom.migrate_layout([760, 540]);
         assert_eq!(custom.apps_page_visible_columns, "cpu;memory;pid");
+    }
+
+    #[test]
+    fn virtual_networks_are_hidden_once() {
+        assert!(!Config::default().performance_show_network_virtual);
+        let mut old =
+            Config::from_toml("layout-version=3\nperformance-show-network-virtual=true\n").unwrap();
+        assert!(old.migrate_layout([760, 540]));
+        assert!(!old.performance_show_network_virtual);
+        old.performance_show_network_virtual = true;
+        let mut back = Config::from_toml(&old.to_toml()).unwrap();
+        assert!(!back.migrate_layout([760, 540]), "a later choice is kept");
+        assert!(back.performance_show_network_virtual);
     }
 
     #[test]
