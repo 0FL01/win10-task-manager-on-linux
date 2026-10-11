@@ -433,7 +433,7 @@ impl DevicePage for CpuPage {
             }
         }
 
-        let caption = over("Utilization over ", &self.max_duration);
+        let caption = over(n_("Utilization over "), &self.max_duration);
         let (graphs, columns): (Vec<&mut Graph>, usize) = match selection {
             GRAPH_SELECTION_ALL => {
                 let columns = compute_column_count(self.per_core.len().max(1));
@@ -452,9 +452,9 @@ impl DevicePage for CpuPage {
         }];
         if bottom != GRAPH_NONE {
             let label = match bottom {
-                GRAPH_POWER => "Power draw over ",
-                GRAPH_CLOCK => "Clock speed over ",
-                _ => "Temperature over ",
+                GRAPH_POWER => n_("Power draw over "),
+                GRAPH_CLOCK => n_("Clock speed over "),
+                _ => n_("Temperature over "),
             };
             panels.push(GraphPanel::single(
                 over(label, &self.max_duration),

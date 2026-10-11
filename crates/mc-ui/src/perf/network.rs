@@ -270,7 +270,7 @@ impl DevicePage for NetworkPage {
             title: self.kind.as_str_name().to_owned(),
             model: self.device_name.clone(),
             panels: vec![GraphPanel::single(
-                over("Throughput over ", &self.max_duration),
+                over(n_("Throughput over "), &self.max_duration),
                 max_y,
                 &mut self.graph,
             )],

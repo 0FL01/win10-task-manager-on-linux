@@ -330,12 +330,12 @@ impl DevicePage for DiskPage {
             model: self.model.clone(),
             panels: vec![
                 GraphPanel::single(
-                    over("Active time over ", &self.max_duration),
+                    over(n_("Active time over "), &self.max_duration),
                     i18n("100%"),
                     &mut self.usage,
                 ),
                 GraphPanel::single(
-                    over("Throughput over ", &self.max_duration),
+                    over(n_("Throughput over "), &self.max_duration),
                     max_y,
                     &mut self.transfer,
                 ),

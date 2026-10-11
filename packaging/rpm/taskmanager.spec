@@ -10,7 +10,7 @@
 
 Name:           taskmanager
 Version:        %{?mc_version}%{!?mc_version:1.2.0}
-Release:        %{?mc_release}%{!?mc_release:13}%{?dist}
+Release:        %{?mc_release}%{!?mc_release:14}%{?dist}
 Summary:        Task Manager: processes, performance and services
 # Selawik, libdrm, libudev and the Fedora libgcc runtime closure.
 License:        GPL-3.0-or-later AND OFL-1.1 AND MIT AND LGPL-2.1-or-later AND (GPL-3.0-or-later WITH GCC-exception-3.1)
@@ -71,6 +71,11 @@ cp -a %{stagedir}/. %{buildroot}/
 %{_datadir}/locale/*/LC_MESSAGES/taskmanager.mo
 
 %changelog
+* Sun Oct 11 2026 Task Manager Developers - 1.2.0-14
+- Remove the Settings window, the per-process network setup script and nethogs support;
+  per-process network comes from unprivileged TCP socket counters. Drop unused process signals,
+  the GNOME graph look, Mission Center dead code and obsolete translations.
+
 * Sun Oct 11 2026 Task Manager Developers - 1.2.0-13
 - Windows names for amdgpu engines, hardware engines listed before first use, unified VCN
   video shown as Video Encode/Decode.

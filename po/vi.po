@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: missioncenter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"POT-Creation-Date: 2026-10-11 16:41+0300\n"
 "PO-Revision-Date: 2026-02-13 10:09+0000\n"
 "Last-Translator: Loc Huynh <huynhloc.contact@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/mission-"
@@ -19,1927 +19,1126 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 5.16-dev\n"
 
-#: data/io.missioncenter.MissionCenter.desktop.in:2
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
-msgid "Mission Center"
-msgstr "Mission Center"
+#: crates/mc-core/src/format.rs:34
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} năm"
 
-#: data/io.missioncenter.MissionCenter.desktop.in:9
-#, fuzzy
+#: crates/mc-core/src/format.rs:38
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} tháng"
+
+#: crates/mc-core/src/format.rs:42 crates/mc-core/src/i18n.rs:202
+#: crates/mc-core/src/i18n.rs:203
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} ngày"
+
+#: crates/mc-core/src/format.rs:46
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} giờ"
+
+#: crates/mc-core/src/format.rs:50 crates/mc-core/src/format.rs:127
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} phút"
+
+#: crates/mc-core/src/format.rs:54 crates/mc-core/src/format.rs:125
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} giây"
+
+#: crates/mc-core/src/format.rs:85
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} và {}"
+
+#: crates/mc-core/src/format.rs:87 crates/mc-core/src/format.rs:94
+#: crates/mc-core/src/format.rs:101 crates/mc-core/src/format.rs:108
+#, rust-format
+msgid "{} and {}"
+msgstr "{} và {}"
+
+#: crates/mc-core/src/format.rs:117
+msgid "Less than a minute"
+msgstr "Chưa đầy một phút"
+
+#: crates/mc-core/src/gpu.rs:18
+msgid "3D"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:19
+msgctxt "GPU engine"
+msgid "Copy"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:20
+msgid "Compute"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:21
+msgid "Video Encode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:22
+msgid "Video Decode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:23 crates/mc-ui/src/perf/gpu.rs:1023
+msgid "Video Encode/Decode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:24
+msgid "Video"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:25
+msgid "Video Enhance"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:33 crates/mc-ui/src/perf/gpu.rs:1025
 msgid ""
-"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
-"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
-"Manager;Service List;System Services;User Services;systemd;systemctl"
-msgstr ""
-"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
-"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
-msgid "Mission Center Developers"
-msgstr "Nhà phát triển Mission Center"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
-msgid "Monitor system resource usage"
-msgstr "Giám sát việc sử dụng tài nguyên hệ thống"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
-msgid ""
-"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
-"app and process breakdown of these statistics"
-msgstr ""
-"Giám sát việc sử dụng CPU, Bộ nhớ, Ổ đĩa, Mạng và GPU của bạn, kèm theo bảng "
-"phân tích các thống kê này cho mỗi ứng dụng và quy trình"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
-msgid "Features:"
-msgstr "Tính năng:"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
-msgid "Monitor overall or per-thread CPU usage"
-msgstr "Giám sát việc sử dụng tổng thể hoặc theo từng luồng CPU"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
-msgid ""
-"See system process, thread, and handle count, uptime, clock speed (base and "
-"current), cache sizes"
-msgstr ""
-"Xem số lượng quy trình, luồng và bộ xử lý, thời gian hoạt động, tốc độ xung "
-"nhịp (cơ bản và hiện tại), kích thước bộ đệm"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
-msgid "Monitor RAM and Swap usage"
-msgstr "Giám sát RAM và việc sử dụng Hoán đổi"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
-msgid "See a breakdown how the memory is being used by the system"
-msgstr "Xem chi tiết cách hệ thống đang sử dụng bộ nhớ"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
-msgid "Monitor Disk utilization and transfer rates"
-msgstr "Giám sát tốc độ truyền và sử dụng đĩa"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
-msgid "Monitor network utilization and transfer speeds"
-msgstr "Giám sát tốc độ truyền và sử dụng mạng"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
-msgid ""
-"See network interface information such as network card name, connection type "
-"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
-"address"
-msgstr ""
-"Xem thông tin giao diện mạng như tên card mạng, loại kết nối (Wi-Fi hoặc "
-"Ethernet), tốc độ và tần số không dây, địa chỉ phần cứng, địa chỉ IP"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
-msgid ""
-"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
-"power consumption, powered by the popular NVTOP project"
-msgstr ""
-"Giám sát mức sử dụng tổng thể GPU, mức sử dụng bộ mã hóa và giải mã video, "
-"mức sử dụng bộ nhớ và mức tiêu thụ điện năng, được cung cấp bởi dự án NVTOP "
-"phổ biến"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
-msgid "Monitor system fans"
-msgstr "Giám sát quạt hệ thống"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
-msgid "See a breakdown of resource usage by app and process"
-msgstr "Xem bảng phân tích mức sử dụng tài nguyên theo ứng dụng và quy trình"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
-msgid "Supports a minified summary view for simple monitoring"
-msgstr "Hỗ trợ chế độ xem tóm tắt được rút gọn để theo dõi đơn giản"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
-msgid ""
-"Use hardware accelerated rendering for all the graphs in an effort to reduce "
-"CPU and overall resource usage"
-msgstr ""
-"Sử dụng kết xuất được tăng tốc phần cứng cho tất cả các biểu đồ nhằm nỗ lực "
-"giảm CPU và mức sử dụng tài nguyên tổng thể"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
-msgid "Uses GTK4 and Libadwaita"
-msgstr "Sử dụng GTK4 và Libadwaita"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
-msgid "Written in Rust"
-msgstr "Được viết bằng Rust"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
-msgid "Limitations (there is ongoing work to overcome all of these):"
-msgstr "Các hạn chế (hiện đang có công việc khắc phục tất cả những điều này):"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
-msgid ""
-"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
-"does not support VRAM, power, or temperature monitoring"
-msgstr ""
-"Giám sát Intel GPU chỉ được hỗ trợ cho Broadwell trở lên GPUs; và không hỗ "
-"trợ giám sát VRAM, nguồn điện hoặc nhiệt độ"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
-msgid ""
-"When using Linux Mint/Cinnamon, launched applications may not show up in the "
-"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
-"cinnamon/issues/12015)"
-msgstr ""
-"Khi sử dụng Linux Mint/Cinnamon, các ứng dụng đã khởi chạy có thể không hiển "
-"thị trong phần \"Ứng dụng\" (Vấn đề ngược dòng: https://github.com/linuxmint/"
-"cinnamon/issues/12015)"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
-msgid "Comments, suggestions, bug reports and contributions welcome"
-msgstr "Hoan nghênh nhận xét, đề xuất, báo cáo lỗi và đóng góp"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:46
-msgid "Which page is shown on application startup"
-msgstr "Trang nào được hiển thị khi khởi động ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:51
-msgid "Interface Style"
-msgstr "Kiểu giao diện"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:52
-msgid "If light or dark interface style should be used"
-msgstr "Nếu nên sử dụng kiểu giao diện sáng hoặc tối"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:58
-msgid "DEPRECATED! NO LONGER IN USE!"
-msgstr "LỖI THỜI! KHÔNG CÒN ĐƯỢC SỬ DỤNG!"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:64
-msgid ""
-"How fast should the data be refreshed and the UI updated (in increments of "
-"50ms)"
-msgstr ""
-"Dữ liệu được làm mới và giao diện người dùng được cập nhật nhanh như thế nào "
-"(với khoảng tăng 50 mili giây)"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:70
-msgid "How many points should be displayed on each chart?"
-msgstr "Cần hiển thị bao nhiêu điểm trên mỗi biểu đồ?"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:75
-msgid "Whether or not to use bits or bytes (default) for memory"
-msgstr "Có sử dụng bit hoặc byte (mặc định) cho bộ nhớ hay không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:80
-msgid "Whether or not to use base-10 or base-2 (default) for memory"
-msgstr "Sử dụng base-10 hay base-2 (mặc định) cho bộ nhớ hay không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:85
-msgid "Whether or not to use bits or bytes (default) for drive speed + size"
-msgstr ""
-"Có sử dụng bit hoặc byte (mặc định) cho tốc độ + kích thước ổ đĩa hay không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:90
-msgid ""
-"Whether or not to use base-10 or base-2 (default) for drive speed + size"
-msgstr ""
-"Có sử dụng base-10 hay base-2 (mặc định) cho tốc độ + kích thước ổ đĩa hay "
-"không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:95
-msgid "Whether or not to use bits (default) or Bytes for network speed"
-msgstr "Có sử dụng bit (mặc định) hay Byte cho tốc độ mạng hay không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:100
-msgid "Whether or not to use base-10 (default) or base-2 for network speed"
-msgstr "Sử dụng base-10 (mặc định) hay base-2 cho tốc độ mạng hay không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:105
-msgid ""
-"Whether to set graph max to interface max (false) or the max observed (true)"
-msgstr ""
-"Đặt mức tối đa của biểu đồ thành mức tối đa giao diện (sai) hay mức tối đa "
-"quan sát được (đúng)"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:110
-#: resources/ui/preferences/apps_services_page.blp:31
-msgid "Parent and child process stats are shown individually or merged upwards"
-msgstr ""
-"Số liệu thống kê về quy trình gốc và con được hiển thị riêng lẻ hoặc được "
-"hợp nhất lên trên"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:115
-msgid "Column sorting is persisted across app restarts"
-msgstr "Việc sắp xếp cột được duy trì khi khởi động lại ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:120
-msgid "Column order is persisted across app restarts"
-msgstr "Thứ tự cột được duy trì khi khởi động lại ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:125
-msgid ""
-"Show CPU usage for Apps and Processes scaled to the number of available cores"
-msgstr ""
-"Hiển thị mức sử dụng CPU cho Ứng dụng và quy trình được chia tỷ lệ theo số "
-"lõi có sẵn"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:130
-msgid "Show a separator between each column in the Apps view"
-msgstr "Hiển thị dấu phân cách giữa mỗi cột trong chế độ xem Ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:135
-msgid "Gray out values that equal zero in the Apps view"
+"Encoding and decoding share one hardware queue; the driver does not count "
+"them separately"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:140
-msgid "The column name by which the Apps page view is sorted"
-msgstr "Tên cột mà chế độ xem trang Ứng dụng được sắp xếp"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:145
-msgid "The sorting direction of the Apps page view"
-msgstr "Hướng sắp xếp của chế độ xem trang Ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:150
-msgid "The order of columns in the Apps page view"
-msgstr "Thứ tự các cột trong chế độ xem trang Ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:155
-msgid "The column name by which the Services page view is sorted"
-msgstr "Tên cột mà chế độ xem trang Dịch vụ được sắp xếp"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:160
-msgid "The sorting direction of the Services page view"
-msgstr "Hướng sắp xếp của chế độ xem trang Dịch vụ"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:165
-msgid "The order of columns in the Services page view"
-msgstr "Thứ tự các cột trong chế độ xem trang Dịch vụ"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:171
-msgid "Which graph is shown on the CPU performance page"
-msgstr "Biểu đồ nào được hiển thị trên trang hiệu suất CPU"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:177
-#, fuzzy
-msgid "Which graph is shown on the bottom graph of the CPU performance page"
-msgstr "Biểu đồ nào được hiển thị trên trang hiệu suất CPU"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:182
-msgid "Show kernel times in the CPU graphs"
-msgstr "Hiển thị thời gian kernel trong biểu đồ CPU"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:187
-msgid "Which page is shown on application startup, in the performance tab"
-msgstr "Trang nào được hiển thị khi khởi động ứng dụng, trong tab hiệu suất"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:193
-msgid "Should performance graphs be smooth or jagged"
-msgstr "Đồ thị hiệu suất nên mượt mà hay lởm chởm"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:198
-msgid "Should graphs be animated"
-msgstr "Đồ thị có nên hoạt hình không"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:203
-msgid "Show CPU information by default"
-msgstr "Hiển thị thông tin CPU theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:208
-msgid "Show memory information by default"
-msgstr "Hiển thị thông tin bộ nhớ theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:213
-#: resources/ui/preferences/performance_page.blp:70
-msgid "Show disk information by default"
-msgstr "Hiển thị thông tin ổ đĩa theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:218
-#: resources/ui/preferences/performance_page.blp:75
-msgid "Show network information by default"
-msgstr "Hiển thị thông tin mạng theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:223
-#, fuzzy
-msgid "Show wired network devices by default"
-msgstr "Hiển thị thông tin mạng theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:228
-#, fuzzy
-msgid "Show wireless network devices by default"
-msgstr "Hiển thị thông tin mạng theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:233
-#, fuzzy
-msgid "Show VPN network devices by default"
-msgstr "Hiển thị thông tin mạng theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:238
-msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
+#: crates/mc-core/src/gpu.rs:39
+msgid "Measured by the GPU driver"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:243
-msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
+#: crates/mc-core/src/gpu.rs:41
+msgid "Partial GPU data: some engines or processes are not observable"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:248
-#: resources/ui/preferences/performance_page.blp:103
-msgid "Show GPU information by default"
-msgstr "Hiển thị thông tin GPU theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:253
-#: data/io.missioncenter.MissionCenter.gschema.xml:258
-#: resources/ui/preferences/performance_page.blp:108
-msgid "Show fan information by default"
-msgstr "Hiển thị thông tin người hâm mộ theo mặc định"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:263
-msgid "Show the mem composition widget"
-msgstr "Hiển thị thành phần mem widget"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:268
-msgid "Show the swap graph"
-msgstr "Hiển thị biểu đồ hoán đổi"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:274
-msgid "Middle Graph's Content and visibility"
+#: crates/mc-core/src/gpu.rs:44
+msgid "Permission denied while reading GPU process counters"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:280
-msgid "Bottom Graph's Content and visibility"
+#: crates/mc-core/src/gpu.rs:46
+msgid "Collecting GPU counters; waiting for the next sample"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:286
-msgid "The ordering of entries in the application sidebar"
-msgstr "Thứ tự các mục trong thanh bên của ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:292
-msgid "Graphs that should be hidden in the application sidebar"
-msgstr "Các đồ thị cần được ẩn trong thanh bên của ứng dụng"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:297
-msgid ""
-"Per-device visibility overrides (semicolon-separated name:show or name:hide "
-"entries)"
+#: crates/mc-core/src/gpu.rs:47
+msgid "The GPU driver has not supplied a fresh sample"
 msgstr ""
 
-#: data/io.missioncenter.MissionCenter.gschema.xml:302
-msgid "If it's your first time running Mission Center"
+#: crates/mc-core/src/gpu.rs:49
+msgid "The GPU driver or its monitoring interface is unavailable"
 msgstr ""
 
-#: resources/ui/apps_page/page.blp:87
-msgid "Collapse all apps and processes"
-msgstr "Thu gọn tất cả ứng dụng và quy trình"
-
-#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
-#: resources/ui/keyboard_shortcuts.blp:84
-#: resources/ui/keyboard_shortcuts.blp:113
-msgid "Collapse All"
-msgstr "Thu gọn tất cả"
-
-#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
-msgid "Failed To Eject"
-msgstr "Không thể đẩy ra"
-
-#: resources/ui/performance_page/disk_eject_failure_row.blp:51
-msgid "Kill"
-msgstr "Giết"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:31
-msgid "In Use:"
-msgstr "Đang sử dụng:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:36
-msgid "Modified:"
-msgstr "Đã sửa đổi:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:41
-msgid "Standby:"
-msgstr "Chế độ chờ:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:46
-msgid "Free:"
-msgstr "Miễn phí:"
-
-#: resources/ui/performance_page/cpu.blp:56
-#: resources/ui/table_view/table_view.blp:53
-#: resources/ui/table_view/process_details_dialog.blp:177
-#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
-msgid "CPU"
-msgstr "CPU"
-
-#: resources/ui/performance_page/cpu.blp:75
-#: resources/ui/performance_page/gpu.blp:73
-msgid "Utilization over "
-msgstr "Đã hết thời gian sử dụng "
-
-#: resources/ui/performance_page/cpu.blp:90
-#: resources/ui/performance_page/gpu.blp:87
-#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
-msgid "100%"
-msgstr "100%"
-
-#: resources/ui/performance_page/cpu.blp:167
-#, fuzzy
-msgid "Change _Top Graph To"
-msgstr "Thay đổi G_raph thành"
-
-#: resources/ui/performance_page/cpu.blp:170
-msgid "Overall U_tilization"
-msgstr "Sử dụng tổng thể"
-
-#: resources/ui/performance_page/cpu.blp:175
-msgid "Logical _Processors"
-msgstr "Bộ xử lý logic"
-
-#: resources/ui/performance_page/cpu.blp:180
-#, fuzzy
-msgid "_All Threads"
-msgstr "Chủ đề"
-
-#: resources/ui/performance_page/cpu.blp:185
-msgid "All Threads _Stacked"
+#: crates/mc-core/src/gpu.rs:51
+msgid "The GPU driver does not provide this counter"
 msgstr ""
 
-#: resources/ui/performance_page/cpu.blp:191
-#, fuzzy
-msgid "Change B_ottom Graph To"
-msgstr "Thay đổi G_raph thành"
-
-#: resources/ui/performance_page/cpu.blp:194
-#: resources/ui/performance_page/gpu.blp:219
-#: resources/ui/performance_page/gpu.blp:253
-#, fuzzy
-msgid "_Power Draw"
-msgstr "Power Draw"
-
-#: resources/ui/performance_page/cpu.blp:199
-#: resources/ui/performance_page/gpu.blp:229
-#: resources/ui/performance_page/gpu.blp:263
-#, fuzzy
-msgid "_Temperature"
-msgstr "Nhiệt độ"
-
-#: resources/ui/performance_page/cpu.blp:204
-#, fuzzy
-msgid "_Clock Speed"
-msgstr "Tốc độ đồng hồ"
-
-#: resources/ui/performance_page/cpu.blp:209
-#: resources/ui/performance_page/gpu.blp:234
-#: resources/ui/performance_page/gpu.blp:268
-msgid "_None"
+#: crates/mc-core/src/gpu.rs:52
+msgid "GPU telemetry is not available for this process"
 msgstr ""
 
-#: resources/ui/performance_page/cpu.blp:215
-msgid "Show Kernel Times"
-msgstr "Hiển thị thời gian hạt nhân"
-
-#: resources/ui/performance_page/cpu.blp:222
-#: resources/ui/performance_page/disk.blp:180
-#: resources/ui/performance_page/fan.blp:151
-#: resources/ui/performance_page/gpu.blp:276
-#: resources/ui/performance_page/memory.blp:206
-#: resources/ui/performance_page/network.blp:104
-msgid "Graph _Summary View"
-msgstr "Biểu đồ _Chế độ xem tóm tắt"
-
-#: resources/ui/performance_page/cpu.blp:227
-#: resources/ui/performance_page/disk.blp:185
-#: resources/ui/performance_page/fan.blp:156
-#: resources/ui/performance_page/gpu.blp:282
-#: resources/ui/performance_page/memory.blp:211
-#: resources/ui/performance_page/network.blp:109
-msgid "_View"
-msgstr "_Xem"
-
-#: resources/ui/performance_page/cpu.blp:230
-#: resources/ui/performance_page/disk.blp:188
-#: resources/ui/performance_page/fan.blp:159
-#: resources/ui/performance_page/gpu.blp:285
-#: resources/ui/performance_page/memory.blp:214
-#: resources/ui/performance_page/network.blp:112
-msgid "CP_U"
-msgstr "CP_U"
-
-#: resources/ui/performance_page/cpu.blp:235
-#: resources/ui/performance_page/disk.blp:193
-#: resources/ui/performance_page/fan.blp:164
-#: resources/ui/performance_page/gpu.blp:290
-#: resources/ui/performance_page/memory.blp:219
-#: resources/ui/performance_page/network.blp:117
-msgid "_Memory"
-msgstr "_Bộ nhớ"
-
-#: resources/ui/performance_page/cpu.blp:240
-#: resources/ui/performance_page/disk.blp:198
-#: resources/ui/performance_page/fan.blp:169
-#: resources/ui/performance_page/gpu.blp:295
-#: resources/ui/performance_page/memory.blp:224
-#: resources/ui/performance_page/network.blp:122
-msgid "_Drive"
-msgstr "_Drive"
-
-#: resources/ui/performance_page/cpu.blp:245
-#: resources/ui/performance_page/disk.blp:203
-#: resources/ui/performance_page/fan.blp:174
-#: resources/ui/performance_page/gpu.blp:300
-#: resources/ui/performance_page/memory.blp:229
-#: resources/ui/performance_page/network.blp:127
-msgid "_Network"
-msgstr "_Mạng"
-
-#: resources/ui/performance_page/cpu.blp:250
-#: resources/ui/performance_page/disk.blp:208
-#: resources/ui/performance_page/fan.blp:179
-#: resources/ui/performance_page/gpu.blp:305
-#: resources/ui/performance_page/memory.blp:234
-#: resources/ui/performance_page/network.blp:132
-msgid "_GPU"
-msgstr "_GPU"
-
-#: resources/ui/performance_page/cpu.blp:255
-#: resources/ui/performance_page/disk.blp:213
-#: resources/ui/performance_page/fan.blp:184
-#: resources/ui/performance_page/gpu.blp:310
-#: resources/ui/performance_page/memory.blp:239
-#: resources/ui/performance_page/network.blp:137
-msgid "_Fan"
-msgstr "_Quạt"
-
-#: resources/ui/performance_page/cpu.blp:260
-#: resources/ui/performance_page/disk.blp:218
-#: resources/ui/performance_page/fan.blp:189
-#: resources/ui/performance_page/gpu.blp:315
-#: resources/ui/performance_page/memory.blp:244
-#: resources/ui/performance_page/network.blp:142
-msgid "_Battery"
+#: crates/mc-core/src/gpu.rs:95
+#, rust-format
+msgid "GPU {} - {}"
 msgstr ""
 
-#: resources/ui/performance_page/cpu.blp:268
-#: resources/ui/performance_page/disk.blp:226
-#: resources/ui/performance_page/fan.blp:197
-#: resources/ui/performance_page/gpu.blp:323
-#: resources/ui/performance_page/memory.blp:252
-#: resources/ui/performance_page/network.blp:155
-msgid "_Copy"
-msgstr "_Sao chép"
-
-#: resources/ui/performance_page/disk.blp:66
-msgid "Show SMART Data"
-msgstr "Hiển thị dữ liệu SMART"
-
-#: resources/ui/performance_page/disk.blp:77
-msgid "Eject Disk"
-msgstr "Đẩy đĩa ra"
-
-#: resources/ui/performance_page/disk.blp:100
-msgid "Active time over "
-msgstr "Hết thời gian hoạt động "
-
-#: resources/ui/performance_page/disk.blp:140
-#: resources/ui/performance_page/network.blp:62
-msgid "Throughput over "
-msgstr "Thông lượng vượt mức "
-
-#: resources/ui/performance_page/fan.blp:62
-msgid "Fan speed over "
-msgstr "Tốc độ quạt tăng lên "
-
-#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
-#: src/performance_page/gpu.rs:1128
-msgid "Temperature over "
-msgstr "Nhiệt độ tăng cao "
-
-#: resources/ui/performance_page/fan_details.blp:59
-msgid "Fan Speed"
-msgstr "Tốc độ quạt"
-
-#: resources/ui/performance_page/fan_details.blp:99
-msgid "PWM Percentage"
-msgstr "Tỷ lệ phần trămPWM"
-
-#: resources/ui/performance_page/fan_details.blp:127
-msgid "Current Temperature"
-msgstr "Nhiệt độ hiện tại"
-
-#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
-msgid "Video encode/decode utilization over "
-msgstr "Quá trình sử dụng mã hóa/giải mã video "
-
-#: resources/ui/performance_page/gpu.blp:161
-#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
-msgid "Memory usage over "
-msgstr "Đã hết mức sử dụng bộ nhớ "
-
-#: resources/ui/performance_page/gpu.blp:206
-#, fuzzy
-msgid "Change Middle Graph To"
-msgstr "Thay đổi G_raph thành"
-
-#: resources/ui/performance_page/gpu.blp:209
-#: resources/ui/performance_page/gpu.blp:243
-#, fuzzy
-msgid "_Encode/_Decode"
-msgstr "Hiển thị cách sử dụng Mã hóa/Giải mã"
-
-#: resources/ui/performance_page/gpu.blp:214
-#: resources/ui/performance_page/gpu.blp:248
-#, fuzzy
-msgid "_Memory Usage"
-msgstr "Sử dụng bộ nhớ"
-
-#: resources/ui/performance_page/gpu.blp:224
-#: resources/ui/performance_page/gpu.blp:258
-#, fuzzy
-msgid "_Clock Speeds"
-msgstr "Tốc độ đồng hồ"
-
-#: resources/ui/performance_page/gpu.blp:240
-#, fuzzy
-msgid "Change Bottom Graph To"
-msgstr "Thay đổi G_raph thành"
-
-#: resources/ui/performance_page/memory.blp:41
-#: resources/ui/table_view/table_view.blp:59
-#: resources/ui/table_view/process_details_dialog.blp:202
-#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
-msgid "Memory"
-msgstr "Bộ nhớ"
-
-#: resources/ui/performance_page/memory.blp:123
-msgid "Swap usage over "
-msgstr "Hoán đổi cách sử dụng "
-
-#: resources/ui/performance_page/memory.blp:171
-msgid "Memory composition"
-msgstr "Thành phần bộ nhớ"
-
-#: resources/ui/performance_page/memory.blp:195
-msgid "Show Memory Composition"
-msgstr "Hiển thị thành phần bộ nhớ"
-
-#: resources/ui/performance_page/memory.blp:199
-msgid "Show Swap Usage"
-msgstr "Hiển thị cách sử dụng Hoán đổi"
-
-#: resources/ui/performance_page/memory_details.blp:58
-msgid "In use"
-msgstr "Đang sử dụng"
-
-#: resources/ui/performance_page/memory_details.blp:88
-msgid "Available"
-msgstr "Có sẵn"
-
-#: resources/ui/performance_page/memory_details.blp:131
-msgid "Committed"
-msgstr "Đã cam kết"
-
-#: resources/ui/performance_page/memory_details.blp:162
-msgid "Cached"
-msgstr "Đã lưu vào bộ nhớ đệm"
-
-#: resources/ui/performance_page/memory_details.blp:194
-msgid "Swap used"
-msgstr "Đã sử dụng hoán đổi"
-
-#: resources/ui/performance_page/memory_details.blp:226
-msgid "Swap available"
-msgstr "Có thể hoán đổi"
-
-#: resources/ui/performance_page/memory_details.blp:258
-msgid "Compressed"
+#: crates/mc-core/src/gpu.rs:107
+msgid "Only overall utilization is available; the active engine is unknown"
 msgstr ""
 
-#: resources/ui/performance_page/memory_details.blp:290
-msgid "Savings"
+#: crates/mc-core/src/gpu.rs:132
+msgid "Driver-reported allocation; residency is not available"
 msgstr ""
 
-#: resources/ui/performance_page/memory_details.blp:317
-msgid "Speed:"
-msgstr "Tốc độ:"
+#: crates/mc-core/src/table.rs:470
+msgid "Apps"
+msgstr "Ứng dụng"
 
-#: resources/ui/performance_page/memory_details.blp:334
-msgid "Slots used:"
-msgstr "Các khe được sử dụng:"
-
-#: resources/ui/performance_page/memory_details.blp:351
-msgid "Form factor:"
-msgstr "Hệ số hình thức:"
-
-#: resources/ui/performance_page/memory_details.blp:368
-#: resources/ui/performance_page/disk_details.blp:300
-msgid "Type:"
-msgstr "Loại:"
-
-#: resources/ui/performance_page/network.blp:148
-msgid "Network Se_ttings"
-msgstr "Cài đặt mạng"
-
-#: resources/ui/performance_page/network_details.blp:63
-msgid "Receive"
-msgstr "Nhận"
-
-#: resources/ui/performance_page/network_details.blp:102
-msgid "Send"
-msgstr "Gửi"
-
-#: resources/ui/performance_page/network_details.blp:132
-msgid "Total Received"
-msgstr "Tổng số tiền đã nhận"
-
-#: resources/ui/performance_page/network_details.blp:162
-msgid "Total Sent"
-msgstr "Tổng số đã gửi"
-
-#: resources/ui/performance_page/network_details.blp:190
-msgid "Interface name:"
-msgstr "Tên giao diện:"
-
-#: resources/ui/performance_page/network_details.blp:207
-msgid "Connection type:"
-msgstr "Kiểu kết nối:"
-
-#: resources/ui/performance_page/network_details.blp:222
-#, fuzzy
-msgid "Connection status:"
-msgstr "Kiểu kết nối:"
-
-#: resources/ui/performance_page/network_details.blp:240
-msgid "SSID:"
-msgstr "SSID:"
-
-#: resources/ui/performance_page/network_details.blp:259
-msgid "Signal strength:"
-msgstr "Cường độ tín hiệu:"
-
-#: resources/ui/performance_page/network_details.blp:278
-msgid "Maximum Bitrate:"
-msgstr "Tốc độ bit tối đa:"
-
-#: resources/ui/performance_page/network_details.blp:297
-msgid "Frequency:"
-msgstr "Tần suất:"
-
-#: resources/ui/performance_page/network_details.blp:314
-msgid "Hardware address:"
-msgstr "Địa chỉ phần cứng:"
-
-#: resources/ui/performance_page/network_details.blp:458
-msgid "IPv4 address:"
-msgstr "Địa chỉ IPv4:"
-
-#: resources/ui/performance_page/network_details.blp:487
-msgid "IPv6 address:"
-msgstr "Địa chỉ IPv6:"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
-msgid "Smart Data"
-msgstr "Dữ liệu thông minh"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
-#, fuzzy
-msgid "Last Updated:"
-msgstr "Cập nhật lần cuối"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
-#, fuzzy
-msgid "Powered On:"
-msgstr "Bật nguồn"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
-#, fuzzy
-msgid "Drive Health:"
-msgstr "Tình trạng Drive"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
-#, fuzzy
-msgid "SMART Test Status:"
-msgstr "Trạng thái kiểm tra SMART"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
-msgid "Attribute"
-msgstr "Thuộc tính"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
-msgid "Value"
-msgstr "Giá trị"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
-msgid "ID"
-msgstr "ID"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
-msgid "Normalized"
-msgstr "Đã chuẩn hóa"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
-msgid "Threshold"
-msgstr "Ngưỡng"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
-msgid "Worst"
-msgstr "Tệ nhất"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
-#: resources/ui/table_view/process_details_dialog.blp:113
-msgid "Type"
-msgstr "Loại"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
-msgid "Updates"
-msgstr "Cập nhật"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
-msgid "Assessment"
-msgstr "Đánh giá"
-
-#: resources/ui/performance_page/gpu_details.blp:51
-#: resources/ui/performance_page/cpu_details.blp:46
-msgid "Utilization"
-msgstr "Cách sử dụng"
-
-#: resources/ui/performance_page/gpu_details.blp:92
-msgid "Clock Speed"
-msgstr "Tốc độ đồng hồ"
-
-#: resources/ui/performance_page/gpu_details.blp:146
-#: resources/ui/performance_page/cpu_details.blp:106
-msgid "Power Draw"
-msgstr "Power Draw"
-
-#: resources/ui/performance_page/gpu_details.blp:211
-#: src/performance_page/gpu.rs:806
-msgid "Memory Usage"
-msgstr "Sử dụng bộ nhớ"
-
-#: resources/ui/performance_page/gpu_details.blp:282
-#: src/performance_page/gpu.rs:860
-msgid "Shared Memory Usage"
-msgstr "Sử dụng bộ nhớ dùng chung"
-
-#: resources/ui/performance_page/gpu_details.blp:353
-msgid "Memory Speed"
-msgstr "Tốc độ bộ nhớ"
-
-#: resources/ui/performance_page/gpu_details.blp:425
-msgid "Video encode"
-msgstr "Mã hóa video"
-
-#: resources/ui/performance_page/gpu_details.blp:472
-msgid "Video decode"
-msgstr "Giải mã video"
-
-#: resources/ui/performance_page/gpu_details.blp:503
-#: resources/ui/performance_page/cpu_details.blp:227
-msgid "Temperature"
-msgstr "Nhiệt độ"
-
-#: resources/ui/performance_page/gpu_details.blp:542
-msgid "OpenGL version:"
-msgstr "Phiên bản OpenGL:"
-
-#: resources/ui/performance_page/gpu_details.blp:559
-msgid "Vulkan version:"
-msgstr "Phiên bản Vulkan:"
-
-#: resources/ui/performance_page/gpu_details.blp:578
-msgid "PCI Express speed:"
-msgstr "Tốc độ PCI Express:"
-
-#: resources/ui/performance_page/gpu_details.blp:597
-msgid "Max PCI Express speed:"
-msgstr "Tốc độ PCI Express tối đa:"
-
-#: resources/ui/performance_page/gpu_details.blp:614
-msgid "PCI bus address:"
-msgstr "Địa chỉ bus PCI:"
-
-#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
-msgid "Failed To Get SMART Data"
-msgstr "Không thể lấy dữ liệu SMART"
-
-#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
-msgid ""
-"There was a problem fetching SMART data. Try running from the command line "
-"to get more information."
-msgstr ""
-"Đã xảy ra sự cố khi tìm nạp dữ liệu SMART. Hãy thử chạy từ dòng lệnh để có "
-"thêm thông tin."
-
-#: resources/ui/performance_page/disk_details.blp:62
-msgid "Read speed"
-msgstr "Tốc độ đọc"
-
-#: resources/ui/performance_page/disk_details.blp:101
-msgid "Write speed"
-msgstr "Tốc độ ghi"
-
-#: resources/ui/performance_page/disk_details.blp:131
-msgid "Total Read"
-msgstr "Tổng số lần đọc"
-
-#: resources/ui/performance_page/disk_details.blp:161
-msgid "Total Written"
-msgstr "Tổng số văn bản"
-
-#: resources/ui/performance_page/disk_details.blp:191
-msgid "Active time"
-msgstr "Thời gian hoạt động"
-
-#: resources/ui/performance_page/disk_details.blp:221
-msgid "Avg. response time"
-msgstr "Trung bình thời gian đáp ứng"
-
-#: resources/ui/performance_page/disk_details.blp:249
-msgid "Capacity:"
-msgstr "Dung lượng:"
-
-#: resources/ui/performance_page/disk_details.blp:266
-msgid "Formatted:"
-msgstr "Được định dạng:"
-
-#: resources/ui/performance_page/disk_details.blp:283
-msgid "System disk:"
-msgstr "Đĩa hệ thống:"
-
-#: resources/ui/performance_page/disk_details.blp:319
-msgid "WWN:"
-msgstr "WWN:"
-
-#: resources/ui/performance_page/disk_details.blp:338
-msgid "Serial:"
-msgstr "Serial:"
-
-#: resources/ui/performance_page/disk_details.blp:357
-msgid "Rotation Rate"
-msgstr "Tốc độ quay"
-
-#: resources/ui/performance_page/disk_details.blp:478
-msgid "Partitions"
-msgstr ""
-
-#: resources/ui/performance_page/cpu_details.blp:72
-msgid "Speed"
-msgstr "Tốc độ"
-
-#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
+#: crates/mc-core/src/table.rs:476 crates/mc-ui/src/cx.rs:66
+#: crates/mc-ui/src/perf/cpu.rs:410
 msgid "Processes"
 msgstr "Quy trình"
 
-#: resources/ui/performance_page/cpu_details.blp:156
-msgid "Threads"
-msgstr "Chủ đề"
+#: crates/mc-core/src/table.rs:561
+msgid "User Services"
+msgstr "Dịch vụ người dùng"
 
-#: resources/ui/performance_page/cpu_details.blp:179
-msgid "Handles"
-msgstr "Tay cầm"
+#: crates/mc-core/src/table.rs:567
+msgid "System Services"
+msgstr "Dịch vụ hệ thống"
 
-#: resources/ui/performance_page/cpu_details.blp:203
-msgid "Up time"
-msgstr "Thời gian hoạt động"
-
-#: resources/ui/performance_page/cpu_details.blp:251
-msgid "Base Speed:"
-msgstr "Tốc độ cơ bản:"
-
-#: resources/ui/performance_page/cpu_details.blp:266
-msgid "Sockets:"
-msgstr "Ổ cắm:"
-
-#: resources/ui/performance_page/cpu_details.blp:281
-msgid "Virtual processors:"
-msgstr "Bộ xử lý ảo:"
-
-#: resources/ui/performance_page/cpu_details.blp:296
-msgid "Virtualization:"
-msgstr "Ảo hóa:"
-
-#: resources/ui/performance_page/cpu_details.blp:311
-msgid "Virtual machine:"
-msgstr "Máy ảo:"
-
-#: resources/ui/performance_page/cpu_details.blp:326
-msgid "L1 cache:"
-msgstr "Bộ đệm L1:"
-
-#: resources/ui/performance_page/cpu_details.blp:341
-msgid "L2 cache:"
-msgstr "Bộ đệm L2:"
-
-#: resources/ui/performance_page/cpu_details.blp:356
-msgid "L3 cache:"
-msgstr "Bộ đệm L3:"
-
-#: resources/ui/performance_page/cpu_details.blp:371
-msgid "Cpufreq driver:"
-msgstr "Cpufreq driver:"
-
-#: resources/ui/performance_page/cpu_details.blp:386
-msgid "Cpufreq governor:"
-msgstr "Cpufreq thống đốc:"
-
-#: resources/ui/performance_page/cpu_details.blp:401
-msgid "Power preference:"
-msgstr "Tùy chọn nguồn điện:"
-
-#: resources/ui/preferences/apps_services_page.blp:25
-#, fuzzy
-msgid "Apps & Services"
-msgstr "Ứng dụng &amp; Trang dịch vụ"
-
-#: resources/ui/preferences/apps_services_page.blp:30
-msgid "Merge Process Stats"
-msgstr "Hợp nhất số liệu thống kê quy trình"
-
-#: resources/ui/preferences/apps_services_page.blp:35
-msgid "Remember Sorting"
-msgstr "Ghi nhớ sắp xếp"
-
-#: resources/ui/preferences/apps_services_page.blp:36
-msgid "Persist sorting by column across app restarts"
-msgstr "Liên tục sắp xếp theo cột khi khởi động lại ứng dụng"
-
-#: resources/ui/preferences/apps_services_page.blp:40
-msgid "Remember Column Order"
-msgstr "Ghi nhớ thứ tự cột"
-
-#: resources/ui/preferences/apps_services_page.blp:41
-msgid "Persist the order of the columns, across app restarts"
-msgstr "Giữ nguyên thứ tự các cột khi khởi động lại ứng dụng"
-
-#: resources/ui/preferences/apps_services_page.blp:45
-msgid "Scale CPU Usage to Core Count"
-msgstr "Chia tỷ lệ CPU Cách sử dụng theo số lượng lõi"
-
-#: resources/ui/preferences/apps_services_page.blp:46
-msgid "Show CPU usage scaled to the number of available cores"
-msgstr "Hiển thị mức sử dụng CPU được chia tỷ lệ theo số lõi có sẵn"
-
-#: resources/ui/preferences/apps_services_page.blp:50
-msgid "Show Column Separators"
-msgstr "Hiển thị dấu phân cách cột"
-
-#: resources/ui/preferences/apps_services_page.blp:51
-msgid "Show a separator between each column"
-msgstr "Hiển thị dấu phân cách giữa mỗi cột"
-
-#: resources/ui/preferences/apps_services_page.blp:55
-msgid "Grey Out Zeroes"
+#: crates/mc-ui/src/app.rs:502
+msgid "Run new task"
 msgstr ""
 
-#: resources/ui/preferences/apps_services_page.blp:56
-msgid "Gray out values that equal zero"
+#: crates/mc-ui/src/app.rs:506
+msgid "Exit"
 msgstr ""
 
-#: resources/ui/preferences/general_page.blp:25
-msgid "General"
-msgstr "Chung"
-
-#: resources/ui/preferences/general_page.blp:30
-msgid "Update Interval"
-msgstr "Khoảng thời gian cập nhật"
-
-#: resources/ui/preferences/general_page.blp:31
-msgid "In seconds"
-msgstr "Tính bằng giây"
-
-#: resources/ui/preferences/performance_page.blp:25
-#: resources/ui/keyboard_shortcuts.blp:57
-msgid "Performance Page"
-msgstr "Trang hiệu suất"
-
-#: resources/ui/preferences/performance_page.blp:29
-#, fuzzy
-msgid "Graph Settings"
-msgstr "Cài đặt mạng"
-
-#: resources/ui/preferences/performance_page.blp:32
-#, fuzzy
-msgid "Data Points"
-msgstr "Điểm dữ liệu biểu đồ"
-
-#: resources/ui/preferences/performance_page.blp:50
-msgid "Smooth Graphs"
-msgstr "Đồ thị mượt mà"
-
-#: resources/ui/preferences/performance_page.blp:51
-msgid "Draw graphs as smooth line instead of jagged line"
-msgstr "Vẽ đồ thị dưới dạng đường thẳng thay vì đường răng cưa"
-
-#: resources/ui/preferences/performance_page.blp:55
-msgid "Sliding Graphs"
-msgstr "Đồ thị trượt"
-
-#: resources/ui/preferences/performance_page.blp:56
-msgid "Animate graphs (may negatively impact performance)"
-msgstr "Biểu đồ sinh động (có thể tác động tiêu cực đến hiệu suất)"
-
-#: resources/ui/preferences/performance_page.blp:60
-msgid "Scale Network Graphs Dynamically"
-msgstr "Chia tỷ lệ đồ thị mạng một cách linh hoạt"
-
-#: resources/ui/preferences/performance_page.blp:61
-msgid ""
-"Set network graph to scale dynamically with actual usage or with channel max "
-"speed"
-msgstr ""
-"Đặt biểu đồ mạng để chia tỷ lệ linh hoạt theo mức sử dụng thực tế hoặc với "
-"tốc độ tối đa của kênh"
-
-#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
-msgid "Devices"
-msgstr "Thiết bị"
-
-#: resources/ui/preferences/performance_page.blp:69
-msgid "Show Disk Information"
-msgstr "Hiển thị thông tin ổ đĩa"
-
-#: resources/ui/preferences/performance_page.blp:74
-msgid "Show Network Information"
-msgstr "Hiển thị thông tin mạng"
-
-#: resources/ui/preferences/performance_page.blp:79
-msgid "Wired"
+#: crates/mc-ui/src/app.rs:511
+msgid "Always on top"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:83
-msgid "Wireless"
+#: crates/mc-ui/src/app.rs:533
+msgid "Refresh now"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:87
-msgid "VPN"
+#: crates/mc-ui/src/app.rs:539
+msgid "Group by type"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:91
-#, fuzzy
-msgid "Virtual"
-msgstr "Ảo hóa:"
-
-#: resources/ui/preferences/performance_page.blp:92
-msgid "Docker, Multipass, Bridge"
+#: crates/mc-ui/src/app.rs:544
+msgid "Expand all"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:96
-msgid "Other"
+#: crates/mc-ui/src/app.rs:547
+msgid "Collapse all"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:97
-msgid "Bluetooth, InfiniBand, WWAN"
+#: crates/mc-ui/src/app.rs:554
+msgid "Show virtual network adapters"
 msgstr ""
 
-#: resources/ui/preferences/performance_page.blp:102
-msgid "Show GPU Information"
-msgstr "Hiển thị thông tin GPU"
-
-#: resources/ui/preferences/performance_page.blp:107
-msgid "Show Fan Information"
-msgstr "Hiển thị thông tin người hâm mộ"
-
-#: resources/ui/preferences/performance_page.blp:112
-#, fuzzy
-msgid "Show Battery Information"
-msgstr "Hiển thị thông tin bộ nhớ"
-
-#: resources/ui/preferences/performance_page.blp:113
-#, fuzzy
-msgid "Show battery information by default"
-msgstr "Hiển thị thông tin bộ nhớ theo mặc định"
-
-#: resources/ui/preferences/units_page.blp:25
-msgid "Units"
+#: crates/mc-ui/src/app.rs:561
+msgid "Update speed"
 msgstr ""
 
-#: resources/ui/preferences/units_page.blp:30
-msgid "Memory Usage Unit"
-msgstr "Đơn vị sử dụng bộ nhớ"
+#: crates/mc-ui/src/app.rs:562
+msgid "High"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:37
-msgid "Use Bytes as a Unit of Measurement for Memory"
-msgstr "Sử dụng byte làm đơn vị đo lường cho bộ nhớ"
+#: crates/mc-ui/src/app.rs:562
+msgid "Normal"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:38
-#: resources/ui/preferences/units_page.blp:76
-#: resources/ui/preferences/units_page.blp:114
-msgid "Bytes"
-msgstr "Byte"
+#: crates/mc-ui/src/app.rs:562
+msgid "Low"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:42
-msgid "Use Bits as a Unit of Measurement for Memory"
-msgstr "Sử dụng Bit làm đơn vị đo lường cho bộ nhớ"
+#: crates/mc-ui/src/app.rs:571
+msgid "Paused"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:43
-#: resources/ui/preferences/units_page.blp:81
-#: resources/ui/preferences/units_page.blp:119
-msgid "Bits"
-msgstr "Bit"
+#: crates/mc-ui/src/app.rs:613
+msgid "Create new task"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:49
-msgid "Memory Usage Base"
-msgstr "Cơ sở sử dụng bộ nhớ"
+#: crates/mc-ui/src/app.rs:621
+msgid "Type the name of a program and Task Manager will start it."
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:56
-msgid "Use Base 10 for Memory"
-msgstr "Sử dụng Base 10 cho bộ nhớ"
+#: crates/mc-ui/src/app.rs:625
+msgid "Open:"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:57
-#: resources/ui/preferences/units_page.blp:95
-#: resources/ui/preferences/units_page.blp:133
-msgid "Base 10"
-msgstr "Cơ số 10"
+#: crates/mc-ui/src/app.rs:638
+msgid "Cancel"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:61
-msgid "Use Base 2 for Memory"
-msgstr "Sử dụng Base 2 cho bộ nhớ"
+#: crates/mc-ui/src/app.rs:643
+msgid "OK"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:62
-#: resources/ui/preferences/units_page.blp:100
-#: resources/ui/preferences/units_page.blp:138
-msgid "Base 2"
-msgstr "Cơ sở 2"
+#: crates/mc-ui/src/app.rs:682
+msgid "File"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:68
-msgid "Drive Usage Unit"
-msgstr "Đơn vị sử dụng ổ đĩa"
+#: crates/mc-ui/src/app.rs:682
+msgid "Options"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:75
-msgid "Use Bytes as a Unit of Measurement for Disk Drives"
-msgstr "Sử dụng byte làm đơn vị đo lường cho ổ đĩa"
+#: crates/mc-ui/src/app.rs:682
+msgid "View"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:80
-msgid "Use Bits as a Unit of Measurement for Disk Drives"
-msgstr "Sử dụng Bit làm đơn vị đo lường cho ổ đĩa"
+#: crates/mc-ui/src/app.rs:704
+msgid "Fewer details"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:87
-msgid "Drive Usage Base"
-msgstr "Cơ sở sử dụng ổ đĩa"
+#: crates/mc-ui/src/app.rs:706
+msgid "More details"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:94
-msgid "Use Base 10 for Disk Drives"
-msgstr "Sử dụng Base 10 cho ổ đĩa"
+#: crates/mc-ui/src/app.rs:714 crates/mc-ui/src/app.rs:721
+#: crates/mc-ui/src/win10/details.rs:297
+#: crates/mc-ui/src/win10/processes.rs:617
+msgid "End task"
+msgstr ""
 
-#: resources/ui/preferences/units_page.blp:99
-msgid "Use Base 2 for Disk Drives"
-msgstr "Sử dụng Base 2 cho ổ đĩa"
+#: crates/mc-ui/src/cx.rs:67
+msgid "Performance"
+msgstr "Hiệu suất"
 
-#: resources/ui/preferences/units_page.blp:106
-msgid "Network Usage Unit"
-msgstr "Đơn vị sử dụng mạng"
+#: crates/mc-ui/src/cx.rs:68 crates/mc-ui/src/win10/services.rs:205
+msgid "Details"
+msgstr "Chi tiết"
 
-#: resources/ui/preferences/units_page.blp:113
-msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
-msgstr "Sử dụng byte làm đơn vị đo lường cho giao diện mạng"
+#: crates/mc-ui/src/cx.rs:69
+msgid "Services"
+msgstr "Dịch vụ"
 
-#: resources/ui/preferences/units_page.blp:118
-msgid "Use Bits as a Unit of Measurement for Network Interfaces"
-msgstr "Sử dụng Bit làm đơn vị đo lường cho giao diện mạng"
+#: crates/mc-ui/src/dialogs.rs:164
+msgid "Service Details"
+msgstr "Chi tiết dịch vụ"
 
-#: resources/ui/preferences/units_page.blp:125
-msgid "Network Usage Base"
-msgstr "Cơ sở sử dụng mạng"
+#: crates/mc-ui/src/dialogs.rs:168 crates/mc-ui/src/perf/battery.rs:392
+msgid "State"
+msgstr "Trạng thái"
 
-#: resources/ui/preferences/units_page.blp:132
-msgid "Use Base 10 for Network Interfaces"
-msgstr "Sử dụng Base 10 cho giao diện mạng"
+#: crates/mc-ui/src/dialogs.rs:169
+msgid "The current state of the service"
+msgstr "Trạng thái hiện tại của dịch vụ"
 
-#: resources/ui/preferences/units_page.blp:137
-msgid "Use Base 2 for Network Interfaces"
-msgstr "Sử dụng Base 2 cho giao diện mạng"
-
-#: resources/ui/services_page/page.blp:96
-msgid "Collapse all expanded services"
-msgstr "Thu gọn tất cả các dịch vụ mở rộng"
-
-#: resources/ui/services_page/page.blp:135
-msgid "Filter running processes"
-msgstr "Lọc các tiến trình đang chạy"
-
-#: resources/ui/services_page/page.blp:155
-msgid "Filter failed processes"
-msgstr "Lọc các quy trình bị lỗi"
-
-#: resources/ui/services_page/page.blp:175
-msgid "Filter stopped processes"
-msgstr "Lọc các tiến trình đã dừng"
-
-#: resources/ui/services_page/page.blp:195
-msgid "Filter disabled processes"
-msgstr "Lọc các quy trình bị vô hiệu hóa"
-
-#: resources/ui/services_page/page.blp:216
-msgid "Remove all filters"
-msgstr "Xóa tất cả các bộ lọc"
-
-#: resources/ui/services_page/page.blp:226
-msgid "Remove Filters"
-msgstr "Xóa bộ lọc"
-
-#: resources/ui/widgets/theme_selector.blp:18
-#: resources/ui/widgets/theme_selector.blp:21
-msgid "Follow system style"
-msgstr "Theo phong cách hệ thống"
-
-#: resources/ui/widgets/theme_selector.blp:35
-#: resources/ui/widgets/theme_selector.blp:38
-msgid "Light style"
-msgstr "Phong cách nhẹ nhàng"
-
-#: resources/ui/widgets/theme_selector.blp:53
-#: resources/ui/widgets/theme_selector.blp:56
-msgid "Dark style"
-msgstr "Phong cách tối"
-
-#: resources/ui/keyboard_shortcuts.blp:5
-msgid "Keyboard Shortcuts"
-msgstr "Phím tắt"
-
-#: resources/ui/keyboard_shortcuts.blp:8
-msgid "Global"
-msgstr "Toàn cầu"
-
-#: resources/ui/keyboard_shortcuts.blp:11
-msgid "Open Menu"
-msgstr "Mở Menu"
-
-#: resources/ui/keyboard_shortcuts.blp:16
-#: resources/ui/keyboard_shortcuts.blp:21
-msgid "Close Window"
-msgstr "Đóng cửa sổ"
-
-#: resources/ui/keyboard_shortcuts.blp:26
-msgid "Open Preferences"
-msgstr "Mở Tùy chọn"
-
-#: resources/ui/keyboard_shortcuts.blp:31
-msgid "Show Keyboard Shortcuts"
-msgstr "Hiển thị phím tắt"
-
-#: resources/ui/keyboard_shortcuts.blp:36
-msgid "Show Performance Page"
-msgstr "Hiển thị trang hiệu suất"
-
-#: resources/ui/keyboard_shortcuts.blp:41
-msgid "Show Apps Page"
-msgstr "Hiển thị trang ứng dụng"
-
-#: resources/ui/keyboard_shortcuts.blp:46
-msgid "Show Services Page"
-msgstr "Hiển thị trang dịch vụ"
-
-#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
-msgid "Toggle Sidebar"
-msgstr "Chuyển đổi thanh bên"
-
-#: resources/ui/keyboard_shortcuts.blp:60
-msgid "Copy Device Information"
-msgstr "Sao chép thông tin thiết bị"
-
-#: resources/ui/keyboard_shortcuts.blp:65
-msgid "Toggle Summary Mode"
-msgstr "Chuyển đổi chế độ tóm tắt"
-
-#: resources/ui/keyboard_shortcuts.blp:70
-msgid "Select a Device"
-msgstr "Chọn thiết bị"
-
-#: resources/ui/keyboard_shortcuts.blp:76
-msgid "Apps Page"
-msgstr "Trang ứng dụng"
-
-#: resources/ui/keyboard_shortcuts.blp:79
-#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
-msgid "Search"
-msgstr "Tìm kiếm"
-
-#: resources/ui/keyboard_shortcuts.blp:89
-msgid "Stop App or Process"
-msgstr "Dừng ứng dụng hoặc tiến trình"
-
-#: resources/ui/keyboard_shortcuts.blp:94
-msgid "Force Stop App or Process"
-msgstr "Buộc dừng ứng dụng hoặc quy trình"
-
-#: resources/ui/keyboard_shortcuts.blp:99
-#: resources/ui/keyboard_shortcuts.blp:133
-msgid "Show Details Dialog"
-msgstr "Hộp thoại Hiển thị chi tiết"
-
-#: resources/ui/keyboard_shortcuts.blp:105
-msgid "Services Page"
-msgstr "Trang dịch vụ"
-
-#: resources/ui/keyboard_shortcuts.blp:118
-msgid "Start Service"
-msgstr "Bắt đầu dịch vụ"
-
-#: resources/ui/keyboard_shortcuts.blp:123
-msgid "Stop Service"
-msgstr "Dừng dịch vụ"
-
-#: resources/ui/keyboard_shortcuts.blp:128
-msgid "Restart Service"
+#: crates/mc-ui/src/dialogs.rs:175
+msgid "Restart service"
 msgstr "Khởi động lại dịch vụ"
 
-#. The `Name` column should be default aligned
-#. The column that contains the context menu button should be default aligned
-#: resources/ui/table_view/table_view.blp:40
-#: resources/ui/table_view/service_details_dialog.blp:136
-#: resources/ui/about_system_dialog.blp:80
-#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
+#: crates/mc-ui/src/dialogs.rs:182
+msgid "Stop service"
+msgstr "Dừng dịch vụ"
+
+#: crates/mc-ui/src/dialogs.rs:189
+msgid "Start service"
+msgstr "Bắt đầu dịch vụ"
+
+#: crates/mc-ui/src/dialogs.rs:198 crates/mc-ui/src/win10/details.rs:77
+#: crates/mc-ui/src/win10/services.rs:89
+msgid "Running"
+msgstr "Đang chạy"
+
+#: crates/mc-ui/src/dialogs.rs:200 crates/mc-ui/src/perf/network.rs:44
+#: crates/mc-ui/src/win10/services.rs:91
+msgid "Failed"
+msgstr "Thất bại"
+
+#: crates/mc-ui/src/dialogs.rs:202 crates/mc-ui/src/win10/services.rs:93
+msgid "Stopped"
+msgstr "Đã dừng"
+
+#: crates/mc-ui/src/dialogs.rs:208 crates/mc-ui/src/smart.rs:387
+#: crates/mc-ui/src/smart.rs:409 crates/mc-ui/src/win10/details.rs:238
+#: crates/mc-ui/src/win10/processes.rs:72
+#: crates/mc-ui/src/win10/services.rs:155
 msgid "Name"
 msgstr "Tên"
 
-#: resources/ui/table_view/table_view.blp:47
-#: resources/ui/table_view/process_details_dialog.blp:77
+#: crates/mc-ui/src/dialogs.rs:214 crates/mc-ui/src/win10/services.rs:157
+msgid "Description"
+msgstr "Mô tả"
+
+#: crates/mc-ui/src/dialogs.rs:220 crates/mc-ui/src/win10/details.rs:240
+#: crates/mc-ui/src/win10/services.rs:158
+msgid "Status"
+msgstr "Trạng thái"
+
+#: crates/mc-ui/src/dialogs.rs:223
+msgid "Enabled"
+msgstr "Đã bật"
+
+#: crates/mc-ui/src/dialogs.rs:237 crates/mc-ui/src/perf/cpu.rs:238
+#: crates/mc-ui/src/perf/memory.rs:333 crates/mc-ui/src/perf/network.rs:179
+#: crates/mc-ui/src/perf/network.rs:254 crates/mc-ui/src/smart.rs:40
+#: crates/mc-ui/src/smart.rs:117 crates/mc-ui/src/win10/details.rs:138
+msgid "N/A"
+msgstr "N/A"
+
+#: crates/mc-ui/src/dialogs.rs:240
+msgid "Process ID"
+msgstr "ID tiến trình"
+
+#: crates/mc-ui/src/dialogs.rs:248
+msgid "User"
+msgstr "Người dùng"
+
+#: crates/mc-ui/src/dialogs.rs:256 crates/mc-ui/src/win10/services.rs:159
+msgid "Group"
+msgstr "Nhóm"
+
+#: crates/mc-ui/src/dialogs.rs:264
+msgid "File Location"
+msgstr "Vị trí tệp"
+
+#: crates/mc-ui/src/dialogs.rs:266 crates/mc-ui/src/perf/battery.rs:174
+#: crates/mc-ui/src/perf/battery.rs:323 crates/mc-ui/src/perf/cpu.rs:204
+#: crates/mc-ui/src/perf/cpu.rs:220 crates/mc-ui/src/perf/cpu.rs:230
+#: crates/mc-ui/src/perf/cpu.rs:235 crates/mc-ui/src/perf/disk.rs:139
+#: crates/mc-ui/src/perf/disk.rs:143 crates/mc-ui/src/perf/disk.rs:150
+#: crates/mc-ui/src/perf/disk.rs:190 crates/mc-ui/src/perf/disk.rs:255
+#: crates/mc-ui/src/perf/gpu.rs:98 crates/mc-ui/src/perf/gpu.rs:165
+#: crates/mc-ui/src/perf/gpu.rs:451 crates/mc-ui/src/perf/gpu.rs:824
+#: crates/mc-ui/src/perf/memory.rs:111 crates/mc-ui/src/perf/network.rs:43
+#: crates/mc-ui/src/perf/network.rs:121 crates/mc-ui/src/perf/network.rs:178
+#: crates/mc-ui/src/perf/network.rs:296 crates/mc-ui/src/perf/network.rs:297
+#: crates/mc-ui/src/smart.rs:140 crates/mc-ui/src/smart.rs:380
+#: crates/mc-ui/src/win10/details.rs:82
+msgid "Unknown"
+msgstr "Không xác định"
+
+#: crates/mc-ui/src/dialogs.rs:278 crates/mc-ui/src/dialogs.rs:368
+msgid "Process"
+msgstr "Quy trình"
+
+#: crates/mc-ui/src/dialogs.rs:279
+msgid "Process and user information"
+msgstr "Thông tin quy trình và người dùng"
+
+#: crates/mc-ui/src/dialogs.rs:299
+msgid "Logs"
+msgstr "Nhật ký"
+
+#: crates/mc-ui/src/dialogs.rs:306
+msgid "Copy logs to clipboard"
+msgstr "Sao chép nhật ký vào bộ nhớ tạm"
+
+#: crates/mc-ui/src/dialogs.rs:338
+msgid "_Quit"
+msgstr "_Thoát"
+
+#: crates/mc-ui/src/dialogs.rs:365
+msgid "Section Header"
+msgstr "Tiêu đề phần"
+
+#: crates/mc-ui/src/dialogs.rs:366
+msgid "Service"
+msgstr "Dịch vụ"
+
+#: crates/mc-ui/src/dialogs.rs:367
+msgid "App"
+msgstr "Ứng dụng"
+
+#: crates/mc-ui/src/dialogs.rs:371
+msgid "App ID"
+msgstr "ID ứng dụng"
+
+#: crates/mc-ui/src/dialogs.rs:373 crates/mc-ui/src/win10/details.rs:239
+#: crates/mc-ui/src/win10/processes.rs:73
+#: crates/mc-ui/src/win10/services.rs:156
 msgid "PID"
 msgstr "PID"
 
-#: resources/ui/table_view/table_view.blp:65
-#: resources/ui/table_view/process_details_dialog.blp:227
-#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
+#: crates/mc-ui/src/dialogs.rs:386 crates/mc-ui/src/smart.rs:200
+msgid "Type"
+msgstr "Loại"
+
+#: crates/mc-ui/src/dialogs.rs:390
+msgid "Command Line"
+msgstr "Dòng lệnh"
+
+#: crates/mc-ui/src/dialogs.rs:399
+msgid "Resource Usage"
+msgstr "Sử dụng tài nguyên"
+
+#: crates/mc-ui/src/dialogs.rs:405 crates/mc-ui/src/perf/cpu.rs:103
+#: crates/mc-ui/src/perf/cpu.rs:466 crates/mc-ui/src/win10/details.rs:242
+#: crates/mc-ui/src/win10/processes.rs:74
+msgid "CPU"
+msgstr "CPU"
+
+#: crates/mc-ui/src/dialogs.rs:407 crates/mc-ui/src/perf/memory.rs:78
+#: crates/mc-ui/src/perf/memory.rs:309 crates/mc-ui/src/win10/details.rs:243
+#: crates/mc-ui/src/win10/processes.rs:75
+msgid "Memory"
+msgstr "Bộ nhớ"
+
+#: crates/mc-ui/src/dialogs.rs:410 crates/mc-ui/src/win10/processes.rs:76
 #, fuzzy
 msgid "Swap"
 msgstr "Đã sử dụng hoán đổi"
 
-#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
-#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
-msgid "Drive"
-msgstr "Drive"
-
-#: resources/ui/table_view/table_view.blp:77
-#: resources/ui/table_view/process_details_dialog.blp:277
-#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
-msgid "Network"
-msgstr "Mạng"
-
-#: resources/ui/table_view/table_view.blp:83
-#: resources/ui/table_view/process_details_dialog.blp:302
-#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
-#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
-#: src/table_view/mod.rs:946
-msgid "GPU"
-msgstr "GPU"
-
-#: resources/ui/table_view/table_view.blp:89
-#: resources/ui/table_view/process_details_dialog.blp:327
-#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
-msgid "GPU Memory"
-msgstr "GPU Bộ nhớ"
-
-#: resources/ui/table_view/table_view.blp:118
-#: resources/ui/table_view/table_view.blp:188
-#: resources/ui/table_view/process_action_bar.blp:45
-#: resources/ui/table_view/service_action_bar.blp:69
-msgid "Stop"
-msgstr "Dừng"
-
-#: resources/ui/table_view/table_view.blp:123
-#: resources/ui/table_view/process_action_bar.blp:64
-msgid "Force Stop"
-msgstr "Buộc dừng"
-
-#: resources/ui/table_view/table_view.blp:128
-msgid "Send Signal"
-msgstr "Gửi tín hiệu"
-
-#: resources/ui/table_view/table_view.blp:131
-msgid "Suspend (STOP)"
-msgstr "Tạm dừng (STOP)"
-
-#: resources/ui/table_view/table_view.blp:136
-msgid "Continue (CONT)"
-msgstr "Tiếp tục (TIẾP THEO)"
-
-#: resources/ui/table_view/table_view.blp:141
-msgid "Hangup (HUP)"
-msgstr "Cúp máy (HUP)"
-
-#: resources/ui/table_view/table_view.blp:146
-msgid "Interrupt (INT)"
-msgstr "Ngắt (INT)"
-
-#: resources/ui/table_view/table_view.blp:151
-msgid "Terminate (TERM)"
-msgstr "Chấm dứt (HẠN)"
-
-#: resources/ui/table_view/table_view.blp:156
-msgid "Kill (KILL)"
-msgstr "Giết (KILL)"
-
-#: resources/ui/table_view/table_view.blp:161
-msgid "User 1 (USR1)"
-msgstr "Người dùng 1 (USR1)"
-
-#: resources/ui/table_view/table_view.blp:166
-msgid "User 2 (USR2)"
-msgstr "Người dùng 2 (USR2)"
-
-#: resources/ui/table_view/table_view.blp:174
-#: resources/ui/table_view/table_view.blp:200
-#: resources/ui/table_view/process_action_bar.blp:84
-#: resources/ui/table_view/service_action_bar.blp:110
-msgid "Details"
-msgstr "Chi tiết"
-
-#: resources/ui/table_view/table_view.blp:183
-#: resources/ui/table_view/service_action_bar.blp:48
-msgid "Start"
-msgstr "Bắt đầu"
-
-#: resources/ui/table_view/table_view.blp:193
-#: resources/ui/table_view/service_action_bar.blp:91
-msgid "Restart"
-msgstr "Khởi động lại"
-
-#: resources/ui/table_view/process_action_bar.blp:33
-msgid "Stop the selected app"
-msgstr "Dừng ứng dụng đã chọn"
-
-#: resources/ui/table_view/process_action_bar.blp:52
-msgid "Force stop the selected app"
-msgstr "Buộc dừng ứng dụng đã chọn"
-
-#: resources/ui/table_view/process_action_bar.blp:72
-msgid "Show details of the selected app"
-msgstr "Hiển thị chi tiết về ứng dụng đã chọn"
-
-#: resources/ui/table_view/process_details_dialog.blp:85
-msgid "App ID"
-msgstr "ID ứng dụng"
-
-#: resources/ui/table_view/process_details_dialog.blp:96
-#: resources/ui/table_view/process_details_dialog.blp:124
-#: resources/ui/table_view/service_details_dialog.blp:252
-#: resources/ui/table_view/service_details_dialog.blp:284
-#: resources/ui/table_view/service_details_dialog.blp:316
-#: src/performance_page/widgets/smart_data_dialog.rs:201
-#: src/performance_page/widgets/smart_data_dialog.rs:209
-#: src/performance_page/widgets/smart_data_dialog.rs:217
-#: src/performance_page/widgets/smart_data_dialog.rs:225
-#: src/performance_page/widgets/smart_data_dialog.rs:236
-#: src/performance_page/widgets/smart_data_dialog.rs:244
-#: src/performance_page/widgets/smart_data_dialog.rs:252
-#: src/performance_page/widgets/smart_data_dialog.rs:260
-#: src/performance_page/widgets/smart_data_dialog.rs:268
-#: src/performance_page/widgets/smart_data_dialog.rs:276
-#: src/performance_page/widgets/smart_data_dialog.rs:285
-#: src/performance_page/widgets/smart_data_dialog.rs:293
-#: src/performance_page/widgets/smart_data_dialog.rs:301
-#: src/performance_page/widgets/smart_data_dialog.rs:309
-#: src/performance_page/widgets/smart_data_dialog.rs:317
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
-#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
-#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
-#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
-#: src/performance_page/network.rs:447
-#: src/table_view/service_details_dialog.rs:270
-#: src/table_view/service_details_dialog.rs:278
-#: src/table_view/service_details_dialog.rs:286
-msgid "N/A"
-msgstr "N/A"
-
-#: resources/ui/table_view/process_details_dialog.blp:141
-msgid "Command Line"
-msgstr "Dòng lệnh"
-
-#: resources/ui/table_view/process_details_dialog.blp:163
-msgid "Resource Usage"
-msgstr "Sử dụng tài nguyên"
-
-#: resources/ui/table_view/process_details_dialog.blp:252
+#: crates/mc-ui/src/dialogs.rs:412
 msgid "Drives"
 msgstr "Ổ đĩa"
 
-#: resources/ui/table_view/service_action_bar.blp:34
-msgid "Start the selected service"
-msgstr "Bắt đầu dịch vụ đã chọn"
+#: crates/mc-ui/src/dialogs.rs:416 crates/mc-ui/src/perf/battery.rs:60
+#: crates/mc-ui/src/win10/processes.rs:78
+msgid "Network"
+msgstr "Mạng"
 
-#: resources/ui/table_view/service_action_bar.blp:55
-msgid "Stop the selected service"
-msgstr "Dừng dịch vụ đã chọn"
+#: crates/mc-ui/src/dialogs.rs:419 crates/mc-ui/src/win10/details.rs:244
+#: crates/mc-ui/src/win10/processes.rs:79
+msgid "GPU"
+msgstr "GPU"
 
-#: resources/ui/table_view/service_action_bar.blp:77
-msgid "Restart the selected service"
-msgstr "Khởi động lại dịch vụ đã chọn"
-
-#: resources/ui/table_view/service_action_bar.blp:98
-msgid "Show details of the selected service"
-msgstr "Hiển thị chi tiết về dịch vụ đã chọn"
-
-#: resources/ui/table_view/service_details_dialog.blp:35
-msgid "Service Details"
-msgstr "Chi tiết dịch vụ"
-
-#: resources/ui/table_view/service_details_dialog.blp:59
-msgid "State"
-msgstr "Trạng thái"
-
-#: resources/ui/table_view/service_details_dialog.blp:60
-msgid "The current state of the service"
-msgstr "Trạng thái hiện tại của dịch vụ"
-
-#: resources/ui/table_view/service_details_dialog.blp:77
-msgid "Start service"
-msgstr "Bắt đầu dịch vụ"
-
-#: resources/ui/table_view/service_details_dialog.blp:92
-msgid "Stop service"
-msgstr "Dừng dịch vụ"
-
-#: resources/ui/table_view/service_details_dialog.blp:108
-msgid "Restart service"
-msgstr "Khởi động lại dịch vụ"
-
-#: resources/ui/table_view/service_details_dialog.blp:166
-msgid "Description"
-msgstr "Mô tả"
-
-#: resources/ui/table_view/service_details_dialog.blp:196
-msgid "Status"
-msgstr "Trạng thái"
-
-#: resources/ui/table_view/service_details_dialog.blp:215
-msgid "Enabled"
-msgstr "Đã bật"
-
-#: resources/ui/table_view/service_details_dialog.blp:222
-#: src/table_view/row_model.rs:282
-msgid "Process"
-msgstr "Quy trình"
-
-#: resources/ui/table_view/service_details_dialog.blp:223
-msgid "Process and user information"
-msgstr "Thông tin quy trình và người dùng"
-
-#: resources/ui/table_view/service_details_dialog.blp:239
-msgid "Process ID"
-msgstr "ID tiến trình"
-
-#: resources/ui/table_view/service_details_dialog.blp:271
-msgid "User"
-msgstr "Người dùng"
-
-#: resources/ui/table_view/service_details_dialog.blp:303
-msgid "Group"
-msgstr "Nhóm"
-
-#: resources/ui/table_view/service_details_dialog.blp:335
-msgid "File Location"
-msgstr "Vị trí tệp"
-
-#: resources/ui/table_view/service_details_dialog.blp:358
-msgid "Logs"
-msgstr "Nhật ký"
-
-#: resources/ui/about_system_dialog.blp:36
-msgid "System Info"
-msgstr "Thông tin hệ thống"
-
-#: resources/ui/about_system_dialog.blp:65
-msgid "Operating System Information"
-msgstr "Thông tin hệ điều hành"
-
-#: resources/ui/about_system_dialog.blp:108
-#: resources/ui/about_system_dialog.blp:226
-#: resources/ui/about_system_dialog.blp:288
-msgid "Version"
-msgstr "Phiên bản"
-
-#: resources/ui/about_system_dialog.blp:136
-msgid "Package Manager"
-msgstr "Trình quản lý gói"
-
-#: resources/ui/about_system_dialog.blp:164
-msgid "Package Manager Version"
-msgstr "Phiên bản trình quản lý gói"
-
-#: resources/ui/about_system_dialog.blp:183
-msgid "Kernel Information"
-msgstr "Thông tin hạt nhân"
-
-#: resources/ui/about_system_dialog.blp:198
-msgid "Kernel Release"
-msgstr "Phát hành hạt nhân"
-
-#: resources/ui/about_system_dialog.blp:245
-msgid "Desktop Environment Information"
-msgstr "Thông tin về môi trường máy tính để bàn"
-
-#: resources/ui/about_system_dialog.blp:316
-msgid "Windowing System"
-msgstr "Hệ thống cửa sổ"
-
-#: resources/ui/about_system_dialog.blp:344
-msgid "Virtual Terminal"
-msgstr "Thiết bị đầu cuối ảo"
-
-#: resources/ui/window.blp:49
-msgid "Enable All"
-msgstr "Bật tất cả"
-
-#: resources/ui/window.blp:54
-msgid "Disable All"
-msgstr "Tắt tất cả"
-
-#: resources/ui/window.blp:59
-msgid "Reset to Default"
-msgstr "Đặt lại về mặc định"
-
-#: resources/ui/window.blp:70
-msgid "Edit Sidebar"
-msgstr "Chỉnh sửa thanh bên"
-
-#: resources/ui/window.blp:134
-msgid "Type a name or PID to search"
-msgstr "Nhập tên hoặc PID để tìm kiếm"
-
-#: resources/ui/window.blp:149
-msgid "Toggle Device Information"
-msgstr "Chuyển đổi thông tin thiết bị"
-
-#: resources/ui/window.blp:164
-msgid "Main Menu"
-msgstr "Menu chính"
-
-#: resources/ui/window.blp:181
-msgid "Performance"
-msgstr "Hiệu suất"
-
-#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
-msgid "Apps"
-msgstr "Ứng dụng"
-
-#: resources/ui/window.blp:201
-msgid "Services"
-msgstr "Dịch vụ"
-
-#: resources/ui/window.blp:225
-msgid "_Preferences"
-msgstr "_Tùy chọn"
-
-#: resources/ui/window.blp:230
-msgid "_Keyboard Shortcuts"
-msgstr "_Phím tắt bàn phím"
-
-#: resources/ui/window.blp:237
-#, fuzzy
-msgid "_System Information"
-msgstr "Thông tin hệ điều hành"
-
-#: resources/ui/window.blp:244
-msgid "Open _Wiki"
+#: crates/mc-ui/src/dialogs.rs:420 crates/mc-ui/src/win10/details.rs:245
+#: crates/mc-ui/src/win10/processes.rs:80
+msgid "GPU engine"
 msgstr ""
 
-#: resources/ui/window.blp:250
-#, fuzzy
-msgid "Show _First Run Dialog"
+#: crates/mc-ui/src/dialogs.rs:422 crates/mc-ui/src/win10/processes.rs:81
+msgid "GPU Memory"
+msgstr "GPU Bộ nhớ"
+
+#: crates/mc-ui/src/dialogs.rs:441
+msgid "Global"
+msgstr "Toàn cầu"
+
+#: crates/mc-ui/src/dialogs.rs:443
+msgid "Open Menu"
+msgstr "Mở Menu"
+
+#: crates/mc-ui/src/dialogs.rs:444
+msgid "Close Window"
+msgstr "Đóng cửa sổ"
+
+#: crates/mc-ui/src/dialogs.rs:445
+msgid "Show Keyboard Shortcuts"
+msgstr "Hiển thị phím tắt"
+
+#: crates/mc-ui/src/dialogs.rs:446
+msgid "Show Performance Page"
+msgstr "Hiển thị trang hiệu suất"
+
+#: crates/mc-ui/src/dialogs.rs:447
+msgid "Show Apps Page"
+msgstr "Hiển thị trang ứng dụng"
+
+#: crates/mc-ui/src/dialogs.rs:448
+msgid "Show Services Page"
+msgstr "Hiển thị trang dịch vụ"
+
+#: crates/mc-ui/src/dialogs.rs:450
+msgid "Toggle Sidebar"
+msgstr "Chuyển đổi thanh bên"
+
+#: crates/mc-ui/src/dialogs.rs:455
+msgid "Performance Page"
+msgstr "Trang hiệu suất"
+
+#: crates/mc-ui/src/dialogs.rs:457
+msgid "Copy Device Information"
+msgstr "Sao chép thông tin thiết bị"
+
+#: crates/mc-ui/src/dialogs.rs:458
+msgid "Toggle Summary Mode"
+msgstr "Chuyển đổi chế độ tóm tắt"
+
+#: crates/mc-ui/src/dialogs.rs:459
+msgid "Select a Device"
+msgstr "Chọn thiết bị"
+
+#: crates/mc-ui/src/dialogs.rs:463
+msgid "Apps Page"
+msgstr "Trang ứng dụng"
+
+#: crates/mc-ui/src/dialogs.rs:465 crates/mc-ui/src/dialogs.rs:475
+msgid "Search"
+msgstr "Tìm kiếm"
+
+#: crates/mc-ui/src/dialogs.rs:466 crates/mc-ui/src/dialogs.rs:476
+msgid "Collapse All"
+msgstr "Thu gọn tất cả"
+
+#: crates/mc-ui/src/dialogs.rs:467
+msgid "Stop App or Process"
+msgstr "Dừng ứng dụng hoặc tiến trình"
+
+#: crates/mc-ui/src/dialogs.rs:468
+msgid "Force Stop App or Process"
+msgstr "Buộc dừng ứng dụng hoặc quy trình"
+
+#: crates/mc-ui/src/dialogs.rs:469 crates/mc-ui/src/dialogs.rs:480
+msgid "Show Details Dialog"
 msgstr "Hộp thoại Hiển thị chi tiết"
 
-#: resources/ui/window.blp:257
-msgid "_About Mission Center"
-msgstr "_Giới thiệu Mission Center"
+#: crates/mc-ui/src/dialogs.rs:473
+msgid "Services Page"
+msgstr "Trang dịch vụ"
 
-#: src/apps_page/mod.rs:303
-#, rust-format
-msgid "{} Running App"
-msgid_plural "{} Running Apps"
-msgstr[0] "{} Ứng dụng đang chạy"
+#: crates/mc-ui/src/dialogs.rs:477
+msgid "Start Service"
+msgstr "Bắt đầu dịch vụ"
 
-#: src/apps_page/mod.rs:313
-#, rust-format
-msgid "{} Running Process"
-msgid_plural "{} Running Processes"
-msgstr[0] "{} Tiến trình đang chạy"
+#: crates/mc-ui/src/dialogs.rs:478
+msgid "Stop Service"
+msgstr "Dừng dịch vụ"
 
-#: src/performance_page/widgets/eject_failure_dialog.rs:157
-#: src/performance_page/widgets/smart_failure_dialog.rs:67
-msgid "Close"
+#: crates/mc-ui/src/dialogs.rs:479
+msgid "Restart Service"
+msgstr "Khởi động lại dịch vụ"
+
+#: crates/mc-ui/src/dialogs.rs:486
+msgid "Keyboard Shortcuts"
+msgstr "Phím tắt"
+
+#: crates/mc-ui/src/dialogs.rs:501
+msgid "Hold to pause"
 msgstr ""
 
-#: src/performance_page/widgets/eject_failure_dialog.rs:158
-msgid "Retry"
+#: crates/mc-ui/src/dialogs.rs:524 crates/mc-ui/src/dialogs.rs:525
+msgid "translator-credits"
+msgstr ""
+"Vietnam Linux L10n <https://github.com/linux-l10n-vi>\n"
+"Loc Huynh <https://github.com/hthienloc>"
+
+#: crates/mc-ui/src/dialogs.rs:531
+msgid "Based on Mission Center"
 msgstr ""
 
-#: src/performance_page/widgets/eject_failure_dialog.rs:159
+#: crates/mc-ui/src/dialogs.rs:534
+msgid ""
+"Uses the Mission Center statistics backend (magpie) and code from the "
+"Mission Center project."
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:543
+msgid "Standing on the shoulders of giants"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:548
+msgid "And many more... Thank you all!"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:566
+msgid "System Information"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:568
+msgid "Copy All"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:46 crates/mc-ui/src/perf/battery.rs:150
+#: crates/mc-ui/src/perf/battery.rs:188 crates/mc-ui/src/perf/battery.rs:284
+#: crates/mc-ui/src/perf/battery.rs:302
+msgid "Battery"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:95 crates/mc-ui/src/perf/battery.rs:321
+msgid "Empty"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:96 crates/mc-ui/src/perf/battery.rs:318
+msgid "Full"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:330
+#: crates/mc-ui/src/perf/cpu.rs:228 crates/mc-ui/src/perf/disk.rs:146
+msgid "Yes"
+msgstr "Có"
+
+#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:332
+#: crates/mc-ui/src/perf/cpu.rs:229 crates/mc-ui/src/perf/disk.rs:148
+msgid "No"
+msgstr "Không"
+
+#: crates/mc-ui/src/perf/battery.rs:199 crates/mc-ui/src/perf/battery.rs:309
+#: crates/mc-ui/src/perf/battery.rs:337 crates/mc-ui/src/perf/fan.rs:160
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: crates/mc-ui/src/perf/battery.rs:283 crates/mc-ui/src/perf/battery.rs:301
+#, rust-format
+msgid "Battery {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:328
+msgid "Firmware"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:358 crates/mc-ui/src/perf/battery.rs:435
+#: crates/mc-ui/src/perf/cpu.rs:449 crates/mc-ui/src/perf/disk.rs:334
+msgid "100%"
+msgstr "100%"
+
+#: crates/mc-ui/src/perf/battery.rs:381 crates/mc-ui/src/perf/battery.rs:423
+msgid "Percentage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:383
+msgid "Energy"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:387
+msgid "Voltage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:390
+msgid "Power"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:394
+msgid "Time to "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:397
+msgid "Charge Cycles"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:411 crates/mc-ui/src/perf/disk.rs:312
+msgid "Serial:"
+msgstr "Serial:"
+
+#: crates/mc-ui/src/perf/battery.rs:412 crates/mc-ui/src/perf/disk.rs:306
+#: crates/mc-ui/src/perf/memory.rs:287
+msgid "Type:"
+msgstr "Loại:"
+
+#: crates/mc-ui/src/perf/battery.rs:415 crates/mc-ui/src/perf/disk.rs:303
+msgid "Capacity:"
+msgstr "Dung lượng:"
+
+#: crates/mc-ui/src/perf/battery.rs:421
+msgid "Power Input"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:425
+msgid " over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:434
+msgid "Battery Charge over past week"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/cpu.rs:226
+#: crates/mc-ui/src/perf/fan.rs:231 crates/mc-ui/src/perf/gpu.rs:101
+msgid "Unsupported"
+msgstr "Không được hỗ trợ"
+
+#. Extra values go next to "Up time" (the shortest row) so the statistics stay narrow
+#: crates/mc-ui/src/perf/cpu.rs:397
+msgid "Up time"
+msgstr "Thời gian hoạt động"
+
+#: crates/mc-ui/src/perf/cpu.rs:399 crates/mc-ui/src/perf/gpu.rs:563
+msgid "Temperature"
+msgstr "Nhiệt độ"
+
+#: crates/mc-ui/src/perf/cpu.rs:402
+msgid "Power Draw"
+msgstr "Power Draw"
+
+#: crates/mc-ui/src/perf/cpu.rs:406 crates/mc-ui/src/perf/gpu.rs:561
+msgid "Utilization"
+msgstr "Cách sử dụng"
+
+#: crates/mc-ui/src/perf/cpu.rs:407
+msgid "Speed"
+msgstr "Tốc độ"
+
+#: crates/mc-ui/src/perf/cpu.rs:411
+msgid "Threads"
+msgstr "Chủ đề"
+
+#: crates/mc-ui/src/perf/cpu.rs:412
+msgid "Handles"
+msgstr "Tay cầm"
+
+#: crates/mc-ui/src/perf/cpu.rs:417
+msgid "Base Speed:"
+msgstr "Tốc độ cơ bản:"
+
+#: crates/mc-ui/src/perf/cpu.rs:418
+msgid "Sockets:"
+msgstr "Ổ cắm:"
+
+#: crates/mc-ui/src/perf/cpu.rs:419
+msgid "Virtual processors:"
+msgstr "Bộ xử lý ảo:"
+
+#: crates/mc-ui/src/perf/cpu.rs:420
+msgid "Virtualization:"
+msgstr "Ảo hóa:"
+
+#: crates/mc-ui/src/perf/cpu.rs:421
+msgid "Virtual machine:"
+msgstr "Máy ảo:"
+
+#: crates/mc-ui/src/perf/cpu.rs:422
+msgid "L1 cache:"
+msgstr "Bộ đệm L1:"
+
+#: crates/mc-ui/src/perf/cpu.rs:423
+msgid "L2 cache:"
+msgstr "Bộ đệm L2:"
+
+#: crates/mc-ui/src/perf/cpu.rs:424
+msgid "L3 cache:"
+msgstr "Bộ đệm L3:"
+
+#: crates/mc-ui/src/perf/cpu.rs:427
+msgid "Cpufreq driver:"
+msgstr "Cpufreq driver:"
+
+#: crates/mc-ui/src/perf/cpu.rs:428
+msgid "Cpufreq governor:"
+msgstr "Cpufreq thống đốc:"
+
+#: crates/mc-ui/src/perf/cpu.rs:429
+msgid "Power preference:"
+msgstr "Tùy chọn nguồn điện:"
+
+#: crates/mc-ui/src/perf/cpu.rs:436 crates/mc-ui/src/perf/gpu.rs:709
+msgid "Utilization over "
+msgstr "Đã hết thời gian sử dụng "
+
+#: crates/mc-ui/src/perf/cpu.rs:455 crates/mc-ui/src/perf/gpu.rs:341
 #, fuzzy
-msgid "Kill All"
-msgstr "Giết"
+msgid "Power draw over "
+msgstr "Power Draw"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:95
+#: crates/mc-ui/src/perf/cpu.rs:456 crates/mc-ui/src/perf/gpu.rs:342
+#, fuzzy
+msgid "Clock speed over "
+msgstr "Tốc độ quạt tăng lên "
+
+#: crates/mc-ui/src/perf/cpu.rs:457 crates/mc-ui/src/perf/fan.rs:216
+#: crates/mc-ui/src/perf/gpu.rs:343
+msgid "Temperature over "
+msgstr "Nhiệt độ tăng cao "
+
+#: crates/mc-ui/src/perf/cpu.rs:477
+#, fuzzy
+msgid "Change _Top Graph To"
+msgstr "Thay đổi G_raph thành"
+
+#: crates/mc-ui/src/perf/cpu.rs:479
+msgid "Overall U_tilization"
+msgstr "Sử dụng tổng thể"
+
+#: crates/mc-ui/src/perf/cpu.rs:480
+msgid "Logical _Processors"
+msgstr "Bộ xử lý logic"
+
+#: crates/mc-ui/src/perf/cpu.rs:481
+#, fuzzy
+msgid "_All Threads"
+msgstr "Chủ đề"
+
+#: crates/mc-ui/src/perf/cpu.rs:483
+msgid "All Threads _Stacked"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:500
+#, fuzzy
+msgid "Change B_ottom Graph To"
+msgstr "Thay đổi G_raph thành"
+
+#: crates/mc-ui/src/perf/cpu.rs:503 crates/mc-ui/src/perf/gpu.rs:392
+#, fuzzy
+msgid "_Power Draw"
+msgstr "Power Draw"
+
+#: crates/mc-ui/src/perf/cpu.rs:504 crates/mc-ui/src/perf/gpu.rs:395
+#, fuzzy
+msgid "_Temperature"
+msgstr "Nhiệt độ"
+
+#: crates/mc-ui/src/perf/cpu.rs:505
+#, fuzzy
+msgid "_Clock Speed"
+msgstr "Tốc độ đồng hồ"
+
+#: crates/mc-ui/src/perf/cpu.rs:506 crates/mc-ui/src/perf/gpu.rs:399
+msgid "_None"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:516
+msgid "Show Kernel Times"
+msgstr "Hiển thị thời gian hạt nhân"
+
+#: crates/mc-ui/src/perf/disk.rs:42
+msgid "HDD"
+msgstr "HDD"
+
+#: crates/mc-ui/src/perf/disk.rs:43
+msgid "SSD"
+msgstr "SSD"
+
+#: crates/mc-ui/src/perf/disk.rs:44
+msgid "NVMe"
+msgstr "NVMe"
+
+#: crates/mc-ui/src/perf/disk.rs:45
+msgid "eMMC"
+msgstr "eMMC"
+
+#: crates/mc-ui/src/perf/disk.rs:46
+msgid "SD"
+msgstr "SD"
+
+#: crates/mc-ui/src/perf/disk.rs:47
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: crates/mc-ui/src/perf/disk.rs:48
+msgid "Optical"
+msgstr "Quang học"
+
+#: crates/mc-ui/src/perf/disk.rs:49
+msgid "Floppy"
+msgstr "Đĩa mềm"
+
+#: crates/mc-ui/src/perf/disk.rs:50
+msgid "Thumb Drive"
+msgstr "Thumb Drive"
+
+#: crates/mc-ui/src/perf/disk.rs:169
 #, rust-format
-msgid "{} ago"
-msgstr "{} trước kia"
+msgid "Drive {} ({})"
+msgstr "Drive {} ({})"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:98
-#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
-#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
-#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
-#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
-#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
-#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
-#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
-#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
-#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
-#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
-#: src/table_view/service_details_dialog.rs:294
-msgid "Unknown"
-msgstr "Không xác định"
+#: crates/mc-ui/src/perf/disk.rs:170
+#, rust-format
+msgid "Drive ({})"
+msgstr "Drive ({})"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:130
-msgid "Pre-Fail"
-msgstr "Thất bại trước"
+#: crates/mc-ui/src/perf/disk.rs:172
+msgid "Drive"
+msgstr "Drive"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:131
-msgid "Old-Age"
-msgstr "Tuổi già"
+#: crates/mc-ui/src/perf/disk.rs:174
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:134
-msgid "Online"
-msgstr "Trực tuyến"
+#: crates/mc-ui/src/perf/disk.rs:259 crates/mc-ui/src/perf/fan.rs:158
+#: crates/mc-ui/src/perf/fan.rs:175
+#, rust-format
+msgid "{} RPM"
+msgstr "{} RPM"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:135
-msgid "Offline"
-msgstr "Ngoại tuyến"
+#: crates/mc-ui/src/perf/disk.rs:290
+msgid "Active time"
+msgstr "Thời gian hoạt động"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:142
-msgid "FAILING"
-msgstr "THẤT BẠI"
+#: crates/mc-ui/src/perf/disk.rs:291
+msgid "Avg. response time"
+msgstr "Trung bình thời gian đáp ứng"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:147
-msgid "Failed in the past"
-msgstr "Thất bại trong quá khứ"
+#: crates/mc-ui/src/perf/disk.rs:294
+msgid "Read speed"
+msgstr "Tốc độ đọc"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:149
-msgid "Ok"
-msgstr "Ok"
+#: crates/mc-ui/src/perf/disk.rs:295
+msgid "Write speed"
+msgstr "Tốc độ ghi"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:197
-msgid "Percent Used"
-msgstr "Phần trăm được sử dụng"
+#: crates/mc-ui/src/perf/disk.rs:298
+msgid "Total Read"
+msgstr "Tổng số lần đọc"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:205
-msgid "Available Spare"
-msgstr "Có sẵn phụ tùng"
+#: crates/mc-ui/src/perf/disk.rs:299
+msgid "Total Written"
+msgstr "Tổng số văn bản"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:213
-msgid "Spare Threshold"
-msgstr "Ngưỡng dự phòng"
+#: crates/mc-ui/src/perf/disk.rs:304
+msgid "Formatted:"
+msgstr "Được định dạng:"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:221
-msgid "Total Data Read"
-msgstr "Tổng số dữ liệu đã đọc"
+#: crates/mc-ui/src/perf/disk.rs:305
+msgid "System disk:"
+msgstr "Đĩa hệ thống:"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:229
-msgid "Total Data Written"
-msgstr "Tổng số dữ liệu được ghi"
+#: crates/mc-ui/src/perf/disk.rs:309
+msgid "WWN:"
+msgstr "WWN:"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:240
-msgid "Warning Temp Time"
-msgstr "Cảnh báo thời gian nhiệt độ"
+#: crates/mc-ui/src/perf/disk.rs:315
+msgid "Rotation Rate"
+msgstr "Tốc độ quay"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:248
-msgid "Critical Temp Time"
-msgstr "Thời gian nhiệt độ quan trọng"
+#: crates/mc-ui/src/perf/disk.rs:333
+msgid "Active time over "
+msgstr "Hết thời gian hoạt động "
 
-#: src/performance_page/widgets/smart_data_dialog.rs:256
-#: src/performance_page/widgets/smart_data_dialog.rs:313
-msgid "Control Busy Time"
-msgstr "Kiểm soát thời gian bận rộn"
+#: crates/mc-ui/src/perf/disk.rs:338 crates/mc-ui/src/perf/network.rs:273
+msgid "Throughput over "
+msgstr "Thông lượng vượt mức "
 
-#: src/performance_page/widgets/smart_data_dialog.rs:264
-msgid "Warning Temperature"
-msgstr "Cảnh báo nhiệt độ"
+#: crates/mc-ui/src/perf/disk.rs:350
+msgid "Eject Disk"
+msgstr "Đẩy đĩa ra"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:266
-#: src/performance_page/widgets/smart_data_dialog.rs:274
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
-#: src/performance_page/fan.rs:264
+#: crates/mc-ui/src/perf/disk.rs:353
+msgid "Show SMART Data"
+msgstr "Hiển thị dữ liệu SMART"
+
+#: crates/mc-ui/src/perf/fan.rs:64 crates/mc-ui/src/perf/fan.rs:103
+#: crates/mc-ui/src/perf/fan.rs:139 crates/mc-ui/src/perf/fan.rs:156
+msgid "Fan"
+msgstr "Quạt"
+
+#: crates/mc-ui/src/perf/fan.rs:138 crates/mc-ui/src/perf/fan.rs:155
+#, rust-format
+msgid "Fan {}"
+msgstr "Quạt {}"
+
+#: crates/mc-ui/src/perf/fan.rs:165 crates/mc-ui/src/smart.rs:87
+#: crates/mc-ui/src/smart.rs:93 crates/mc-ui/src/smart.rs:121
 #, rust-format
 msgid "{} °C"
 msgstr "{} °C"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:272
-msgid "Critical Temperature"
-msgstr "Nhiệt độ tới hạn"
+#: crates/mc-ui/src/perf/fan.rs:201
+msgid "Fan Speed"
+msgstr "Tốc độ quạt"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:279
-msgid "Temps"
-msgstr "Nhiệt độ"
+#: crates/mc-ui/src/perf/fan.rs:203
+msgid "PWM Percentage"
+msgstr "Tỷ lệ phần trămPWM"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:281
-msgid "Unsafe Shutdowns"
-msgstr "Tắt máy không an toàn"
+#: crates/mc-ui/src/perf/fan.rs:207
+msgid "Current Temperature"
+msgstr "Nhiệt độ hiện tại"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:289
-msgid "Media Errors"
-msgstr "Lỗi phương tiện"
+#: crates/mc-ui/src/perf/fan.rs:210
+msgid "Fan speed over "
+msgstr "Tốc độ quạt tăng lên "
 
-#: src/performance_page/widgets/smart_data_dialog.rs:297
-msgid "Number Error Log Entries"
-msgstr "Số mục nhập nhật ký lỗi"
+#: crates/mc-ui/src/perf/gpu.rs:99 crates/mc-ui/src/perf/memory.rs:264
+msgid "Available"
+msgstr "Có sẵn"
 
-#: src/performance_page/widgets/smart_data_dialog.rs:305
-msgid "Power Cycles"
-msgstr "Chu kỳ điện"
+#: crates/mc-ui/src/perf/gpu.rs:100
+msgid "Partial"
+msgstr ""
 
-#: src/performance_page/widgets/mem_composition_widget.rs:251
+#: crates/mc-ui/src/perf/gpu.rs:102
+msgid "Permission denied"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:103
+msgid "Collecting data"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:104
+msgid "Stale"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:105
+msgid "Driver unavailable"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:166 crates/mc-ui/src/perf/gpu.rs:197
+#: crates/mc-ui/src/perf/gpu.rs:927
+#, rust-format
+msgid "GPU {}"
+msgstr "GPU {}"
+
+#: crates/mc-ui/src/perf/gpu.rs:231 crates/mc-ui/src/perf/gpu.rs:1040
+msgid "Overall utilization"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:386
+#, fuzzy
+msgid "Change Middle Graph To"
+msgstr "Thay đổi G_raph thành"
+
+#: crates/mc-ui/src/perf/gpu.rs:388
+#, fuzzy
+msgid "Change Bottom Graph To"
+msgstr "Thay đổi G_raph thành"
+
+#: crates/mc-ui/src/perf/gpu.rs:393
+#, fuzzy
+msgid "_Clock Speeds"
+msgstr "Tốc độ đồng hồ"
+
+#: crates/mc-ui/src/perf/gpu.rs:568 crates/mc-ui/src/win10/details.rs:246
+#: crates/mc-ui/src/win10/processes.rs:82
+msgid "Dedicated GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:573 crates/mc-ui/src/win10/details.rs:247
+#: crates/mc-ui/src/win10/processes.rs:83
+msgid "Shared GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:577
+msgid "GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:584
+msgid "Clock Speed"
+msgstr "Tốc độ đồng hồ"
+
+#: crates/mc-ui/src/perf/gpu.rs:585
+msgid "Memory Speed"
+msgstr "Tốc độ bộ nhớ"
+
+#: crates/mc-ui/src/perf/gpu.rs:596
+msgid "Status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:598
+msgid "Dedicated memory status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:601
+msgid "Shared memory status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:602
+msgid "Sample age:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:606
+msgid "Busiest engine:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:621
+msgid "OpenGL version:"
+msgstr "Phiên bản OpenGL:"
+
+#: crates/mc-ui/src/perf/gpu.rs:629
+msgid "Vulkan version:"
+msgstr "Phiên bản Vulkan:"
+
+#: crates/mc-ui/src/perf/gpu.rs:642
+msgid "PCI Express speed:"
+msgstr "Tốc độ PCI Express:"
+
+#: crates/mc-ui/src/perf/gpu.rs:648
+msgid "Max PCI Express speed:"
+msgstr "Tốc độ PCI Express tối đa:"
+
+#: crates/mc-ui/src/perf/gpu.rs:653
+msgid "Device address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:656
+msgid "Driver-reserved memory:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:660
+msgid "Integrated GPU:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:715
+msgid "Dedicated GPU memory usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:720
+msgid "Shared GPU memory usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:749
+msgid "Change graph to"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:755
+msgid "Multiple engines"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:758
+msgid "Single engine"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:765
+#, rust-format
+msgid "Engine graph {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:837
+msgid "Measured from visible DRM clients"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:59
 #, rust-format
 msgid ""
 "In use ({})\n"
@@ -1950,7 +1149,7 @@ msgstr ""
 "\n"
 "Bộ nhớ được sử dụng bởi hệ điều hành và các ứng dụng đang chạy"
 
-#: src/performance_page/widgets/mem_composition_widget.rs:281
+#: crates/mc-ui/src/perf/mem_composition.rs:64
 #, rust-format
 msgid ""
 "Modified ({})\n"
@@ -1963,7 +1162,7 @@ msgstr ""
 "Bộ nhớ có nội dung phải được ghi vào đĩa trước khi nó có thể được sử dụng "
 "bởi một tiến trình khác"
 
-#: src/performance_page/widgets/mem_composition_widget.rs:305
+#: crates/mc-ui/src/perf/mem_composition.rs:70
 #, rust-format
 msgid ""
 "Standby ({})\n"
@@ -1975,7 +1174,7 @@ msgstr ""
 "Bộ nhớ chứa dữ liệu được lưu trong bộ nhớ đệm và mã không được sử dụng tích "
 "cực"
 
-#: src/performance_page/widgets/mem_composition_widget.rs:318
+#: crates/mc-ui/src/perf/mem_composition.rs:76
 #, rust-format
 msgid ""
 "Free ({})\n"
@@ -1988,347 +1187,518 @@ msgstr ""
 "Bộ nhớ hiện không được sử dụng và sẽ được tái sử dụng trước tiên khi hệ điều "
 "hành, trình điều khiển hoặc ứng dụng cần thêm bộ nhớ"
 
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
-#, rust-format
-msgid "{} sectors"
-msgstr "{} khu vực"
-
-#: src/performance_page/cpu.rs:532
-msgid ""
-"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
-"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
-"loop calibration metric, not a true frequency measurement."
-msgstr ""
-
-#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
-#: src/performance_page/gpu.rs:592
-msgid "Unsupported"
-msgstr "Không được hỗ trợ"
-
-#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
-msgid "Yes"
-msgstr "Có"
-
-#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
-msgid "No"
-msgstr "Không"
-
-#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
-#, fuzzy
-msgid "Power draw over "
-msgstr "Power Draw"
-
-#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
-#, fuzzy
-msgid "Clock speed over "
-msgstr "Tốc độ quạt tăng lên "
-
-#: src/performance_page/disk.rs:179
-#, rust-format
-msgid "Disk {} ({})"
-msgstr "Đĩa {} ({})"
-
-#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
-#, rust-format
-msgid "Drive ({})"
-msgstr "Drive ({})"
-
-#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
-msgid "HDD"
-msgstr "HDD"
-
-#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
-msgid "SSD"
-msgstr "SSD"
-
-#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
-msgid "NVMe"
-msgstr "NVMe"
-
-#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
-msgid "eMMC"
-msgstr "eMMC"
-
-#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
-msgid "SD"
-msgstr "SD"
-
-#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
-msgid "iSCSI"
-msgstr "iSCSI"
-
-#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
-msgid "Optical"
-msgstr "Quang học"
-
-#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
-msgid "Floppy"
-msgstr "Đĩa mềm"
-
-#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
-msgid "Thumb Drive"
-msgstr "Thumb Drive"
-
-#: src/performance_page/disk.rs:336
-#, rust-format
-msgid "Drive {} ({})"
-msgstr "Drive {} ({})"
-
-#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
-#: src/performance_page/fan.rs:279
-#, rust-format
-msgid "{} RPM"
-msgstr "{} RPM"
-
-#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
-#: src/performance_page/mod.rs:2540
-#, rust-format
-msgid "Fan {}"
-msgstr "Quạt {}"
-
-#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
-#: src/performance_page/mod.rs:2542
-msgid "Fan"
-msgstr "Quạt"
-
-#: src/performance_page/fan.rs:253
-#, rust-format
-msgid "{}%"
-msgstr "{}%"
-
-#: src/performance_page/gpu.rs:562
-msgid "Video encode/decode"
-msgstr "Mã hóa/giải mã video"
-
-#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
-#: src/performance_page/mod.rs:2465
-#, rust-format
-msgid "GPU {}"
-msgstr "GPU {}"
-
-#: src/performance_page/gpu.rs:826
-msgid "Total Memory"
-msgstr "Tổng bộ nhớ"
-
-#: src/performance_page/gpu.rs:876
-msgid "Total Shared Memory"
-msgstr "Tổng bộ nhớ chia sẻ"
-
-#: src/performance_page/gpu.rs:1116
-msgid "Dedicated and shared memory usage over "
-msgstr "Đã hết mức sử dụng bộ nhớ chuyên dụng và chia sẻ "
-
-#: src/performance_page/memory.rs:358
+#: crates/mc-ui/src/perf/memory.rs:121
 #, rust-format
 msgid "{} of {}"
 msgstr "{} của {}"
 
-#: src/performance_page/memory.rs:380
+#: crates/mc-ui/src/perf/memory.rs:263
+msgid "In use"
+msgstr "Đang sử dụng"
+
+#: crates/mc-ui/src/perf/memory.rs:267
+msgid "Committed"
+msgstr "Đã cam kết"
+
+#: crates/mc-ui/src/perf/memory.rs:268
+msgid "Cached"
+msgstr "Đã lưu vào bộ nhớ đệm"
+
+#: crates/mc-ui/src/perf/memory.rs:273
+msgid "Swap used"
+msgstr "Đã sử dụng hoán đổi"
+
+#: crates/mc-ui/src/perf/memory.rs:274
+msgid "Swap available"
+msgstr "Có thể hoán đổi"
+
+#: crates/mc-ui/src/perf/memory.rs:279
+msgid "Compressed"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:280
+msgid "Savings"
+msgstr ""
+
+#: crates/mc-ui/src/perf/memory.rs:284
+msgid "Speed:"
+msgstr "Tốc độ:"
+
+#: crates/mc-ui/src/perf/memory.rs:285
+msgid "Slots used:"
+msgstr "Các khe được sử dụng:"
+
+#: crates/mc-ui/src/perf/memory.rs:286
+msgid "Form factor:"
+msgstr "Hệ số hình thức:"
+
+#: crates/mc-ui/src/perf/memory.rs:291
 msgid "Getting additional memory information failed"
 msgstr "Lấy thêm thông tin bộ nhớ không thành công"
 
-#: src/performance_page/mod.rs:1269
-#, rust-format
-msgid "{} {} ({})"
-msgstr "{} {} ({})"
+#: crates/mc-ui/src/perf/memory.rs:297
+msgid "Memory usage over "
+msgstr "Đã hết mức sử dụng bộ nhớ "
 
-#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
-#, rust-format
-msgid "Battery {}"
-msgstr ""
+#: crates/mc-ui/src/perf/memory.rs:303
+msgid "Swap usage over "
+msgstr "Hoán đổi cách sử dụng "
 
-#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
-msgid "Battery"
-msgstr ""
+#: crates/mc-ui/src/perf/memory.rs:322
+msgid "Show Swap Usage"
+msgstr "Hiển thị cách sử dụng Hoán đổi"
 
-#: src/performance_page/mod.rs:2391
-#, fuzzy, rust-format
-msgid "{}"
-msgstr "{}%"
-
-#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
-#, rust-format
-msgid "{}: {}"
-msgstr "{}: {}"
-
-#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
-#: src/table_view/service_details_dialog.rs:257
-#: src/table_view/service_details_dialog.rs:331
-msgid "Failed"
-msgstr "Thất bại"
-
-#: src/performance_page/network.rs:458
+#: crates/mc-ui/src/perf/network.rs:45
 msgid "Disconnected"
 msgstr ""
 
-#: src/performance_page/network.rs:459
+#: crates/mc-ui/src/perf/network.rs:46
 msgid "Disconnecting"
 msgstr ""
 
-#: src/performance_page/network.rs:460
+#: crates/mc-ui/src/perf/network.rs:47
 #, fuzzy
 msgid "Connected"
 msgstr "Kiểu kết nối:"
 
-#: src/performance_page/network.rs:461
+#: crates/mc-ui/src/perf/network.rs:48
 #, fuzzy
 msgid "Connecting"
 msgstr "Kiểu kết nối:"
 
-#: src/performance_page/network.rs:462
+#: crates/mc-ui/src/perf/network.rs:49
 msgid "Configuring"
 msgstr ""
 
-#: src/performance_page/network.rs:463
+#: crates/mc-ui/src/perf/network.rs:50
 msgid "Waiting for auth"
 msgstr ""
 
-#: src/performance_page/network.rs:464
+#: crates/mc-ui/src/perf/network.rs:51
 #, fuzzy
 msgid "Unavailable"
 msgstr "Có sẵn"
 
-#: src/performance_page/network.rs:465
+#: crates/mc-ui/src/perf/network.rs:52
 #, fuzzy
 msgid "Loading"
 msgstr "Đang tải..."
 
-#: src/services_page/mod.rs:99
+#: crates/mc-ui/src/perf/network.rs:217
+#, fuzzy, rust-format
+msgid "{}"
+msgstr "{}%"
+
+#: crates/mc-ui/src/perf/network.rs:220 crates/mc-ui/src/perf/network.rs:221
 #, rust-format
-msgid "{} Total Service"
-msgid_plural "{} Total Services"
-msgstr[0] "{} Tổng số dịch vụ"
+msgid "{}: {}"
+msgstr "{}: {}"
 
-#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
-#: src/table_view/service_details_dialog.rs:329
-msgid "Running"
-msgstr "Đang chạy"
+#: crates/mc-ui/src/perf/network.rs:234
+msgid "Send"
+msgstr "Gửi"
 
-#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
-#: src/table_view/service_details_dialog.rs:333
-msgid "Stopped"
-msgstr "Đã dừng"
+#: crates/mc-ui/src/perf/network.rs:235
+msgid "Receive"
+msgstr "Nhận"
 
-#: src/services_page/mod.rs:138
+#: crates/mc-ui/src/perf/network.rs:238
+msgid "Total Sent"
+msgstr "Tổng số đã gửi"
+
+#: crates/mc-ui/src/perf/network.rs:239
+msgid "Total Received"
+msgstr "Tổng số tiền đã nhận"
+
+#: crates/mc-ui/src/perf/network.rs:244
+msgid "Interface name:"
+msgstr "Tên giao diện:"
+
+#: crates/mc-ui/src/perf/network.rs:245
+msgid "Connection type:"
+msgstr "Kiểu kết nối:"
+
+#: crates/mc-ui/src/perf/network.rs:246
+#, fuzzy
+msgid "Connection status:"
+msgstr "Kiểu kết nối:"
+
+#: crates/mc-ui/src/perf/network.rs:249
+msgid "SSID:"
+msgstr "SSID:"
+
+#: crates/mc-ui/src/perf/network.rs:251
+msgid "Signal strength:"
+msgstr "Cường độ tín hiệu:"
+
+#: crates/mc-ui/src/perf/network.rs:260
+msgid "Maximum Bitrate:"
+msgstr "Tốc độ bit tối đa:"
+
+#: crates/mc-ui/src/perf/network.rs:263
+msgid "Frequency:"
+msgstr "Tần suất:"
+
+#: crates/mc-ui/src/perf/network.rs:265
+msgid "Hardware address:"
+msgstr "Địa chỉ phần cứng:"
+
+#: crates/mc-ui/src/perf/network.rs:266
+msgid "IPv4 address:"
+msgstr "Địa chỉ IPv4:"
+
+#: crates/mc-ui/src/perf/network.rs:267
+msgid "IPv6 address:"
+msgstr "Địa chỉ IPv6:"
+
+#: crates/mc-ui/src/perf/network.rs:283
+msgid "Network Se_ttings"
+msgstr "Cài đặt mạng"
+
+#: crates/mc-ui/src/smart.rs:44
+msgid "Percent Used"
+msgstr "Phần trăm được sử dụng"
+
+#: crates/mc-ui/src/smart.rs:48
+msgid "Available Spare"
+msgstr "Có sẵn phụ tùng"
+
+#: crates/mc-ui/src/smart.rs:52
+msgid "Spare Threshold"
+msgstr "Ngưỡng dự phòng"
+
+#: crates/mc-ui/src/smart.rs:56
+msgid "Total Data Read"
+msgstr "Tổng số dữ liệu đã đọc"
+
+#: crates/mc-ui/src/smart.rs:62
+msgid "Total Data Written"
+msgstr "Tổng số dữ liệu được ghi"
+
+#: crates/mc-ui/src/smart.rs:68
+msgid "Warning Temp Time"
+msgstr "Cảnh báo thời gian nhiệt độ"
+
+#: crates/mc-ui/src/smart.rs:74
+msgid "Critical Temp Time"
+msgstr "Thời gian nhiệt độ quan trọng"
+
+#: crates/mc-ui/src/smart.rs:80
+msgid "Control Busy Time"
+msgstr "Kiểm soát thời gian bận rộn"
+
+#: crates/mc-ui/src/smart.rs:84
+msgid "Warning Temperature"
+msgstr "Cảnh báo nhiệt độ"
+
+#: crates/mc-ui/src/smart.rs:90
+msgid "Critical Temperature"
+msgstr "Nhiệt độ tới hạn"
+
+#: crates/mc-ui/src/smart.rs:95
+msgid "Temps"
+msgstr "Nhiệt độ"
+
+#: crates/mc-ui/src/smart.rs:97
+msgid "Unsafe Shutdowns"
+msgstr "Tắt máy không an toàn"
+
+#: crates/mc-ui/src/smart.rs:101
+msgid "Media Errors"
+msgstr "Lỗi phương tiện"
+
+#: crates/mc-ui/src/smart.rs:105
+msgid "Number Error Log Entries"
+msgstr "Số mục nhập nhật ký lỗi"
+
+#: crates/mc-ui/src/smart.rs:109
+msgid "Power Cycles"
+msgstr "Chu kỳ điện"
+
+#: crates/mc-ui/src/smart.rs:119
+#, rust-format
+msgid "{} sectors"
+msgstr "{} khu vực"
+
+#: crates/mc-ui/src/smart.rs:135
+#, rust-format
+msgid "{} ago"
+msgstr "{} trước kia"
+
+#: crates/mc-ui/src/smart.rs:147
+msgid "Smart Data"
+msgstr "Dữ liệu thông minh"
+
+#: crates/mc-ui/src/smart.rs:152
+#, fuzzy
+msgid "Last Updated:"
+msgstr "Cập nhật lần cuối"
+
+#: crates/mc-ui/src/smart.rs:154
+#, fuzzy
+msgid "Powered On:"
+msgstr "Bật nguồn"
+
+#: crates/mc-ui/src/smart.rs:157
+#, fuzzy
+msgid "Drive Health:"
+msgstr "Tình trạng Drive"
+
+#: crates/mc-ui/src/smart.rs:159
+#, fuzzy
+msgid "SMART Test Status:"
+msgstr "Trạng thái kiểm tra SMART"
+
+#: crates/mc-ui/src/smart.rs:174 crates/mc-ui/src/smart.rs:195
+msgid "Attribute"
+msgstr "Thuộc tính"
+
+#: crates/mc-ui/src/smart.rs:177 crates/mc-ui/src/smart.rs:196
+msgid "Value"
+msgstr "Giá trị"
+
+#: crates/mc-ui/src/smart.rs:194
+msgid "ID"
+msgstr "ID"
+
+#: crates/mc-ui/src/smart.rs:197
+msgid "Normalized"
+msgstr "Đã chuẩn hóa"
+
+#: crates/mc-ui/src/smart.rs:198
+msgid "Threshold"
+msgstr "Ngưỡng"
+
+#: crates/mc-ui/src/smart.rs:199
+msgid "Worst"
+msgstr "Tệ nhất"
+
+#: crates/mc-ui/src/smart.rs:201
+msgid "Updates"
+msgstr "Cập nhật"
+
+#: crates/mc-ui/src/smart.rs:202
+msgid "Assessment"
+msgstr "Đánh giá"
+
+#: crates/mc-ui/src/smart.rs:228
+msgid "Pre-Fail"
+msgstr "Thất bại trước"
+
+#: crates/mc-ui/src/smart.rs:230
+msgid "Old-Age"
+msgstr "Tuổi già"
+
+#: crates/mc-ui/src/smart.rs:234
+msgid "Online"
+msgstr "Trực tuyến"
+
+#: crates/mc-ui/src/smart.rs:236
+msgid "Offline"
+msgstr "Ngoại tuyến"
+
+#: crates/mc-ui/src/smart.rs:240
+msgid "FAILING"
+msgstr "THẤT BẠI"
+
+#: crates/mc-ui/src/smart.rs:242
+msgid "Failed in the past"
+msgstr "Thất bại trong quá khứ"
+
+#: crates/mc-ui/src/smart.rs:244
+msgid "Ok"
+msgstr "Ok"
+
+#: crates/mc-ui/src/smart.rs:274
+msgid "Failed To Get SMART Data"
+msgstr "Không thể lấy dữ liệu SMART"
+
+#: crates/mc-ui/src/smart.rs:276
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"Đã xảy ra sự cố khi tìm nạp dữ liệu SMART. Hãy thử chạy từ dòng lệnh để có "
+"thêm thông tin."
+
+#: crates/mc-ui/src/smart.rs:278 crates/mc-ui/src/smart.rs:352
+msgid "Close"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:322
+msgid "Failed To Eject"
+msgstr "Không thể đẩy ra"
+
+#: crates/mc-ui/src/smart.rs:338 crates/mc-ui/src/win10/details.rs:300
+#: crates/mc-ui/src/win10/processes.rs:621
+msgid "Kill"
+msgstr "Giết"
+
+#: crates/mc-ui/src/smart.rs:355
+msgid "Retry"
+msgstr ""
+
+#: crates/mc-ui/src/smart.rs:360
+#, fuzzy
+msgid "Kill All"
+msgstr "Giết"
+
+#: crates/mc-ui/src/smart.rs:385
+msgid "Operating System Information"
+msgstr "Thông tin hệ điều hành"
+
+#: crates/mc-ui/src/smart.rs:389 crates/mc-ui/src/smart.rs:403
+#: crates/mc-ui/src/smart.rs:410
+msgid "Version"
+msgstr "Phiên bản"
+
+#: crates/mc-ui/src/smart.rs:392
+msgid "Package Manager"
+msgstr "Trình quản lý gói"
+
+#: crates/mc-ui/src/smart.rs:394
+msgid "Package Manager Version"
+msgstr "Phiên bản trình quản lý gói"
+
+#: crates/mc-ui/src/smart.rs:400
+msgid "Kernel Information"
+msgstr "Thông tin hạt nhân"
+
+#: crates/mc-ui/src/smart.rs:402
+msgid "Kernel Release"
+msgstr "Phát hành hạt nhân"
+
+#: crates/mc-ui/src/smart.rs:407
+msgid "Desktop Environment Information"
+msgstr "Thông tin về môi trường máy tính để bàn"
+
+#: crates/mc-ui/src/smart.rs:411
+msgid "Windowing System"
+msgstr "Hệ thống cửa sổ"
+
+#: crates/mc-ui/src/smart.rs:412
+msgid "Virtual Terminal"
+msgstr "Thiết bị đầu cuối ảo"
+
+#: crates/mc-ui/src/win10/details.rs:78
+msgid "Sleeping"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:79
+msgid "Waiting"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:80
+msgid "Suspended"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:81
+msgid "Zombie"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:241
+msgid "User name"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:304
+msgid "Copy"
+msgstr ""
+
+#: crates/mc-ui/src/win10/performance.rs:166
+msgid "Graph summary view"
+msgstr ""
+
+#: crates/mc-ui/src/win10/performance.rs:172
+msgid "_Copy"
+msgstr "_Sao chép"
+
+#. / Network column: what the per-process values (TCP socket counters) include
+#: crates/mc-ui/src/win10/processes.rs:42
+msgid ""
+"Per-process values count TCP traffic of your processes; UDP (such as QUIC) "
+"and other users' processes are not visible."
+msgstr ""
+
+#. / Network column while the kernel's socket statistics cannot be read
+#: crates/mc-ui/src/win10/processes.rs:46
+msgid ""
+"Per-process network usage is unavailable: the kernel's socket statistics "
+"could not be read. The column total shows all network interfaces."
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:77
+msgid "Disk"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:626
+msgid "Properties"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:675
+msgid "Background processes"
+msgstr ""
+
+#: crates/mc-ui/src/win10/services.rs:95
 msgid "Disabled"
 msgstr "Tắt"
 
-#: src/services_page/mod.rs:144
-msgid "No services match the current filters"
-msgstr "Không có dịch vụ nào phù hợp với bộ lọc hiện tại"
+#: crates/mc-ui/src/win10/services.rs:195
+msgid "Start"
+msgstr "Bắt đầu"
 
-#: src/services_page/mod.rs:146
-msgid "No filters applied"
-msgstr "Không có bộ lọc nào được áp dụng"
+#: crates/mc-ui/src/win10/services.rs:198
+msgid "Stop"
+msgstr "Dừng"
 
-#: src/services_page/mod.rs:153
-#, rust-format
-msgid "{} {} Service"
-msgid_plural "{} {} Services"
-msgstr[0] "{} {} Dịch vụ"
+#: crates/mc-ui/src/win10/services.rs:201
+msgid "Restart"
+msgstr "Khởi động lại"
 
-#: src/services_page/mod.rs:182
-msgid "User Services"
-msgstr "Dịch vụ người dùng"
-
-#: src/services_page/mod.rs:187
-msgid "System Services"
-msgstr "Dịch vụ hệ thống"
-
-#: src/table_view/row_model.rs:279
-msgid "Section Header"
-msgstr "Tiêu đề phần"
-
-#: src/table_view/row_model.rs:280
-msgid "Service"
-msgstr "Dịch vụ"
-
-#: src/table_view/row_model.rs:281
-msgid "App"
-msgstr "Ứng dụng"
-
-#: src/table_view/service_details_dialog.rs:209
-msgid "Copy logs to clipboard"
-msgstr "Sao chép nhật ký vào bộ nhớ tạm"
-
-#: src/application.rs:521
-msgid "translator-credits"
+#: data/io.github.taskmanager.TaskManager.desktop.in:2
+#: data/io.github.taskmanager.TaskManager.desktop.in:3
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:4
+msgid "Task Manager"
 msgstr ""
-"Vietnam Linux L10n <https://github.com/linux-l10n-vi>\n"
-"Loc Huynh <https://github.com/hthienloc>"
 
-#: src/main.rs:106
-#, rust-format
-msgid "{} year"
-msgid_plural "{} years"
-msgstr[0] "{} năm"
+#: data/io.github.taskmanager.TaskManager.desktop.in:4
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:14
+msgid "Monitor processes, performance and services"
+msgstr ""
 
-#: src/main.rs:110
-#, rust-format
-msgid "{} month"
-msgid_plural "{} months"
-msgstr[0] "{} tháng"
+#: data/io.github.taskmanager.TaskManager.desktop.in:12
+#, fuzzy
+msgid ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
+"Manager;Service List;System Services;User Services;systemd;systemctl"
+msgstr ""
+"Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
+"monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization"
 
-#: src/main.rs:114
-#, rust-format
-msgid "{} day"
-msgid_plural "{} days"
-msgstr[0] "{} ngày"
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:6
+msgid "Task Manager Developers"
+msgstr ""
 
-#: src/main.rs:118
-#, rust-format
-msgid "{} hour"
-msgid_plural "{} hours"
-msgstr[0] "{} giờ"
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:16
+msgid ""
+"Task Manager shows the processes, performance, details and services of your "
+"system in a familiar tabbed interface: per-process CPU, memory, disk and "
+"network usage with heat colouring, live graphs for CPU, memory, disks, "
+"network, GPU, fans and batteries, a flat process list with owners and "
+"states, and systemd services you can start, stop and restart."
+msgstr ""
 
-#: src/main.rs:122 src/main.rs:207
-#, rust-format
-msgid "{} minute"
-msgid_plural "{} minutes"
-msgstr[0] "{} phút"
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:20
+msgid ""
+"Task Manager is based on Mission Center: it uses the Mission Center "
+"statistics backend (magpie) and code from the Mission Center project by the "
+"Mission Center Developers (GPL-3.0-or-later). Its interface is written from "
+"scratch with egui."
+msgstr ""
 
-#: src/main.rs:126 src/main.rs:205
-#, rust-format
-msgid "{} second"
-msgid_plural "{} seconds"
-msgstr[0] "{} giây"
-
-#: src/main.rs:163
-#, rust-format
-msgid "{}, {} and {}"
-msgstr "{}, {} và {}"
-
-#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
-#, rust-format
-msgid "{} and {}"
-msgstr "{} và {}"
-
-#: src/main.rs:197
-msgid "Less than a minute"
-msgstr "Chưa đầy một phút"
-
-#: src/main.rs:451
-msgid "_Quit"
-msgstr "_Thoát"
-
-#~ msgid "Show the gpu encode-decode graph"
-#~ msgstr "Hiển thị biểu đồ mã hóa-giải mã gpu"
-
-#~ msgid "Show CPU Information"
-#~ msgstr "Hiển thị thông tin CPU"
-
-#~ msgid "Global Units"
-#~ msgstr "Đơn vị toàn cầu"
-
-#~ msgid ""
-#~ "Shared\n"
-#~ "Memory"
-#~ msgstr ""
-#~ "Đã chia sẻ\n"
-#~ "Bộ nhớ"
-
-#~ msgid "Shared Memory"
-#~ msgstr "Bộ nhớ dùng chung"
-
-#~ msgid "_About System"
-#~ msgstr "_Giới thiệu về hệ thống"
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:39
+msgid ""
+"New interface in the style of a classic desktop task manager; per-process "
+"network usage without extra permissions; interface state kept across "
+"restarts."
+msgstr ""

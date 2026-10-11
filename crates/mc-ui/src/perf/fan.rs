@@ -207,13 +207,13 @@ impl DevicePage for FanPage {
             stats.push(vec![(i18n("Current Temperature"), self.temp.clone())]);
         }
         let mut panels = vec![GraphPanel::single(
-            over("Fan speed over ", &self.max_duration),
+            over(n_("Fan speed over "), &self.max_duration),
             self.speed_max_y.clone(),
             &mut self.speed_graph,
         )];
         if self.has_temp {
             panels.push(GraphPanel::single(
-                over("Temperature over ", &self.max_duration),
+                over(n_("Temperature over "), &self.max_duration),
                 self.temp_max_y.clone(),
                 &mut self.temp_graph,
             ));

@@ -294,13 +294,13 @@ impl DevicePage for MemoryPage {
         }
         let show_swap = config.performance_page_memory_swap_visible && self.has_swap;
         let mut panels = vec![GraphPanel::single(
-            over("Memory usage over ", &self.max_duration),
+            over(n_("Memory usage over "), &self.max_duration),
             self.max_graph_ram.clone(),
             &mut self.usage,
         )];
         if show_swap {
             panels.push(GraphPanel::single(
-                over("Swap usage over ", &self.max_duration),
+                over(n_("Swap usage over "), &self.max_duration),
                 self.total_swap.clone(),
                 &mut self.swap,
             ));

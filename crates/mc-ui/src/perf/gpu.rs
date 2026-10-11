@@ -338,9 +338,9 @@ impl GpuPage {
     fn aux_caption(&self, selection: i32) -> String {
         over(
             match selection {
-                GRAPH_POWER => "Power draw over ",
-                GRAPH_CLOCKS => "Clock speed over ",
-                GRAPH_TEMPERATURE => "Temperature over ",
+                GRAPH_POWER => n_("Power draw over "),
+                GRAPH_CLOCKS => n_("Clock speed over "),
+                GRAPH_TEMPERATURE => n_("Temperature over "),
                 _ => "",
             },
             &self.max_duration,
@@ -383,16 +383,20 @@ impl GpuPage {
             cx.config.performance_page_gpu_graph_middle
         };
         let title = if middle {
-            "Change Middle Graph To"
+            n_("Change Middle Graph To")
         } else {
-            "Change Bottom Graph To"
+            n_("Change Bottom Graph To")
         };
         menu::submenu(ui, &i18n(title), |ui| {
             for (label, value, supported) in [
-                ("_Power Draw", GRAPH_POWER, self.support.power),
-                ("_Clock Speeds", GRAPH_CLOCKS, self.support.clocks),
-                ("_Temperature", GRAPH_TEMPERATURE, self.support.temperature),
-                ("_None", GRAPH_NONE, true),
+                (n_("_Power Draw"), GRAPH_POWER, self.support.power),
+                (n_("_Clock Speeds"), GRAPH_CLOCKS, self.support.clocks),
+                (
+                    n_("_Temperature"),
+                    GRAPH_TEMPERATURE,
+                    self.support.temperature,
+                ),
+                (n_("_None"), GRAPH_NONE, true),
             ] {
                 if supported
                     && (value == GRAPH_NONE || value != self.effective(other))
@@ -577,8 +581,8 @@ impl DevicePage for GpuPage {
         ];
         let mut aux_stats = vec![];
         for (label, value, kind) in [
-            ("Clock Speed", clock, DataType::Hertz),
-            ("Memory Speed", memory_clock, DataType::Hertz),
+            (n_("Clock Speed"), clock, DataType::Hertz),
+            (n_("Memory Speed"), memory_clock, DataType::Hertz),
             ("Power Draw", power, DataType::Watts),
         ] {
             if let Some(value) = value {
@@ -702,7 +706,7 @@ impl DevicePage for GpuPage {
         let count = if self.single { 1 } else { self.selected.len() }.clamp(1, 4);
         let mut panels = vec![
             GraphPanel::grid(
-                over("Utilization over ", &self.max_duration),
+                over(n_("Utilization over "), &self.max_duration),
                 String::new(),
                 self.slots.iter_mut().take(count).collect(),
                 if count > 1 { 2 } else { 1 },

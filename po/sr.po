@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: missioncenter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 09:06+0300\n"
+"POT-Creation-Date: 2026-10-11 16:41+0300\n"
 "PO-Revision-Date: 2026-04-24 18:06+0000\n"
 "Last-Translator: \"Марко М. Костић\" <marko.m.kostic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/mission-center/"
@@ -20,12 +20,1662 @@ msgstr ""
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Weblate 5.17.1-dev\n"
 
-#: data/io.missioncenter.MissionCenter.desktop.in:2
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:4
-msgid "Mission Center"
-msgstr "Осматрачница"
+#: crates/mc-core/src/format.rs:34
+#, rust-format
+msgid "{} year"
+msgid_plural "{} years"
+msgstr[0] "{} година"
+msgstr[1] "{} године"
+msgstr[2] "{} година"
 
-#: data/io.missioncenter.MissionCenter.desktop.in:9
+#: crates/mc-core/src/format.rs:38
+#, rust-format
+msgid "{} month"
+msgid_plural "{} months"
+msgstr[0] "{} месец"
+msgstr[1] "{} месеца"
+msgstr[2] "{} месеци"
+
+#: crates/mc-core/src/format.rs:42 crates/mc-core/src/i18n.rs:202
+#: crates/mc-core/src/i18n.rs:203
+#, rust-format
+msgid "{} day"
+msgid_plural "{} days"
+msgstr[0] "{} дан"
+msgstr[1] "{} дана"
+msgstr[2] "{} дана"
+
+#: crates/mc-core/src/format.rs:46
+#, rust-format
+msgid "{} hour"
+msgid_plural "{} hours"
+msgstr[0] "{} час"
+msgstr[1] "{} часа"
+msgstr[2] "{} часова"
+
+#: crates/mc-core/src/format.rs:50 crates/mc-core/src/format.rs:127
+#, rust-format
+msgid "{} minute"
+msgid_plural "{} minutes"
+msgstr[0] "{} минут"
+msgstr[1] "{} минута"
+msgstr[2] "{} минута"
+
+#: crates/mc-core/src/format.rs:54 crates/mc-core/src/format.rs:125
+#, rust-format
+msgid "{} second"
+msgid_plural "{} seconds"
+msgstr[0] "{} секунда"
+msgstr[1] "{} секунде"
+msgstr[2] "{} секунди"
+
+#: crates/mc-core/src/format.rs:85
+#, rust-format
+msgid "{}, {} and {}"
+msgstr "{}, {} и {}"
+
+#: crates/mc-core/src/format.rs:87 crates/mc-core/src/format.rs:94
+#: crates/mc-core/src/format.rs:101 crates/mc-core/src/format.rs:108
+#, rust-format
+msgid "{} and {}"
+msgstr "{} и {}"
+
+#: crates/mc-core/src/format.rs:117
+msgid "Less than a minute"
+msgstr "Мање од једног минута"
+
+#: crates/mc-core/src/gpu.rs:18
+msgid "3D"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:19
+msgctxt "GPU engine"
+msgid "Copy"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:20
+msgid "Compute"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:21
+msgid "Video Encode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:22
+msgid "Video Decode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:23 crates/mc-ui/src/perf/gpu.rs:1023
+msgid "Video Encode/Decode"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:24
+msgid "Video"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:25
+msgid "Video Enhance"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:33 crates/mc-ui/src/perf/gpu.rs:1025
+msgid ""
+"Encoding and decoding share one hardware queue; the driver does not count "
+"them separately"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:39
+msgid "Measured by the GPU driver"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:41
+msgid "Partial GPU data: some engines or processes are not observable"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:44
+msgid "Permission denied while reading GPU process counters"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:46
+msgid "Collecting GPU counters; waiting for the next sample"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:47
+msgid "The GPU driver has not supplied a fresh sample"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:49
+msgid "The GPU driver or its monitoring interface is unavailable"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:51
+msgid "The GPU driver does not provide this counter"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:52
+msgid "GPU telemetry is not available for this process"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:95
+#, rust-format
+msgid "GPU {} - {}"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:107
+msgid "Only overall utilization is available; the active engine is unknown"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:132
+msgid "Driver-reported allocation; residency is not available"
+msgstr ""
+
+#: crates/mc-core/src/table.rs:470
+msgid "Apps"
+msgstr "Програми"
+
+#: crates/mc-core/src/table.rs:476 crates/mc-ui/src/cx.rs:66
+#: crates/mc-ui/src/perf/cpu.rs:410
+msgid "Processes"
+msgstr "Процеси"
+
+#: crates/mc-core/src/table.rs:561
+msgid "User Services"
+msgstr "Корисничке услуге"
+
+#: crates/mc-core/src/table.rs:567
+msgid "System Services"
+msgstr "Системске услуге"
+
+#: crates/mc-ui/src/app.rs:502
+msgid "Run new task"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:506
+msgid "Exit"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:511
+msgid "Always on top"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:533
+msgid "Refresh now"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:539
+msgid "Group by type"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:544
+msgid "Expand all"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:547
+msgid "Collapse all"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:554
+msgid "Show virtual network adapters"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:561
+msgid "Update speed"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:562
+msgid "High"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:562
+msgid "Normal"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:562
+msgid "Low"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:571
+msgid "Paused"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:613
+msgid "Create new task"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:621
+msgid "Type the name of a program and Task Manager will start it."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:625
+msgid "Open:"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:638
+msgid "Cancel"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:643
+msgid "OK"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:682
+msgid "File"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:682
+msgid "Options"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:682
+msgid "View"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:704
+msgid "Fewer details"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:706
+msgid "More details"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:714 crates/mc-ui/src/app.rs:721
+#: crates/mc-ui/src/win10/details.rs:297
+#: crates/mc-ui/src/win10/processes.rs:617
+msgid "End task"
+msgstr ""
+
+#: crates/mc-ui/src/cx.rs:67
+msgid "Performance"
+msgstr "Учинак"
+
+#: crates/mc-ui/src/cx.rs:68 crates/mc-ui/src/win10/services.rs:205
+msgid "Details"
+msgstr "Детаљи"
+
+#: crates/mc-ui/src/cx.rs:69
+msgid "Services"
+msgstr "Услуге"
+
+#: crates/mc-ui/src/dialogs.rs:164
+msgid "Service Details"
+msgstr "Детаљи о услузи"
+
+#: crates/mc-ui/src/dialogs.rs:168 crates/mc-ui/src/perf/battery.rs:392
+msgid "State"
+msgstr "Стање"
+
+#: crates/mc-ui/src/dialogs.rs:169
+msgid "The current state of the service"
+msgstr "Тренутно стање услуге"
+
+#: crates/mc-ui/src/dialogs.rs:175
+msgid "Restart service"
+msgstr "Поново покрени услугу"
+
+#: crates/mc-ui/src/dialogs.rs:182
+msgid "Stop service"
+msgstr "Заустави услугу"
+
+#: crates/mc-ui/src/dialogs.rs:189
+msgid "Start service"
+msgstr "Покрени услугу"
+
+#: crates/mc-ui/src/dialogs.rs:198 crates/mc-ui/src/win10/details.rs:77
+#: crates/mc-ui/src/win10/services.rs:89
+msgid "Running"
+msgstr "Покренуто"
+
+#: crates/mc-ui/src/dialogs.rs:200 crates/mc-ui/src/perf/network.rs:44
+#: crates/mc-ui/src/win10/services.rs:91
+msgid "Failed"
+msgstr "Неуспешно"
+
+#: crates/mc-ui/src/dialogs.rs:202 crates/mc-ui/src/win10/services.rs:93
+msgid "Stopped"
+msgstr "Заустављено"
+
+#: crates/mc-ui/src/dialogs.rs:208 crates/mc-ui/src/smart.rs:387
+#: crates/mc-ui/src/smart.rs:409 crates/mc-ui/src/win10/details.rs:238
+#: crates/mc-ui/src/win10/processes.rs:72
+#: crates/mc-ui/src/win10/services.rs:155
+msgid "Name"
+msgstr "Назив"
+
+#: crates/mc-ui/src/dialogs.rs:214 crates/mc-ui/src/win10/services.rs:157
+msgid "Description"
+msgstr "Опис"
+
+#: crates/mc-ui/src/dialogs.rs:220 crates/mc-ui/src/win10/details.rs:240
+#: crates/mc-ui/src/win10/services.rs:158
+msgid "Status"
+msgstr "Статус"
+
+#: crates/mc-ui/src/dialogs.rs:223
+msgid "Enabled"
+msgstr "Омогућено"
+
+#: crates/mc-ui/src/dialogs.rs:237 crates/mc-ui/src/perf/cpu.rs:238
+#: crates/mc-ui/src/perf/memory.rs:333 crates/mc-ui/src/perf/network.rs:179
+#: crates/mc-ui/src/perf/network.rs:254 crates/mc-ui/src/smart.rs:40
+#: crates/mc-ui/src/smart.rs:117 crates/mc-ui/src/win10/details.rs:138
+msgid "N/A"
+msgstr "Н/Д"
+
+#: crates/mc-ui/src/dialogs.rs:240
+msgid "Process ID"
+msgstr "ИД процеса"
+
+#: crates/mc-ui/src/dialogs.rs:248
+msgid "User"
+msgstr "Корисник"
+
+#: crates/mc-ui/src/dialogs.rs:256 crates/mc-ui/src/win10/services.rs:159
+msgid "Group"
+msgstr "Група"
+
+#: crates/mc-ui/src/dialogs.rs:264
+msgid "File Location"
+msgstr "Локација датотеке"
+
+#: crates/mc-ui/src/dialogs.rs:266 crates/mc-ui/src/perf/battery.rs:174
+#: crates/mc-ui/src/perf/battery.rs:323 crates/mc-ui/src/perf/cpu.rs:204
+#: crates/mc-ui/src/perf/cpu.rs:220 crates/mc-ui/src/perf/cpu.rs:230
+#: crates/mc-ui/src/perf/cpu.rs:235 crates/mc-ui/src/perf/disk.rs:139
+#: crates/mc-ui/src/perf/disk.rs:143 crates/mc-ui/src/perf/disk.rs:150
+#: crates/mc-ui/src/perf/disk.rs:190 crates/mc-ui/src/perf/disk.rs:255
+#: crates/mc-ui/src/perf/gpu.rs:98 crates/mc-ui/src/perf/gpu.rs:165
+#: crates/mc-ui/src/perf/gpu.rs:451 crates/mc-ui/src/perf/gpu.rs:824
+#: crates/mc-ui/src/perf/memory.rs:111 crates/mc-ui/src/perf/network.rs:43
+#: crates/mc-ui/src/perf/network.rs:121 crates/mc-ui/src/perf/network.rs:178
+#: crates/mc-ui/src/perf/network.rs:296 crates/mc-ui/src/perf/network.rs:297
+#: crates/mc-ui/src/smart.rs:140 crates/mc-ui/src/smart.rs:380
+#: crates/mc-ui/src/win10/details.rs:82
+msgid "Unknown"
+msgstr "Непознато"
+
+#: crates/mc-ui/src/dialogs.rs:278 crates/mc-ui/src/dialogs.rs:368
+msgid "Process"
+msgstr "Процес"
+
+#: crates/mc-ui/src/dialogs.rs:279
+msgid "Process and user information"
+msgstr "Подаци о процесу и кориснику"
+
+#: crates/mc-ui/src/dialogs.rs:299
+msgid "Logs"
+msgstr "Дневници"
+
+#: crates/mc-ui/src/dialogs.rs:306
+msgid "Copy logs to clipboard"
+msgstr "Копирај дневнике у оставу"
+
+#: crates/mc-ui/src/dialogs.rs:338
+msgid "_Quit"
+msgstr "_Изађи"
+
+#: crates/mc-ui/src/dialogs.rs:365
+msgid "Section Header"
+msgstr "Заглавље одељка"
+
+#: crates/mc-ui/src/dialogs.rs:366
+msgid "Service"
+msgstr "Услуга"
+
+#: crates/mc-ui/src/dialogs.rs:367
+msgid "App"
+msgstr "Програм"
+
+#: crates/mc-ui/src/dialogs.rs:371
+msgid "App ID"
+msgstr "ИД програма"
+
+#: crates/mc-ui/src/dialogs.rs:373 crates/mc-ui/src/win10/details.rs:239
+#: crates/mc-ui/src/win10/processes.rs:73
+#: crates/mc-ui/src/win10/services.rs:156
+msgid "PID"
+msgstr "ПИД"
+
+#: crates/mc-ui/src/dialogs.rs:386 crates/mc-ui/src/smart.rs:200
+msgid "Type"
+msgstr "Врста"
+
+#: crates/mc-ui/src/dialogs.rs:390
+msgid "Command Line"
+msgstr "Линија наредби"
+
+#: crates/mc-ui/src/dialogs.rs:399
+msgid "Resource Usage"
+msgstr "Заузеће ресурса"
+
+#: crates/mc-ui/src/dialogs.rs:405 crates/mc-ui/src/perf/cpu.rs:103
+#: crates/mc-ui/src/perf/cpu.rs:466 crates/mc-ui/src/win10/details.rs:242
+#: crates/mc-ui/src/win10/processes.rs:74
+msgid "CPU"
+msgstr "Процесор"
+
+#: crates/mc-ui/src/dialogs.rs:407 crates/mc-ui/src/perf/memory.rs:78
+#: crates/mc-ui/src/perf/memory.rs:309 crates/mc-ui/src/win10/details.rs:243
+#: crates/mc-ui/src/win10/processes.rs:75
+msgid "Memory"
+msgstr "Меморија"
+
+#: crates/mc-ui/src/dialogs.rs:410 crates/mc-ui/src/win10/processes.rs:76
+msgid "Swap"
+msgstr "Размена"
+
+#: crates/mc-ui/src/dialogs.rs:412
+msgid "Drives"
+msgstr "Дискови"
+
+#: crates/mc-ui/src/dialogs.rs:416 crates/mc-ui/src/perf/battery.rs:60
+#: crates/mc-ui/src/win10/processes.rs:78
+msgid "Network"
+msgstr "Мрежа"
+
+#: crates/mc-ui/src/dialogs.rs:419 crates/mc-ui/src/win10/details.rs:244
+#: crates/mc-ui/src/win10/processes.rs:79
+msgid "GPU"
+msgstr "Графичка"
+
+#: crates/mc-ui/src/dialogs.rs:420 crates/mc-ui/src/win10/details.rs:245
+#: crates/mc-ui/src/win10/processes.rs:80
+msgid "GPU engine"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:422 crates/mc-ui/src/win10/processes.rs:81
+msgid "GPU Memory"
+msgstr "Графичка меморија"
+
+#: crates/mc-ui/src/dialogs.rs:441
+msgid "Global"
+msgstr "Опште"
+
+#: crates/mc-ui/src/dialogs.rs:443
+msgid "Open Menu"
+msgstr "Отвори мени"
+
+#: crates/mc-ui/src/dialogs.rs:444
+msgid "Close Window"
+msgstr "Затвори прозор"
+
+#: crates/mc-ui/src/dialogs.rs:445
+msgid "Show Keyboard Shortcuts"
+msgstr "Прикажи пречице тастатуре"
+
+#: crates/mc-ui/src/dialogs.rs:446
+msgid "Show Performance Page"
+msgstr "Прикажи страницу учинка"
+
+#: crates/mc-ui/src/dialogs.rs:447
+msgid "Show Apps Page"
+msgstr "Прикажи страницу програма"
+
+#: crates/mc-ui/src/dialogs.rs:448
+msgid "Show Services Page"
+msgstr "Прикажи страницу услуга"
+
+#: crates/mc-ui/src/dialogs.rs:450
+msgid "Toggle Sidebar"
+msgstr "Прикажи/сакриј страничник"
+
+#: crates/mc-ui/src/dialogs.rs:455
+msgid "Performance Page"
+msgstr "Страница учинка"
+
+#: crates/mc-ui/src/dialogs.rs:457
+msgid "Copy Device Information"
+msgstr "Копирај податке о уређају"
+
+#: crates/mc-ui/src/dialogs.rs:458
+msgid "Toggle Summary Mode"
+msgstr "Укључи/искључи режим сажетка"
+
+#: crates/mc-ui/src/dialogs.rs:459
+msgid "Select a Device"
+msgstr "Изабери уређај"
+
+#: crates/mc-ui/src/dialogs.rs:463
+msgid "Apps Page"
+msgstr "Страница програма"
+
+#: crates/mc-ui/src/dialogs.rs:465 crates/mc-ui/src/dialogs.rs:475
+msgid "Search"
+msgstr "Претрага"
+
+#: crates/mc-ui/src/dialogs.rs:466 crates/mc-ui/src/dialogs.rs:476
+msgid "Collapse All"
+msgstr "Скупи све"
+
+#: crates/mc-ui/src/dialogs.rs:467
+msgid "Stop App or Process"
+msgstr "Заустави програм или процес"
+
+#: crates/mc-ui/src/dialogs.rs:468
+msgid "Force Stop App or Process"
+msgstr "Присилно заустави програм или процес"
+
+#: crates/mc-ui/src/dialogs.rs:469 crates/mc-ui/src/dialogs.rs:480
+msgid "Show Details Dialog"
+msgstr "Прикажи прозорче са детаљима"
+
+#: crates/mc-ui/src/dialogs.rs:473
+msgid "Services Page"
+msgstr "Страница услуга"
+
+#: crates/mc-ui/src/dialogs.rs:477
+msgid "Start Service"
+msgstr "Започни услугу"
+
+#: crates/mc-ui/src/dialogs.rs:478
+msgid "Stop Service"
+msgstr "Заустави услугу"
+
+#: crates/mc-ui/src/dialogs.rs:479
+msgid "Restart Service"
+msgstr "Поново покрени услугу"
+
+#: crates/mc-ui/src/dialogs.rs:486
+msgid "Keyboard Shortcuts"
+msgstr "Пречице на тастатури"
+
+#: crates/mc-ui/src/dialogs.rs:501
+msgid "Hold to pause"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:524 crates/mc-ui/src/dialogs.rs:525
+msgid "translator-credits"
+msgstr ""
+"Serbian <fedora-trans-sr@redhat.com>\n"
+"Марко Костић <marko.m.kostic@gmail.com>\n"
+"Превод Гнома на српски језик https://гном.срб"
+
+#: crates/mc-ui/src/dialogs.rs:531
+msgid "Based on Mission Center"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:534
+msgid ""
+"Uses the Mission Center statistics backend (magpie) and code from the "
+"Mission Center project."
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:543
+msgid "Standing on the shoulders of giants"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:548
+msgid "And many more... Thank you all!"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:566
+msgid "System Information"
+msgstr ""
+
+#: crates/mc-ui/src/dialogs.rs:568
+msgid "Copy All"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:46 crates/mc-ui/src/perf/battery.rs:150
+#: crates/mc-ui/src/perf/battery.rs:188 crates/mc-ui/src/perf/battery.rs:284
+#: crates/mc-ui/src/perf/battery.rs:302
+msgid "Battery"
+msgstr "Батерија"
+
+#: crates/mc-ui/src/perf/battery.rs:95 crates/mc-ui/src/perf/battery.rs:321
+msgid "Empty"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:96 crates/mc-ui/src/perf/battery.rs:318
+msgid "Full"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:330
+#: crates/mc-ui/src/perf/cpu.rs:228 crates/mc-ui/src/perf/disk.rs:146
+msgid "Yes"
+msgstr "Да"
+
+#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:332
+#: crates/mc-ui/src/perf/cpu.rs:229 crates/mc-ui/src/perf/disk.rs:148
+msgid "No"
+msgstr "Не"
+
+#: crates/mc-ui/src/perf/battery.rs:199 crates/mc-ui/src/perf/battery.rs:309
+#: crates/mc-ui/src/perf/battery.rs:337 crates/mc-ui/src/perf/fan.rs:160
+#, rust-format
+msgid "{}%"
+msgstr "{}%"
+
+#: crates/mc-ui/src/perf/battery.rs:283 crates/mc-ui/src/perf/battery.rs:301
+#, rust-format
+msgid "Battery {}"
+msgstr "Батерија {}"
+
+#: crates/mc-ui/src/perf/battery.rs:328
+msgid "Firmware"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:358 crates/mc-ui/src/perf/battery.rs:435
+#: crates/mc-ui/src/perf/cpu.rs:449 crates/mc-ui/src/perf/disk.rs:334
+msgid "100%"
+msgstr "100%"
+
+#: crates/mc-ui/src/perf/battery.rs:381 crates/mc-ui/src/perf/battery.rs:423
+msgid "Percentage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:383
+msgid "Energy"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:387
+msgid "Voltage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:390
+msgid "Power"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:394
+msgid "Time to "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:397
+msgid "Charge Cycles"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:411 crates/mc-ui/src/perf/disk.rs:312
+msgid "Serial:"
+msgstr "Серијски:"
+
+#: crates/mc-ui/src/perf/battery.rs:412 crates/mc-ui/src/perf/disk.rs:306
+#: crates/mc-ui/src/perf/memory.rs:287
+msgid "Type:"
+msgstr "Врста:"
+
+#: crates/mc-ui/src/perf/battery.rs:415 crates/mc-ui/src/perf/disk.rs:303
+msgid "Capacity:"
+msgstr "Капацитет:"
+
+#: crates/mc-ui/src/perf/battery.rs:421
+msgid "Power Input"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:425
+msgid " over "
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:434
+msgid "Battery Charge over past week"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/cpu.rs:226
+#: crates/mc-ui/src/perf/fan.rs:231 crates/mc-ui/src/perf/gpu.rs:101
+msgid "Unsupported"
+msgstr "Неподржано"
+
+#. Extra values go next to "Up time" (the shortest row) so the statistics stay narrow
+#: crates/mc-ui/src/perf/cpu.rs:397
+msgid "Up time"
+msgstr "Време рада"
+
+#: crates/mc-ui/src/perf/cpu.rs:399 crates/mc-ui/src/perf/gpu.rs:563
+msgid "Temperature"
+msgstr "Температура"
+
+#: crates/mc-ui/src/perf/cpu.rs:402
+msgid "Power Draw"
+msgstr "Потрошња енергије"
+
+#: crates/mc-ui/src/perf/cpu.rs:406 crates/mc-ui/src/perf/gpu.rs:561
+msgid "Utilization"
+msgstr "Искоришћеност"
+
+#: crates/mc-ui/src/perf/cpu.rs:407
+msgid "Speed"
+msgstr "Брзина"
+
+#: crates/mc-ui/src/perf/cpu.rs:411
+msgid "Threads"
+msgstr "Нити"
+
+#: crates/mc-ui/src/perf/cpu.rs:412
+msgid "Handles"
+msgstr "Ручке"
+
+#: crates/mc-ui/src/perf/cpu.rs:417
+msgid "Base Speed:"
+msgstr "Основна брзина:"
+
+#: crates/mc-ui/src/perf/cpu.rs:418
+msgid "Sockets:"
+msgstr "Прикључнице:"
+
+#: crates/mc-ui/src/perf/cpu.rs:419
+msgid "Virtual processors:"
+msgstr "Виртуелни процесори:"
+
+#: crates/mc-ui/src/perf/cpu.rs:420
+msgid "Virtualization:"
+msgstr "Виртуелизација:"
+
+#: crates/mc-ui/src/perf/cpu.rs:421
+msgid "Virtual machine:"
+msgstr "Виртуелна машина:"
+
+#: crates/mc-ui/src/perf/cpu.rs:422
+msgid "L1 cache:"
+msgstr "Л1 кеш:"
+
+#: crates/mc-ui/src/perf/cpu.rs:423
+msgid "L2 cache:"
+msgstr "Л2 кеш:"
+
+#: crates/mc-ui/src/perf/cpu.rs:424
+msgid "L3 cache:"
+msgstr "Л3 кеш:"
+
+#: crates/mc-ui/src/perf/cpu.rs:427
+msgid "Cpufreq driver:"
+msgstr "Cpufreq управљач:"
+
+#: crates/mc-ui/src/perf/cpu.rs:428
+msgid "Cpufreq governor:"
+msgstr "Cpufreq намесник:"
+
+#: crates/mc-ui/src/perf/cpu.rs:429
+msgid "Power preference:"
+msgstr "Поставка за напајање:"
+
+#: crates/mc-ui/src/perf/cpu.rs:436 crates/mc-ui/src/perf/gpu.rs:709
+msgid "Utilization over "
+msgstr "Искоришћеност током "
+
+#: crates/mc-ui/src/perf/cpu.rs:455 crates/mc-ui/src/perf/gpu.rs:341
+#, fuzzy
+msgid "Power draw over "
+msgstr "Потрошња енергије"
+
+#: crates/mc-ui/src/perf/cpu.rs:456 crates/mc-ui/src/perf/gpu.rs:342
+#, fuzzy
+msgid "Clock speed over "
+msgstr "Брзина вентилатора током "
+
+#: crates/mc-ui/src/perf/cpu.rs:457 crates/mc-ui/src/perf/fan.rs:216
+#: crates/mc-ui/src/perf/gpu.rs:343
+msgid "Temperature over "
+msgstr "Температура током "
+
+#: crates/mc-ui/src/perf/cpu.rs:477
+#, fuzzy
+msgid "Change _Top Graph To"
+msgstr "Промени г_рафик на"
+
+#: crates/mc-ui/src/perf/cpu.rs:479
+msgid "Overall U_tilization"
+msgstr "Укупно и_скоришћење"
+
+#: crates/mc-ui/src/perf/cpu.rs:480
+msgid "Logical _Processors"
+msgstr "Логички _процесори"
+
+#: crates/mc-ui/src/perf/cpu.rs:481
+msgid "_All Threads"
+msgstr "_Све нити"
+
+#: crates/mc-ui/src/perf/cpu.rs:483
+msgid "All Threads _Stacked"
+msgstr "Све нити _наслагане"
+
+#: crates/mc-ui/src/perf/cpu.rs:500
+#, fuzzy
+msgid "Change B_ottom Graph To"
+msgstr "Промени г_рафик на"
+
+#: crates/mc-ui/src/perf/cpu.rs:503 crates/mc-ui/src/perf/gpu.rs:392
+#, fuzzy
+msgid "_Power Draw"
+msgstr "Потрошња енергије"
+
+#: crates/mc-ui/src/perf/cpu.rs:504 crates/mc-ui/src/perf/gpu.rs:395
+#, fuzzy
+msgid "_Temperature"
+msgstr "Температура"
+
+#: crates/mc-ui/src/perf/cpu.rs:505
+#, fuzzy
+msgid "_Clock Speed"
+msgstr "Брзина такта"
+
+#: crates/mc-ui/src/perf/cpu.rs:506 crates/mc-ui/src/perf/gpu.rs:399
+msgid "_None"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cpu.rs:516
+msgid "Show Kernel Times"
+msgstr "Прикажи времена језгра"
+
+#: crates/mc-ui/src/perf/disk.rs:42
+msgid "HDD"
+msgstr "ХДД"
+
+#: crates/mc-ui/src/perf/disk.rs:43
+msgid "SSD"
+msgstr "ССД"
+
+#: crates/mc-ui/src/perf/disk.rs:44
+msgid "NVMe"
+msgstr "НВМе"
+
+#: crates/mc-ui/src/perf/disk.rs:45
+msgid "eMMC"
+msgstr "еММЦ"
+
+#: crates/mc-ui/src/perf/disk.rs:46
+msgid "SD"
+msgstr "СД"
+
+#: crates/mc-ui/src/perf/disk.rs:47
+msgid "iSCSI"
+msgstr "iSCSI"
+
+#: crates/mc-ui/src/perf/disk.rs:48
+msgid "Optical"
+msgstr "Оптички"
+
+#: crates/mc-ui/src/perf/disk.rs:49
+msgid "Floppy"
+msgstr "Флопи"
+
+#: crates/mc-ui/src/perf/disk.rs:50
+msgid "Thumb Drive"
+msgstr "УСБ стик"
+
+#: crates/mc-ui/src/perf/disk.rs:169
+#, rust-format
+msgid "Drive {} ({})"
+msgstr "Уређај {} ({})"
+
+#: crates/mc-ui/src/perf/disk.rs:170
+#, rust-format
+msgid "Drive ({})"
+msgstr "Уређај ({})"
+
+#: crates/mc-ui/src/perf/disk.rs:172
+msgid "Drive"
+msgstr "Уређај"
+
+#: crates/mc-ui/src/perf/disk.rs:174
+#, rust-format
+msgid "{} {} ({})"
+msgstr "{} {} ({})"
+
+#: crates/mc-ui/src/perf/disk.rs:259 crates/mc-ui/src/perf/fan.rs:158
+#: crates/mc-ui/src/perf/fan.rs:175
+#, rust-format
+msgid "{} RPM"
+msgstr "{} РПМ"
+
+#: crates/mc-ui/src/perf/disk.rs:290
+msgid "Active time"
+msgstr "Активно време"
+
+#: crates/mc-ui/src/perf/disk.rs:291
+msgid "Avg. response time"
+msgstr "Просечно време одговора"
+
+#: crates/mc-ui/src/perf/disk.rs:294
+msgid "Read speed"
+msgstr "Брзина читања"
+
+#: crates/mc-ui/src/perf/disk.rs:295
+msgid "Write speed"
+msgstr "Брзина записивања"
+
+#: crates/mc-ui/src/perf/disk.rs:298
+msgid "Total Read"
+msgstr "Укупно прочитано"
+
+#: crates/mc-ui/src/perf/disk.rs:299
+msgid "Total Written"
+msgstr "Укупно уписано"
+
+#: crates/mc-ui/src/perf/disk.rs:304
+msgid "Formatted:"
+msgstr "Форматирано:"
+
+#: crates/mc-ui/src/perf/disk.rs:305
+msgid "System disk:"
+msgstr "Системски диск:"
+
+#: crates/mc-ui/src/perf/disk.rs:309
+msgid "WWN:"
+msgstr "WWN:"
+
+#: crates/mc-ui/src/perf/disk.rs:315
+msgid "Rotation Rate"
+msgstr "Брзина окретања"
+
+#: crates/mc-ui/src/perf/disk.rs:333
+msgid "Active time over "
+msgstr "Активно време током "
+
+#: crates/mc-ui/src/perf/disk.rs:338 crates/mc-ui/src/perf/network.rs:273
+msgid "Throughput over "
+msgstr "Пропусна моћ током "
+
+#: crates/mc-ui/src/perf/disk.rs:350
+msgid "Eject Disk"
+msgstr "Избаци диск"
+
+#: crates/mc-ui/src/perf/disk.rs:353
+msgid "Show SMART Data"
+msgstr "Прикажи СМАРТ податке"
+
+#: crates/mc-ui/src/perf/fan.rs:64 crates/mc-ui/src/perf/fan.rs:103
+#: crates/mc-ui/src/perf/fan.rs:139 crates/mc-ui/src/perf/fan.rs:156
+msgid "Fan"
+msgstr "Вентилатор"
+
+#: crates/mc-ui/src/perf/fan.rs:138 crates/mc-ui/src/perf/fan.rs:155
+#, rust-format
+msgid "Fan {}"
+msgstr "Вентилатор {}"
+
+#: crates/mc-ui/src/perf/fan.rs:165 crates/mc-ui/src/smart.rs:87
+#: crates/mc-ui/src/smart.rs:93 crates/mc-ui/src/smart.rs:121
+#, rust-format
+msgid "{} °C"
+msgstr "{} °C"
+
+#: crates/mc-ui/src/perf/fan.rs:201
+msgid "Fan Speed"
+msgstr "Брзина вентилатора"
+
+#: crates/mc-ui/src/perf/fan.rs:203
+msgid "PWM Percentage"
+msgstr "Проценат PWM-а"
+
+#: crates/mc-ui/src/perf/fan.rs:207
+msgid "Current Temperature"
+msgstr "Тренутна температура"
+
+#: crates/mc-ui/src/perf/fan.rs:210
+msgid "Fan speed over "
+msgstr "Брзина вентилатора током "
+
+#: crates/mc-ui/src/perf/gpu.rs:99 crates/mc-ui/src/perf/memory.rs:264
+msgid "Available"
+msgstr "Доступно"
+
+#: crates/mc-ui/src/perf/gpu.rs:100
+msgid "Partial"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:102
+msgid "Permission denied"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:103
+msgid "Collecting data"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:104
+msgid "Stale"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:105
+msgid "Driver unavailable"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:166 crates/mc-ui/src/perf/gpu.rs:197
+#: crates/mc-ui/src/perf/gpu.rs:927
+#, rust-format
+msgid "GPU {}"
+msgstr "ГПЈ {}"
+
+#: crates/mc-ui/src/perf/gpu.rs:231 crates/mc-ui/src/perf/gpu.rs:1040
+msgid "Overall utilization"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:386
+#, fuzzy
+msgid "Change Middle Graph To"
+msgstr "Промени г_рафик на"
+
+#: crates/mc-ui/src/perf/gpu.rs:388
+#, fuzzy
+msgid "Change Bottom Graph To"
+msgstr "Промени г_рафик на"
+
+#: crates/mc-ui/src/perf/gpu.rs:393
+#, fuzzy
+msgid "_Clock Speeds"
+msgstr "Брзина такта"
+
+#: crates/mc-ui/src/perf/gpu.rs:568 crates/mc-ui/src/win10/details.rs:246
+#: crates/mc-ui/src/win10/processes.rs:82
+msgid "Dedicated GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:573 crates/mc-ui/src/win10/details.rs:247
+#: crates/mc-ui/src/win10/processes.rs:83
+msgid "Shared GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:577
+msgid "GPU memory"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:584
+msgid "Clock Speed"
+msgstr "Брзина такта"
+
+#: crates/mc-ui/src/perf/gpu.rs:585
+msgid "Memory Speed"
+msgstr "Брзина меморије"
+
+#: crates/mc-ui/src/perf/gpu.rs:596
+msgid "Status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:598
+msgid "Dedicated memory status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:601
+msgid "Shared memory status:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:602
+msgid "Sample age:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:606
+msgid "Busiest engine:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:621
+msgid "OpenGL version:"
+msgstr "Издање ОпенГЛ-а:"
+
+#: crates/mc-ui/src/perf/gpu.rs:629
+msgid "Vulkan version:"
+msgstr "Издање Вулкана:"
+
+#: crates/mc-ui/src/perf/gpu.rs:642
+msgid "PCI Express speed:"
+msgstr "Брзина ПЦИ Експреса:"
+
+#: crates/mc-ui/src/perf/gpu.rs:648
+msgid "Max PCI Express speed:"
+msgstr "Највећа брзина ПЦИ Експреса:"
+
+#: crates/mc-ui/src/perf/gpu.rs:653
+msgid "Device address:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:656
+msgid "Driver-reserved memory:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:660
+msgid "Integrated GPU:"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:715
+msgid "Dedicated GPU memory usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:720
+msgid "Shared GPU memory usage"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:749
+msgid "Change graph to"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:755
+msgid "Multiple engines"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:758
+msgid "Single engine"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:765
+#, rust-format
+msgid "Engine graph {}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:837
+msgid "Measured from visible DRM clients"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mem_composition.rs:59
+#, rust-format
+msgid ""
+"In use ({})\n"
+"\n"
+"Memory used by the operating system and running applications"
+msgstr ""
+"У употреби ({})\n"
+"\n"
+"Меморија коју користе оперативни систем и покренути програми"
+
+#: crates/mc-ui/src/perf/mem_composition.rs:64
+#, rust-format
+msgid ""
+"Modified ({})\n"
+"\n"
+"Memory whose contents must be written to disk before it can be used by "
+"another process"
+msgstr ""
+"Измењено ({})\n"
+"\n"
+"Меморија чији садржај мора бити записан на диск пре него што га може "
+"користити други процес"
+
+#: crates/mc-ui/src/perf/mem_composition.rs:70
+#, rust-format
+msgid ""
+"Standby ({})\n"
+"\n"
+"Memory that contains cached data and code that is not actively in use"
+msgstr ""
+"Припратно ({})\n"
+"\n"
+"Меморија која садржи кеширане податке и код који није активно у употреби"
+
+#: crates/mc-ui/src/perf/mem_composition.rs:76
+#, rust-format
+msgid ""
+"Free ({})\n"
+"\n"
+"Memory that is not currently in use, and that will be repurposed first when "
+"the operating system, drivers, or applications need more memory"
+msgstr ""
+"Слободно ({})\n"
+"\n"
+"Меморија која тренутно није у употреби, а која ће прво бити искоришћена када "
+"оперативном систему, управљачима или програмима буде потребно више меморије"
+
+#: crates/mc-ui/src/perf/memory.rs:121
+#, rust-format
+msgid "{} of {}"
+msgstr "{} од {}"
+
+#: crates/mc-ui/src/perf/memory.rs:263
+msgid "In use"
+msgstr "У употреби"
+
+#: crates/mc-ui/src/perf/memory.rs:267
+msgid "Committed"
+msgstr "Предато"
+
+#: crates/mc-ui/src/perf/memory.rs:268
+msgid "Cached"
+msgstr "Кеширано"
+
+#: crates/mc-ui/src/perf/memory.rs:273
+msgid "Swap used"
+msgstr "Искоришћена размена"
+
+#: crates/mc-ui/src/perf/memory.rs:274
+msgid "Swap available"
+msgstr "Доступна размена"
+
+#: crates/mc-ui/src/perf/memory.rs:279
+msgid "Compressed"
+msgstr "Сажето"
+
+#: crates/mc-ui/src/perf/memory.rs:280
+msgid "Savings"
+msgstr "Уштеде"
+
+#: crates/mc-ui/src/perf/memory.rs:284
+msgid "Speed:"
+msgstr "Брзина:"
+
+#: crates/mc-ui/src/perf/memory.rs:285
+msgid "Slots used:"
+msgstr "Искоришћена места:"
+
+#: crates/mc-ui/src/perf/memory.rs:286
+msgid "Form factor:"
+msgstr "Величина уређаја:"
+
+#: crates/mc-ui/src/perf/memory.rs:291
+msgid "Getting additional memory information failed"
+msgstr "Није успело добијање додатних информација о меморији"
+
+#: crates/mc-ui/src/perf/memory.rs:297
+msgid "Memory usage over "
+msgstr "Употреба меморије током "
+
+#: crates/mc-ui/src/perf/memory.rs:303
+msgid "Swap usage over "
+msgstr "Употреба размене током "
+
+#: crates/mc-ui/src/perf/memory.rs:322
+msgid "Show Swap Usage"
+msgstr "Прикажи употребу размене"
+
+#: crates/mc-ui/src/perf/network.rs:45
+msgid "Disconnected"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:46
+msgid "Disconnecting"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:47
+#, fuzzy
+msgid "Connected"
+msgstr "Врста везе:"
+
+#: crates/mc-ui/src/perf/network.rs:48
+#, fuzzy
+msgid "Connecting"
+msgstr "Врста везе:"
+
+#: crates/mc-ui/src/perf/network.rs:49
+msgid "Configuring"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:50
+msgid "Waiting for auth"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:51
+#, fuzzy
+msgid "Unavailable"
+msgstr "Доступно"
+
+#: crates/mc-ui/src/perf/network.rs:52
+#, fuzzy
+msgid "Loading"
+msgstr "Учитавање..."
+
+#: crates/mc-ui/src/perf/network.rs:217
+#, fuzzy, rust-format
+msgid "{}"
+msgstr "{}%"
+
+#: crates/mc-ui/src/perf/network.rs:220 crates/mc-ui/src/perf/network.rs:221
+#, rust-format
+msgid "{}: {}"
+msgstr "{}: {}"
+
+#: crates/mc-ui/src/perf/network.rs:234
+msgid "Send"
+msgstr "Пошаљи"
+
+#: crates/mc-ui/src/perf/network.rs:235
+msgid "Receive"
+msgstr "Прими"
+
+#: crates/mc-ui/src/perf/network.rs:238
+msgid "Total Sent"
+msgstr "Укупно послато"
+
+#: crates/mc-ui/src/perf/network.rs:239
+msgid "Total Received"
+msgstr "Укупно примљено"
+
+#: crates/mc-ui/src/perf/network.rs:244
+msgid "Interface name:"
+msgstr "Назив спреге:"
+
+#: crates/mc-ui/src/perf/network.rs:245
+msgid "Connection type:"
+msgstr "Врста везе:"
+
+#: crates/mc-ui/src/perf/network.rs:246
+#, fuzzy
+msgid "Connection status:"
+msgstr "Врста везе:"
+
+#: crates/mc-ui/src/perf/network.rs:249
+msgid "SSID:"
+msgstr "ССИД:"
+
+#: crates/mc-ui/src/perf/network.rs:251
+msgid "Signal strength:"
+msgstr "Јачина сигнала:"
+
+#: crates/mc-ui/src/perf/network.rs:260
+msgid "Maximum Bitrate:"
+msgstr "Највећи битски проток:"
+
+#: crates/mc-ui/src/perf/network.rs:263
+msgid "Frequency:"
+msgstr "Фреквенција:"
+
+#: crates/mc-ui/src/perf/network.rs:265
+msgid "Hardware address:"
+msgstr "Хардверска адреса:"
+
+#: crates/mc-ui/src/perf/network.rs:266
+msgid "IPv4 address:"
+msgstr "ИПв4 адреса:"
+
+#: crates/mc-ui/src/perf/network.rs:267
+msgid "IPv6 address:"
+msgstr "ИПв6 адреса:"
+
+#: crates/mc-ui/src/perf/network.rs:283
+msgid "Network Se_ttings"
+msgstr "Мрежна подеша_вања"
+
+#: crates/mc-ui/src/smart.rs:44
+msgid "Percent Used"
+msgstr "Проценат употребе"
+
+#: crates/mc-ui/src/smart.rs:48
+msgid "Available Spare"
+msgstr "Доступна резерва"
+
+#: crates/mc-ui/src/smart.rs:52
+msgid "Spare Threshold"
+msgstr "Праг резерве"
+
+#: crates/mc-ui/src/smart.rs:56
+msgid "Total Data Read"
+msgstr "Укупно прочитаних података"
+
+#: crates/mc-ui/src/smart.rs:62
+msgid "Total Data Written"
+msgstr "Укупно уписаних података"
+
+#: crates/mc-ui/src/smart.rs:68
+msgid "Warning Temp Time"
+msgstr "Време упозорења за температуру"
+
+#: crates/mc-ui/src/smart.rs:74
+msgid "Critical Temp Time"
+msgstr "Време критичне температуре"
+
+#: crates/mc-ui/src/smart.rs:80
+msgid "Control Busy Time"
+msgstr "Време заузетости контролера"
+
+#: crates/mc-ui/src/smart.rs:84
+msgid "Warning Temperature"
+msgstr "Температура упозорења"
+
+#: crates/mc-ui/src/smart.rs:90
+msgid "Critical Temperature"
+msgstr "Критична температура"
+
+#: crates/mc-ui/src/smart.rs:95
+msgid "Temps"
+msgstr "Температуре"
+
+#: crates/mc-ui/src/smart.rs:97
+msgid "Unsafe Shutdowns"
+msgstr "Небезбедна гашења"
+
+#: crates/mc-ui/src/smart.rs:101
+msgid "Media Errors"
+msgstr "Грешке медија"
+
+#: crates/mc-ui/src/smart.rs:105
+msgid "Number Error Log Entries"
+msgstr "Број уноса у дневнику грешака"
+
+#: crates/mc-ui/src/smart.rs:109
+msgid "Power Cycles"
+msgstr "Циклуси напајања"
+
+#: crates/mc-ui/src/smart.rs:119
+#, rust-format
+msgid "{} sectors"
+msgstr "{} сектора"
+
+#: crates/mc-ui/src/smart.rs:135
+#, rust-format
+msgid "{} ago"
+msgstr "пре {}"
+
+#: crates/mc-ui/src/smart.rs:147
+msgid "Smart Data"
+msgstr "Паметни подаци"
+
+#: crates/mc-ui/src/smart.rs:152
+#, fuzzy
+msgid "Last Updated:"
+msgstr "Последње ажурирање"
+
+#: crates/mc-ui/src/smart.rs:154
+#, fuzzy
+msgid "Powered On:"
+msgstr "Укључен"
+
+#: crates/mc-ui/src/smart.rs:157
+#, fuzzy
+msgid "Drive Health:"
+msgstr "Здравље уређаја"
+
+#: crates/mc-ui/src/smart.rs:159
+#, fuzzy
+msgid "SMART Test Status:"
+msgstr "Стање СМАРТ теста"
+
+#: crates/mc-ui/src/smart.rs:174 crates/mc-ui/src/smart.rs:195
+msgid "Attribute"
+msgstr "Особина"
+
+#: crates/mc-ui/src/smart.rs:177 crates/mc-ui/src/smart.rs:196
+msgid "Value"
+msgstr "Вредност"
+
+#: crates/mc-ui/src/smart.rs:194
+msgid "ID"
+msgstr "ИД"
+
+#: crates/mc-ui/src/smart.rs:197
+msgid "Normalized"
+msgstr "Нормализован"
+
+#: crates/mc-ui/src/smart.rs:198
+msgid "Threshold"
+msgstr "Праг"
+
+#: crates/mc-ui/src/smart.rs:199
+msgid "Worst"
+msgstr "Најгоре"
+
+#: crates/mc-ui/src/smart.rs:201
+msgid "Updates"
+msgstr "Ажурирања"
+
+#: crates/mc-ui/src/smart.rs:202
+msgid "Assessment"
+msgstr "Процена"
+
+#: crates/mc-ui/src/smart.rs:228
+msgid "Pre-Fail"
+msgstr "Пред кваром"
+
+#: crates/mc-ui/src/smart.rs:230
+msgid "Old-Age"
+msgstr "Старост"
+
+#: crates/mc-ui/src/smart.rs:234
+msgid "Online"
+msgstr "На мрежи"
+
+#: crates/mc-ui/src/smart.rs:236
+msgid "Offline"
+msgstr "Ван мреже"
+
+#: crates/mc-ui/src/smart.rs:240
+msgid "FAILING"
+msgstr "ОТКАЗУЈЕ"
+
+#: crates/mc-ui/src/smart.rs:242
+msgid "Failed in the past"
+msgstr "Отказао у прошлости"
+
+#: crates/mc-ui/src/smart.rs:244
+msgid "Ok"
+msgstr "У реду"
+
+#: crates/mc-ui/src/smart.rs:274
+msgid "Failed To Get SMART Data"
+msgstr "Није успело прибављање СМАРТ података"
+
+#: crates/mc-ui/src/smart.rs:276
+msgid ""
+"There was a problem fetching SMART data. Try running from the command line "
+"to get more information."
+msgstr ""
+"Настао је проблем при преузимању СМАРТ података. Покушајте да покренете "
+"програм из терминала како бисте добили више информација."
+
+#: crates/mc-ui/src/smart.rs:278 crates/mc-ui/src/smart.rs:352
+msgid "Close"
+msgstr "Затвори"
+
+#: crates/mc-ui/src/smart.rs:322
+msgid "Failed To Eject"
+msgstr "Избацивање није успело"
+
+#: crates/mc-ui/src/smart.rs:338 crates/mc-ui/src/win10/details.rs:300
+#: crates/mc-ui/src/win10/processes.rs:621
+msgid "Kill"
+msgstr "Убиј"
+
+#: crates/mc-ui/src/smart.rs:355
+msgid "Retry"
+msgstr "Покушај поново"
+
+#: crates/mc-ui/src/smart.rs:360
+msgid "Kill All"
+msgstr "Убиј све"
+
+#: crates/mc-ui/src/smart.rs:385
+msgid "Operating System Information"
+msgstr "Подаци о оперативном систему"
+
+#: crates/mc-ui/src/smart.rs:389 crates/mc-ui/src/smart.rs:403
+#: crates/mc-ui/src/smart.rs:410
+msgid "Version"
+msgstr "Издање"
+
+#: crates/mc-ui/src/smart.rs:392
+msgid "Package Manager"
+msgstr "Руководилац пакета"
+
+#: crates/mc-ui/src/smart.rs:394
+msgid "Package Manager Version"
+msgstr "Издање руководиоца пакета"
+
+#: crates/mc-ui/src/smart.rs:400
+msgid "Kernel Information"
+msgstr "Подаци о језгру"
+
+#: crates/mc-ui/src/smart.rs:402
+msgid "Kernel Release"
+msgstr "Издање језгра"
+
+#: crates/mc-ui/src/smart.rs:407
+msgid "Desktop Environment Information"
+msgstr "Подаци о стоном окружењу"
+
+#: crates/mc-ui/src/smart.rs:411
+msgid "Windowing System"
+msgstr "Прозорски систем"
+
+#: crates/mc-ui/src/smart.rs:412
+msgid "Virtual Terminal"
+msgstr "Виртуелни терминал"
+
+#: crates/mc-ui/src/win10/details.rs:78
+msgid "Sleeping"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:79
+msgid "Waiting"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:80
+msgid "Suspended"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:81
+msgid "Zombie"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:241
+msgid "User name"
+msgstr ""
+
+#: crates/mc-ui/src/win10/details.rs:304
+msgid "Copy"
+msgstr ""
+
+#: crates/mc-ui/src/win10/performance.rs:166
+msgid "Graph summary view"
+msgstr ""
+
+#: crates/mc-ui/src/win10/performance.rs:172
+msgid "_Copy"
+msgstr "_Копирај"
+
+#. / Network column: what the per-process values (TCP socket counters) include
+#: crates/mc-ui/src/win10/processes.rs:42
+msgid ""
+"Per-process values count TCP traffic of your processes; UDP (such as QUIC) "
+"and other users' processes are not visible."
+msgstr ""
+
+#. / Network column while the kernel's socket statistics cannot be read
+#: crates/mc-ui/src/win10/processes.rs:46
+msgid ""
+"Per-process network usage is unavailable: the kernel's socket statistics "
+"could not be read. The column total shows all network interfaces."
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:77
+msgid "Disk"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:626
+msgid "Properties"
+msgstr ""
+
+#: crates/mc-ui/src/win10/processes.rs:675
+msgid "Background processes"
+msgstr ""
+
+#: crates/mc-ui/src/win10/services.rs:95
+msgid "Disabled"
+msgstr "Искључено"
+
+#: crates/mc-ui/src/win10/services.rs:195
+msgid "Start"
+msgstr "Покрени"
+
+#: crates/mc-ui/src/win10/services.rs:198
+msgid "Stop"
+msgstr "Заустави"
+
+#: crates/mc-ui/src/win10/services.rs:201
+msgid "Restart"
+msgstr "Поново покрени"
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:2
+#: data/io.github.taskmanager.TaskManager.desktop.in:3
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:4
+msgid "Task Manager"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:4
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:14
+msgid "Monitor processes, performance and services"
+msgstr ""
+
+#: data/io.github.taskmanager.TaskManager.desktop.in:12
 msgid ""
 "Task manager;Resource monitor;System monitor;Processor;Processes;Performance "
 "monitor;CPU;GPU;Disc;Disk;Memory;Network;Utilisation;Utilization;Service;Services;Service "
@@ -41,2307 +1691,30 @@ msgstr ""
 "performansi;cpu;gpu;disk;disk;memorija;mreža;iskorišćenost;iskorišćenost;usluga;usluge;rukovodilac "
 "uslugama;spisak usluga;sistemske usluge;korisničke usluge;systemd;systemctl"
 
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:6
-msgid "Mission Center Developers"
-msgstr "Програмери Осматрачнице"
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:6
+msgid "Task Manager Developers"
+msgstr ""
 
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:17
-msgid "Monitor system resource usage"
-msgstr "Надгледајте искоришћеност системских ресурса"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:19
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:16
 msgid ""
-"Monitor your CPU, Memory, Disk, Network and GPU usage, accompanied by a per "
-"app and process breakdown of these statistics"
+"Task Manager shows the processes, performance, details and services of your "
+"system in a familiar tabbed interface: per-process CPU, memory, disk and "
+"network usage with heat colouring, live graphs for CPU, memory, disks, "
+"network, GPU, fans and batteries, a flat process list with owners and "
+"states, and systemd services you can start, stop and restart."
 msgstr ""
-"Надгледајте искоришћеност ЦПЈ-а, меморије, диска, мреже и ГПЈ-а, уз детаљну "
-"статистику по програму и процесу"
 
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:20
-msgid "Features:"
-msgstr "Могућности:"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:22
-msgid "Monitor overall or per-thread CPU usage"
-msgstr "Надгледајте укупну искоришћеност ЦПЈ-а или искоришћеност по нити"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:23
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:20
 msgid ""
-"See system process, thread, and handle count, uptime, clock speed (base and "
-"current), cache sizes"
+"Task Manager is based on Mission Center: it uses the Mission Center "
+"statistics backend (magpie) and code from the Mission Center project by the "
+"Mission Center Developers (GPL-3.0-or-later). Its interface is written from "
+"scratch with egui."
 msgstr ""
-"Погледајте број системских процеса, нити и руковаоца, време рада, брзину "
-"такта (основну и тренутну) и величине кеша"
 
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:24
-msgid "Monitor RAM and Swap usage"
-msgstr "Надгледајте искоришћеност РАМ-а и размене"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:25
-msgid "See a breakdown how the memory is being used by the system"
-msgstr "Погледајте детаљан приказ како систем користи меморију"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:26
-msgid "Monitor Disk utilization and transfer rates"
-msgstr "Надгледајте искоришћеност диска и брзине преноса"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:27
-msgid "Monitor network utilization and transfer speeds"
-msgstr "Надгледајте искоришћеност мреже и брзине преноса"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:28
+#: data/io.github.taskmanager.TaskManager.metainfo.xml.in:39
 msgid ""
-"See network interface information such as network card name, connection type "
-"(Wi-Fi or Ethernet), wireless speeds and frequency, hardware address, IP "
-"address"
+"New interface in the style of a classic desktop task manager; per-process "
+"network usage without extra permissions; interface state kept across "
+"restarts."
 msgstr ""
-"Погледајте информације о мрежним спрегама, као што су назив мрежне картице, "
-"врста везе (бежична или етернет), бежичне брзине и фреквенција, хардверска "
-"адреса и ИП адреса"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:31
-msgid ""
-"Monitor overall GPU usage, video encoder and decoder usage, memory usage and "
-"power consumption, powered by the popular NVTOP project"
-msgstr ""
-"Надгледајте укупну искоришћеност ГПЈ-а, искоришћеност видео енкодера и "
-"декодера, искоришћеност меморије и потрошњу енергије, уз помоћ популарног "
-"пројекта NVTOP"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:34
-msgid "Monitor system fans"
-msgstr "Надгледајте системске вентилаторе"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:35
-msgid "See a breakdown of resource usage by app and process"
-msgstr "Погледајте детаљан приказ искоришћености ресурса по програму и процесу"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:36
-msgid "Supports a minified summary view for simple monitoring"
-msgstr "Подржава компактни приказ сажетка за једноставно надгледање"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:37
-msgid ""
-"Use hardware accelerated rendering for all the graphs in an effort to reduce "
-"CPU and overall resource usage"
-msgstr ""
-"Користите хардверски убрзано исцртавање за све графике како би се смањила "
-"искоришћеност ЦПЈ-а и укупних ресурса"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:40
-msgid "Uses GTK4 and Libadwaita"
-msgstr "Користи ГТК4 и Либадвајту"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:41
-msgid "Written in Rust"
-msgstr "Написано у језику Раст"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:43
-msgid "Limitations (there is ongoing work to overcome all of these):"
-msgstr ""
-"Ограничења (текући рад је усмерен на превазилажење свих ових ограничења):"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:45
-msgid ""
-"Intel GPU monitoring is only supported for Broadwell and later GPUs; and "
-"does not support VRAM, power, or temperature monitoring"
-msgstr ""
-"Надгледање Интелових ГПЈ-ова је подржано само за Броадвел и касније ГПЈ-ове; "
-"такође није подржано надгледање VRAM-а, снаге или температуре"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:48
-msgid ""
-"When using Linux Mint/Cinnamon, launched applications may not show up in the "
-"\"Applications\" section (Upstream issue: https://github.com/linuxmint/"
-"cinnamon/issues/12015)"
-msgstr ""
-"При коришћењу Линукс Минта/Синамона, покренути програми се можда неће "
-"приказивати у одељку „Програми“ (Проблем у изворном коду: https://github.com/"
-"linuxmint/cinnamon/issues/12015)"
-
-#: data/io.missioncenter.MissionCenter.metainfo.xml.in:52
-msgid "Comments, suggestions, bug reports and contributions welcome"
-msgstr "Напомене, предлози, извештаји о грешкама и доприноси су добродошли"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:46
-msgid "Which page is shown on application startup"
-msgstr "Која се страница приказује при покретању програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:51
-msgid "Interface Style"
-msgstr "Стил прочеља"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:52
-msgid "If light or dark interface style should be used"
-msgstr "Да ли треба користити светли или тамни стил прочеља"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:58
-msgid "DEPRECATED! NO LONGER IN USE!"
-msgstr "ЗАСТАРЕЛО! ВИШЕ СЕ НЕ КОРИСТИ!"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:64
-msgid ""
-"How fast should the data be refreshed and the UI updated (in increments of "
-"50ms)"
-msgstr ""
-"Колико брзо треба освежавати податке и ажурирати прочеље (у корацима од 50 "
-"ms)"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:70
-msgid "How many points should be displayed on each chart?"
-msgstr "Колико тачака треба приказивати на сваком графику?"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:75
-msgid "Whether or not to use bits or bytes (default) for memory"
-msgstr "Да ли користити бите или бајтове (подразумевано) за меморију"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:80
-msgid "Whether or not to use base-10 or base-2 (default) for memory"
-msgstr "Да ли користити основу 10 или основу 2 (подразумевано) за меморију"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:85
-msgid "Whether or not to use bits or bytes (default) for drive speed + size"
-msgstr ""
-"Да ли користити бите или бајтове (подразумевано) за брзину и величину уређаја"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:90
-msgid ""
-"Whether or not to use base-10 or base-2 (default) for drive speed + size"
-msgstr ""
-"Да ли користити основу 10 или основу 2 (подразумевано) за брзину и величину "
-"уређаја"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:95
-msgid "Whether or not to use bits (default) or Bytes for network speed"
-msgstr "Да ли користити бите (подразумевано) или бајтове за брзину мреже"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:100
-msgid "Whether or not to use base-10 (default) or base-2 for network speed"
-msgstr "Да ли користити основу 10 (подразумевано) или основу 2 за брзину мреже"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:105
-msgid ""
-"Whether to set graph max to interface max (false) or the max observed (true)"
-msgstr ""
-"Да ли поставити максимум графика на максимум спреге (нетачно) или на највише "
-"забележено (тачно)"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:110
-#: resources/ui/preferences/apps_services_page.blp:31
-msgid "Parent and child process stats are shown individually or merged upwards"
-msgstr ""
-"Статистика родитељских и потомковских процеса приказује се појединачно или "
-"се споји нагоре"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:115
-msgid "Column sorting is persisted across app restarts"
-msgstr "Ређање колона се задржава након поновног покретања програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:120
-msgid "Column order is persisted across app restarts"
-msgstr "Поредак колона се задржава након поновног покретања програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:125
-msgid ""
-"Show CPU usage for Apps and Processes scaled to the number of available cores"
-msgstr ""
-"Прикажи искоришћеност процесора за програме и процесе скалирану према броју "
-"доступних језгара"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:130
-msgid "Show a separator between each column in the Apps view"
-msgstr "Прикажи одвајач између сваке колоне у приказу програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:135
-msgid "Gray out values that equal zero in the Apps view"
-msgstr "Засиви вредности које су једнаке нули у приказу програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:140
-msgid "The column name by which the Apps page view is sorted"
-msgstr "Назив колоне по којој је поређан приказ странице програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:145
-msgid "The sorting direction of the Apps page view"
-msgstr "Смер ређања приказа странице програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:150
-msgid "The order of columns in the Apps page view"
-msgstr "Поредак колона у приказу странице програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:155
-msgid "The column name by which the Services page view is sorted"
-msgstr "Назив колоне по којој је приказ странице услуга поређан"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:160
-msgid "The sorting direction of the Services page view"
-msgstr "Смер ређања приказа странице услуга"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:165
-msgid "The order of columns in the Services page view"
-msgstr "Поредак колона у приказу странице услуга"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:171
-msgid "Which graph is shown on the CPU performance page"
-msgstr "Који график се приказује на страници за учинак процесора"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:177
-#, fuzzy
-msgid "Which graph is shown on the bottom graph of the CPU performance page"
-msgstr "Који график се приказује на страници за учинак процесора"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:182
-msgid "Show kernel times in the CPU graphs"
-msgstr "Прикажи времена језгра на графицима процесора"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:187
-msgid "Which page is shown on application startup, in the performance tab"
-msgstr "Која страница се приказује при покретању програма, на језичку учинак"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:193
-msgid "Should performance graphs be smooth or jagged"
-msgstr "Да ли графици учинка треба да буду углађени или зазубљени"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:198
-msgid "Should graphs be animated"
-msgstr "Да ли графици треба да буду анимирани"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:203
-msgid "Show CPU information by default"
-msgstr "Подразумевано прикажи податке о процесору"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:208
-msgid "Show memory information by default"
-msgstr "Подразумевано прикажи податке о меморији"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:213
-#: resources/ui/preferences/performance_page.blp:70
-msgid "Show disk information by default"
-msgstr "Подразумевано прикажи податке о диску"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:218
-#: resources/ui/preferences/performance_page.blp:75
-msgid "Show network information by default"
-msgstr "Подразумевано прикажи податке о мрежи"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:223
-#, fuzzy
-msgid "Show wired network devices by default"
-msgstr "Подразумевано прикажи податке о мрежи"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:228
-#, fuzzy
-msgid "Show wireless network devices by default"
-msgstr "Подразумевано прикажи податке о мрежи"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:233
-#, fuzzy
-msgid "Show VPN network devices by default"
-msgstr "Подразумевано прикажи податке о мрежи"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:238
-msgid "Show virtual network devices (Docker, Multipass, Bridge) by default"
-msgstr ""
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:243
-msgid "Show other network devices (Bluetooth, InfiniBand, WWAN) by default"
-msgstr ""
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:248
-#: resources/ui/preferences/performance_page.blp:103
-msgid "Show GPU information by default"
-msgstr "Подразумевано прикажи податке о ГПЈ"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:253
-#: data/io.missioncenter.MissionCenter.gschema.xml:258
-#: resources/ui/preferences/performance_page.blp:108
-msgid "Show fan information by default"
-msgstr "Подразумевано прикажи податке о вентилатору"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:263
-msgid "Show the mem composition widget"
-msgstr "Прикажи елемент за састав меморије"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:268
-msgid "Show the swap graph"
-msgstr "Прикажи график размене"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:274
-msgid "Middle Graph's Content and visibility"
-msgstr ""
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:280
-msgid "Bottom Graph's Content and visibility"
-msgstr ""
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:286
-msgid "The ordering of entries in the application sidebar"
-msgstr "Редослед уноса у страничнику програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:292
-msgid "Graphs that should be hidden in the application sidebar"
-msgstr "Графици који треба да буду скривени у страничнику програма"
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:297
-msgid ""
-"Per-device visibility overrides (semicolon-separated name:show or name:hide "
-"entries)"
-msgstr ""
-
-#: data/io.missioncenter.MissionCenter.gschema.xml:302
-msgid "If it's your first time running Mission Center"
-msgstr "Ако први пут покрећете Мисиони центар"
-
-#: resources/ui/apps_page/page.blp:87
-msgid "Collapse all apps and processes"
-msgstr "Скупи све програме и процесе"
-
-#: resources/ui/apps_page/page.blp:99 resources/ui/services_page/page.blp:106
-#: resources/ui/keyboard_shortcuts.blp:84
-#: resources/ui/keyboard_shortcuts.blp:113
-msgid "Collapse All"
-msgstr "Скупи све"
-
-#: resources/ui/performance_page/disk_eject_failure_dialog.blp:25
-msgid "Failed To Eject"
-msgstr "Избацивање није успело"
-
-#: resources/ui/performance_page/disk_eject_failure_row.blp:51
-msgid "Kill"
-msgstr "Убиј"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:31
-msgid "In Use:"
-msgstr "У употреби:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:36
-msgid "Modified:"
-msgstr "Измењено:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:41
-msgid "Standby:"
-msgstr "Приправност:"
-
-#: resources/ui/performance_page/memory_info_tooltip.blp:46
-msgid "Free:"
-msgstr "Слободно:"
-
-#: resources/ui/performance_page/cpu.blp:56
-#: resources/ui/table_view/table_view.blp:53
-#: resources/ui/table_view/process_details_dialog.blp:177
-#: src/performance_page/mod.rs:1123 src/table_view/mod.rs:860
-msgid "CPU"
-msgstr "Процесор"
-
-#: resources/ui/performance_page/cpu.blp:75
-#: resources/ui/performance_page/gpu.blp:73
-msgid "Utilization over "
-msgstr "Искоришћеност током "
-
-#: resources/ui/performance_page/cpu.blp:90
-#: resources/ui/performance_page/gpu.blp:87
-#: resources/ui/performance_page/gpu.blp:135 src/performance_page/gpu.rs:1112
-msgid "100%"
-msgstr "100%"
-
-#: resources/ui/performance_page/cpu.blp:167
-#, fuzzy
-msgid "Change _Top Graph To"
-msgstr "Промени г_рафик на"
-
-#: resources/ui/performance_page/cpu.blp:170
-msgid "Overall U_tilization"
-msgstr "Укупно и_скоришћење"
-
-#: resources/ui/performance_page/cpu.blp:175
-msgid "Logical _Processors"
-msgstr "Логички _процесори"
-
-#: resources/ui/performance_page/cpu.blp:180
-msgid "_All Threads"
-msgstr "_Све нити"
-
-#: resources/ui/performance_page/cpu.blp:185
-msgid "All Threads _Stacked"
-msgstr "Све нити _наслагане"
-
-#: resources/ui/performance_page/cpu.blp:191
-#, fuzzy
-msgid "Change B_ottom Graph To"
-msgstr "Промени г_рафик на"
-
-#: resources/ui/performance_page/cpu.blp:194
-#: resources/ui/performance_page/gpu.blp:219
-#: resources/ui/performance_page/gpu.blp:253
-#, fuzzy
-msgid "_Power Draw"
-msgstr "Потрошња енергије"
-
-#: resources/ui/performance_page/cpu.blp:199
-#: resources/ui/performance_page/gpu.blp:229
-#: resources/ui/performance_page/gpu.blp:263
-#, fuzzy
-msgid "_Temperature"
-msgstr "Температура"
-
-#: resources/ui/performance_page/cpu.blp:204
-#, fuzzy
-msgid "_Clock Speed"
-msgstr "Брзина такта"
-
-#: resources/ui/performance_page/cpu.blp:209
-#: resources/ui/performance_page/gpu.blp:234
-#: resources/ui/performance_page/gpu.blp:268
-msgid "_None"
-msgstr ""
-
-#: resources/ui/performance_page/cpu.blp:215
-msgid "Show Kernel Times"
-msgstr "Прикажи времена језгра"
-
-#: resources/ui/performance_page/cpu.blp:222
-#: resources/ui/performance_page/disk.blp:180
-#: resources/ui/performance_page/fan.blp:151
-#: resources/ui/performance_page/gpu.blp:276
-#: resources/ui/performance_page/memory.blp:206
-#: resources/ui/performance_page/network.blp:104
-msgid "Graph _Summary View"
-msgstr "Графички преглед са_жетка"
-
-#: resources/ui/performance_page/cpu.blp:227
-#: resources/ui/performance_page/disk.blp:185
-#: resources/ui/performance_page/fan.blp:156
-#: resources/ui/performance_page/gpu.blp:282
-#: resources/ui/performance_page/memory.blp:211
-#: resources/ui/performance_page/network.blp:109
-msgid "_View"
-msgstr "_Преглед"
-
-#: resources/ui/performance_page/cpu.blp:230
-#: resources/ui/performance_page/disk.blp:188
-#: resources/ui/performance_page/fan.blp:159
-#: resources/ui/performance_page/gpu.blp:285
-#: resources/ui/performance_page/memory.blp:214
-#: resources/ui/performance_page/network.blp:112
-msgid "CP_U"
-msgstr "Процес_ор"
-
-#: resources/ui/performance_page/cpu.blp:235
-#: resources/ui/performance_page/disk.blp:193
-#: resources/ui/performance_page/fan.blp:164
-#: resources/ui/performance_page/gpu.blp:290
-#: resources/ui/performance_page/memory.blp:219
-#: resources/ui/performance_page/network.blp:117
-msgid "_Memory"
-msgstr "_Меморија"
-
-#: resources/ui/performance_page/cpu.blp:240
-#: resources/ui/performance_page/disk.blp:198
-#: resources/ui/performance_page/fan.blp:169
-#: resources/ui/performance_page/gpu.blp:295
-#: resources/ui/performance_page/memory.blp:224
-#: resources/ui/performance_page/network.blp:122
-msgid "_Drive"
-msgstr "_Уређај"
-
-#: resources/ui/performance_page/cpu.blp:245
-#: resources/ui/performance_page/disk.blp:203
-#: resources/ui/performance_page/fan.blp:174
-#: resources/ui/performance_page/gpu.blp:300
-#: resources/ui/performance_page/memory.blp:229
-#: resources/ui/performance_page/network.blp:127
-msgid "_Network"
-msgstr "_Мрежа"
-
-#: resources/ui/performance_page/cpu.blp:250
-#: resources/ui/performance_page/disk.blp:208
-#: resources/ui/performance_page/fan.blp:179
-#: resources/ui/performance_page/gpu.blp:305
-#: resources/ui/performance_page/memory.blp:234
-#: resources/ui/performance_page/network.blp:132
-msgid "_GPU"
-msgstr "_Графичка"
-
-#: resources/ui/performance_page/cpu.blp:255
-#: resources/ui/performance_page/disk.blp:213
-#: resources/ui/performance_page/fan.blp:184
-#: resources/ui/performance_page/gpu.blp:310
-#: resources/ui/performance_page/memory.blp:239
-#: resources/ui/performance_page/network.blp:137
-msgid "_Fan"
-msgstr "_Вентилатор"
-
-#: resources/ui/performance_page/cpu.blp:260
-#: resources/ui/performance_page/disk.blp:218
-#: resources/ui/performance_page/fan.blp:189
-#: resources/ui/performance_page/gpu.blp:315
-#: resources/ui/performance_page/memory.blp:244
-#: resources/ui/performance_page/network.blp:142
-msgid "_Battery"
-msgstr "_Батерија"
-
-#: resources/ui/performance_page/cpu.blp:268
-#: resources/ui/performance_page/disk.blp:226
-#: resources/ui/performance_page/fan.blp:197
-#: resources/ui/performance_page/gpu.blp:323
-#: resources/ui/performance_page/memory.blp:252
-#: resources/ui/performance_page/network.blp:155
-msgid "_Copy"
-msgstr "_Копирај"
-
-#: resources/ui/performance_page/disk.blp:66
-msgid "Show SMART Data"
-msgstr "Прикажи СМАРТ податке"
-
-#: resources/ui/performance_page/disk.blp:77
-msgid "Eject Disk"
-msgstr "Избаци диск"
-
-#: resources/ui/performance_page/disk.blp:100
-msgid "Active time over "
-msgstr "Активно време током "
-
-#: resources/ui/performance_page/disk.blp:140
-#: resources/ui/performance_page/network.blp:62
-msgid "Throughput over "
-msgstr "Пропусна моћ током "
-
-#: resources/ui/performance_page/fan.blp:62
-msgid "Fan speed over "
-msgstr "Брзина вентилатора током "
-
-#: resources/ui/performance_page/fan.blp:109 src/performance_page/cpu.rs:1040
-#: src/performance_page/gpu.rs:1128
-msgid "Temperature over "
-msgstr "Температура током "
-
-#: resources/ui/performance_page/fan_details.blp:59
-msgid "Fan Speed"
-msgstr "Брзина вентилатора"
-
-#: resources/ui/performance_page/fan_details.blp:99
-msgid "PWM Percentage"
-msgstr "Проценат PWM-а"
-
-#: resources/ui/performance_page/fan_details.blp:127
-msgid "Current Temperature"
-msgstr "Тренутна температура"
-
-#: resources/ui/performance_page/gpu.blp:119 src/performance_page/gpu.rs:1111
-msgid "Video encode/decode utilization over "
-msgstr "Искоришћеност кодирања/декодирања видеа током "
-
-#: resources/ui/performance_page/gpu.blp:161
-#: resources/ui/performance_page/memory.blp:77 src/performance_page/gpu.rs:1118
-msgid "Memory usage over "
-msgstr "Употреба меморије током "
-
-#: resources/ui/performance_page/gpu.blp:206
-#, fuzzy
-msgid "Change Middle Graph To"
-msgstr "Промени г_рафик на"
-
-#: resources/ui/performance_page/gpu.blp:209
-#: resources/ui/performance_page/gpu.blp:243
-#, fuzzy
-msgid "_Encode/_Decode"
-msgstr "Прикажи употребу кодирања/декодирања"
-
-#: resources/ui/performance_page/gpu.blp:214
-#: resources/ui/performance_page/gpu.blp:248
-#, fuzzy
-msgid "_Memory Usage"
-msgstr "Употреба меморије"
-
-#: resources/ui/performance_page/gpu.blp:224
-#: resources/ui/performance_page/gpu.blp:258
-#, fuzzy
-msgid "_Clock Speeds"
-msgstr "Брзина такта"
-
-#: resources/ui/performance_page/gpu.blp:240
-#, fuzzy
-msgid "Change Bottom Graph To"
-msgstr "Промени г_рафик на"
-
-#: resources/ui/performance_page/memory.blp:41
-#: resources/ui/table_view/table_view.blp:59
-#: resources/ui/table_view/process_details_dialog.blp:202
-#: src/performance_page/mod.rs:1193 src/table_view/mod.rs:881
-msgid "Memory"
-msgstr "Меморија"
-
-#: resources/ui/performance_page/memory.blp:123
-msgid "Swap usage over "
-msgstr "Употреба размене током "
-
-#: resources/ui/performance_page/memory.blp:171
-msgid "Memory composition"
-msgstr "Састав меморије"
-
-#: resources/ui/performance_page/memory.blp:195
-msgid "Show Memory Composition"
-msgstr "Прикажи састав меморије"
-
-#: resources/ui/performance_page/memory.blp:199
-msgid "Show Swap Usage"
-msgstr "Прикажи употребу размене"
-
-#: resources/ui/performance_page/memory_details.blp:58
-msgid "In use"
-msgstr "У употреби"
-
-#: resources/ui/performance_page/memory_details.blp:88
-msgid "Available"
-msgstr "Доступно"
-
-#: resources/ui/performance_page/memory_details.blp:131
-msgid "Committed"
-msgstr "Предато"
-
-#: resources/ui/performance_page/memory_details.blp:162
-msgid "Cached"
-msgstr "Кеширано"
-
-#: resources/ui/performance_page/memory_details.blp:194
-msgid "Swap used"
-msgstr "Искоришћена размена"
-
-#: resources/ui/performance_page/memory_details.blp:226
-msgid "Swap available"
-msgstr "Доступна размена"
-
-#: resources/ui/performance_page/memory_details.blp:258
-msgid "Compressed"
-msgstr "Сажето"
-
-#: resources/ui/performance_page/memory_details.blp:290
-msgid "Savings"
-msgstr "Уштеде"
-
-#: resources/ui/performance_page/memory_details.blp:317
-msgid "Speed:"
-msgstr "Брзина:"
-
-#: resources/ui/performance_page/memory_details.blp:334
-msgid "Slots used:"
-msgstr "Искоришћена места:"
-
-#: resources/ui/performance_page/memory_details.blp:351
-msgid "Form factor:"
-msgstr "Величина уређаја:"
-
-#: resources/ui/performance_page/memory_details.blp:368
-#: resources/ui/performance_page/disk_details.blp:300
-msgid "Type:"
-msgstr "Врста:"
-
-#: resources/ui/performance_page/network.blp:148
-msgid "Network Se_ttings"
-msgstr "Мрежна подеша_вања"
-
-#: resources/ui/performance_page/network_details.blp:63
-msgid "Receive"
-msgstr "Прими"
-
-#: resources/ui/performance_page/network_details.blp:102
-msgid "Send"
-msgstr "Пошаљи"
-
-#: resources/ui/performance_page/network_details.blp:132
-msgid "Total Received"
-msgstr "Укупно примљено"
-
-#: resources/ui/performance_page/network_details.blp:162
-msgid "Total Sent"
-msgstr "Укупно послато"
-
-#: resources/ui/performance_page/network_details.blp:190
-msgid "Interface name:"
-msgstr "Назив спреге:"
-
-#: resources/ui/performance_page/network_details.blp:207
-msgid "Connection type:"
-msgstr "Врста везе:"
-
-#: resources/ui/performance_page/network_details.blp:222
-#, fuzzy
-msgid "Connection status:"
-msgstr "Врста везе:"
-
-#: resources/ui/performance_page/network_details.blp:240
-msgid "SSID:"
-msgstr "ССИД:"
-
-#: resources/ui/performance_page/network_details.blp:259
-msgid "Signal strength:"
-msgstr "Јачина сигнала:"
-
-#: resources/ui/performance_page/network_details.blp:278
-msgid "Maximum Bitrate:"
-msgstr "Највећи битски проток:"
-
-#: resources/ui/performance_page/network_details.blp:297
-msgid "Frequency:"
-msgstr "Фреквенција:"
-
-#: resources/ui/performance_page/network_details.blp:314
-msgid "Hardware address:"
-msgstr "Хардверска адреса:"
-
-#: resources/ui/performance_page/network_details.blp:458
-msgid "IPv4 address:"
-msgstr "ИПв4 адреса:"
-
-#: resources/ui/performance_page/network_details.blp:487
-msgid "IPv6 address:"
-msgstr "ИПв6 адреса:"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:33
-msgid "Smart Data"
-msgstr "Паметни подаци"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:57
-#, fuzzy
-msgid "Last Updated:"
-msgstr "Последње ажурирање"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:69
-#, fuzzy
-msgid "Powered On:"
-msgstr "Укључен"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:81
-#, fuzzy
-msgid "Drive Health:"
-msgstr "Здравље уређаја"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:93
-#, fuzzy
-msgid "SMART Test Status:"
-msgstr "Стање СМАРТ теста"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:108
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:133
-msgid "Attribute"
-msgstr "Особина"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:115
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:140
-msgid "Value"
-msgstr "Вредност"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:127
-msgid "ID"
-msgstr "ИД"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:146
-msgid "Normalized"
-msgstr "Нормализован"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:152
-msgid "Threshold"
-msgstr "Праг"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:158
-msgid "Worst"
-msgstr "Најгоре"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:164
-#: resources/ui/table_view/process_details_dialog.blp:113
-msgid "Type"
-msgstr "Врста"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:170
-msgid "Updates"
-msgstr "Ажурирања"
-
-#: resources/ui/performance_page/disk_smart_data_dialog.blp:176
-msgid "Assessment"
-msgstr "Процена"
-
-#: resources/ui/performance_page/gpu_details.blp:51
-#: resources/ui/performance_page/cpu_details.blp:46
-msgid "Utilization"
-msgstr "Искоришћеност"
-
-#: resources/ui/performance_page/gpu_details.blp:92
-msgid "Clock Speed"
-msgstr "Брзина такта"
-
-#: resources/ui/performance_page/gpu_details.blp:146
-#: resources/ui/performance_page/cpu_details.blp:106
-msgid "Power Draw"
-msgstr "Потрошња енергије"
-
-#: resources/ui/performance_page/gpu_details.blp:211
-#: src/performance_page/gpu.rs:806
-msgid "Memory Usage"
-msgstr "Употреба меморије"
-
-#: resources/ui/performance_page/gpu_details.blp:282
-#: src/performance_page/gpu.rs:860
-msgid "Shared Memory Usage"
-msgstr "Употреба дељене меморије"
-
-#: resources/ui/performance_page/gpu_details.blp:353
-msgid "Memory Speed"
-msgstr "Брзина меморије"
-
-#: resources/ui/performance_page/gpu_details.blp:425
-msgid "Video encode"
-msgstr "Видео кодирање"
-
-#: resources/ui/performance_page/gpu_details.blp:472
-msgid "Video decode"
-msgstr "Видео декодирање"
-
-#: resources/ui/performance_page/gpu_details.blp:503
-#: resources/ui/performance_page/cpu_details.blp:227
-msgid "Temperature"
-msgstr "Температура"
-
-#: resources/ui/performance_page/gpu_details.blp:542
-msgid "OpenGL version:"
-msgstr "Издање ОпенГЛ-а:"
-
-#: resources/ui/performance_page/gpu_details.blp:559
-msgid "Vulkan version:"
-msgstr "Издање Вулкана:"
-
-#: resources/ui/performance_page/gpu_details.blp:578
-msgid "PCI Express speed:"
-msgstr "Брзина ПЦИ Експреса:"
-
-#: resources/ui/performance_page/gpu_details.blp:597
-msgid "Max PCI Express speed:"
-msgstr "Највећа брзина ПЦИ Експреса:"
-
-#: resources/ui/performance_page/gpu_details.blp:614
-msgid "PCI bus address:"
-msgstr "Адреса ПЦИ сабирнице:"
-
-#: resources/ui/performance_page/disk_smart_failure_dialog.blp:25
-msgid "Failed To Get SMART Data"
-msgstr "Није успело прибављање СМАРТ података"
-
-#: resources/ui/performance_page/disk_smart_failure_dialog.blp:31
-msgid ""
-"There was a problem fetching SMART data. Try running from the command line "
-"to get more information."
-msgstr ""
-"Настао је проблем при преузимању СМАРТ података. Покушајте да покренете "
-"програм из терминала како бисте добили више информација."
-
-#: resources/ui/performance_page/disk_details.blp:62
-msgid "Read speed"
-msgstr "Брзина читања"
-
-#: resources/ui/performance_page/disk_details.blp:101
-msgid "Write speed"
-msgstr "Брзина записивања"
-
-#: resources/ui/performance_page/disk_details.blp:131
-msgid "Total Read"
-msgstr "Укупно прочитано"
-
-#: resources/ui/performance_page/disk_details.blp:161
-msgid "Total Written"
-msgstr "Укупно уписано"
-
-#: resources/ui/performance_page/disk_details.blp:191
-msgid "Active time"
-msgstr "Активно време"
-
-#: resources/ui/performance_page/disk_details.blp:221
-msgid "Avg. response time"
-msgstr "Просечно време одговора"
-
-#: resources/ui/performance_page/disk_details.blp:249
-msgid "Capacity:"
-msgstr "Капацитет:"
-
-#: resources/ui/performance_page/disk_details.blp:266
-msgid "Formatted:"
-msgstr "Форматирано:"
-
-#: resources/ui/performance_page/disk_details.blp:283
-msgid "System disk:"
-msgstr "Системски диск:"
-
-#: resources/ui/performance_page/disk_details.blp:319
-msgid "WWN:"
-msgstr "WWN:"
-
-#: resources/ui/performance_page/disk_details.blp:338
-msgid "Serial:"
-msgstr "Серијски:"
-
-#: resources/ui/performance_page/disk_details.blp:357
-msgid "Rotation Rate"
-msgstr "Брзина окретања"
-
-#: resources/ui/performance_page/disk_details.blp:478
-msgid "Partitions"
-msgstr ""
-
-#: resources/ui/performance_page/cpu_details.blp:72
-msgid "Speed"
-msgstr "Брзина"
-
-#: resources/ui/performance_page/cpu_details.blp:133 src/apps_page/mod.rs:91
-msgid "Processes"
-msgstr "Процеси"
-
-#: resources/ui/performance_page/cpu_details.blp:156
-msgid "Threads"
-msgstr "Нити"
-
-#: resources/ui/performance_page/cpu_details.blp:179
-msgid "Handles"
-msgstr "Ручке"
-
-#: resources/ui/performance_page/cpu_details.blp:203
-msgid "Up time"
-msgstr "Време рада"
-
-#: resources/ui/performance_page/cpu_details.blp:251
-msgid "Base Speed:"
-msgstr "Основна брзина:"
-
-#: resources/ui/performance_page/cpu_details.blp:266
-msgid "Sockets:"
-msgstr "Прикључнице:"
-
-#: resources/ui/performance_page/cpu_details.blp:281
-msgid "Virtual processors:"
-msgstr "Виртуелни процесори:"
-
-#: resources/ui/performance_page/cpu_details.blp:296
-msgid "Virtualization:"
-msgstr "Виртуелизација:"
-
-#: resources/ui/performance_page/cpu_details.blp:311
-msgid "Virtual machine:"
-msgstr "Виртуелна машина:"
-
-#: resources/ui/performance_page/cpu_details.blp:326
-msgid "L1 cache:"
-msgstr "Л1 кеш:"
-
-#: resources/ui/performance_page/cpu_details.blp:341
-msgid "L2 cache:"
-msgstr "Л2 кеш:"
-
-#: resources/ui/performance_page/cpu_details.blp:356
-msgid "L3 cache:"
-msgstr "Л3 кеш:"
-
-#: resources/ui/performance_page/cpu_details.blp:371
-msgid "Cpufreq driver:"
-msgstr "Cpufreq управљач:"
-
-#: resources/ui/performance_page/cpu_details.blp:386
-msgid "Cpufreq governor:"
-msgstr "Cpufreq намесник:"
-
-#: resources/ui/performance_page/cpu_details.blp:401
-msgid "Power preference:"
-msgstr "Поставка за напајање:"
-
-#: resources/ui/preferences/apps_services_page.blp:25
-msgid "Apps & Services"
-msgstr "Програми и услуге"
-
-#: resources/ui/preferences/apps_services_page.blp:30
-msgid "Merge Process Stats"
-msgstr "Споји статистику процеса"
-
-#: resources/ui/preferences/apps_services_page.blp:35
-msgid "Remember Sorting"
-msgstr "Запамти ређање"
-
-#: resources/ui/preferences/apps_services_page.blp:36
-msgid "Persist sorting by column across app restarts"
-msgstr "Трајно сачувај ређање по колонама након поновног покретања програма"
-
-#: resources/ui/preferences/apps_services_page.blp:40
-msgid "Remember Column Order"
-msgstr "Запамти поредак колона"
-
-#: resources/ui/preferences/apps_services_page.blp:41
-msgid "Persist the order of the columns, across app restarts"
-msgstr "Трајно сачувај поредак колона након поновног покретања програма"
-
-#: resources/ui/preferences/apps_services_page.blp:45
-msgid "Scale CPU Usage to Core Count"
-msgstr "Прилагоди употребу процесора броју језгара"
-
-#: resources/ui/preferences/apps_services_page.blp:46
-msgid "Show CPU usage scaled to the number of available cores"
-msgstr "Прикажи употребу процесора прилагођену броју доступних језгара"
-
-#: resources/ui/preferences/apps_services_page.blp:50
-msgid "Show Column Separators"
-msgstr "Прикажи одвајаче колона"
-
-#: resources/ui/preferences/apps_services_page.blp:51
-msgid "Show a separator between each column"
-msgstr "Прикажи одвајач између сваке колоне"
-
-#: resources/ui/preferences/apps_services_page.blp:55
-msgid "Grey Out Zeroes"
-msgstr "Засиви нуле"
-
-#: resources/ui/preferences/apps_services_page.blp:56
-msgid "Gray out values that equal zero"
-msgstr "Засиви вредности које су једнаке нули"
-
-#: resources/ui/preferences/general_page.blp:25
-msgid "General"
-msgstr "Опште"
-
-#: resources/ui/preferences/general_page.blp:30
-msgid "Update Interval"
-msgstr "Период освежавања"
-
-#: resources/ui/preferences/general_page.blp:31
-msgid "In seconds"
-msgstr "У секундама"
-
-#: resources/ui/preferences/performance_page.blp:25
-#: resources/ui/keyboard_shortcuts.blp:57
-msgid "Performance Page"
-msgstr "Страница учинка"
-
-#: resources/ui/preferences/performance_page.blp:29
-msgid "Graph Settings"
-msgstr "Подешавања графика"
-
-#: resources/ui/preferences/performance_page.blp:32
-msgid "Data Points"
-msgstr "Тачке података"
-
-#: resources/ui/preferences/performance_page.blp:50
-msgid "Smooth Graphs"
-msgstr "Углађени графици"
-
-#: resources/ui/preferences/performance_page.blp:51
-msgid "Draw graphs as smooth line instead of jagged line"
-msgstr "Цртај графике као углађену линију уместо зазубљене"
-
-#: resources/ui/preferences/performance_page.blp:55
-msgid "Sliding Graphs"
-msgstr "Клизајући графици"
-
-#: resources/ui/preferences/performance_page.blp:56
-msgid "Animate graphs (may negatively impact performance)"
-msgstr "Анимирај графике (може негативно утицати на учинак)"
-
-#: resources/ui/preferences/performance_page.blp:60
-msgid "Scale Network Graphs Dynamically"
-msgstr "Динамички прилагоди размеру мрежних графика"
-
-#: resources/ui/preferences/performance_page.blp:61
-msgid ""
-"Set network graph to scale dynamically with actual usage or with channel max "
-"speed"
-msgstr ""
-"Подеси мрежни график тако да се динамички прилагођа стварној употреби или "
-"максималној брзини канала"
-
-#: resources/ui/preferences/performance_page.blp:66 resources/ui/window.blp:64
-msgid "Devices"
-msgstr "Уређаји"
-
-#: resources/ui/preferences/performance_page.blp:69
-msgid "Show Disk Information"
-msgstr "Прикажи информације о диску"
-
-#: resources/ui/preferences/performance_page.blp:74
-msgid "Show Network Information"
-msgstr "Прикажи информације о мрежи"
-
-#: resources/ui/preferences/performance_page.blp:79
-msgid "Wired"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:83
-msgid "Wireless"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:87
-msgid "VPN"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:91
-#, fuzzy
-msgid "Virtual"
-msgstr "Виртуелизација:"
-
-#: resources/ui/preferences/performance_page.blp:92
-msgid "Docker, Multipass, Bridge"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:96
-msgid "Other"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:97
-msgid "Bluetooth, InfiniBand, WWAN"
-msgstr ""
-
-#: resources/ui/preferences/performance_page.blp:102
-msgid "Show GPU Information"
-msgstr "Прикажи информације о графичкој картици"
-
-#: resources/ui/preferences/performance_page.blp:107
-msgid "Show Fan Information"
-msgstr "Прикажи информације о вентилатору"
-
-#: resources/ui/preferences/performance_page.blp:112
-msgid "Show Battery Information"
-msgstr "Прикажи информације о батерији"
-
-#: resources/ui/preferences/performance_page.blp:113
-msgid "Show battery information by default"
-msgstr "Подразумевано прикажи информације о батерији"
-
-#: resources/ui/preferences/units_page.blp:25
-msgid "Units"
-msgstr "Јединице"
-
-#: resources/ui/preferences/units_page.blp:30
-msgid "Memory Usage Unit"
-msgstr "Јединица за употребу меморије"
-
-#: resources/ui/preferences/units_page.blp:37
-msgid "Use Bytes as a Unit of Measurement for Memory"
-msgstr "Користи бајтове као јединицу мере за меморију"
-
-#: resources/ui/preferences/units_page.blp:38
-#: resources/ui/preferences/units_page.blp:76
-#: resources/ui/preferences/units_page.blp:114
-msgid "Bytes"
-msgstr "Бајтови"
-
-#: resources/ui/preferences/units_page.blp:42
-msgid "Use Bits as a Unit of Measurement for Memory"
-msgstr "Користи битове као јединицу мере за меморију"
-
-#: resources/ui/preferences/units_page.blp:43
-#: resources/ui/preferences/units_page.blp:81
-#: resources/ui/preferences/units_page.blp:119
-msgid "Bits"
-msgstr "Битови"
-
-#: resources/ui/preferences/units_page.blp:49
-msgid "Memory Usage Base"
-msgstr "Основа за употребу меморије"
-
-#: resources/ui/preferences/units_page.blp:56
-msgid "Use Base 10 for Memory"
-msgstr "Користи основу 10 за меморију"
-
-#: resources/ui/preferences/units_page.blp:57
-#: resources/ui/preferences/units_page.blp:95
-#: resources/ui/preferences/units_page.blp:133
-msgid "Base 10"
-msgstr "Основа 10"
-
-#: resources/ui/preferences/units_page.blp:61
-msgid "Use Base 2 for Memory"
-msgstr "Користи основу 2 за меморију"
-
-#: resources/ui/preferences/units_page.blp:62
-#: resources/ui/preferences/units_page.blp:100
-#: resources/ui/preferences/units_page.blp:138
-msgid "Base 2"
-msgstr "Основа 2"
-
-#: resources/ui/preferences/units_page.blp:68
-msgid "Drive Usage Unit"
-msgstr "Јединица за употребу диска"
-
-#: resources/ui/preferences/units_page.blp:75
-msgid "Use Bytes as a Unit of Measurement for Disk Drives"
-msgstr "Користи бајтове као јединицу мере за диск уређаје"
-
-#: resources/ui/preferences/units_page.blp:80
-msgid "Use Bits as a Unit of Measurement for Disk Drives"
-msgstr "Користи битове као јединицу мере за дискове"
-
-#: resources/ui/preferences/units_page.blp:87
-msgid "Drive Usage Base"
-msgstr "Основа за искоришћеност диска"
-
-#: resources/ui/preferences/units_page.blp:94
-msgid "Use Base 10 for Disk Drives"
-msgstr "Користи основу 10 за дискове"
-
-#: resources/ui/preferences/units_page.blp:99
-msgid "Use Base 2 for Disk Drives"
-msgstr "Користи основу 2 за дискове"
-
-#: resources/ui/preferences/units_page.blp:106
-msgid "Network Usage Unit"
-msgstr "Јединица за мрежну искоришћеност"
-
-#: resources/ui/preferences/units_page.blp:113
-msgid "Use Bytes as a Unit of Measurement for Network Interfaces"
-msgstr "Користи бајтове као јединицу мере за мрежне спреге"
-
-#: resources/ui/preferences/units_page.blp:118
-msgid "Use Bits as a Unit of Measurement for Network Interfaces"
-msgstr "Користи битове као јединицу мере за мрежне спреге"
-
-#: resources/ui/preferences/units_page.blp:125
-msgid "Network Usage Base"
-msgstr "Основа за мрежну искоришћеност"
-
-#: resources/ui/preferences/units_page.blp:132
-msgid "Use Base 10 for Network Interfaces"
-msgstr "Користи основу 10 за мрежне спреге"
-
-#: resources/ui/preferences/units_page.blp:137
-msgid "Use Base 2 for Network Interfaces"
-msgstr "Користи основу 2 за мрежне спреге"
-
-#: resources/ui/services_page/page.blp:96
-msgid "Collapse all expanded services"
-msgstr "Скупи све раширене услуге"
-
-#: resources/ui/services_page/page.blp:135
-msgid "Filter running processes"
-msgstr "Филтрирај покренуте процесе"
-
-#: resources/ui/services_page/page.blp:155
-msgid "Filter failed processes"
-msgstr "Филтрирај неуспешне процесе"
-
-#: resources/ui/services_page/page.blp:175
-msgid "Filter stopped processes"
-msgstr "Филтрирај заустављене процесе"
-
-#: resources/ui/services_page/page.blp:195
-msgid "Filter disabled processes"
-msgstr "Филтрирај онемогућене процесе"
-
-#: resources/ui/services_page/page.blp:216
-msgid "Remove all filters"
-msgstr "Уклони све филтере"
-
-#: resources/ui/services_page/page.blp:226
-msgid "Remove Filters"
-msgstr "Уклони филтере"
-
-#: resources/ui/widgets/theme_selector.blp:18
-#: resources/ui/widgets/theme_selector.blp:21
-msgid "Follow system style"
-msgstr "Прати системски стил"
-
-#: resources/ui/widgets/theme_selector.blp:35
-#: resources/ui/widgets/theme_selector.blp:38
-msgid "Light style"
-msgstr "Светли стил"
-
-#: resources/ui/widgets/theme_selector.blp:53
-#: resources/ui/widgets/theme_selector.blp:56
-msgid "Dark style"
-msgstr "Тамни стил"
-
-#: resources/ui/keyboard_shortcuts.blp:5
-msgid "Keyboard Shortcuts"
-msgstr "Пречице на тастатури"
-
-#: resources/ui/keyboard_shortcuts.blp:8
-msgid "Global"
-msgstr "Опште"
-
-#: resources/ui/keyboard_shortcuts.blp:11
-msgid "Open Menu"
-msgstr "Отвори мени"
-
-#: resources/ui/keyboard_shortcuts.blp:16
-#: resources/ui/keyboard_shortcuts.blp:21
-msgid "Close Window"
-msgstr "Затвори прозор"
-
-#: resources/ui/keyboard_shortcuts.blp:26
-msgid "Open Preferences"
-msgstr "Отвори подешавања"
-
-#: resources/ui/keyboard_shortcuts.blp:31
-msgid "Show Keyboard Shortcuts"
-msgstr "Прикажи пречице тастатуре"
-
-#: resources/ui/keyboard_shortcuts.blp:36
-msgid "Show Performance Page"
-msgstr "Прикажи страницу учинка"
-
-#: resources/ui/keyboard_shortcuts.blp:41
-msgid "Show Apps Page"
-msgstr "Прикажи страницу програма"
-
-#: resources/ui/keyboard_shortcuts.blp:46
-msgid "Show Services Page"
-msgstr "Прикажи страницу услуга"
-
-#: resources/ui/keyboard_shortcuts.blp:51 resources/ui/window.blp:111
-msgid "Toggle Sidebar"
-msgstr "Прикажи/сакриј страничник"
-
-#: resources/ui/keyboard_shortcuts.blp:60
-msgid "Copy Device Information"
-msgstr "Копирај податке о уређају"
-
-#: resources/ui/keyboard_shortcuts.blp:65
-msgid "Toggle Summary Mode"
-msgstr "Укључи/искључи режим сажетка"
-
-#: resources/ui/keyboard_shortcuts.blp:70
-msgid "Select a Device"
-msgstr "Изабери уређај"
-
-#: resources/ui/keyboard_shortcuts.blp:76
-msgid "Apps Page"
-msgstr "Страница програма"
-
-#: resources/ui/keyboard_shortcuts.blp:79
-#: resources/ui/keyboard_shortcuts.blp:108 resources/ui/window.blp:159
-msgid "Search"
-msgstr "Претрага"
-
-#: resources/ui/keyboard_shortcuts.blp:89
-msgid "Stop App or Process"
-msgstr "Заустави програм или процес"
-
-#: resources/ui/keyboard_shortcuts.blp:94
-msgid "Force Stop App or Process"
-msgstr "Присилно заустави програм или процес"
-
-#: resources/ui/keyboard_shortcuts.blp:99
-#: resources/ui/keyboard_shortcuts.blp:133
-msgid "Show Details Dialog"
-msgstr "Прикажи прозорче са детаљима"
-
-#: resources/ui/keyboard_shortcuts.blp:105
-msgid "Services Page"
-msgstr "Страница услуга"
-
-#: resources/ui/keyboard_shortcuts.blp:118
-msgid "Start Service"
-msgstr "Започни услугу"
-
-#: resources/ui/keyboard_shortcuts.blp:123
-msgid "Stop Service"
-msgstr "Заустави услугу"
-
-#: resources/ui/keyboard_shortcuts.blp:128
-msgid "Restart Service"
-msgstr "Поново покрени услугу"
-
-#. The `Name` column should be default aligned
-#. The column that contains the context menu button should be default aligned
-#: resources/ui/table_view/table_view.blp:40
-#: resources/ui/table_view/service_details_dialog.blp:136
-#: resources/ui/about_system_dialog.blp:80
-#: resources/ui/about_system_dialog.blp:260 src/table_view/columns/mod.rs:211
-msgid "Name"
-msgstr "Назив"
-
-#: resources/ui/table_view/table_view.blp:47
-#: resources/ui/table_view/process_details_dialog.blp:77
-msgid "PID"
-msgstr "ПИД"
-
-#: resources/ui/table_view/table_view.blp:65
-#: resources/ui/table_view/process_details_dialog.blp:227
-#: src/table_view/mod.rs:903 src/table_view/mod.rs:908
-msgid "Swap"
-msgstr "Размена"
-
-#: resources/ui/table_view/table_view.blp:71 src/performance_page/mod.rs:1264
-#: src/table_view/mod.rs:886 src/table_view/mod.rs:894
-msgid "Drive"
-msgstr "Уређај"
-
-#: resources/ui/table_view/table_view.blp:77
-#: resources/ui/table_view/process_details_dialog.blp:277
-#: src/table_view/mod.rs:914 src/table_view/mod.rs:923
-msgid "Network"
-msgstr "Мрежа"
-
-#: resources/ui/table_view/table_view.blp:83
-#: resources/ui/table_view/process_details_dialog.blp:302
-#: src/performance_page/gpu.rs:632 src/performance_page/mod.rs:1518
-#: src/performance_page/mod.rs:2467 src/table_view/mod.rs:929
-#: src/table_view/mod.rs:946
-msgid "GPU"
-msgstr "Графичка"
-
-#: resources/ui/table_view/table_view.blp:89
-#: resources/ui/table_view/process_details_dialog.blp:327
-#: src/table_view/mod.rs:933 src/table_view/mod.rs:952
-msgid "GPU Memory"
-msgstr "Графичка меморија"
-
-#: resources/ui/table_view/table_view.blp:118
-#: resources/ui/table_view/table_view.blp:188
-#: resources/ui/table_view/process_action_bar.blp:45
-#: resources/ui/table_view/service_action_bar.blp:69
-msgid "Stop"
-msgstr "Заустави"
-
-#: resources/ui/table_view/table_view.blp:123
-#: resources/ui/table_view/process_action_bar.blp:64
-msgid "Force Stop"
-msgstr "Присилно заустави"
-
-#: resources/ui/table_view/table_view.blp:128
-msgid "Send Signal"
-msgstr "Пошаљи сигнал"
-
-#: resources/ui/table_view/table_view.blp:131
-msgid "Suspend (STOP)"
-msgstr "Обустави (STOP)"
-
-#: resources/ui/table_view/table_view.blp:136
-msgid "Continue (CONT)"
-msgstr "Настави (CONT)"
-
-#: resources/ui/table_view/table_view.blp:141
-msgid "Hangup (HUP)"
-msgstr "Заврши везу (HUP)"
-
-#: resources/ui/table_view/table_view.blp:146
-msgid "Interrupt (INT)"
-msgstr "Прекини (INT)"
-
-#: resources/ui/table_view/table_view.blp:151
-msgid "Terminate (TERM)"
-msgstr "Заврши (TERM)"
-
-#: resources/ui/table_view/table_view.blp:156
-msgid "Kill (KILL)"
-msgstr "Убиј (KILL)"
-
-#: resources/ui/table_view/table_view.blp:161
-msgid "User 1 (USR1)"
-msgstr "Корисник 1 (USR1)"
-
-#: resources/ui/table_view/table_view.blp:166
-msgid "User 2 (USR2)"
-msgstr "Корисник 2 (USR2)"
-
-#: resources/ui/table_view/table_view.blp:174
-#: resources/ui/table_view/table_view.blp:200
-#: resources/ui/table_view/process_action_bar.blp:84
-#: resources/ui/table_view/service_action_bar.blp:110
-msgid "Details"
-msgstr "Детаљи"
-
-#: resources/ui/table_view/table_view.blp:183
-#: resources/ui/table_view/service_action_bar.blp:48
-msgid "Start"
-msgstr "Покрени"
-
-#: resources/ui/table_view/table_view.blp:193
-#: resources/ui/table_view/service_action_bar.blp:91
-msgid "Restart"
-msgstr "Поново покрени"
-
-#: resources/ui/table_view/process_action_bar.blp:33
-msgid "Stop the selected app"
-msgstr "Заустави изабрани програм"
-
-#: resources/ui/table_view/process_action_bar.blp:52
-msgid "Force stop the selected app"
-msgstr "Присилно заустави изабрани програм"
-
-#: resources/ui/table_view/process_action_bar.blp:72
-msgid "Show details of the selected app"
-msgstr "Прикажи детаље изабраног програма"
-
-#: resources/ui/table_view/process_details_dialog.blp:85
-msgid "App ID"
-msgstr "ИД програма"
-
-#: resources/ui/table_view/process_details_dialog.blp:96
-#: resources/ui/table_view/process_details_dialog.blp:124
-#: resources/ui/table_view/service_details_dialog.blp:252
-#: resources/ui/table_view/service_details_dialog.blp:284
-#: resources/ui/table_view/service_details_dialog.blp:316
-#: src/performance_page/widgets/smart_data_dialog.rs:201
-#: src/performance_page/widgets/smart_data_dialog.rs:209
-#: src/performance_page/widgets/smart_data_dialog.rs:217
-#: src/performance_page/widgets/smart_data_dialog.rs:225
-#: src/performance_page/widgets/smart_data_dialog.rs:236
-#: src/performance_page/widgets/smart_data_dialog.rs:244
-#: src/performance_page/widgets/smart_data_dialog.rs:252
-#: src/performance_page/widgets/smart_data_dialog.rs:260
-#: src/performance_page/widgets/smart_data_dialog.rs:268
-#: src/performance_page/widgets/smart_data_dialog.rs:276
-#: src/performance_page/widgets/smart_data_dialog.rs:285
-#: src/performance_page/widgets/smart_data_dialog.rs:293
-#: src/performance_page/widgets/smart_data_dialog.rs:301
-#: src/performance_page/widgets/smart_data_dialog.rs:309
-#: src/performance_page/widgets/smart_data_dialog.rs:317
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:102
-#: src/performance_page/cpu.rs:583 src/performance_page/cpu.rs:592
-#: src/performance_page/cpu.rs:601 src/performance_page/cpu.rs:610
-#: src/performance_page/memory.rs:559 src/performance_page/network.rs:439
-#: src/performance_page/network.rs:447
-#: src/table_view/service_details_dialog.rs:270
-#: src/table_view/service_details_dialog.rs:278
-#: src/table_view/service_details_dialog.rs:286
-msgid "N/A"
-msgstr "Н/Д"
-
-#: resources/ui/table_view/process_details_dialog.blp:141
-msgid "Command Line"
-msgstr "Линија наредби"
-
-#: resources/ui/table_view/process_details_dialog.blp:163
-msgid "Resource Usage"
-msgstr "Заузеће ресурса"
-
-#: resources/ui/table_view/process_details_dialog.blp:252
-msgid "Drives"
-msgstr "Дискови"
-
-#: resources/ui/table_view/service_action_bar.blp:34
-msgid "Start the selected service"
-msgstr "Покрени изабрану услугу"
-
-#: resources/ui/table_view/service_action_bar.blp:55
-msgid "Stop the selected service"
-msgstr "Заустави изабрану услугу"
-
-#: resources/ui/table_view/service_action_bar.blp:77
-msgid "Restart the selected service"
-msgstr "Поново покрени изабрану услугу"
-
-#: resources/ui/table_view/service_action_bar.blp:98
-msgid "Show details of the selected service"
-msgstr "Прикажи детаље изабране услуге"
-
-#: resources/ui/table_view/service_details_dialog.blp:35
-msgid "Service Details"
-msgstr "Детаљи о услузи"
-
-#: resources/ui/table_view/service_details_dialog.blp:59
-msgid "State"
-msgstr "Стање"
-
-#: resources/ui/table_view/service_details_dialog.blp:60
-msgid "The current state of the service"
-msgstr "Тренутно стање услуге"
-
-#: resources/ui/table_view/service_details_dialog.blp:77
-msgid "Start service"
-msgstr "Покрени услугу"
-
-#: resources/ui/table_view/service_details_dialog.blp:92
-msgid "Stop service"
-msgstr "Заустави услугу"
-
-#: resources/ui/table_view/service_details_dialog.blp:108
-msgid "Restart service"
-msgstr "Поново покрени услугу"
-
-#: resources/ui/table_view/service_details_dialog.blp:166
-msgid "Description"
-msgstr "Опис"
-
-#: resources/ui/table_view/service_details_dialog.blp:196
-msgid "Status"
-msgstr "Статус"
-
-#: resources/ui/table_view/service_details_dialog.blp:215
-msgid "Enabled"
-msgstr "Омогућено"
-
-#: resources/ui/table_view/service_details_dialog.blp:222
-#: src/table_view/row_model.rs:282
-msgid "Process"
-msgstr "Процес"
-
-#: resources/ui/table_view/service_details_dialog.blp:223
-msgid "Process and user information"
-msgstr "Подаци о процесу и кориснику"
-
-#: resources/ui/table_view/service_details_dialog.blp:239
-msgid "Process ID"
-msgstr "ИД процеса"
-
-#: resources/ui/table_view/service_details_dialog.blp:271
-msgid "User"
-msgstr "Корисник"
-
-#: resources/ui/table_view/service_details_dialog.blp:303
-msgid "Group"
-msgstr "Група"
-
-#: resources/ui/table_view/service_details_dialog.blp:335
-msgid "File Location"
-msgstr "Локација датотеке"
-
-#: resources/ui/table_view/service_details_dialog.blp:358
-msgid "Logs"
-msgstr "Дневници"
-
-#: resources/ui/about_system_dialog.blp:36
-msgid "System Info"
-msgstr "Системски подаци"
-
-#: resources/ui/about_system_dialog.blp:65
-msgid "Operating System Information"
-msgstr "Подаци о оперативном систему"
-
-#: resources/ui/about_system_dialog.blp:108
-#: resources/ui/about_system_dialog.blp:226
-#: resources/ui/about_system_dialog.blp:288
-msgid "Version"
-msgstr "Издање"
-
-#: resources/ui/about_system_dialog.blp:136
-msgid "Package Manager"
-msgstr "Руководилац пакета"
-
-#: resources/ui/about_system_dialog.blp:164
-msgid "Package Manager Version"
-msgstr "Издање руководиоца пакета"
-
-#: resources/ui/about_system_dialog.blp:183
-msgid "Kernel Information"
-msgstr "Подаци о језгру"
-
-#: resources/ui/about_system_dialog.blp:198
-msgid "Kernel Release"
-msgstr "Издање језгра"
-
-#: resources/ui/about_system_dialog.blp:245
-msgid "Desktop Environment Information"
-msgstr "Подаци о стоном окружењу"
-
-#: resources/ui/about_system_dialog.blp:316
-msgid "Windowing System"
-msgstr "Прозорски систем"
-
-#: resources/ui/about_system_dialog.blp:344
-msgid "Virtual Terminal"
-msgstr "Виртуелни терминал"
-
-#: resources/ui/window.blp:49
-msgid "Enable All"
-msgstr "Омогући све"
-
-#: resources/ui/window.blp:54
-msgid "Disable All"
-msgstr "Онемогући све"
-
-#: resources/ui/window.blp:59
-msgid "Reset to Default"
-msgstr "Врати на подразумевано"
-
-#: resources/ui/window.blp:70
-msgid "Edit Sidebar"
-msgstr "Уреди страничник"
-
-#: resources/ui/window.blp:134
-msgid "Type a name or PID to search"
-msgstr "Куцајте назив или PID за претрагу"
-
-#: resources/ui/window.blp:149
-msgid "Toggle Device Information"
-msgstr "Укључи/искључи податке о уређају"
-
-#: resources/ui/window.blp:164
-msgid "Main Menu"
-msgstr "Главни мени"
-
-#: resources/ui/window.blp:181
-msgid "Performance"
-msgstr "Учинак"
-
-#: resources/ui/window.blp:193 src/apps_page/mod.rs:86
-msgid "Apps"
-msgstr "Програми"
-
-#: resources/ui/window.blp:201
-msgid "Services"
-msgstr "Услуге"
-
-#: resources/ui/window.blp:225
-msgid "_Preferences"
-msgstr "_Поставке"
-
-#: resources/ui/window.blp:230
-msgid "_Keyboard Shortcuts"
-msgstr "_Пречице на тастатури"
-
-#: resources/ui/window.blp:237
-msgid "_System Information"
-msgstr "_Системски подаци"
-
-#: resources/ui/window.blp:244
-msgid "Open _Wiki"
-msgstr "Отвори _Вики"
-
-#: resources/ui/window.blp:250
-msgid "Show _First Run Dialog"
-msgstr "Прикажи прозорче за _прво покретање"
-
-#: resources/ui/window.blp:257
-msgid "_About Mission Center"
-msgstr "_О Мисијон Центру"
-
-#: src/apps_page/mod.rs:303
-#, rust-format
-msgid "{} Running App"
-msgid_plural "{} Running Apps"
-msgstr[0] "{} покренут програм"
-msgstr[1] "{} покренута програма"
-msgstr[2] "{} покренутих програма"
-
-#: src/apps_page/mod.rs:313
-#, rust-format
-msgid "{} Running Process"
-msgid_plural "{} Running Processes"
-msgstr[0] "{} покренут процес"
-msgstr[1] "{} покренута процеса"
-msgstr[2] "{} покренутих процеса"
-
-#: src/performance_page/widgets/eject_failure_dialog.rs:157
-#: src/performance_page/widgets/smart_failure_dialog.rs:67
-msgid "Close"
-msgstr "Затвори"
-
-#: src/performance_page/widgets/eject_failure_dialog.rs:158
-msgid "Retry"
-msgstr "Покушај поново"
-
-#: src/performance_page/widgets/eject_failure_dialog.rs:159
-msgid "Kill All"
-msgstr "Убиј све"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:95
-#, rust-format
-msgid "{} ago"
-msgstr "пре {}"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:98
-#: src/performance_page/cpu.rs:495 src/performance_page/cpu.rs:524
-#: src/performance_page/cpu.rs:568 src/performance_page/cpu.rs:576
-#: src/performance_page/disk.rs:189 src/performance_page/disk.rs:207
-#: src/performance_page/disk.rs:234 src/performance_page/disk.rs:357
-#: src/performance_page/gpu.rs:555 src/performance_page/gpu.rs:577
-#: src/performance_page/memory.rs:557 src/performance_page/memory.rs:830
-#: src/performance_page/mod.rs:1513 src/performance_page/mod.rs:1523
-#: src/performance_page/network.rs:270 src/performance_page/network.rs:347
-#: src/performance_page/network.rs:375 src/performance_page/network.rs:456
-#: src/performance_page/network.rs:486 src/performance_page/network.rs:522
-#: src/table_view/service_details_dialog.rs:294
-msgid "Unknown"
-msgstr "Непознато"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:130
-msgid "Pre-Fail"
-msgstr "Пред кваром"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:131
-msgid "Old-Age"
-msgstr "Старост"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:134
-msgid "Online"
-msgstr "На мрежи"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:135
-msgid "Offline"
-msgstr "Ван мреже"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:142
-msgid "FAILING"
-msgstr "ОТКАЗУЈЕ"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:147
-msgid "Failed in the past"
-msgstr "Отказао у прошлости"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:149
-msgid "Ok"
-msgstr "У реду"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:197
-msgid "Percent Used"
-msgstr "Проценат употребе"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:205
-msgid "Available Spare"
-msgstr "Доступна резерва"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:213
-msgid "Spare Threshold"
-msgstr "Праг резерве"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:221
-msgid "Total Data Read"
-msgstr "Укупно прочитаних података"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:229
-msgid "Total Data Written"
-msgstr "Укупно уписаних података"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:240
-msgid "Warning Temp Time"
-msgstr "Време упозорења за температуру"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:248
-msgid "Critical Temp Time"
-msgstr "Време критичне температуре"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:256
-#: src/performance_page/widgets/smart_data_dialog.rs:313
-msgid "Control Busy Time"
-msgstr "Време заузетости контролера"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:264
-msgid "Warning Temperature"
-msgstr "Температура упозорења"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:266
-#: src/performance_page/widgets/smart_data_dialog.rs:274
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:106
-#: src/performance_page/fan.rs:264
-#, rust-format
-msgid "{} °C"
-msgstr "{} °C"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:272
-msgid "Critical Temperature"
-msgstr "Критична температура"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:279
-msgid "Temps"
-msgstr "Температуре"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:281
-msgid "Unsafe Shutdowns"
-msgstr "Небезбедна гашења"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:289
-msgid "Media Errors"
-msgstr "Грешке медија"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:297
-msgid "Number Error Log Entries"
-msgstr "Број уноса у дневнику грешака"
-
-#: src/performance_page/widgets/smart_data_dialog.rs:305
-msgid "Power Cycles"
-msgstr "Циклуси напајања"
-
-#: src/performance_page/widgets/mem_composition_widget.rs:251
-#, rust-format
-msgid ""
-"In use ({})\n"
-"\n"
-"Memory used by the operating system and running applications"
-msgstr ""
-"У употреби ({})\n"
-"\n"
-"Меморија коју користе оперативни систем и покренути програми"
-
-#: src/performance_page/widgets/mem_composition_widget.rs:281
-#, rust-format
-msgid ""
-"Modified ({})\n"
-"\n"
-"Memory whose contents must be written to disk before it can be used by "
-"another process"
-msgstr ""
-"Измењено ({})\n"
-"\n"
-"Меморија чији садржај мора бити записан на диск пре него што га може "
-"користити други процес"
-
-#: src/performance_page/widgets/mem_composition_widget.rs:305
-#, rust-format
-msgid ""
-"Standby ({})\n"
-"\n"
-"Memory that contains cached data and code that is not actively in use"
-msgstr ""
-"Припратно ({})\n"
-"\n"
-"Меморија која садржи кеширане податке и код који није активно у употреби"
-
-#: src/performance_page/widgets/mem_composition_widget.rs:318
-#, rust-format
-msgid ""
-"Free ({})\n"
-"\n"
-"Memory that is not currently in use, and that will be repurposed first when "
-"the operating system, drivers, or applications need more memory"
-msgstr ""
-"Слободно ({})\n"
-"\n"
-"Меморија која тренутно није у употреби, а која ће прво бити искоришћена када "
-"оперативном систему, управљачима или програмима буде потребно више меморије"
-
-#: src/performance_page/widgets/smart_sata_dialog_row.rs:104
-#, rust-format
-msgid "{} sectors"
-msgstr "{} сектора"
-
-#: src/performance_page/cpu.rs:532
-msgid ""
-"Real CPU frequency data is unavailable (common in VMs, containers, or cloud "
-"instances). Displaying BogoMIPS value as a fallback. BogoMIPS is a delay "
-"loop calibration metric, not a true frequency measurement."
-msgstr ""
-"Подаци о стварној фреквенцији процесора нису доступни (често у виртуелним "
-"машинама, контејнерима или облачним инстанцама). Приказује се вредност "
-"BogoMIPS као резерва. BogoMIPS је мера калибрације петље кашњења, а не "
-"стварно мерење фреквенције."
-
-#: src/performance_page/cpu.rs:556 src/performance_page/fan.rs:297
-#: src/performance_page/gpu.rs:592
-msgid "Unsupported"
-msgstr "Неподржано"
-
-#: src/performance_page/cpu.rs:563 src/performance_page/disk.rs:211
-msgid "Yes"
-msgstr "Да"
-
-#: src/performance_page/cpu.rs:565 src/performance_page/disk.rs:213
-msgid "No"
-msgstr "Не"
-
-#: src/performance_page/cpu.rs:1034 src/performance_page/gpu.rs:1122
-#, fuzzy
-msgid "Power draw over "
-msgstr "Потрошња енергије"
-
-#: src/performance_page/cpu.rs:1037 src/performance_page/gpu.rs:1125
-#, fuzzy
-msgid "Clock speed over "
-msgstr "Брзина вентилатора током "
-
-#: src/performance_page/disk.rs:179
-#, rust-format
-msgid "Disk {} ({})"
-msgstr "Диск {} ({})"
-
-#: src/performance_page/disk.rs:183 src/performance_page/disk.rs:340
-#, rust-format
-msgid "Drive ({})"
-msgstr "Уређај ({})"
-
-#: src/performance_page/disk.rs:222 src/performance_page/mod.rs:1255
-msgid "HDD"
-msgstr "ХДД"
-
-#: src/performance_page/disk.rs:223 src/performance_page/mod.rs:1256
-msgid "SSD"
-msgstr "ССД"
-
-#: src/performance_page/disk.rs:224 src/performance_page/mod.rs:1257
-msgid "NVMe"
-msgstr "НВМе"
-
-#: src/performance_page/disk.rs:225 src/performance_page/mod.rs:1258
-msgid "eMMC"
-msgstr "еММЦ"
-
-#: src/performance_page/disk.rs:226 src/performance_page/mod.rs:1259
-msgid "SD"
-msgstr "СД"
-
-#: src/performance_page/disk.rs:227 src/performance_page/mod.rs:1260
-msgid "iSCSI"
-msgstr "iSCSI"
-
-#: src/performance_page/disk.rs:228 src/performance_page/mod.rs:1261
-msgid "Optical"
-msgstr "Оптички"
-
-#: src/performance_page/disk.rs:229 src/performance_page/mod.rs:1262
-msgid "Floppy"
-msgstr "Флопи"
-
-#: src/performance_page/disk.rs:230 src/performance_page/mod.rs:1263
-msgid "Thumb Drive"
-msgstr "УСБ стик"
-
-#: src/performance_page/disk.rs:336
-#, rust-format
-msgid "Drive {} ({})"
-msgstr "Уређај {} ({})"
-
-#: src/performance_page/disk.rs:367 src/performance_page/fan.rs:248
-#: src/performance_page/fan.rs:279
-#, rust-format
-msgid "{} RPM"
-msgstr "{} РПМ"
-
-#: src/performance_page/fan.rs:242 src/performance_page/mod.rs:1626
-#: src/performance_page/mod.rs:2540
-#, rust-format
-msgid "Fan {}"
-msgstr "Вентилатор {}"
-
-#: src/performance_page/fan.rs:244 src/performance_page/mod.rs:1628
-#: src/performance_page/mod.rs:2542
-msgid "Fan"
-msgstr "Вентилатор"
-
-#: src/performance_page/fan.rs:253
-#, rust-format
-msgid "{}%"
-msgstr "{}%"
-
-#: src/performance_page/gpu.rs:562
-msgid "Video encode/decode"
-msgstr "Кодирање/декодирање видеа"
-
-#: src/performance_page/gpu.rs:630 src/performance_page/mod.rs:1516
-#: src/performance_page/mod.rs:2465
-#, rust-format
-msgid "GPU {}"
-msgstr "ГПЈ {}"
-
-#: src/performance_page/gpu.rs:826
-msgid "Total Memory"
-msgstr "Укупна меморија"
-
-#: src/performance_page/gpu.rs:876
-msgid "Total Shared Memory"
-msgstr "Укупна дељена меморија"
-
-#: src/performance_page/gpu.rs:1116
-msgid "Dedicated and shared memory usage over "
-msgstr "Употреба посвећене и дељене меморије током "
-
-#: src/performance_page/memory.rs:358
-#, rust-format
-msgid "{} of {}"
-msgstr "{} од {}"
-
-#: src/performance_page/memory.rs:380
-msgid "Getting additional memory information failed"
-msgstr "Није успело добијање додатних информација о меморији"
-
-#: src/performance_page/mod.rs:1269
-#, rust-format
-msgid "{} {} ({})"
-msgstr "{} {} ({})"
-
-#: src/performance_page/mod.rs:1724 src/performance_page/mod.rs:2626
-#, rust-format
-msgid "Battery {}"
-msgstr "Батерија {}"
-
-#: src/performance_page/mod.rs:1726 src/performance_page/mod.rs:2628
-msgid "Battery"
-msgstr "Батерија"
-
-#: src/performance_page/mod.rs:2391
-#, fuzzy, rust-format
-msgid "{}"
-msgstr "{}%"
-
-#: src/performance_page/mod.rs:2408 src/performance_page/mod.rs:2409
-#, rust-format
-msgid "{}: {}"
-msgstr "{}: {}"
-
-#: src/performance_page/network.rs:457 src/services_page/mod.rs:120
-#: src/table_view/service_details_dialog.rs:257
-#: src/table_view/service_details_dialog.rs:331
-msgid "Failed"
-msgstr "Неуспешно"
-
-#: src/performance_page/network.rs:458
-msgid "Disconnected"
-msgstr ""
-
-#: src/performance_page/network.rs:459
-msgid "Disconnecting"
-msgstr ""
-
-#: src/performance_page/network.rs:460
-#, fuzzy
-msgid "Connected"
-msgstr "Врста везе:"
-
-#: src/performance_page/network.rs:461
-#, fuzzy
-msgid "Connecting"
-msgstr "Врста везе:"
-
-#: src/performance_page/network.rs:462
-msgid "Configuring"
-msgstr ""
-
-#: src/performance_page/network.rs:463
-msgid "Waiting for auth"
-msgstr ""
-
-#: src/performance_page/network.rs:464
-#, fuzzy
-msgid "Unavailable"
-msgstr "Доступно"
-
-#: src/performance_page/network.rs:465
-#, fuzzy
-msgid "Loading"
-msgstr "Учитавање..."
-
-#: src/services_page/mod.rs:99
-#, rust-format
-msgid "{} Total Service"
-msgid_plural "{} Total Services"
-msgstr[0] "{} укупна услуга"
-msgstr[1] "{} укупне услуге"
-msgstr[2] "{} укупних услуга"
-
-#: src/services_page/mod.rs:111 src/table_view/service_details_dialog.rs:255
-#: src/table_view/service_details_dialog.rs:329
-msgid "Running"
-msgstr "Покренуто"
-
-#: src/services_page/mod.rs:129 src/table_view/service_details_dialog.rs:259
-#: src/table_view/service_details_dialog.rs:333
-msgid "Stopped"
-msgstr "Заустављено"
-
-#: src/services_page/mod.rs:138
-msgid "Disabled"
-msgstr "Искључено"
-
-#: src/services_page/mod.rs:144
-msgid "No services match the current filters"
-msgstr "Ниједна услуга не одговара тренутним филтерима"
-
-#: src/services_page/mod.rs:146
-msgid "No filters applied"
-msgstr "Ниједан филтер није примењен"
-
-#: src/services_page/mod.rs:153
-#, rust-format
-msgid "{} {} Service"
-msgid_plural "{} {} Services"
-msgstr[0] "{} {} услуга"
-msgstr[1] "{} {} услуге"
-msgstr[2] "{} {} услуга"
-
-#: src/services_page/mod.rs:182
-msgid "User Services"
-msgstr "Корисничке услуге"
-
-#: src/services_page/mod.rs:187
-msgid "System Services"
-msgstr "Системске услуге"
-
-#: src/table_view/row_model.rs:279
-msgid "Section Header"
-msgstr "Заглавље одељка"
-
-#: src/table_view/row_model.rs:280
-msgid "Service"
-msgstr "Услуга"
-
-#: src/table_view/row_model.rs:281
-msgid "App"
-msgstr "Програм"
-
-#: src/table_view/service_details_dialog.rs:209
-msgid "Copy logs to clipboard"
-msgstr "Копирај дневнике у оставу"
-
-#: src/application.rs:521
-msgid "translator-credits"
-msgstr ""
-"Serbian <fedora-trans-sr@redhat.com>\n"
-"Марко Костић <marko.m.kostic@gmail.com>\n"
-"Превод Гнома на српски језик https://гном.срб"
-
-#: src/main.rs:106
-#, rust-format
-msgid "{} year"
-msgid_plural "{} years"
-msgstr[0] "{} година"
-msgstr[1] "{} године"
-msgstr[2] "{} година"
-
-#: src/main.rs:110
-#, rust-format
-msgid "{} month"
-msgid_plural "{} months"
-msgstr[0] "{} месец"
-msgstr[1] "{} месеца"
-msgstr[2] "{} месеци"
-
-#: src/main.rs:114
-#, rust-format
-msgid "{} day"
-msgid_plural "{} days"
-msgstr[0] "{} дан"
-msgstr[1] "{} дана"
-msgstr[2] "{} дана"
-
-#: src/main.rs:118
-#, rust-format
-msgid "{} hour"
-msgid_plural "{} hours"
-msgstr[0] "{} час"
-msgstr[1] "{} часа"
-msgstr[2] "{} часова"
-
-#: src/main.rs:122 src/main.rs:207
-#, rust-format
-msgid "{} minute"
-msgid_plural "{} minutes"
-msgstr[0] "{} минут"
-msgstr[1] "{} минута"
-msgstr[2] "{} минута"
-
-#: src/main.rs:126 src/main.rs:205
-#, rust-format
-msgid "{} second"
-msgid_plural "{} seconds"
-msgstr[0] "{} секунда"
-msgstr[1] "{} секунде"
-msgstr[2] "{} секунди"
-
-#: src/main.rs:163
-#, rust-format
-msgid "{}, {} and {}"
-msgstr "{}, {} и {}"
-
-#: src/main.rs:166 src/main.rs:174 src/main.rs:181 src/main.rs:188
-#, rust-format
-msgid "{} and {}"
-msgstr "{} и {}"
-
-#: src/main.rs:197
-msgid "Less than a minute"
-msgstr "Мање од једног минута"
-
-#: src/main.rs:451
-msgid "_Quit"
-msgstr "_Изађи"
-
-#~ msgid "Show the gpu encode-decode graph"
-#~ msgstr "Прикажи график кодирања и декодирања графичке"
-
-#~ msgid "Show CPU Information"
-#~ msgstr "Прикажи информације о процесору"
-
-#~ msgid "Show Memory Information"
-#~ msgstr "Прикажи информације о меморији"
-
-#~ msgid "Shared memory usage over "
-#~ msgstr "Употреба дељене меморије током "
