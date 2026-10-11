@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Compute and stamp the per-workflow upstream version in a CI checkout."""
+"""Determine release eligibility and compute/stamp the CI upstream version."""
 
 import argparse
 from datetime import date, datetime, timezone
+import json
 import os
 import re
 from pathlib import Path
+import subprocess
 import sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 
 PACKAGES = {
@@ -41,6 +45,56 @@ def release_version(base, run_number):
 def compute(root, run_number):
     version = release_version(workspace_version(root), run_number)
     return version, datetime.now(timezone.utc).date().isoformat()
+
+
+def latest_release_tag(repository, api_url, token):
+    request = Request(
+        f"{api_url}/repos/{repository}/releases/latest",
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            release = json.load(response)
+    except HTTPError as error:
+        if error.code == 404:
+            return ""
+        raise
+    tag = release.get("tag_name")
+    if not isinstance(tag, str) or not tag:
+        raise ValueError("latest release has no tag_name")
+    return tag
+
+
+def rust_changes(root, base, head):
+    if base:
+        args = ["diff", "--no-renames", "--name-only", "-z", f"{base}^{{commit}}", f"{head}^{{commit}}", "--"]
+    else:
+        args = ["ls-tree", "-r", "--name-only", "-z", f"{head}^{{commit}}"]
+    paths = subprocess.run(
+        ["git", "-C", str(root), *args], check=True, capture_output=True,
+    ).stdout.split(b"\0")
+    return any(
+        path.endswith(b".rs")
+        or path.rsplit(b"/", 1)[-1] in (b"Cargo.toml", b"Cargo.lock")
+        or path == b"subprojects/magpie/platform-linux/crates/app-rummage"
+        for path in paths
+    )
+
+
+def eligibility(root, head, version):
+    if not VERSION.fullmatch(version):
+        raise ValueError(f"invalid version: {version}")
+    repository = os.environ.get("GITHUB_REPOSITORY")
+    api_url = os.environ.get("GITHUB_API_URL")
+    token = os.environ.get("GH_TOKEN")
+    if not repository or not api_url or not token:
+        raise ValueError("eligibility requires GITHUB_REPOSITORY, GITHUB_API_URL and GH_TOKEN")
+    latest = latest_release_tag(repository, api_url, token)
+    if latest.startswith("v") and VERSION.fullmatch(latest[1:]):
+        if tuple(map(int, version.split("."))) <= tuple(map(int, latest[1:].split("."))):
+            return False, latest
+    base = f"refs/tags/{latest}" if latest else None
+    return rust_changes(root, base, head), latest
 
 
 def stamp(root, version, release_date):
@@ -118,6 +172,11 @@ def main():
     compute_parser.add_argument("--run-number", type=int, required=True)
     compute_parser.add_argument("--root", type=Path, default=Path.cwd())
     compute_parser.add_argument("--output", type=Path)
+    eligibility_parser = subparsers.add_parser("eligibility")
+    eligibility_parser.add_argument("--head", required=True)
+    eligibility_parser.add_argument("--version", required=True)
+    eligibility_parser.add_argument("--root", type=Path, default=Path.cwd())
+    eligibility_parser.add_argument("--output", type=Path)
     stamp_parser = subparsers.add_parser("stamp")
     stamp_parser.add_argument("--version", required=True)
     stamp_parser.add_argument("--date", required=True)
@@ -125,17 +184,23 @@ def main():
     args = parser.parse_args()
 
     try:
-        if args.command == "compute":
-            version, release_date = compute(args.root, args.run_number)
+        if args.command in ("compute", "eligibility"):
+            if args.command == "compute":
+                version, release_date = compute(args.root, args.run_number)
+                values = f"version={version}\nrelease_date={release_date}\n"
+            else:
+                needed, latest = eligibility(args.root, args.head, args.version)
+                values = f"release_needed={str(needed).lower()}\nlatest_tag={latest}\n"
+                print("Unpublished Rust changes found" if needed else "No release needed: Rust is unchanged or a newer run is already published", file=sys.stderr)
             output = args.output or (Path(os.environ["GITHUB_OUTPUT"]) if "GITHUB_OUTPUT" in os.environ else None)
             if output:
                 with output.open("a") as stream:
-                    stream.write(f"version={version}\nrelease_date={release_date}\n")
+                    stream.write(values)
             else:
-                print(f"version={version}\nrelease_date={release_date}")
+                print(values, end="")
         else:
             stamp(args.root, args.version, args.date)
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"release metadata failed: {error}\n")
 
 

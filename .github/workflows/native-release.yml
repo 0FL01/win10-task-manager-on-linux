@@ -225,18 +225,28 @@ jobs:
       - name: Checkout pinned source tree
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           submodules: recursive
           persist-credentials: false
+      - name: Check unpublished Rust changes
+        id: eligibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.metadata.outputs.version }}
+        run: python3 support/ci/release-meta.py eligibility --head "$GITHUB_SHA" --version "$VERSION" --output "$GITHUB_OUTPUT"
       - name: Restore CI version in release sources
+        if: steps.eligibility.outputs.release_needed == 'true'
         env:
           VERSION: ${{ needs.metadata.outputs.version }}
           RELEASE_DATE: ${{ needs.metadata.outputs.release_date }}
         run: python3 support/ci/release-meta.py stamp --version "$VERSION" --date "$RELEASE_DATE"
       - name: Download all native artifacts
+        if: steps.eligibility.outputs.release_needed == 'true'
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           path: target/native-artifacts
       - name: Assemble release assets
+        if: steps.eligibility.outputs.release_needed == 'true'
         env:
           VERSION: ${{ needs.metadata.outputs.version }}
         run: |
@@ -247,9 +257,11 @@ jobs:
             --output target/release-assets \
             --source-archive "target/taskmanager-${VERSION}-source.tar.gz"
       - name: Create immutable draft release and publish assets
+        if: steps.eligibility.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.metadata.outputs.version }}
+          LATEST_TAG: ${{ steps.eligibility.outputs.latest_tag }}
         run: |
           set -euo pipefail
           tag="v$VERSION"
@@ -261,19 +273,9 @@ jobs:
             echo "Git tag $tag already exists; refusing to attach a release to an existing tag" >&2
             exit 1
           fi
-          latest="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name' 2>/dev/null || true)"
+          latest="$LATEST_TAG"
           make_latest=true
-          if [[ -n $latest && $latest =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            if ! python3 - "$VERSION" "${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}" <<'PY'
-          import sys
-          current = tuple(map(int, sys.argv[1].split(".")))
-          latest = tuple(map(int, sys.argv[2].split(".")))
-          raise SystemExit(0 if current > latest else 1)
-          PY
-            then
-              make_latest=false
-            fi
-          elif [[ -n $latest ]]; then
+          if [[ -n $latest && ! $latest =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             make_latest=false
           fi
           gh release create "$tag" \
