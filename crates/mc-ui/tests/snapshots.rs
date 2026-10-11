@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use egui_kittest::Harness;
 use mc_core::config::Config;
 use mc_ui::cx::Dialog;
-use mc_ui::{App, AppOptions, DataSource};
+use mc_ui::{AlwaysOnTopMode, App, AppOptions, DataSource};
 
 fn out_dir() -> PathBuf {
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
@@ -96,6 +96,7 @@ fn render(
                             perf_overlay: false,
                             fonts: Default::default(),
                             initial_config: Some(config),
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
                         },
                     ));
                     if let Some(dialog) = state.dialog.take() {

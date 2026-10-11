@@ -23,3 +23,11 @@ log.workspace = true
 mc-core.workspace = true
 mc-magpie.workspace = true
 mc-ui.workspace = true
+raw-window-handle = "0.6"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+async-io = "2.6"
+futures-lite = "2.6"
+serde_json.workspace = true
+tempfile = "3.27"
+zbus = "5.19"

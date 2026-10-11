@@ -107,6 +107,18 @@ Useful flags of the `taskmanager` binary:
 Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
 `RUST_LOG` (logging).
 
+### Always on top
+
+On native KDE Plasma 6 Wayland (source builds, native packages and AppImage),
+Options → Always on top uses KWin's scripting API to change only this instance's window.
+No separately installed script or utility is required. The check mark and saved preference
+change after KWin confirms the requested state; forced KWin window rules may reject it.
+The last confirmed state is shown, without continuously tracking changes made in KWin's
+own window menu. Pending operations and failures have explanatory tooltips.
+
+Other Wayland desktops and Flatpak/Snap Wayland launches currently show the option as
+unavailable. The existing window-level request is unchanged on X11 and other platforms.
+
 ### GPU monitoring
 
 Processes includes GPU and GPU engine by default; the header menu also exposes total,

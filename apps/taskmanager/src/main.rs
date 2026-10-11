@@ -24,7 +24,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use mc_core::config::Config;
-use mc_ui::{App, AppOptions, DataSource};
+use mc_ui::{AlwaysOnTopError, AlwaysOnTopMode, AlwaysOnTopResult, App, AppOptions, DataSource};
+use raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
+
+#[cfg(target_os = "linux")]
+mod kwin_always_on_top;
 
 const APP_ID: &str = "io.github.taskmanager.TaskManager";
 
@@ -125,13 +129,22 @@ fn dump_readings(n: usize, dir: PathBuf) {
 
 struct Shell {
     app: App,
+    #[cfg(target_os = "linux")]
+    always_on_top: Option<kwin_always_on_top::Worker>,
     stats_file: Option<PathBuf>,
     quit_at: Option<Instant>,
 }
 
 impl eframe::App for Shell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        #[cfg(target_os = "linux")]
+        if let Some(worker) = &mut self.always_on_top {
+            while let Some(result) = worker.try_result() {
+                self.app.finish_always_on_top(result);
+            }
+        }
         self.app.logic(ctx);
+        self.submit_always_on_top();
         // Checked on frames caused by new readings (every refresh interval); deliberately
         // no timer of its own so benchmarks do not add frames.
         if self.quit_at.is_some_and(|at| Instant::now() >= at) {
@@ -141,6 +154,7 @@ impl eframe::App for Shell {
 
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.app.ui(ui);
+        self.submit_always_on_top();
     }
 
     #[cfg(feature = "glow")]
@@ -155,6 +169,24 @@ impl eframe::App for Shell {
 }
 
 impl Shell {
+    fn submit_always_on_top(&mut self) {
+        if let Some(request) = self.app.take_always_on_top_request() {
+            #[cfg(target_os = "linux")]
+            if self
+                .always_on_top
+                .as_mut()
+                .is_some_and(|worker| worker.submit(request))
+            {
+                return;
+            }
+            self.app.finish_always_on_top(AlwaysOnTopResult {
+                id: request.id,
+                actual: None,
+                error: Some(AlwaysOnTopError::Failed),
+            });
+        }
+    }
+
     fn write_stats(&self) {
         if let Some(path) = &self.stats_file {
             let (p50, p95) = self.app.stats.percentiles();
@@ -269,6 +301,33 @@ fn main() -> eframe::Result {
         mc_ui::APP_NAME,
         native,
         Box::new(move |cc| {
+            let always_on_top_mode = match cc.display_handle().map(|handle| handle.as_raw()) {
+                Ok(RawDisplayHandle::Wayland(_)) => AlwaysOnTopMode::Unavailable,
+                Ok(_) => AlwaysOnTopMode::Viewport,
+                Err(_) => AlwaysOnTopMode::Unavailable,
+            };
+            #[cfg(target_os = "linux")]
+            let (always_on_top_mode, always_on_top) =
+                if matches!(
+                    cc.display_handle().map(|handle| handle.as_raw()),
+                    Ok(RawDisplayHandle::Wayland(_))
+                ) && std::env::var("XDG_CURRENT_DESKTOP").is_ok_and(|desktop| {
+                    desktop
+                        .split(':')
+                        .any(|part| part.eq_ignore_ascii_case("KDE"))
+                }) && std::env::var_os("FLATPAK_ID").is_none()
+                    && std::env::var_os("SNAP").is_none()
+                {
+                    match kwin_always_on_top::Worker::new(cc.egui_ctx.clone(), APP_ID) {
+                        Ok(worker) => (AlwaysOnTopMode::External, Some(worker)),
+                        Err(error) => {
+                            log::warn!("Could not start KWin always-on-top worker: {error}");
+                            (AlwaysOnTopMode::Unavailable, None)
+                        }
+                    }
+                } else {
+                    (always_on_top_mode, None)
+                };
             let app = App::new(
                 &cc.egui_ctx,
                 AppOptions {
@@ -277,10 +336,13 @@ fn main() -> eframe::Result {
                     perf_overlay,
                     fonts,
                     initial_config: None,
+                    always_on_top_mode,
                 },
             );
             Ok(Box::new(Shell {
                 app,
+                #[cfg(target_os = "linux")]
+                always_on_top,
                 stats_file,
                 quit_at,
             }))

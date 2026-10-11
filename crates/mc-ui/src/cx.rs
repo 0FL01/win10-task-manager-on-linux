@@ -89,6 +89,7 @@ pub enum Command {
     OpenUrl(String),
     OpenDialog(Dialog),
     SetPage(MainPage),
+    SetAlwaysOnTop(bool),
     ToggleSummaryMode,
     /// Select the first visible device of a category ("cpu", "memory", "disk", ...)
     SelectDeviceCategory(&'static str),

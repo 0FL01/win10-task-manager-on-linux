@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:41+0300\n"
+"POT-Creation-Date: 2026-10-11 21:58+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,99 +177,133 @@ msgstr ""
 msgid "System Services"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:502
+#: crates/mc-ui/src/app.rs:536
 msgid "Run new task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:506
+#: crates/mc-ui/src/app.rs:540
 msgid "Exit"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:511
+#: crates/mc-ui/src/app.rs:555
+msgid "Waiting for the window manager to confirm always on top."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:560
+msgid "Always on top is unavailable on this desktop."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:563
+msgid "The window manager could not find the Task Manager window."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:566
+msgid "The window manager could not identify a unique Task Manager window."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:569
+msgid "The window manager did not apply the requested always-on-top state."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:572
+msgid "The window manager did not confirm always on top in time."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:575
+msgid "Could not communicate with the window manager to set always on top."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:578
+msgid ""
+"Could not remove the window manager script. Further always-on-top changes "
+"are disabled."
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:584
 msgid "Always on top"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:533
+#: crates/mc-ui/src/app.rs:602
 msgid "Refresh now"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:539
+#: crates/mc-ui/src/app.rs:608
 msgid "Group by type"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:544
+#: crates/mc-ui/src/app.rs:613
 msgid "Expand all"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:547
+#: crates/mc-ui/src/app.rs:616
 msgid "Collapse all"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:554
+#: crates/mc-ui/src/app.rs:623
 msgid "Show virtual network adapters"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:561
+#: crates/mc-ui/src/app.rs:630
 msgid "Update speed"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:562
+#: crates/mc-ui/src/app.rs:631
 msgid "High"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:562
+#: crates/mc-ui/src/app.rs:631
 msgid "Normal"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:562
+#: crates/mc-ui/src/app.rs:631
 msgid "Low"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:571
+#: crates/mc-ui/src/app.rs:640
 msgid "Paused"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:613
+#: crates/mc-ui/src/app.rs:682
 msgid "Create new task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:621
+#: crates/mc-ui/src/app.rs:690
 msgid "Type the name of a program and Task Manager will start it."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:625
+#: crates/mc-ui/src/app.rs:694
 msgid "Open:"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:638
+#: crates/mc-ui/src/app.rs:707
 msgid "Cancel"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:643
+#: crates/mc-ui/src/app.rs:712
 msgid "OK"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:682
+#: crates/mc-ui/src/app.rs:751
 msgid "File"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:682
+#: crates/mc-ui/src/app.rs:751
 msgid "Options"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:682
+#: crates/mc-ui/src/app.rs:751
 msgid "View"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:704
+#: crates/mc-ui/src/app.rs:773
 msgid "Fewer details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:706
+#: crates/mc-ui/src/app.rs:775
 msgid "More details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:714 crates/mc-ui/src/app.rs:721
+#: crates/mc-ui/src/app.rs:783 crates/mc-ui/src/app.rs:790
 #: crates/mc-ui/src/win10/details.rs:297
 #: crates/mc-ui/src/win10/processes.rs:617
 msgid "End task"

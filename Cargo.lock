@@ -3925,13 +3925,19 @@ dependencies = [
 name = "taskmanager-app"
 version = "1.2.0"
 dependencies = [
+ "async-io",
  "eframe",
  "egui",
  "env_logger",
+ "futures-lite",
  "log",
  "mc-core",
  "mc-magpie",
  "mc-ui",
+ "raw-window-handle",
+ "serde_json",
+ "tempfile",
+ "zbus",
 ]
 
 [[package]]

@@ -16,7 +16,7 @@ use std::path::PathBuf;
 use egui_kittest::Harness;
 use image::RgbaImage;
 use mc_core::config::Config;
-use mc_ui::{App, AppOptions, DataSource};
+use mc_ui::{AlwaysOnTopMode, App, AppOptions, DataSource};
 use serde_json::Value;
 
 fn spec() -> Value {
@@ -61,6 +61,7 @@ fn render_keys(
                             ),
                             config_path: None,
                             perf_overlay: false,
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: page.into(),
@@ -298,6 +299,7 @@ fn performance_list_separator_drags() {
                             ),
                             config_path: None,
                             perf_overlay: false,
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: "performance-page".into(),
@@ -391,6 +393,7 @@ fn network_header_click_sorts() {
                             ),
                             config_path: None,
                             perf_overlay: false,
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: "apps-page".into(),
@@ -457,6 +460,7 @@ fn app_harness(config_path: PathBuf) -> Harness<'static, Option<App>> {
                             ),
                             config_path: Some(config_path.clone()),
                             perf_overlay: false,
+                            always_on_top_mode: AlwaysOnTopMode::Viewport,
                             fonts: Default::default(),
                             initial_config: None,
                         },

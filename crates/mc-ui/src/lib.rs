@@ -21,6 +21,7 @@
 //! egui user interface of Task Manager. Depends on egui only (no eframe), so it can be
 //! driven by eframe in the application and by egui_kittest in tests.
 
+mod always_on_top;
 pub mod app;
 pub mod cx;
 pub mod dialogs;
@@ -30,6 +31,7 @@ pub mod smart;
 pub mod table;
 pub mod win10;
 
+pub use always_on_top::{AlwaysOnTopError, AlwaysOnTopMode, AlwaysOnTopRequest, AlwaysOnTopResult};
 pub use app::{App, AppOptions, DataSource};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

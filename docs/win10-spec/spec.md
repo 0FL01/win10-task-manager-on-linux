@@ -65,6 +65,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   + 33, then 40 px, or 32 px + shortcut + 24 px), minimum 200. Submenus open to the right of the
   parent (to the left near the window edge), first item level with the parent item.
 - Unselected tab hover (own design): fill `#e5f3ff`.
+- Always on top (own adaptation): while waiting for the compositor, or when unsupported,
+  its check item is disabled using the existing menu colours; a tooltip explains pending
+  or failed requests. The check mark reflects the last confirmed state, not the request.
 
 ## Tab strip
 - y 52–76; bottom line `#d9d9d9` at y 76 across the window except under the selected tab.

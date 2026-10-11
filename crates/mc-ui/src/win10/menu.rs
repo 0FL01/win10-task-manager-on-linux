@@ -161,8 +161,25 @@ pub fn item(ui: &mut Ui, label: &str, shortcut: &str, enabled: bool) -> bool {
 
 /// Item with a check mark.
 pub fn check(ui: &mut Ui, label: &str, checked: bool) -> bool {
+    check_enabled(ui, label, checked, true, None)
+}
+
+/// Check item with an optional hover reason, also shown while the row is disabled.
+pub fn check_enabled(
+    ui: &mut Ui,
+    label: &str,
+    checked: bool,
+    enabled: bool,
+    reason: Option<&str>,
+) -> bool {
     let mark = if checked { Mark::Check } else { Mark::None };
-    row(ui, label, "", mark, true, false).clicked()
+    let response = row(ui, label, "", mark, enabled, false);
+    let response = if let Some(reason) = reason {
+        response.on_hover_text(reason)
+    } else {
+        response
+    };
+    enabled && response.clicked()
 }
 
 /// Item of a radio group.

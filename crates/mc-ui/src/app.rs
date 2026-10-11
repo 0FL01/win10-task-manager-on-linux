@@ -31,6 +31,7 @@ use mc_core::i18n::i18n;
 use mc_core::i18n::n_;
 use mc_magpie::{Event, INTERVAL_STEP, Icon, MagpieClient, Readings, Request};
 
+use crate::always_on_top::AlwaysOnTopState;
 use crate::cx::{Command, Cx, Dialog, MainPage};
 use crate::dialogs::Dialogs;
 use crate::icons::IconCache;
@@ -41,6 +42,7 @@ use crate::win10::performance::PerformanceView;
 use crate::win10::processes::ProcessesPage;
 use crate::win10::services::ServicesView;
 use crate::win10::{chrome, menu, metrics};
+use crate::{AlwaysOnTopError, AlwaysOnTopMode, AlwaysOnTopRequest, AlwaysOnTopResult};
 
 pub enum DataSource {
     Magpie,
@@ -56,6 +58,8 @@ pub struct AppOptions {
     pub fonts: crate::win10::fonts::Fonts,
     /// Settings to start with when `config_path` is `None`.
     pub initial_config: Option<Config>,
+    /// Native shell capability; external window control is acknowledged asynchronously.
+    pub always_on_top_mode: AlwaysOnTopMode,
 }
 
 #[derive(Default)]
@@ -94,6 +98,7 @@ pub struct App {
     config: Config,
     saved_config: Config,
     writer: Option<ConfigWriter>,
+    always_on_top: AlwaysOnTopState,
     magpie: MagpieClient,
     icons: IconCache,
 
@@ -165,7 +170,9 @@ impl App {
         details.restore(&config);
         let mut services_view = ServicesView::default();
         services_view.restore(&config);
-        if config.window_always_on_top {
+        let always_on_top =
+            AlwaysOnTopState::new(options.always_on_top_mode, config.window_always_on_top);
+        if options.always_on_top_mode == AlwaysOnTopMode::Viewport && config.window_always_on_top {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(
                 egui::WindowLevel::AlwaysOnTop,
             ));
@@ -177,6 +184,7 @@ impl App {
         Self {
             saved_config: if migrated { loaded } else { config.clone() },
             writer: options.config_path.map(ConfigWriter::new),
+            always_on_top,
             config,
             magpie,
             icons: IconCache::new(waker),
@@ -207,6 +215,19 @@ impl App {
 
     pub fn config(&self) -> &Config {
         &self.config
+    }
+
+    /// Takes the next native-shell request once, retaining its pending state until acknowledgement.
+    pub fn take_always_on_top_request(&mut self) -> Option<AlwaysOnTopRequest> {
+        self.always_on_top.take_request()
+    }
+
+    /// Applies a native-shell acknowledgement; stale results never change state or preferences.
+    pub fn finish_always_on_top(&mut self, result: AlwaysOnTopResult) {
+        if let Some(enabled) = self.always_on_top.finish(result) {
+            self.config.window_always_on_top = enabled;
+            self.persist_config();
+        }
     }
 
     /// Adjusts the in-memory settings (tests and benchmarks).
@@ -349,6 +370,19 @@ impl App {
             Command::OpenUrl(url) => ctx.open_url(egui::OpenUrl::new_tab(url)),
             Command::OpenDialog(dialog) => self.dialogs.open(dialog, &self.magpie),
             Command::SetPage(page) => self.set_page(page),
+            Command::SetAlwaysOnTop(enabled) => match self.always_on_top.mode {
+                AlwaysOnTopMode::Viewport => {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(if enabled {
+                        egui::WindowLevel::AlwaysOnTop
+                    } else {
+                        egui::WindowLevel::Normal
+                    }));
+                    self.config.window_always_on_top = enabled;
+                    self.persist_config();
+                }
+                AlwaysOnTopMode::External => self.always_on_top.request(enabled),
+                AlwaysOnTopMode::Unavailable => {}
+            },
             Command::ToggleSummaryMode => {
                 self.perf.summary_mode = !self.perf.summary_mode;
                 let size = if self.perf.summary_mode {
@@ -508,16 +542,51 @@ impl App {
                 }
             }
             1 => {
-                if menu::check(ui, &i18n("Always on top"), self.config.window_always_on_top) {
-                    self.config.window_always_on_top = !self.config.window_always_on_top;
-                    ui.ctx()
-                        .send_viewport_cmd(egui::ViewportCommand::WindowLevel(
-                            if self.config.window_always_on_top {
-                                egui::WindowLevel::AlwaysOnTop
-                            } else {
-                                egui::WindowLevel::Normal
-                            },
-                        ));
+                let viewport = self.always_on_top.mode == AlwaysOnTopMode::Viewport;
+                let checked = if viewport {
+                    self.config.window_always_on_top
+                } else {
+                    self.always_on_top.actual.unwrap_or(false)
+                };
+                let enabled = viewport || self.always_on_top.enabled();
+                // Own addition: explain pending/unavailable state even on a disabled menu row.
+                let reason = if self.always_on_top.pending() {
+                    Some(i18n(
+                        "Waiting for the window manager to confirm always on top.",
+                    ))
+                } else {
+                    self.always_on_top.error.map(|error| match error {
+                        AlwaysOnTopError::Unavailable => {
+                            i18n("Always on top is unavailable on this desktop.")
+                        }
+                        AlwaysOnTopError::NotFound => {
+                            i18n("The window manager could not find the Task Manager window.")
+                        }
+                        AlwaysOnTopError::Ambiguous => {
+                            i18n("The window manager could not identify a unique Task Manager window.")
+                        }
+                        AlwaysOnTopError::Rejected => {
+                            i18n("The window manager did not apply the requested always-on-top state.")
+                        }
+                        AlwaysOnTopError::TimedOut => {
+                            i18n("The window manager did not confirm always on top in time.")
+                        }
+                        AlwaysOnTopError::Failed => {
+                            i18n("Could not communicate with the window manager to set always on top.")
+                        }
+                        AlwaysOnTopError::Cleanup => {
+                            i18n("Could not remove the window manager script. Further always-on-top changes are disabled.")
+                        }
+                    })
+                };
+                if menu::check_enabled(
+                    ui,
+                    &i18n("Always on top"),
+                    checked,
+                    enabled,
+                    reason.as_deref(),
+                ) {
+                    commands.push(Command::SetAlwaysOnTop(!checked));
                 }
                 menu::separator(ui);
                 if menu::item(
@@ -861,4 +930,83 @@ fn open_network_settings(wireless: bool) {
                 log::warn!(target: "TaskManager::Network", "Failed to open network settings: {e}");
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use egui::{Event, PointerButton, Pos2, RawInput, Rect, vec2};
+
+    use super::*;
+
+    #[test]
+    fn options_always_on_top_click_waits_for_acknowledgement() {
+        let ctx = Context::default();
+        let mut app = App::new(
+            &ctx,
+            AppOptions {
+                source: DataSource::Fixture(mc_magpie::synthetic_series(1, 1), HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config {
+                    window_always_on_top: false,
+                    ..Default::default()
+                }),
+                always_on_top_mode: AlwaysOnTopMode::External,
+            },
+        );
+        let initial = app.take_always_on_top_request().unwrap();
+        app.finish_always_on_top(AlwaysOnTopResult {
+            id: initial.id,
+            actual: Some(false),
+            error: None,
+        });
+
+        let mut at = Pos2::ZERO;
+        let mut commands = Vec::new();
+        // Lay out the Options menu once, then press and release on its first (check) row.
+        for frame in 0..3 {
+            let events = if frame == 0 {
+                Vec::new()
+            } else {
+                vec![
+                    Event::PointerMoved(at),
+                    Event::PointerButton {
+                        pos: at,
+                        button: PointerButton::Primary,
+                        pressed: frame == 1,
+                        modifiers: Modifiers::NONE,
+                    },
+                ]
+            };
+            let mut output = ctx.run_ui(
+                RawInput {
+                    screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(400., 200.))),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    menu::style(ui.style_mut());
+                    at = ui.cursor().min + vec2(60., metrics::POPUP_ITEM_H / 2.);
+                    app.menu(ui, 1, &mut commands);
+                },
+            );
+            output.textures_delta.clear();
+        }
+        assert_eq!(commands, vec![Command::SetAlwaysOnTop(true)]);
+        for command in commands {
+            app.execute(&ctx, command);
+        }
+        let request = app.take_always_on_top_request().unwrap();
+        assert!(request.enabled);
+        assert!(app.always_on_top.pending());
+        assert!(!app.config().window_always_on_top);
+
+        app.finish_always_on_top(AlwaysOnTopResult {
+            id: request.id,
+            actual: Some(true),
+            error: None,
+        });
+        assert!(app.config().window_always_on_top);
+    }
 }
