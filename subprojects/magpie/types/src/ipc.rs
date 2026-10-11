@@ -40,7 +40,6 @@ use crate::services::{
     services_request, RequestServiceDisable, RequestServiceEnable, RequestServiceLogs,
     RequestServiceRestart, RequestServiceStart, RequestServiceStop, ServicesRequest,
 };
-use crate::setup_script::{script_request, ScriptRequest};
 
 include!(concat!(env!("OUT_DIR"), "/magpie.ipc.rs"));
 
@@ -287,38 +286,6 @@ pub fn req_disable_service(service_id: u64) -> Request {
             request: Some(services_request::Request::ServiceDisable(
                 RequestServiceDisable { service_id },
             )),
-        })),
-    }
-}
-
-pub fn req_script_name() -> Request {
-    Request {
-        body: Some(Body::GetScript(ScriptRequest {
-            request: Some(script_request::Request::GetName(Default::default())),
-        })),
-    }
-}
-
-pub fn req_script_run() -> Request {
-    Request {
-        body: Some(Body::GetScript(ScriptRequest {
-            request: Some(script_request::Request::Run(Default::default())),
-        })),
-    }
-}
-
-pub fn req_script_run_revert() -> Request {
-    Request {
-        body: Some(Body::GetScript(ScriptRequest {
-            request: Some(script_request::Request::RunRevert(Default::default())),
-        })),
-    }
-}
-
-pub fn req_script_open() -> Request {
-    Request {
-        body: Some(Body::GetScript(ScriptRequest {
-            request: Some(script_request::Request::Open(Default::default())),
         })),
     }
 }

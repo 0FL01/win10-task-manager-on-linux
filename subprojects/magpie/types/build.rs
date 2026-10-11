@@ -21,7 +21,6 @@ fn main() {
                     "src/network.proto",
                     "src/processes.proto",
                     "src/services.proto",
-                    "src/setup_script.proto",
                 ],
                 ["src/"],
             )

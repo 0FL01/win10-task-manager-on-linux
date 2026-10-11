@@ -51,8 +51,6 @@ pub struct TableView {
     pub options: ViewOptions,
     pub selected: Option<String>,
     pub(crate) hide_network: bool,
-    /// Per-process network values count TCP only (see `Readings::network_tcp_only`)
-    pub(crate) network_tcp_only: bool,
     pub(crate) hide_swap: bool,
     pub(crate) totals: ColumnTotals,
     pub(crate) scroll_to: Option<usize>,
@@ -111,7 +109,6 @@ impl TableView {
             },
             selected: None,
             hide_network: false,
-            network_tcp_only: false,
             hide_swap: false,
             totals: ColumnTotals::default(),
             scroll_to: None,
@@ -135,8 +132,7 @@ impl TableView {
         self.totals = ColumnTotals::from_readings(readings, gpu);
         self.gpu_usage = gpu.usage.clone();
         self.gpu_summary = gpu.usage.text();
-        self.hide_network = readings.network_stats_error.is_some();
-        self.network_tcp_only = readings.network_tcp_only;
+        self.hide_network = readings.network_unavailable;
         self.hide_swap = readings.mem_info.swap_total == 0;
         self.mem_total = readings.mem_info.mem_total;
         self.swap_total = readings.mem_info.swap_total;

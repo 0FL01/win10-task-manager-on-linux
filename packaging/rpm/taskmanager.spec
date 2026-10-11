@@ -31,8 +31,6 @@ Requires:       vulkan-loader
 Requires:       mesa-vulkan-drivers
 Requires:       mesa-libEGL
 Requires:       hicolor-icon-theme
-# Per-process network usage (enabled from Options → Enable per-process network usage…)
-Recommends:     nethogs
 
 %description
 Task Manager shows processes, performance, details and services: per-process CPU, memory, disk

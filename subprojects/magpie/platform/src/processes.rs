@@ -27,9 +27,6 @@ use rayon::ThreadPool;
 
 pub type ProcessState = types::processes::ProcessState;
 pub type ProcessUsageStats = types::processes::ProcessUsageStats;
-pub type LibraryMissingError = types::processes::LibraryMissingError;
-pub type PermissionsError = types::processes::PermissionsError;
-pub type NetworkStatsError = types::processes::processes_response::process_map::NetworkStatsError;
 pub type Process = types::processes::Process;
 
 pub type ProcessMap = types::processes::processes_response::ProcessMap;
@@ -48,7 +45,6 @@ pub trait ProcessCache {
 
     fn refresh(&mut self);
     fn cached_entries(&self) -> &HashMap<u32, Process>;
-    fn cached_network_stats_error(&self) -> &Option<NetworkStatsError>;
 }
 
 pub trait ProcessManager {
@@ -74,7 +70,6 @@ where
     pub(crate) processes: Mutex<PC>,
     pub(crate) process_manager: PM,
     pub(crate) local_cache: Mutex<HashMap<u32, Process>>,
-    pub(crate) network_stats_error: Mutex<Option<NetworkStatsError>>,
     refreshing: AtomicBool,
 }
 
@@ -98,7 +93,6 @@ where
             processes: Mutex::new(PC::new()),
             process_manager: PM::new(),
             local_cache: Mutex::new(HashMap::new()),
-            network_stats_error: Mutex::new(None),
             refreshing: AtomicBool::new(false),
         }
     }
@@ -107,7 +101,6 @@ where
         let mut processes = self.processes.lock();
         processes.refresh();
         *self.local_cache.lock() = processes.cached_entries().clone();
-        *self.network_stats_error.lock() = *processes.cached_network_stats_error();
     }
 
     pub fn refresh_async(

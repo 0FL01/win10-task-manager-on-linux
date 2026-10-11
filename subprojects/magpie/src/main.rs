@@ -48,7 +48,6 @@ mod network;
 mod nng;
 mod processes;
 mod services;
-mod setup_script;
 
 fn data_cache() -> &'static DataCache<DataCacheTypes> {
     static DATA_CACHE: OnceLock<DataCache<DataCacheTypes>> = OnceLock::new();
@@ -111,7 +110,6 @@ fn handle_request(request_data: &[u8], socket: nng::nng_socket) {
                     RequestBody::GetConnections(_) => network::handle_request(),
                     RequestBody::GetProcesses(req) => processes::handle_request(req.request),
                     RequestBody::GetServices(req) => services::handle_request(req.request),
-                    RequestBody::GetScript(req) => setup_script::handle_request(req.request),
                 }
             } else {
                 log::error!("Empty request");

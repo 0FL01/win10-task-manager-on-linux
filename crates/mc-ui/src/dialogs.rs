@@ -23,32 +23,17 @@
 
 use std::num::NonZeroU32;
 
-use egui::{Context, Id, RichText, Ui};
-use mc_core::format::{DataType, to_human_readable_nice, to_long_human_readable_time};
+use egui::{Context, Id, RichText};
+use mc_core::format::{DataType, to_human_readable_nice};
+use mc_core::i18n::i18n;
 use mc_core::i18n::n_;
-use mc_core::i18n::{i18n, i18n_f};
 use mc_core::table::RowKind;
-use mc_magpie::{About, ErrorEjectFailed, Event, MagpieClient, Request, ScriptAction, SmartData};
+use mc_magpie::{About, ErrorEjectFailed, Event, MagpieClient, Request, SmartData};
 
 use crate::cx::{Command, Cx, Dialog};
 use crate::smart;
 use crate::table::{TableView, row_icon};
 use crate::win10::{dialog, palette, style};
-
-pub const WIKI_URL: &str = "https://gitlab.com/mission-center-devs/mission-center/-/wikis/home";
-
-enum Alert {
-    ScriptFailed {
-        title: String,
-        output: String,
-        retry: ScriptAction,
-    },
-    ScriptOpenFailed {
-        file: String,
-        output: String,
-    },
-    RestartPrompt,
-}
 
 #[derive(Default)]
 pub struct Dialogs {
@@ -56,9 +41,7 @@ pub struct Dialogs {
     about: Option<About>,
     service_logs: Option<(u64, String)>,
     smart: Option<(String, Option<SmartData>)>,
-    script: Option<(String, String)>,
     eject: Option<(String, ErrorEjectFailed)>,
-    alerts: Vec<Alert>,
 }
 
 impl Dialogs {
@@ -66,9 +49,6 @@ impl Dialogs {
         match &dialog {
             Dialog::AboutSystem => {
                 magpie.send(Request::AboutSystem);
-            }
-            Dialog::FirstRun => {
-                magpie.send(Request::ScriptName);
             }
             Dialog::SmartData(disk_id) => {
                 self.smart = None;
@@ -99,25 +79,6 @@ impl Dialogs {
                     self.open.push(dialog);
                 }
             }
-            Event::ScriptName(name) => self.script = name,
-            Event::ScriptResult { action, result } => match (action, result) {
-                (ScriptAction::Run, Ok(())) => self.alerts.push(Alert::RestartPrompt),
-                (ScriptAction::RunRevert, Ok(())) => self.open.retain(|d| *d != Dialog::FirstRun),
-                (ScriptAction::Open, Ok(())) => {}
-                (ScriptAction::Open, Err(output)) => self.alerts.push(Alert::ScriptOpenFailed {
-                    file: self.script.clone().map(|s| s.0).unwrap_or_default(),
-                    output,
-                }),
-                (action, Err(output)) => self.alerts.push(Alert::ScriptFailed {
-                    title: if action == ScriptAction::Run {
-                        i18n("Setup Script Failed")
-                    } else {
-                        i18n("Revert Setup Script Failed")
-                    },
-                    output,
-                    retry: action,
-                }),
-            },
             Event::EjectResult { disk_id, result } => match result {
                 Ok(()) => self.eject = None,
                 Err(e) => self.eject = Some((disk_id, e)),
@@ -134,7 +95,6 @@ impl Dialogs {
                 Dialog::KeyboardShortcuts => shortcuts(ctx),
                 Dialog::About => about_app(ctx, cx),
                 Dialog::AboutSystem => about_system(ctx, cx, self.about.as_ref()),
-                Dialog::FirstRun => first_run(ctx, cx, self.script.as_ref()),
                 Dialog::ProcessDetails(key) => {
                     process_details(ctx, cx, apps.node(key).or(services.node(key)))
                 }
@@ -163,79 +123,6 @@ impl Dialogs {
                     cx.send(Command::Magpie(Request::EjectDisk(disk_id.clone())));
                 }
             }
-        }
-
-        self.alerts_ui(ctx, cx);
-    }
-
-    fn alerts_ui(&mut self, ctx: &Context, cx: &mut Cx) {
-        let Some(alert) = self.alerts.first() else {
-            return;
-        };
-        let mut done = false;
-        egui::Modal::new(Id::new("mc-alert")).show(ctx, |ui| {
-            ui.set_max_width(420.);
-            match alert {
-                Alert::ScriptFailed {
-                    title,
-                    output,
-                    retry,
-                } => {
-                    ui.heading(title);
-                    ui.label(output);
-                    ui.horizontal(|ui| {
-                        if ui.button(i18n("Copy Output")).clicked() {
-                            cx.send(Command::CopyText(output.clone()));
-                            done = true;
-                        }
-                        if ui.button(i18n("Retry")).clicked() {
-                            cx.send(Command::Magpie(match retry {
-                                ScriptAction::RunRevert => Request::ScriptRunRevert,
-                                _ => Request::ScriptRun,
-                            }));
-                            done = true;
-                        }
-                        if ui.button(i18n("Close")).clicked() {
-                            done = true;
-                        }
-                    });
-                }
-                Alert::ScriptOpenFailed { file, output } => {
-                    ui.heading(i18n("Failed to Open Script"));
-                    ui.label(format!("{file}:\n{output}"));
-                    ui.horizontal(|ui| {
-                        if ui.button(i18n("Copy File Location")).clicked() {
-                            cx.send(Command::CopyText(output.clone()));
-                            done = true;
-                        }
-                        if ui.button(i18n("Close")).clicked() {
-                            done = true;
-                        }
-                    });
-                }
-                Alert::RestartPrompt => {
-                    ui.heading(i18n("Success!"));
-                    ui.label(mc_core::i18n::i18n_f(
-                        "Restart {} to apply changes?",
-                        &[crate::APP_NAME],
-                    ));
-                    ui.horizontal(|ui| {
-                        if ui.button(i18n("Restart")).clicked() {
-                            restart_self();
-                            done = true;
-                        }
-                        if ui.button(i18n("Close")).clicked() {
-                            done = true;
-                        }
-                    });
-                }
-            }
-        });
-        if done {
-            if matches!(self.alerts.first(), Some(Alert::RestartPrompt)) {
-                self.open.retain(|d| *d != Dialog::FirstRun);
-            }
-            self.alerts.remove(0);
         }
     }
 
@@ -437,15 +324,6 @@ impl Dialogs {
         }
         let _ = Self::request_logs;
         open
-    }
-}
-
-fn restart_self() {
-    if let Ok(exe) = std::env::current_exe() {
-        let args: Vec<String> = std::env::args().skip(1).collect();
-        if std::process::Command::new(exe).args(args).spawn().is_ok() {
-            std::process::exit(0);
-        }
     }
 }
 
@@ -720,81 +598,4 @@ fn about_system(ctx: &Context, cx: &mut Cx, about: Option<&About>) -> bool {
         }
     });
     !response.should_close()
-}
-
-fn first_run(ctx: &Context, cx: &mut Cx, script: Option<&(String, String)>) -> bool {
-    let mut keep = true;
-    let response = egui::Modal::new(Id::new("first-run")).show(ctx, |ui: &mut Ui| {
-        ui.set_width(440.);
-        ui.add(
-            egui::Label::new(
-                RichText::new(i18n("Enabling Additional Values")).text_style(style::title1()),
-            )
-            .wrap(),
-        );
-        ui.add(
-            egui::Label::new(i18n(
-                "CPU power draw, per-process network usage and fans may require additional setup",
-            ))
-            .wrap(),
-        );
-        ui.add_space(4.);
-        dialog::caption(
-            ui,
-            i18n("Per-process network usage needs the nethogs package (e.g. \"sudo dnf install nethogs\"); restart the app after the setup."),
-        );
-        ui.add_space(10.);
-        ui.horizontal_wrapped(|ui| {
-            if ui
-                .button(format!("{}  ↗", i18n("Open Wiki")))
-                .on_hover_text(WIKI_URL)
-                .clicked()
-            {
-                cx.send(Command::OpenUrl(WIKI_URL.into()));
-            }
-            if let Some((file, elevation)) = script {
-                let run = ui.add(
-                    egui::Button::new(
-                        RichText::new(format!("🔒  {}", i18n("Run Additional Setup")))
-                            .color(palette::WHITE),
-                    )
-                    .fill(palette::BUTTON_HOVER_BORDER),
-                );
-                if run.clicked() {
-                    cx.send(Command::Magpie(Request::ScriptRun));
-                }
-                ui.menu_button("⏷", |ui| {
-                    if ui.button(i18n("Revert Additional Setup")).clicked() {
-                        cx.send(Command::Magpie(Request::ScriptRunRevert));
-                        ui.close();
-                    }
-                    if ui.button(i18n("View Script")).clicked() {
-                        cx.send(Command::Magpie(Request::ScriptOpen));
-                        ui.close();
-                    }
-                    if ui.button(i18n("Copy Script Location")).clicked() {
-                        cx.send(Command::CopyText(file.clone()));
-                        ui.close();
-                    }
-                    if ui.button(i18n("Copy Command")).clicked() {
-                        cx.send(Command::CopyText(format!("{elevation} {file}")));
-                        ui.close();
-                    }
-                    if ui.button(i18n("Copy Revert Command")).clicked() {
-                        cx.send(Command::CopyText(format!("{elevation} {file} --revert")));
-                        ui.close();
-                    }
-                });
-            }
-            if ui.button(i18n("Close")).clicked() {
-                keep = false;
-            }
-        });
-    });
-    keep && !response.should_close()
-}
-
-#[allow(dead_code)]
-fn human_time_ago(seconds: u64) -> String {
-    i18n_f("{} ago", &[&to_long_human_readable_time(seconds)])
 }

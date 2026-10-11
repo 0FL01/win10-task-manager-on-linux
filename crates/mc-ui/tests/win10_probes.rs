@@ -64,7 +64,6 @@ fn render_keys(
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: page.into(),
-                                first_time_running: false,
                                 ..Default::default()
                             }),
                         },
@@ -302,7 +301,6 @@ fn performance_list_separator_drags() {
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: "performance-page".into(),
-                                first_time_running: false,
                                 ..Default::default()
                             }),
                         },
@@ -396,7 +394,6 @@ fn network_header_click_sorts() {
                             fonts: Default::default(),
                             initial_config: Some(Config {
                                 window_selected_page: "apps-page".into(),
-                                first_time_running: false,
                                 ..Default::default()
                             }),
                         },
@@ -523,7 +520,6 @@ fn ui_state_survives_restart() {
     let path = dir.join("config.toml");
     let first_config = mc_core::config::Config {
         window_selected_page: "apps-page".into(),
-        first_time_running: false,
         ..Default::default()
     };
     first_config.save(&path).unwrap();
@@ -594,7 +590,6 @@ fn window_size_survives_restart() {
     let path = dir.join("config.toml");
     mc_core::config::Config {
         window_selected_page: "apps-page".into(),
-        first_time_running: false,
         ..Default::default()
     }
     .save(&path)

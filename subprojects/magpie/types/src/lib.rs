@@ -37,4 +37,3 @@ pub mod memory;
 pub mod network;
 pub mod processes;
 pub mod services;
-pub mod setup_script;

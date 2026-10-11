@@ -134,8 +134,6 @@ pub struct Config {
     pub performance_sidebar_hidden_graphs: String,
     pub performance_sidebar_device_overrides: String,
 
-    pub first_time_running: bool,
-
     /// Layout defaults already applied to this file (see [`Config::migrate_layout`]). Missing in
     /// files written before the Win10 interface, hence the field-level default of 0.
     #[serde(default)]
@@ -182,7 +180,6 @@ impl Default for Config {
             performance_sidebar_width: 211,
             performance_sidebar_hidden_graphs: String::new(),
             performance_sidebar_device_overrides: String::new(),
-            first_time_running: true,
             layout_version: LAYOUT_VERSION,
         }
     }
@@ -389,7 +386,6 @@ mod tests {
         assert_eq!(c.app_update_interval, 20);
         assert_eq!(c.performance_selected_page, "cpu");
         assert_eq!(c.performance_page_gpu_graph_bottom, 2);
-        assert!(c.first_time_running);
     }
 
     #[test]

@@ -32,7 +32,7 @@ use crate::client::{
     Process, Service, SmartData,
 };
 use crate::log_compat::{g_critical, g_debug, g_warning};
-use crate::{About, Icon, NetworkStatsError, Pid, BASE_INTERVAL, INTERVAL_STEP};
+use crate::{About, Icon, Pid, BASE_INTERVAL, INTERVAL_STEP};
 
 /// Callback used to wake the consumer (typically `egui::Context::request_repaint`).
 pub type Waker = Arc<dyn Fn() + Send + Sync>;
@@ -59,12 +59,10 @@ pub struct Readings {
     /// Owner of each process (`pid → user name`), read from `/proc` by the gatherer
     #[serde(default)]
     pub process_users: HashMap<u32, String>,
-    /// Per-process network usage comes from TCP socket counters (no nethogs data): UDP and other
-    /// users' processes are not included
+    /// Per-process network usage could not be measured (netlink `sock_diag` unavailable). When
+    /// available it counts TCP traffic of the user's own processes only (see `sockets`).
     #[serde(default)]
-    pub network_tcp_only: bool,
-
-    pub network_stats_error: Option<NetworkStatsError>,
+    pub network_unavailable: bool,
 
     pub user_services: HashMap<u64, Service>,
     pub system_services: HashMap<u64, Service>,
@@ -92,8 +90,7 @@ impl Readings {
             running_apps: HashMap::new(),
             running_processes: HashMap::new(),
             process_users: HashMap::new(),
-            network_tcp_only: false,
-            network_stats_error: None,
+            network_unavailable: false,
 
             user_services: HashMap::new(),
             system_services: HashMap::new(),
@@ -122,19 +119,8 @@ pub enum Request {
     EjectDisk(String),
     SmartData(String),
     AboutSystem,
-    ScriptName,
-    ScriptRun,
-    ScriptRunRevert,
-    ScriptOpen,
     /// Ends the current wait: the next snapshot is gathered immediately
     RefreshNow,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ScriptAction {
-    Run,
-    RunRevert,
-    Open,
 }
 
 /// Results and notifications from the gatherer thread.
@@ -155,11 +141,6 @@ pub enum Event {
         data: Option<SmartData>,
     },
     About(About),
-    ScriptName(Option<(String, String)>),
-    ScriptResult {
-        action: ScriptAction,
-        result: Result<(), String>,
-    },
     /// The gatherer hit an unrecoverable error; the application should show it and exit.
     Fatal(String),
 }
@@ -415,30 +396,6 @@ fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
         Request::AboutSystem => {
             let _ = outbox.send(Event::About(magpie.about()));
         }
-        Request::ScriptName => {
-            let _ = outbox.send(Event::ScriptName(magpie.setup_script_name()));
-        }
-        Request::ScriptRun => {
-            let result = magpie.setup_script_run();
-            let _ = outbox.send(Event::ScriptResult {
-                action: ScriptAction::Run,
-                result,
-            });
-        }
-        Request::ScriptRunRevert => {
-            let result = magpie.setup_script_run_revert();
-            let _ = outbox.send(Event::ScriptResult {
-                action: ScriptAction::RunRevert,
-                result,
-            });
-        }
-        Request::ScriptOpen => {
-            let result = magpie.setup_script_open();
-            let _ = outbox.send(Event::ScriptResult {
-                action: ScriptAction::Open,
-                result,
-            });
-        }
     }
 }
 
@@ -474,21 +431,14 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         readings.includes_app_data = !reduced;
 
         if !reduced {
-            (readings.running_processes, readings.network_stats_error) =
-                timed!("Process", magpie.processes());
+            readings.running_processes = timed!("Process", magpie.processes());
             readings.process_users =
                 timed!("Process users", users.resolve(&readings.running_processes));
-            // No per-process network data from magpie (nethogs missing or without capture
-            // permissions): measure TCP traffic per process ourselves, no privileges needed
-            if readings.network_stats_error.is_some()
-                && timed!(
-                    "Socket traffic",
-                    sockets.sample(&mut readings.running_processes)
-                )
-            {
-                readings.network_stats_error = None;
-                readings.network_tcp_only = true;
-            }
+            // Per-process network traffic from TCP socket counters, no privileges needed
+            readings.network_unavailable = !timed!(
+                "Socket traffic",
+                sockets.sample(&mut readings.running_processes)
+            );
             readings.running_apps = timed!("Running apps", magpie.apps());
         }
 
@@ -599,19 +549,6 @@ fn replay_fixtures(ctx: ThreadCtx, readings: Vec<Readings>, icons: HashMap<Strin
                     data: None,
                 }),
                 Request::AboutSystem => outbox.send(Event::About(About::default())),
-                Request::ScriptName => outbox.send(Event::ScriptName(None)),
-                Request::ScriptRun => outbox.send(Event::ScriptResult {
-                    action: ScriptAction::Run,
-                    result: Ok(()),
-                }),
-                Request::ScriptRunRevert => outbox.send(Event::ScriptResult {
-                    action: ScriptAction::RunRevert,
-                    result: Ok(()),
-                }),
-                Request::ScriptOpen => outbox.send(Event::ScriptResult {
-                    action: ScriptAction::Open,
-                    result: Ok(()),
-                }),
                 _ => Ok(()),
             };
         }) {

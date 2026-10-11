@@ -36,7 +36,7 @@ use fan::{FanCache, FanHandler};
 use gpus::{Gpu, GpuCache, GpusHandler};
 use memory::{Memory, MemoryCache, MemoryDevice, MemoryHandler};
 use network::{Connection, NetworkCache, NetworkHandler};
-use processes::{NetworkStatsError, Process, ProcessCache, ProcessManager, ProcessesHandler};
+use processes::{Process, ProcessCache, ProcessManager, ProcessesHandler};
 use services::{Service, ServiceCache, ServiceManager, ServicesHandler};
 
 pub mod about;
@@ -51,7 +51,6 @@ pub mod memory;
 pub mod network;
 pub mod processes;
 pub mod services;
-pub mod setup_script;
 
 pub trait DataCacheTypes {
     type AboutCache: AboutCache + Send;
@@ -294,10 +293,6 @@ where
 
     pub fn processes(&self) -> HashMap<u32, Process> {
         self.processes.local_cache.lock().clone()
-    }
-
-    pub fn processes_network_status(&self) -> Option<NetworkStatsError> {
-        *self.processes.network_stats_error.lock()
     }
 
     pub fn terminate_processes(&self, pids: Vec<u32>) {

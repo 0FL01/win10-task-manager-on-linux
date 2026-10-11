@@ -24,15 +24,10 @@ use std::io::Read;
 use std::time::Instant;
 
 use arrayvec::ArrayString;
-use regex::RegexBuilder;
-use tokio::sync::mpsc::error::TryRecvError;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
-use virtual_terminal::Output;
 
-use magpie_platform::processes::{NetworkStatsError, PermissionsError, Process};
+use magpie_platform::processes::Process;
 
 use crate::processes::mem_hybrid::{hybrid_pss, MemoryMaps};
-use crate::util::async_runtime;
 pub use linux_process::ProcessStats;
 pub use manager::ProcessManager;
 
@@ -67,33 +62,6 @@ fn open_cmdline(pid: u32) -> Option<std::fs::File> {
     Some(cmdline_file)
 }
 
-#[derive(Debug, Default)]
-pub struct NethogsRecord {
-    pub _name: String,
-    pub pid: u32,
-    pub _device_name: String,
-    pub sent_bytes: u64,
-    pub recv_bytes: u64,
-}
-
-impl NethogsRecord {
-    pub fn new(
-        name: String,
-        pid: u32,
-        device_name: String,
-        sent_bytes: u64,
-        recv_bytes: u64,
-    ) -> Self {
-        Self {
-            _name: name,
-            pid,
-            _device_name: device_name,
-            sent_bytes,
-            recv_bytes,
-        }
-    }
-}
-
 fn exe_path(pid: u32) -> ArrayString<20> {
     const MAX_PATH_LEN: usize = "/proc/".len() + "/exe".len() + MAX_U32_LEN;
 
@@ -115,104 +83,8 @@ fn task_path(pid: u32) -> ArrayString<21> {
 pub struct ProcessCache {
     processes: HashMap<u32, Process>,
     process_stats: HashMap<u32, ProcessStats>,
-    network_stats_error: Option<NetworkStatsError>,
-
-    nethogs_reciever: Receiver<NethogsRecord>,
-    nethogs_process_lut: HashMap<u32, NethogsRecord>,
 
     memory_maps: MemoryMaps,
-}
-
-async fn run_nethogs(sender: Sender<NethogsRecord>) {
-    let cmd = virtual_terminal::Command::new("nethogs")
-        .terminal_size((250, 1000))
-        .arg("-v")
-        .arg("2")
-        .arg("-C");
-
-    let mut nethogs_term = vt100::Parser::new(1000, 250, 0);
-
-    let out_rx = cmd.out_rx();
-    async_runtime().spawn(cmd.run());
-
-    let nethogs_regex = match RegexBuilder::new(
-        r"^\s*(\d+|\?) (.{8}) (.*?)\s+(.{0,16})([ \d.]{12})([ \d.]{12})[Bb]",
-    )
-    .multi_line(true)
-    .build()
-    {
-        Ok(p) => p,
-        Err(e) => {
-            log::warn!("Failed to build nethogs regex {}", e);
-            return;
-        }
-    };
-
-    // TODO report the difference between no nethogs and no perms
-    // let mut is_alive = false;
-
-    while let Ok(msg) = out_rx.recv().await {
-        match msg {
-            Output::Pid(pid) => {
-                log::debug!("Nethogs PID: {}", pid);
-                // is_alive = true;
-            }
-            Output::Stdout(out) => {
-                nethogs_term.process(&out);
-
-                let (_, cursor_col) = nethogs_term.screen().cursor_position();
-
-                if cursor_col == 0 {
-                    for (_, [pid, _user, command_line, iface, sent_b, recv_b]) in nethogs_regex
-                        .captures_iter(nethogs_term.screen().contents().as_str())
-                        .map(|c| c.extract())
-                    {
-                        if pid == "?" {
-                            continue;
-                        }
-
-                        let pid = match pid.parse::<u32>() {
-                            Ok(pid) => pid,
-                            _ => {
-                                continue;
-                            }
-                        };
-
-                        let sent_b = match sent_b.trim().parse::<f64>() {
-                            Ok(sent_b) => sent_b as u64,
-                            _ => continue,
-                        };
-
-                        let recv_b = match recv_b.trim().parse::<f64>() {
-                            Ok(recv_b) => recv_b as u64,
-                            _ => continue,
-                        };
-
-                        // ignore result, just keep sending
-                        let _ = sender
-                            .send(NethogsRecord::new(
-                                command_line.into(),
-                                pid,
-                                iface.into(),
-                                sent_b,
-                                recv_b,
-                            ))
-                            .await;
-                    }
-                }
-            }
-            Output::Error(err) => {
-                log::warn!("Nethogs stderr: {}", err);
-            }
-            Output::Terminated(e) => {
-                if let Some(code) = e {
-                    log::warn!("Nethogs exited with code {}", code);
-                }
-
-                break;
-            }
-        }
-    }
 }
 
 impl magpie_platform::processes::ProcessCache for ProcessCache {
@@ -220,17 +92,9 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
     where
         Self: Sized,
     {
-        let (tx, rx): (Sender<NethogsRecord>, Receiver<NethogsRecord>) = channel(1000);
-
-        async_runtime().spawn(run_nethogs(tx));
-
         Self {
             processes: HashMap::new(),
             process_stats: HashMap::new(),
-
-            network_stats_error: None,
-            nethogs_reciever: rx,
-            nethogs_process_lut: HashMap::new(),
 
             memory_maps: Default::default(),
         }
@@ -253,31 +117,6 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
         read_buffer.reserve(512);
 
         let now = Instant::now();
-
-        let nethogs_process_lut = &mut self.nethogs_process_lut;
-        let mut has_cleared = false;
-
-        loop {
-            match self.nethogs_reciever.try_recv() {
-                Err(TryRecvError::Empty) => break,
-                Err(TryRecvError::Disconnected) => {
-                    log::debug!("Nethogs process channel closed");
-                    self.network_stats_error =
-                        Some(NetworkStatsError::PermissionsError(PermissionsError {}));
-                    break;
-                }
-                Ok(item) => {
-                    if !has_cleared {
-                        nethogs_process_lut.clear();
-                        has_cleared = true;
-                    }
-                    nethogs_process_lut.insert(item.pid, item);
-                    self.network_stats_error = None;
-                }
-            }
-        }
-
-        log::debug!("LUT: {:?}", nethogs_process_lut);
 
         let proc = match std::fs::read_dir("/proc") {
             Ok(proc) => proc,
@@ -360,15 +199,6 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                 })
                 .unwrap_or([0; 7]);
 
-            let total_net_sent = nethogs_process_lut
-                .get(&pid)
-                .map(|it| it.sent_bytes)
-                .unwrap_or(0);
-            let total_net_recv = nethogs_process_lut
-                .get(&pid)
-                .map(|it| it.recv_bytes)
-                .unwrap_or(0);
-
             let (mut process, mut stats) = match old_processes.remove(&pid) {
                 None => (Process::default(), ProcessStats::default()),
                 Some(mut process) => {
@@ -397,23 +227,6 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                         as f32
                         / delta_time.as_secs_f32();
                     process.usage_stats.disk_usage = read_speed + write_speed;
-
-                    let prev_send_bytes = stats.raw_stats.net_bytes_sent;
-                    let prev_recv_bytes = stats.raw_stats.net_bytes_recv;
-
-                    if prev_send_bytes + prev_recv_bytes > total_net_sent + total_net_recv {
-                        log::warn!(
-                            "Process {} had negative network usage {} -> {}",
-                            pid,
-                            prev_send_bytes + prev_recv_bytes,
-                            total_net_sent + total_net_recv
-                        );
-                    }
-
-                    process.usage_stats.network_usage = (total_net_sent + total_net_recv)
-                        .saturating_sub(prev_send_bytes + prev_recv_bytes)
-                        as f32
-                        / delta_time.as_secs_f32();
 
                     process.children.clear();
 
@@ -516,8 +329,6 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
             stats.raw_stats.kernel_jiffies = stime;
             stats.raw_stats.disk_read_bytes = io::read_bytes(&io_parsed);
             stats.raw_stats.disk_write_bytes = io::write_bytes(&io_parsed);
-            stats.raw_stats.net_bytes_sent = total_net_sent;
-            stats.raw_stats.net_bytes_recv = total_net_recv;
             stats.raw_stats.timestamp = now;
 
             match children.get_mut(&process.parent) {
@@ -546,9 +357,5 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
 
     fn cached_entries(&self) -> &HashMap<u32, Process> {
         &self.processes
-    }
-
-    fn cached_network_stats_error(&self) -> &Option<NetworkStatsError> {
-        &self.network_stats_error
     }
 }

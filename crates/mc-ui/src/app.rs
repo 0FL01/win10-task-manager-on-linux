@@ -113,7 +113,6 @@ pub struct App {
     grid_offset: u32,
     stashed: Option<Readings>,
     have_readings: bool,
-    first_run_checked: bool,
     /// Apply the next snapshot even while paused (Refresh now)
     apply_next: bool,
     /// `TableView::expanded_version` last written to the settings
@@ -196,7 +195,6 @@ impl App {
             grid_offset: 0,
             stashed: None,
             have_readings: false,
-            first_run_checked: false,
             apply_next,
             run_task: None,
             reduced: false,
@@ -253,14 +251,6 @@ impl App {
         self.perf.set_grid_offset(self.grid_offset);
         self.have_readings = true;
         self.stats.readings_applied += 1;
-
-        if !self.first_run_checked {
-            self.first_run_checked = true;
-            if self.config.first_time_running {
-                self.config.first_time_running = false;
-                self.dialogs.open(Dialog::FirstRun, &self.magpie);
-            }
-        }
     }
 
     fn handle_event(&mut self, event: Event) {
@@ -530,10 +520,6 @@ impl App {
                         ));
                 }
                 menu::separator(ui);
-                // Runs the magpie setup script (nethogs capabilities, power, sensors) on request
-                if menu::item(ui, &i18n("Enable per-process network usage…"), "", true) {
-                    commands.push(Command::OpenDialog(Dialog::FirstRun));
-                }
                 if menu::item(
                     ui,
                     &mc_core::i18n::i18n_f("About {}", &[crate::APP_NAME]),

@@ -37,13 +37,13 @@ use crate::cx::{Command, Cx, Dialog};
 use crate::table::TableView;
 
 pub const ROW_H: f32 = 28.;
-/// Shown on the Network column while per-process values come from TCP socket counters
+/// Network column: what the per-process values (TCP socket counters) include
 pub const NETWORK_TCP_HINT: &str = n_(
-    "Per-process values count TCP traffic of your processes (UDP such as QUIC and other users' processes are not visible). For complete values install nethogs and use Options → Enable per-process network usage…",
+    "Per-process values count TCP traffic of your processes; UDP (such as QUIC) and other users' processes are not visible.",
 );
-/// Shown on the Network column while per-process network data is unavailable
+/// Network column while the kernel's socket statistics cannot be read
 pub const NETWORK_HINT: &str = n_(
-    "Per-process network usage needs nethogs with packet capture permissions. Install nethogs, then use Options → Enable per-process network usage… and restart the app. The column total shows all network interfaces.",
+    "Per-process network usage is unavailable: the kernel's socket statistics could not be read. The column total shows all network interfaces.",
 );
 const NAME_W: f32 = 234.;
 const VALUE_W: f32 = 72.;
@@ -373,7 +373,7 @@ impl ProcessesPage {
             let mut tip = mc_core::i18n::i18n_f("All network interfaces: {}", &[&rate]);
             if table.hide_network {
                 tip = format!("{tip}\n\n{}", i18n(NETWORK_HINT));
-            } else if table.network_tcp_only {
+            } else {
                 tip = format!("{tip}\n\n{}", i18n(NETWORK_TCP_HINT));
             }
             ui.interact(

@@ -3,7 +3,7 @@
 Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, services) in Rust with an egui/eframe UI (pure-Rust GUI stack) in the style of the Windows 10 Task Manager, built clean-room from measurements (`docs/win10-spec/`). Based on Mission Center: its statistics backend (magpie) and ported logic; keep the attribution (README "Based on Mission Center", About dialog, `Mission Center Developers` copyright headers) intact. Goals: `docs/goals/2026-10-10-egui-gui-port.md` (GTK → egui port), `docs/goals/2026-10-10-win10-skin.md` (Win10 look).
 
 ## Map
-- `crates/mc-magpie/` — GUI-free client of the magpie daemon (NNG IPC, gatherer thread, `LatestSlot` hand-off, bounded event channel, fixtures, synthetic data); gatherer-side extras without privileges: `users` (process owners), `sockets` (per-process TCP traffic when magpie/nethogs has none).
+- `crates/mc-magpie/` — GUI-free client of the magpie daemon (NNG IPC, gatherer thread, `LatestSlot` hand-off, bounded event channel, fixtures, synthetic data); gatherer-side extras without privileges: `users` (process owners), `sockets` (per-process TCP traffic, the only per-process network source; no nethogs, no setup script).
 - `crates/mc-core/` — GUI-free logic: settings (`config.rs`, keys = former GSettings keys), formatting, i18n (pure-Rust `.mo` reader), sidebar ordering, process/service tree model; `gpu.rs` owns GPU identity, availability and aggregation for every view.
 - `crates/mc-graph-core/` — local, GUI-free graph data/scaling core carried from upstream graph-widget; provenance in `docs/PROVENANCE.md`.
 - `crates/mc-graph/` — egui time-series graph on top of `mc-graph-core`; `GraphStyle::Win10`.

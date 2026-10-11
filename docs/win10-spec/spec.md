@@ -126,13 +126,11 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Name cell indent: + 22 px per tree level (expander, icon and text move together).
 - Processes without an app icon get our own generic window glyph (16×16).
 - Network column (own): the summary is the link utilisation of the physical interfaces (rate /
-  summed link speed; the rate when no speed is known), its tooltip shows the rate. Without
-  per-process data (magpie `network_stats_error`: nethogs missing or without capture
-  permissions) cells show "—" and the tooltip explains Options → Enable per-process network
-  usage… (magpie setup script). Summaries too wide for 16 px fall back to 12 px.
-  Without nethogs the gatherer measures TCP traffic per process itself (`mc-magpie::sockets`,
-  no privileges: netlink sock_diag counters + `/proc/<pid>/fd`; loopback counted for the client
-  side only; UDP and other users' processes not visible); the tooltip says so.
+  summed link speed; the rate when no speed is known), its tooltip shows the rate. Summaries too wide
+  for 16 px fall back to 12 px. Per-process values come from the gatherer's TCP socket counters
+  (`mc-magpie::sockets`, no privileges: netlink sock_diag counters + `/proc/<pid>/fd`; loopback
+  counted for the client side only; UDP and other users' processes not visible); the tooltip
+  says so. If sock_diag is unavailable cells show "—" and the tooltip explains why.
 - Header summary background (own design): none at normal load; the summary text turns `#c42b1c`
   when the column total ≥ 90 %.
 - Selection (own design, Win32 list): fill `#cce8ff`, hover `#e5f3ff`.

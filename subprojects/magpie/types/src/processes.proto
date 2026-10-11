@@ -110,10 +110,8 @@ message ProcessesRequest {
 message ProcessesResponse {
   message ProcessMap {
     map<uint32, Process> processes = 1;
-    oneof network_stats_error {
-      LibraryMissingError library_missing = 2;
-      PermissionsError permissions_error = 3;
-    }
+    // 2, 3: nethogs network statistics errors (removed)
+    reserved 2, 3;
   }
 
   oneof response {
@@ -124,7 +122,3 @@ message ProcessesResponse {
 }
 
 message ProcessesResponseError {}
-
-message LibraryMissingError {}
-
-message PermissionsError {}

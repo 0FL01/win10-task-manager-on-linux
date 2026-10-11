@@ -31,8 +31,8 @@ Developers. The user interface is written from scratch with egui; see [Based on 
 
 Please note there is ongoing work to overcome all of these.
 
-* Per-process network monitoring requires manual setup,
-  see [this page](https://gitlab.com/mission-center-devs/mission-center/-/wikis/Home/Nethogs) for more information.
+* Per-process network usage counts TCP traffic of your own processes only (kernel socket
+  statistics, no privileges): UDP such as QUIC and other users' processes are not visible.
 * Intel GPU monitoring is only supported for Broadwell and later GPUs; and does not support VRAM, power, or temperature
   monitoring.
 * When using Linux Mint/Cinnamon, launched applications may not show up in the "Applications" section. (Upstream

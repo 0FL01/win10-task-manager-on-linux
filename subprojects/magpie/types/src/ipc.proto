@@ -31,7 +31,6 @@ import "memory.proto";
 import "network.proto";
 import "processes.proto";
 import "services.proto";
-import "setup_script.proto";
 
 package magpie.ipc;
 
@@ -49,8 +48,9 @@ message Request {
         magpie.processes.ProcessesRequest get_processes = 10;
         magpie.services.ServicesRequest get_services = 11;
         magpie.battery.BatteryRequest get_battery = 12;
-        magpie.setup_script.ScriptRequest get_script = 13;
     }
+    // 13: setup script (removed)
+    reserved 13;
 }
 
 message Response {
@@ -71,7 +71,8 @@ message Response {
         magpie.processes.ProcessesResponse processes = 10;
         magpie.services.ServicesResponse services = 11;
         magpie.battery.BatteryResponse batteries = 12;
-        magpie.setup_script.ScriptResponse script = 13;
         Error error = 32;
     }
+    // 13: setup script (removed)
+    reserved 13;
 }

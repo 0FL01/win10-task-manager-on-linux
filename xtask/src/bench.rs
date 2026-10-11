@@ -249,7 +249,7 @@ fn write_egui_settings(dir: &Path, page: &str) -> std::io::Result<()> {
     fs::write(
         d.join("config.toml"),
         format!(
-            "window-width = 1280\nwindow-height = 800\nfirst-time-running = false\n\
+            "window-width = 1280\nwindow-height = 800\n\
              window-selected-page = \"{page}\"\nperformance-selected-page = \"cpu\"\n"
         ),
     )

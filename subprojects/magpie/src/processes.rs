@@ -40,13 +40,9 @@ pub fn handle_request(kind: Option<ProcessesRequestKind>) -> nng::Buffer {
         Some(ProcessesRequestKind::ProcessMap(..)) => {
             dbg_request_name = "ProcessMap";
             let processes = cache.processes();
-            let network_status = cache.processes_network_status();
             Response {
                 body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::Processes(ProcessMap {
-                        processes,
-                        network_stats_error: network_status,
-                    })),
+                    response: Some(ProcessesResponseKind::Processes(ProcessMap { processes })),
                 })),
             }
         }

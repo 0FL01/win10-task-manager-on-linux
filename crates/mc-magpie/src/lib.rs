@@ -57,11 +57,10 @@ pub use client::{
     MemoryDevice, Process, Service, SmartData,
 };
 pub use fixture::{load_fixture_dir, write_fixture_dir};
-pub use gatherer::{Event, MagpieClient, Readings, Request, ScriptAction, Waker};
+pub use gatherer::{Event, MagpieClient, Readings, Request, Waker};
 pub use magpie_types;
 pub use magpie_types::about::About;
 pub use magpie_types::apps::icon::Icon;
-pub use magpie_types::processes::processes_response::process_map::NetworkStatsError;
 pub use slot::LatestSlot;
 pub use synthetic::{synthetic_readings, synthetic_series};
 

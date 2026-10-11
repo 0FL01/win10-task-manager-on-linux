@@ -31,7 +31,6 @@ pub mod table;
 pub mod win10;
 
 pub use app::{App, AppOptions, DataSource};
-pub use dialogs::WIKI_URL;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

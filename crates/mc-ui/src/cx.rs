@@ -76,7 +76,6 @@ pub enum Dialog {
     KeyboardShortcuts,
     About,
     AboutSystem,
-    FirstRun,
     ProcessDetails(String),
     ServiceDetails(String),
     SmartData(String),

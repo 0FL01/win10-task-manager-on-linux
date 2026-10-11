@@ -28,9 +28,6 @@ pub struct RawStats {
     pub disk_read_bytes: u64,
     pub disk_write_bytes: u64,
 
-    pub net_bytes_sent: u64,
-    pub net_bytes_recv: u64,
-
     pub timestamp: Instant,
 }
 
@@ -42,9 +39,6 @@ impl Default for RawStats {
 
             disk_read_bytes: 0,
             disk_write_bytes: 0,
-
-            net_bytes_sent: 0,
-            net_bytes_recv: 0,
 
             timestamp: Instant::now(),
         }

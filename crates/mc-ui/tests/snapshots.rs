@@ -40,9 +40,7 @@ fn series(no_network: bool) -> Vec<mc_magpie::Readings> {
     let mut series = mc_magpie::synthetic_series(20, 120);
     if no_network {
         for r in &mut series {
-            r.network_stats_error = Some(mc_magpie::NetworkStatsError::PermissionsError(
-                Default::default(),
-            ));
+            r.network_unavailable = true;
         }
     }
     series
@@ -67,7 +65,6 @@ fn render(
                     let mut config = if state.legacy {
                         Config {
                             window_selected_page: state.page.into(),
-                            first_time_running: false,
                             window_width: 600,
                             window_height: 400,
                             performance_page_cpu_graph: 1,
@@ -78,7 +75,6 @@ fn render(
                     } else {
                         Config {
                             window_selected_page: state.page.into(),
-                            first_time_running: false,
                             ..Default::default()
                         }
                     };
