@@ -392,8 +392,18 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
                         start_time_ticks: p.start_time_ticks.unwrap(),
                     }],
                     engines: vec![
-                        engine("render", "3D", EngineKind::Render, render),
-                        engine("copy", "Copy", EngineKind::Copy, render * 0.3),
+                        engine(
+                            if integrated { "gfx" } else { "render" },
+                            "3D",
+                            EngineKind::Render,
+                            render,
+                        ),
+                        engine(
+                            if integrated { "dma" } else { "copy" },
+                            "Copy",
+                            EngineKind::Copy,
+                            render * 0.3,
+                        ),
                     ],
                     overall_usage_percent: Some(render),
                     dedicated_memory_bytes: Some(if integrated { 0 } else { 64 * 1024 * 1024 }),
@@ -409,23 +419,33 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
             epoch: 1,
             sequence: step as u64 + 1,
             state: TelemetryState::Available as i32,
-            engines: vec![
-                engine("render", "3D", EngineKind::Render, load),
-                engine("copy", "Copy", EngineKind::Copy, load * 0.2),
-                engine(
-                    "video-encode",
-                    "Video Encode",
-                    EngineKind::Encode,
-                    load * 0.1,
-                ),
-                engine(
-                    "video-decode",
-                    "Video Decode",
-                    EngineKind::Decode,
-                    load * 0.5,
-                ),
-                engine("compute", "Compute", EngineKind::Compute, load * 0.3),
-            ],
+            // The integrated adapter mirrors amdgpu with a unified VCN 4 video queue
+            engines: if integrated {
+                vec![
+                    engine("gfx", "3D", EngineKind::Render, load),
+                    engine("dma", "Copy", EngineKind::Copy, 0.),
+                    engine("enc", "Video Encode/Decode", EngineKind::Video, load * 0.4),
+                    engine("compute", "Compute", EngineKind::Compute, load * 0.3),
+                ]
+            } else {
+                vec![
+                    engine("render", "3D", EngineKind::Render, load),
+                    engine("copy", "Copy", EngineKind::Copy, load * 0.2),
+                    engine(
+                        "video-encode",
+                        "Video Encode",
+                        EngineKind::Encode,
+                        load * 0.1,
+                    ),
+                    engine(
+                        "video-decode",
+                        "Video Decode",
+                        EngineKind::Decode,
+                        load * 0.5,
+                    ),
+                    engine("compute", "Compute", EngineKind::Compute, load * 0.3),
+                ]
+            },
             clients,
             observations,
             overall_usage_percent: Some(load),

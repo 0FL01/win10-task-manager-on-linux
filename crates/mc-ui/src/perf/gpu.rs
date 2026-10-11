@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use egui::Ui;
 use mc_core::config::Config;
 use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
-use mc_core::gpu::{GpuDevice, GpuSnapshot, engine_name};
+use mc_core::gpu::{GpuDevice, GpuSnapshot, engine_name, engine_note};
 use mc_core::i18n::{i18n, i18n_f, n_, strip_mnemonic};
 use mc_core::sidebar::DeviceType;
 use mc_graph::{
@@ -224,8 +224,9 @@ impl GpuPage {
                 EngineKind::Copy => 1,
                 EngineKind::Encode => 2,
                 EngineKind::Decode => 3,
+                // A shared encode/decode engine takes the video slot before Compute
+                EngineKind::Video => 3,
                 EngineKind::Compute => 4,
-                EngineKind::Video => 5,
                 EngineKind::VideoEnhance => 6,
                 EngineKind::Other => 7,
             };
@@ -850,9 +851,14 @@ impl GpuPage {
                     .device
                     .as_ref()
                     .and_then(|device| device.engines.iter().find(|engine| engine.id == *id))
-                    && engine.client_derived == Some(true)
                 {
-                    tooltip.push_str(&format!("\n{}", i18n("Measured from visible DRM clients")));
+                    if let Some(note) = engine_note(engine) {
+                        tooltip.push_str(&format!("\n{note}"));
+                    }
+                    if engine.client_derived == Some(true) {
+                        tooltip
+                            .push_str(&format!("\n{}", i18n("Measured from visible DRM clients")));
+                    }
                 }
                 GraphTile {
                     caption,
@@ -1015,6 +1021,33 @@ mod tests {
             .single = true;
         assert_eq!(page.win10_graph_tiles(&config).len(), 1);
         assert_eq!(page.win10_view(&config).panels[0].graphs.len(), 1);
+    }
+
+    #[test]
+    fn unified_video_engine_fills_the_slot_before_compute() {
+        let (mut page, config, readings, mut snapshot) = setup();
+        let engine = |id: &str, name: &str, kind: EngineKind| EngineTelemetry {
+            id: id.into(),
+            name: name.into(),
+            kind: kind as i32,
+            usage_percent: Some(0.),
+            state: TelemetryState::Available as i32,
+            client_derived: Some(true),
+        };
+        snapshot.devices.get_mut("test-adapter").unwrap().engines = vec![
+            engine("compute", "Compute", EngineKind::Compute),
+            engine("enc", "Video Encode/Decode", EngineKind::Video),
+            engine("gfx", "3D", EngineKind::Render),
+            engine("dma", "Copy", EngineKind::Copy),
+        ];
+        feed(&mut page, &config, &readings, &snapshot);
+        assert_eq!(page.selected, ["gfx", "dma", "enc", "compute"]);
+        let tiles = page.win10_graph_tiles(&config);
+        assert_eq!(tiles[2].caption, i18n("Video Encode/Decode"));
+        assert!(tiles[2].tooltip.contains(&i18n(
+            "Encoding and decoding share one hardware queue; the driver does not count them separately"
+        )));
+        assert!(!tiles[3].tooltip.contains("hardware queue"));
     }
 
     #[test]

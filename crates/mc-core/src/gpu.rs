@@ -20,10 +20,18 @@ pub fn engine_name(engine: &EngineTelemetry) -> String {
         "Compute" => i18n("Compute"),
         "Video Encode" => i18n("Video Encode"),
         "Video Decode" => i18n("Video Decode"),
+        "Video Encode/Decode" => i18n("Video Encode/Decode"),
         "Video" => i18n("Video"),
         "Video Enhance" => i18n("Video Enhance"),
         _ => engine.name.clone(),
     }
+}
+
+/// Extra explanation for engines whose meaning differs from Windows.
+pub fn engine_note(engine: &EngineTelemetry) -> Option<String> {
+    (engine.name == "Video Encode/Decode").then(|| {
+        i18n("Encoding and decoding share one hardware queue; the driver does not count them separately")
+    })
 }
 
 pub fn state_reason(state: TelemetryState) -> String {

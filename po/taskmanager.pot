@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 14:20+0300\n"
+"POT-Creation-Date: 2026-10-11 15:43+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -97,56 +97,66 @@ msgstr ""
 msgid "Video Decode"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:23
-msgid "Video"
+#: crates/mc-core/src/gpu.rs:23 crates/mc-ui/src/perf/gpu.rs:1046
+msgid "Video Encode/Decode"
 msgstr ""
 
 #: crates/mc-core/src/gpu.rs:24
+msgid "Video"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:25
 msgid "Video Enhance"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:31
-msgid "Measured by the GPU driver"
-msgstr ""
-
-#: crates/mc-core/src/gpu.rs:33
-msgid "Partial GPU data: some engines or processes are not observable"
-msgstr ""
-
-#: crates/mc-core/src/gpu.rs:36
-msgid "Permission denied while reading GPU process counters"
-msgstr ""
-
-#: crates/mc-core/src/gpu.rs:38
-msgid "Collecting GPU counters; waiting for the next sample"
+#: crates/mc-core/src/gpu.rs:33 crates/mc-ui/src/perf/gpu.rs:1048
+msgid ""
+"Encoding and decoding share one hardware queue; the driver does not count "
+"them separately"
 msgstr ""
 
 #: crates/mc-core/src/gpu.rs:39
-msgid "The GPU driver has not supplied a fresh sample"
+msgid "Measured by the GPU driver"
 msgstr ""
 
 #: crates/mc-core/src/gpu.rs:41
-msgid "The GPU driver or its monitoring interface is unavailable"
-msgstr ""
-
-#: crates/mc-core/src/gpu.rs:43
-msgid "The GPU driver does not provide this counter"
+msgid "Partial GPU data: some engines or processes are not observable"
 msgstr ""
 
 #: crates/mc-core/src/gpu.rs:44
+msgid "Permission denied while reading GPU process counters"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:46
+msgid "Collecting GPU counters; waiting for the next sample"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:47
+msgid "The GPU driver has not supplied a fresh sample"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:49
+msgid "The GPU driver or its monitoring interface is unavailable"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:51
+msgid "The GPU driver does not provide this counter"
+msgstr ""
+
+#: crates/mc-core/src/gpu.rs:52
 msgid "GPU telemetry is not available for this process"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:87
+#: crates/mc-core/src/gpu.rs:95
 #, rust-format
 msgid "GPU {} - {}"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:99
+#: crates/mc-core/src/gpu.rs:107
 msgid "Only overall utilization is available; the active engine is unknown"
 msgstr ""
 
-#: crates/mc-core/src/gpu.rs:124
+#: crates/mc-core/src/gpu.rs:132
 msgid "Driver-reported allocation; residency is not available"
 msgstr ""
 
@@ -412,7 +422,7 @@ msgstr ""
 #: crates/mc-ui/src/perf/disk.rs:149 crates/mc-ui/src/perf/disk.rs:156
 #: crates/mc-ui/src/perf/disk.rs:213 crates/mc-ui/src/perf/disk.rs:291
 #: crates/mc-ui/src/perf/gpu.rs:100 crates/mc-ui/src/perf/gpu.rs:169
-#: crates/mc-ui/src/perf/gpu.rs:473 crates/mc-ui/src/perf/gpu.rs:846
+#: crates/mc-ui/src/perf/gpu.rs:474 crates/mc-ui/src/perf/gpu.rs:847
 #: crates/mc-ui/src/perf/memory.rs:113 crates/mc-ui/src/perf/network.rs:46
 #: crates/mc-ui/src/perf/network.rs:126 crates/mc-ui/src/perf/network.rs:220
 #: crates/mc-ui/src/perf/network.rs:338 crates/mc-ui/src/perf/network.rs:339
@@ -796,7 +806,7 @@ msgstr ""
 msgid "Up time"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cpu.rs:427 crates/mc-ui/src/perf/gpu.rs:585
+#: crates/mc-ui/src/perf/cpu.rs:427 crates/mc-ui/src/perf/gpu.rs:586
 msgid "Temperature"
 msgstr ""
 
@@ -804,7 +814,7 @@ msgstr ""
 msgid "Power Draw"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cpu.rs:434 crates/mc-ui/src/perf/gpu.rs:583
+#: crates/mc-ui/src/perf/cpu.rs:434 crates/mc-ui/src/perf/gpu.rs:584
 msgid "Utilization"
 msgstr ""
 
@@ -1070,103 +1080,103 @@ msgid "Driver unavailable"
 msgstr ""
 
 #: crates/mc-ui/src/perf/gpu.rs:170 crates/mc-ui/src/perf/gpu.rs:205
-#: crates/mc-ui/src/perf/gpu.rs:947
+#: crates/mc-ui/src/perf/gpu.rs:953
 #, rust-format
 msgid "GPU {}"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:238 crates/mc-ui/src/perf/gpu.rs:1030
+#: crates/mc-ui/src/perf/gpu.rs:239 crates/mc-ui/src/perf/gpu.rs:1063
 msgid "Overall utilization"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:590 crates/mc-ui/src/win10/details.rs:260
+#: crates/mc-ui/src/perf/gpu.rs:591 crates/mc-ui/src/win10/details.rs:260
 #: crates/mc-ui/src/win10/processes.rs:82
 msgid "Dedicated GPU memory"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:595 crates/mc-ui/src/win10/details.rs:261
+#: crates/mc-ui/src/perf/gpu.rs:596 crates/mc-ui/src/win10/details.rs:261
 #: crates/mc-ui/src/win10/processes.rs:83
 msgid "Shared GPU memory"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:599
+#: crates/mc-ui/src/perf/gpu.rs:600
 msgid "GPU memory"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:618
+#: crates/mc-ui/src/perf/gpu.rs:619
 msgid "Status:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:620
+#: crates/mc-ui/src/perf/gpu.rs:621
 msgid "Dedicated memory status:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:623
+#: crates/mc-ui/src/perf/gpu.rs:624
 msgid "Shared memory status:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:624
+#: crates/mc-ui/src/perf/gpu.rs:625
 msgid "Sample age:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:628
+#: crates/mc-ui/src/perf/gpu.rs:629
 msgid "Busiest engine:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:643
+#: crates/mc-ui/src/perf/gpu.rs:644
 msgid "OpenGL version:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:651
+#: crates/mc-ui/src/perf/gpu.rs:652
 msgid "Vulkan version:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:664
+#: crates/mc-ui/src/perf/gpu.rs:665
 msgid "PCI Express speed:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:670
+#: crates/mc-ui/src/perf/gpu.rs:671
 msgid "Max PCI Express speed:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:675
+#: crates/mc-ui/src/perf/gpu.rs:676
 msgid "Device address:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:678
+#: crates/mc-ui/src/perf/gpu.rs:679
 msgid "Driver-reserved memory:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:682
+#: crates/mc-ui/src/perf/gpu.rs:683
 msgid "Integrated GPU:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:737
+#: crates/mc-ui/src/perf/gpu.rs:738
 msgid "Dedicated GPU memory usage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:742
+#: crates/mc-ui/src/perf/gpu.rs:743
 msgid "Shared GPU memory usage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:771
+#: crates/mc-ui/src/perf/gpu.rs:772
 msgid "Change graph to"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:777
+#: crates/mc-ui/src/perf/gpu.rs:778
 msgid "Multiple engines"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:780
+#: crates/mc-ui/src/perf/gpu.rs:781
 msgid "Single engine"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:787
+#: crates/mc-ui/src/perf/gpu.rs:788
 #, rust-format
 msgid "Engine graph {}"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:855
+#: crates/mc-ui/src/perf/gpu.rs:860
 msgid "Measured from visible DRM clients"
 msgstr ""
 

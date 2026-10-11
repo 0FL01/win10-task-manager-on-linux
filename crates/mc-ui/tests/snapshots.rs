@@ -32,6 +32,8 @@ struct State {
     /// Per-process network data unavailable (as reported without nethogs)
     no_network: bool,
     gpu: bool,
+    /// Select the integrated adapter (amdgpu-like unified video engine)
+    integrated: bool,
 }
 
 fn series(no_network: bool) -> Vec<mc_magpie::Readings> {
@@ -81,7 +83,11 @@ fn render(
                         }
                     };
                     if state.gpu {
-                        config.performance_selected_page = "gpu-0000:01:00.0".into();
+                        config.performance_selected_page = if state.integrated {
+                            "gpu-0000:03:00.0".into()
+                        } else {
+                            "gpu-0000:01:00.0".into()
+                        };
                         config.details_page_visible_columns =
                             "name;pid;cpu;gpu;gpu_engine;dedicated_gpu_memory;shared_gpu_memory"
                                 .into();
@@ -113,6 +119,7 @@ fn render(
                 legacy: name.starts_with("legacy"),
                 no_network: name.starts_with("no-network"),
                 gpu: name.starts_with("gpu-"),
+                integrated: name.starts_with("gpu-integrated"),
             },
         );
 
@@ -126,7 +133,7 @@ fn render(
     }
     std::thread::sleep(std::time::Duration::from_millis(300));
     harness.run_steps(8);
-    if name == "gpu-performance" {
+    if name == "gpu-performance" || name == "gpu-integrated-performance" {
         for _ in 0..22 {
             std::thread::sleep(std::time::Duration::from_millis(100));
             harness.run_steps(1);
@@ -254,4 +261,11 @@ fn gpu_views_render_with_engine_choices_and_memory() {
         None,
     );
     render("gpu-summary", "performance-page", (400., 380.), 1., None);
+    render(
+        "gpu-integrated-performance",
+        "performance-page",
+        (1030., 705.),
+        1.,
+        None,
+    );
 }

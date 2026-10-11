@@ -213,6 +213,10 @@ typefaces, grid and one-pixel paint helpers; the following geometry is our own a
   busiest measured engine; group rows deduplicate shared clients before per-engine sums.
   Unknown/stale values are `—`, graph gaps are NaN, and partial counters show the plain
   value with the reason in the tooltip. NVML overall utilization is never mislabeled as 3D/Compute.
+- Engine labels use the Windows names (3D, Copy, Compute, Video Encode, Video Decode). amdgpu
+  engines that exist in the hardware (IP discovery) are listed before first use; from VCN 4 the
+  driver runs encode and decode on one queue, shown as one "Video Encode/Decode" engine with that
+  reason in its tooltip (own adaptation; Linux exposes no separate counters there).
 - Frozen pixel probes keep their measured four-resource-column configuration. New GPU
   views are verified separately by real offscreen renders, not invented reference probes.
 

@@ -311,6 +311,7 @@ fn fdinfo_device(device: &GpuDevice) -> fdinfo::Device {
             .collect(),
         generation: device_token(device).0,
         covered: drm.driver != "nvidia",
+        sysfs_device: device.sysfs_device.clone(),
     }
 }
 
@@ -1316,11 +1317,15 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
                     gpu.utilization_percent = derived;
                 }
                 // Preserve raw engine IDs; a combined video engine is one series.
+                // A shared video engine (amdgpu VCN 4+, Intel VCS) serves both legacy fields.
+                let video = kind_usage(&telemetry.engines, EngineKind::Video);
                 if gpu.encoder_percent.is_none() {
-                    gpu.encoder_percent = kind_usage(&telemetry.engines, EngineKind::Encode);
+                    gpu.encoder_percent =
+                        kind_usage(&telemetry.engines, EngineKind::Encode).or(video);
                 }
                 if gpu.decoder_percent.is_none() {
-                    gpu.decoder_percent = kind_usage(&telemetry.engines, EngineKind::Decode);
+                    gpu.decoder_percent =
+                        kind_usage(&telemetry.engines, EngineKind::Decode).or(video);
                 }
                 gpu.encode_decode_shared = telemetry
                     .engines

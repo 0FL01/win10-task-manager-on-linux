@@ -6,7 +6,7 @@
 //! No PID/FD heuristic is a substitute for a device and drm-client-id pair.
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::os::unix::fs::MetadataExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use magpie_platform::gpus::{
@@ -147,13 +147,79 @@ fn parse(text: &str) -> Parsed {
     result
 }
 
+/// amdgpu engines present in the hardware, from the IP discovery table in sysfs, and whether video
+/// encode and decode share one queue. amdgpu omits engines a client never used from fdinfo, so
+/// these are listed before first use. From VCN 4.0 the kernel submits decode jobs to the unified
+/// ring it reports as `enc`; older VCN and UVD/VCE report `dec` and `enc` separately. Without the
+/// table nothing is guessed.
+pub(super) fn amdgpu_hw_engines(sysfs_device: &Path) -> (Vec<String>, Option<bool>) {
+    let major = |block: &Path| {
+        std::fs::read_dir(block)
+            .ok()?
+            .flatten()
+            .filter_map(|instance| {
+                std::fs::read_to_string(instance.path().join("major"))
+                    .ok()?
+                    .trim()
+                    .parse::<u32>()
+                    .ok()
+            })
+            .max()
+    };
+    let Ok(dies) = std::fs::read_dir(sysfs_device.join("ip_discovery/die")) else {
+        return (vec![], None);
+    };
+    let mut ids = BTreeSet::new();
+    let (mut vcn, mut vce) = (None, false);
+    for die in dies.flatten() {
+        let Ok(blocks) = std::fs::read_dir(die.path()) else {
+            continue;
+        };
+        for block in blocks.flatten() {
+            match block.file_name().to_string_lossy().as_ref() {
+                "GC" => ids.extend(["gfx", "compute"]),
+                name if name.starts_with("SDMA") => {
+                    ids.insert("dma");
+                }
+                "UVD" | "VCN" => vcn = vcn.max(major(&block.path())),
+                "VCE" => vce = true,
+                _ => {}
+            }
+        }
+    }
+    // UVD 5–7 (paired with VCE) predate VCN and never use the unified queue.
+    let unified = vcn.map(|major| major >= 4 && !vce);
+    match unified {
+        Some(true) => ids.insert("enc"),
+        Some(false) => ids.insert("dec") | ids.insert("enc"),
+        None => false,
+    };
+    (ids.into_iter().map(String::from).collect(), unified)
+}
+
+/// Kind and display name of an engine. amdgpu names follow the Windows engine names; the unified
+/// VCN ring (`enc` with `video_unified`) carries both encode and decode.
+pub(super) fn engine_label(driver: &str, id: &str, video_unified: bool) -> (EngineKind, String) {
+    let (kind, name) = match (driver, id) {
+        ("amdgpu", "gfx") => (EngineKind::Render, "3D"),
+        ("amdgpu", "dma" | "sdma") => (EngineKind::Copy, "Copy"),
+        ("amdgpu", "compute") => (EngineKind::Compute, "Compute"),
+        ("amdgpu", "dec") => (EngineKind::Decode, "Video Decode"),
+        ("amdgpu", "enc") if video_unified => (EngineKind::Video, "Video Encode/Decode"),
+        ("amdgpu", "enc") => (EngineKind::Encode, "Video Encode"),
+        ("amdgpu", "enc_1") => (EngineKind::Encode, id),
+        _ => (engine_kind(driver, id), id),
+    };
+    (kind, name.to_owned())
+}
+
 pub(super) fn engine_kind(driver: &str, id: &str) -> EngineKind {
     match driver {
         "amdgpu" => match id {
             "gfx" => EngineKind::Render,
             "dma" | "sdma" => EngineKind::Copy,
             "compute" => EngineKind::Compute,
-            "enc" | "enc_1" | "jpeg" => EngineKind::Encode,
+            "enc" | "enc_1" => EngineKind::Encode,
             "dec" => EngineKind::Decode,
             "enc_dec" => EngineKind::Video,
             _ => EngineKind::Other,
@@ -170,11 +236,18 @@ pub(super) fn engine_kind(driver: &str, id: &str) -> EngineKind {
     }
 }
 
-fn engine(driver: &str, id: &str, usage: Option<f32>, state: TelemetryState) -> EngineTelemetry {
+fn engine(
+    driver: &str,
+    id: &str,
+    video_unified: bool,
+    usage: Option<f32>,
+    state: TelemetryState,
+) -> EngineTelemetry {
+    let (kind, name) = engine_label(driver, id, video_unified);
     EngineTelemetry {
         id: id.to_owned(),
-        name: id.to_owned(),
-        kind: engine_kind(driver, id) as i32,
+        name,
+        kind: kind as i32,
         usage_percent: usage,
         state: state as i32,
         client_derived: Some(true),
@@ -188,6 +261,8 @@ pub(super) struct Device {
     pub nodes: Vec<(u32, u32)>,
     pub generation: u64,
     pub covered: bool,
+    /// PCI/platform device directory, read for the amdgpu IP discovery table
+    pub sysfs_device: Option<PathBuf>,
 }
 
 #[derive(Default)]
@@ -216,6 +291,9 @@ pub(super) struct Collector {
     baselines: HashMap<(String, u64), Baseline>,
     known_engines: HashMap<String, BTreeMap<String, String>>,
     devices: HashMap<String, DeviceToken>,
+    /// Hardware engine ids and the unified-video flag per device (see [`amdgpu_hw_engines`]),
+    /// read once per device generation.
+    hardware: HashMap<String, (Vec<String>, Option<bool>)>,
 }
 
 type DeviceToken = (String, Vec<(u32, u32)>, u64);
@@ -396,8 +474,22 @@ impl Collector {
                 self.baselines.retain(|(id, _), _| id != &device.id);
                 self.known_engines.remove(&device.id);
                 self.devices.insert(device.id.clone(), token);
+                let hardware = match (device.driver.as_str(), &device.sysfs_device) {
+                    ("amdgpu", Some(path)) => amdgpu_hw_engines(path),
+                    _ => (vec![], None),
+                };
+                self.hardware.insert(device.id.clone(), hardware);
+            }
+            if let Some((ids, _)) = self.hardware.get(&device.id) {
+                let known = self.known_engines.entry(device.id.clone()).or_default();
+                for id in ids {
+                    known
+                        .entry(id.clone())
+                        .or_insert_with(|| device.driver.clone());
+                }
             }
         }
+        self.hardware.retain(|id, _| samples.contains_key(id));
         self.baselines.retain(|(device, _), baseline| {
             samples.contains_key(device)
                 && now.saturating_sub(baseline.last_seen) < Duration::from_secs(60)
@@ -568,9 +660,20 @@ impl Collector {
             baseline.owners = group.owners.clone();
             baseline.driver = group.parsed.driver.clone();
             baseline.last_seen = now;
-            baseline
+            let unified = self.hardware.get(&device).and_then(|h| h.1) == Some(true);
+            // amdgpu omits engines whose cumulative counter is zero, so a missing key means the
+            // client never used that engine. A counter that vanished is not a zero.
+            let vanished = baseline
                 .counters
-                .retain(|id, _| group.parsed.engines.contains_key(id));
+                .keys()
+                .any(|id| !group.parsed.engines.contains_key(id));
+            let absent_is_zero = group.parsed.driver == "amdgpu" && !vanished;
+            // amdgpu keeps a vanished counter so the client stays unknown until it is re-identified
+            if group.parsed.driver != "amdgpu" {
+                baseline
+                    .counters
+                    .retain(|id, _| group.parsed.engines.contains_key(id));
+            }
             let mut engines = vec![];
             for (id, counter) in &group.parsed.engines {
                 let (percent, state) = baseline
@@ -583,13 +686,15 @@ impl Collector {
                 if state != TelemetryState::Stale {
                     baseline.counters.insert(id.clone(), (counter.clone(), now));
                 }
-                engines.push(engine(&group.parsed.driver, id, percent, state));
+                engines.push(engine(&group.parsed.driver, id, unified, percent, state));
                 self.known_engines
                     .entry(device.clone())
                     .or_default()
                     .insert(id.clone(), group.parsed.driver.clone());
             }
-            let usage_state = if engines.is_empty() {
+            let usage_state = if engines.is_empty() && absent_is_zero {
+                TelemetryState::Available
+            } else if engines.is_empty() {
                 TelemetryState::Unsupported
             } else if engines
                 .iter()
@@ -640,7 +745,8 @@ impl Collector {
             let overall = engines
                 .iter()
                 .filter_map(|e| e.usage_percent)
-                .reduce(f32::max);
+                .reduce(f32::max)
+                .or((engines.is_empty() && absent_is_zero).then_some(0.));
             sample.clients.push(ClientTelemetry {
                 id: format!("drm:{client_id}"),
                 owners: group
@@ -711,21 +817,36 @@ impl Collector {
                 } as i32;
             }
             sample.observations.sort_by_key(|o| o.pid);
+            let unified = self.hardware.get(id).and_then(|h| h.1) == Some(true);
             if let Some(known) = self.known_engines.get(id) {
                 for (engine_id, driver) in known {
+                    // amdgpu omits engines with a zero counter: a client without the key is idle
+                    let absent_is_zero = driver == "amdgpu";
                     let values: Vec<_> = sample
                         .clients
                         .iter()
                         .filter_map(|client| client.engines.iter().find(|e| &e.id == engine_id))
                         .collect();
-                    let missing_active = values.is_empty() && !sample.clients.is_empty();
-                    let incomplete = values.len() < sample.clients.len();
+                    // amdgpu: clients without the key count as idle unless their own counters
+                    // are not fully known.
+                    let unknown = |client: &&ClientTelemetry| {
+                        client.usage_state == TelemetryState::Unsupported as i32
+                            || client.usage_state == TelemetryState::Partial as i32
+                    };
+                    let missing_active = values.is_empty()
+                        && !sample.clients.is_empty()
+                        && (!absent_is_zero || sample.clients.iter().all(|c| unknown(&c)));
+                    let incomplete = if absent_is_zero {
+                        sample.clients.iter().any(|c| unknown(&c))
+                    } else {
+                        values.len() < sample.clients.len()
+                    };
                     let valid = !missing_active && values.iter().all(|e| e.usage_percent.is_some());
                     let value = valid.then(|| {
                         values
                             .iter()
                             .filter_map(|e| e.usage_percent)
-                            .sum::<f32>()
+                            .fold(0., |sum, value| sum + value)
                             .min(100.)
                     });
                     let state = if missing_active {
@@ -751,7 +872,8 @@ impl Collector {
                     sample.engines.push(engine(
                         driver,
                         engine_id,
-                        if sample.partial && values.is_empty() {
+                        unified,
+                        if sample.partial && sample.clients.is_empty() {
                             None
                         } else {
                             value
@@ -837,6 +959,7 @@ mod tests {
             nodes: vec![],
             generation: 1,
             covered: true,
+            sysfs_device: None,
         }]
     }
     fn fd(ns: u64) -> String {
@@ -1024,6 +1147,7 @@ mod tests {
             nodes: vec![],
             generation: 3,
             covered: false,
+            sysfs_device: None,
         });
         root.process(
             2,
@@ -1066,5 +1190,106 @@ mod tests {
             sample[&devices()[0].id].clients[0].usage_state,
             TelemetryState::Unsupported as i32
         );
+    }
+
+    fn ip_discovery(blocks: &[(&str, u32)]) -> Fixture {
+        let sysfs = Fixture::new();
+        for (block, major) in blocks {
+            let dir = sysfs.0.join("ip_discovery/die/0").join(block).join("0");
+            std::fs::create_dir_all(&dir).unwrap();
+            std::fs::write(dir.join("major"), format!("{major}\n")).unwrap();
+        }
+        sysfs
+    }
+
+    #[test]
+    fn amdgpu_hardware_engines_come_from_ip_discovery() {
+        let rdna3 = ip_discovery(&[("GC", 11), ("SDMA0", 6), ("UVD", 4), ("MP1", 13)]);
+        assert_eq!(
+            amdgpu_hw_engines(&rdna3.0),
+            (
+                vec!["compute".into(), "dma".into(), "enc".into(), "gfx".into()],
+                Some(true)
+            )
+        );
+        let rdna2 = ip_discovery(&[("GC", 10), ("SDMA1", 5), ("UVD", 3)]);
+        assert_eq!(
+            amdgpu_hw_engines(&rdna2.0).0,
+            vec!["compute", "dec", "dma", "enc", "gfx"]
+        );
+        assert_eq!(amdgpu_hw_engines(&rdna2.0).1, Some(false));
+        // UVD 7 + VCE predates VCN: separate decode and encode
+        let vega = ip_discovery(&[("GC", 9), ("UVD", 7), ("VCE", 4)]);
+        assert_eq!(amdgpu_hw_engines(&vega.0).1, Some(false));
+        let none = Fixture::new();
+        assert_eq!(amdgpu_hw_engines(&none.0), (vec![], None));
+
+        assert_eq!(
+            engine_label("amdgpu", "enc", true),
+            (EngineKind::Video, "Video Encode/Decode".into())
+        );
+        assert_eq!(
+            engine_label("amdgpu", "enc", false),
+            (EngineKind::Encode, "Video Encode".into())
+        );
+        assert_eq!(
+            engine_label("amdgpu", "dec", false),
+            (EngineKind::Decode, "Video Decode".into())
+        );
+        assert_eq!(engine_label("amdgpu", "jpeg", true).0, EngineKind::Other);
+        assert_eq!(
+            engine_label("i915", "video", false),
+            (EngineKind::Video, "video".into())
+        );
+    }
+
+    #[test]
+    fn unused_amdgpu_engines_read_zero_and_absent_keys_are_idle() {
+        let sysfs = ip_discovery(&[("GC", 11), ("SDMA0", 6), ("UVD", 4)]);
+        let mut devices = devices();
+        devices[0].sysfs_device = Some(sysfs.0.clone());
+        let client = |id: u32, gfx: u64, compute: Option<u64>| {
+            let compute = compute
+                .map(|ns| format!("drm-engine-compute: {ns} ns\n"))
+                .unwrap_or_default();
+            format!(
+                "drm-driver: amdgpu\ndrm-pdev: 0000:01:00.0\ndrm-client-id: {id}\n\
+                 drm-engine-gfx: {gfx} ns\n{compute}"
+            )
+        };
+        let root = Fixture::new();
+        let mut collector = Collector::default();
+        root.process(1, 10, &[&client(42, 0, Some(0)), &client(43, 0, None)]);
+        collector.collect(&root.0, &devices, Duration::from_secs(1));
+        root.process(
+            1,
+            10,
+            &[
+                &client(42, 500_000_000, Some(250_000_000)),
+                &client(43, 0, None),
+            ],
+        );
+        let sample = collector.collect(&root.0, &devices, Duration::from_secs(2));
+        let sample = &sample[&devices[0].id];
+        let engine = |id: &str| {
+            sample
+                .engines
+                .iter()
+                .find(|engine| engine.id == id)
+                .unwrap_or_else(|| panic!("{id} listed"))
+        };
+        assert_eq!(engine("gfx").name, "3D");
+        assert_eq!(engine("gfx").usage_percent, Some(50.));
+        // Client 43 never used compute: its absent key is idle, not partial
+        assert_eq!(engine("compute").usage_percent, Some(25.));
+        assert_eq!(engine("compute").state, TelemetryState::Available as i32);
+        // Never used by any client, known from the hardware
+        assert_eq!(engine("dma").name, "Copy");
+        assert_eq!(engine("dma").usage_percent, Some(0.));
+        assert_eq!(engine("dma").state, TelemetryState::Available as i32);
+        assert_eq!(engine("enc").name, "Video Encode/Decode");
+        assert_eq!(engine("enc").kind, EngineKind::Video as i32);
+        assert_eq!(engine("enc").usage_percent, Some(0.));
+        assert!(!sample.partial);
     }
 }
