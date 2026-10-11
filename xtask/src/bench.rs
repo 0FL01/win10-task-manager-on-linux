@@ -243,14 +243,14 @@ fn start_compositor(socket_name: &str) -> Result<ManagedChild, String> {
     Ok(child)
 }
 
-fn write_egui_settings(dir: &Path, sliding: bool, page: &str) -> std::io::Result<()> {
+fn write_egui_settings(dir: &Path, page: &str) -> std::io::Result<()> {
     let d = dir.join("taskmanager");
     fs::create_dir_all(&d)?;
     fs::write(
         d.join("config.toml"),
         format!(
             "window-width = 1280\nwindow-height = 800\nfirst-time-running = false\n\
-             window-selected-page = \"{page}\"\nperformance-selected-page = \"cpu\"\nperformance-sliding-graphs = {sliding}\n"
+             window-selected-page = \"{page}\"\nperformance-selected-page = \"cpu\"\n"
         ),
     )
 }
@@ -261,7 +261,6 @@ fn run_once(
     daemon: &Path,
     hwdb: &Path,
     variant: Variant,
-    sliding: bool,
     page: &str,
     synthetic: Option<usize>,
     tck: f64,
@@ -282,7 +281,7 @@ fn run_once(
         std::env::var("PATH").unwrap_or_default()
     );
 
-    write_egui_settings(&tmp, sliding, page).map_err(|e| e.to_string())?;
+    write_egui_settings(&tmp, page).map_err(|e| e.to_string())?;
     let (bin, renderer) = match variant {
         Variant::EguiWgpu => (&opts.egui, "wgpu"),
         Variant::EguiGlow => (&opts.egui_glow, "glow"),
@@ -443,33 +442,24 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
 
     let mut rows: Vec<Row> = vec![];
 
-    // (name, sliding graphs, page, synthetic process count, variants)
-    type Scenario<'a> = (String, bool, &'a str, Option<usize>, Vec<Variant>);
+    // (name, page, synthetic process count, variants)
+    type Scenario<'a> = (String, &'a str, Option<usize>, Vec<Variant>);
     let scenarios: Vec<Scenario> = vec![
         (
-            "performance/cpu, sliding off".into(),
-            false,
-            "performance-page",
-            None,
-            vec![Variant::EguiWgpu, Variant::EguiGlow],
-        ),
-        (
-            "performance/cpu, sliding on".into(),
-            true,
+            "performance/cpu".into(),
             "performance-page",
             None,
             vec![Variant::EguiWgpu, Variant::EguiGlow],
         ),
         (
             "apps, 1000 synthetic processes".into(),
-            false,
             "apps-page",
             Some(1000),
             vec![Variant::EguiWgpu, Variant::EguiGlow],
         ),
     ];
 
-    for (scenario, sliding, page, synthetic, variants) in &scenarios {
+    for (scenario, page, synthetic, variants) in &scenarios {
         for variant in variants {
             let mut samples = vec![];
             for r in 0..opts.repeats {
@@ -479,7 +469,6 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
                     &daemon,
                     &hwdb,
                     *variant,
-                    *sliding,
                     page,
                     *synthetic,
                     tck,
@@ -631,19 +620,19 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("mc-bench-report-test-{}", std::process::id()));
         opts.out = dir.join("report.md");
         let rows = [Row {
-            scenario: "performance/cpu, sliding off".into(),
+            scenario: "performance/cpu".into(),
             variant: Variant::EguiWgpu,
             samples: vec![],
         }];
         let error = write_report(&opts, &rows).unwrap_err();
         assert!(error.contains("no valid measurements"));
-        assert!(error.contains("performance/cpu, sliding off / egui-wgpu"));
+        assert!(error.contains("performance/cpu / egui-wgpu"));
         let report = fs::read_to_string(&opts.out).unwrap();
-        assert!(report.contains("| performance/cpu, sliding off | egui-wgpu | 0/3 | NaN"));
+        assert!(report.contains("| performance/cpu | egui-wgpu | 0/3 | NaN"));
         assert!(report.contains("Rows with no valid runs make the benchmark fail"));
 
         let rows = [Row {
-            scenario: "performance/cpu, sliding off".into(),
+            scenario: "performance/cpu".into(),
             variant: Variant::EguiWgpu,
             samples: vec![Sample {
                 frames: Some(6),

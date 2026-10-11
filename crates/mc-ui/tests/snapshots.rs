@@ -185,17 +185,6 @@ fn hidpi_2x() {
 }
 
 #[test]
-fn preferences_dialog() {
-    render(
-        "dialog-preferences",
-        "apps-page",
-        (1030., 705.),
-        1.,
-        Some(Some(Dialog::Preferences)),
-    );
-}
-
-#[test]
 fn about_dialog() {
     render(
         "dialog-about",

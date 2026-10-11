@@ -27,23 +27,12 @@ use std::thread::JoinHandle;
 
 use serde::{Deserialize, Serialize};
 
-use crate::format::UnitSettings;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum SortOrder {
     Ascending,
     Descending,
     #[default]
     None,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum InterfaceStyle {
-    #[default]
-    System,
-    Light,
-    Dark,
 }
 
 fn config_home() -> PathBuf {
@@ -91,27 +80,11 @@ pub struct Config {
     pub window_height: i32,
     pub is_maximized: bool,
     pub window_selected_page: String,
-    pub window_interface_style: InterfaceStyle,
 
     /// Refresh interval in multiples of 50 ms (10..=200).
     #[serde(rename = "app-update-interval-u64")]
     pub app_update_interval: u64,
 
-    pub performance_page_data_points: i32,
-    pub performance_page_memory2_use_bytes: bool,
-    pub performance_page_memory2_use_base2: bool,
-    pub performance_page_drive_use_bytes: bool,
-    pub performance_page_drive_use_base2: bool,
-    pub performance_page_network_use_bytes: bool,
-    pub performance_page_network_use_base2: bool,
-    pub performance_page_network_dynamic_scaling: bool,
-
-    pub apps_page_merged_process_stats: bool,
-    pub apps_page_remember_sorting: bool,
-    pub apps_page_remember_column_order: bool,
-    pub apps_page_core_count_affects_percentages: bool,
-    pub apps_page_show_column_separators: bool,
-    pub apps_page_hide_is_zero: bool,
     pub apps_page_sorting_column_name: String,
     pub apps_page_sorting_order: SortOrder,
     pub apps_page_column_order: String,
@@ -147,23 +120,9 @@ pub struct Config {
     pub performance_page_cpu_graph_bottom: i32,
     pub performance_page_kernel_times: bool,
     pub performance_selected_page: String,
-    pub performance_smooth_graphs: bool,
-    pub performance_sliding_graphs: bool,
 
-    pub performance_show_cpu: bool,
-    pub performance_show_memory: bool,
-    pub performance_show_disks: bool,
-    pub performance_show_network: bool,
-    pub performance_show_network_wired: bool,
-    pub performance_show_network_wireless: bool,
-    pub performance_show_network_vpn: bool,
     pub performance_show_network_virtual: bool,
-    pub performance_show_network_other: bool,
-    pub performance_show_gpus: bool,
-    pub performance_show_fans: bool,
-    pub performance_show_batteries: bool,
 
-    pub performance_page_memory_composition_visible: bool,
     pub performance_page_memory_swap_visible: bool,
     pub performance_page_gpu_graph_middle: i32,
     pub performance_page_gpu_graph_bottom: i32,
@@ -190,22 +149,7 @@ impl Default for Config {
             window_height: 705,
             is_maximized: false,
             window_selected_page: "performance-page".into(),
-            window_interface_style: InterfaceStyle::System,
             app_update_interval: 20,
-            performance_page_data_points: 60,
-            performance_page_memory2_use_bytes: true,
-            performance_page_memory2_use_base2: true,
-            performance_page_drive_use_bytes: true,
-            performance_page_drive_use_base2: true,
-            performance_page_network_use_bytes: false,
-            performance_page_network_use_base2: false,
-            performance_page_network_dynamic_scaling: true,
-            apps_page_merged_process_stats: false,
-            apps_page_remember_sorting: true,
-            apps_page_remember_column_order: true,
-            apps_page_core_count_affects_percentages: false,
-            apps_page_show_column_separators: false,
-            apps_page_hide_is_zero: false,
             apps_page_sorting_column_name: String::new(),
             apps_page_sorting_order: SortOrder::None,
             apps_page_column_order: String::new(),
@@ -229,21 +173,7 @@ impl Default for Config {
             performance_page_cpu_graph_bottom: 0,
             performance_page_kernel_times: false,
             performance_selected_page: "cpu".into(),
-            performance_smooth_graphs: false,
-            performance_sliding_graphs: false,
-            performance_show_cpu: true,
-            performance_show_memory: true,
-            performance_show_disks: true,
-            performance_show_network: true,
-            performance_show_network_wired: true,
-            performance_show_network_wireless: true,
-            performance_show_network_vpn: true,
             performance_show_network_virtual: false,
-            performance_show_network_other: true,
-            performance_show_gpus: true,
-            performance_show_fans: true,
-            performance_show_batteries: true,
-            performance_page_memory_composition_visible: true,
             performance_page_memory_swap_visible: false,
             performance_page_gpu_graph_middle: 1,
             performance_page_gpu_graph_bottom: 2,
@@ -262,7 +192,6 @@ impl Config {
     /// Clamps numeric settings to the ranges declared by the former GSettings schema.
     pub fn sanitize(&mut self) {
         self.app_update_interval = self.app_update_interval.clamp(10, 200);
-        self.performance_page_data_points = self.performance_page_data_points.clamp(10, 600);
         self.performance_page_cpu_graph = self.performance_page_cpu_graph.clamp(1, 4);
         self.performance_page_cpu_graph_bottom = self.performance_page_cpu_graph_bottom.clamp(0, 3);
         self.performance_page_gpu_graph_middle = self.performance_page_gpu_graph_middle.clamp(0, 5);
@@ -274,17 +203,6 @@ impl Config {
         self.performance_sidebar_width = self.performance_sidebar_width.clamp(211, 1200);
         self.window_width = self.window_width.max(1);
         self.window_height = self.window_height.max(1);
-    }
-
-    pub fn units(&self) -> UnitSettings {
-        UnitSettings {
-            memory_use_bytes: self.performance_page_memory2_use_bytes,
-            memory_use_base2: self.performance_page_memory2_use_base2,
-            drive_use_bytes: self.performance_page_drive_use_bytes,
-            drive_use_base2: self.performance_page_drive_use_base2,
-            network_use_bytes: self.performance_page_network_use_bytes,
-            network_use_base2: self.performance_page_network_use_base2,
-        }
     }
 
     /// `$XDG_CONFIG_HOME/taskmanager/config.toml` (or `~/.config/...`).
@@ -352,11 +270,6 @@ impl Config {
             self.performance_page_cpu_graph_bottom = defaults.performance_page_cpu_graph_bottom;
             self.performance_page_memory_swap_visible =
                 defaults.performance_page_memory_swap_visible;
-        }
-        if self.layout_version < 2 {
-            // The interface state (sorting, column order and widths) is kept by default
-            self.apps_page_remember_sorting = true;
-            self.apps_page_remember_column_order = true;
         }
         if self.layout_version < 3 && self.apps_page_visible_columns == "cpu;memory;drive;network" {
             self.apps_page_visible_columns = defaults.apps_page_visible_columns;
@@ -474,8 +387,6 @@ mod tests {
     fn defaults_match_the_gsettings_schema() {
         let c = Config::default();
         assert_eq!(c.app_update_interval, 20);
-        assert_eq!(c.performance_page_data_points, 60);
-        assert!(!c.performance_page_network_use_bytes);
         assert_eq!(c.performance_selected_page, "cpu");
         assert_eq!(c.performance_page_gpu_graph_bottom, 2);
         assert!(c.first_time_running);
@@ -485,7 +396,6 @@ mod tests {
     fn toml_roundtrip() {
         let mut c = Config::default();
         c.apps_page_sorting_order = SortOrder::Descending;
-        c.window_interface_style = InterfaceStyle::Dark;
         c.performance_sidebar_order = "cpu;memory".into();
         let back = Config::from_toml(&c.to_toml()).unwrap();
         assert_eq!(back, c);
@@ -494,16 +404,29 @@ mod tests {
     #[test]
     fn keys_use_the_gsettings_names() {
         let text = Config::default().to_toml();
-        assert!(text.contains("performance-page-memory2-use-bytes = true"));
         assert!(text.contains("app-update-interval-u64 = 20"));
-        assert!(text.contains("window-interface-style = \"system\""));
+        assert!(text.contains("performance-page-cpu-graph = 2"));
     }
 
     #[test]
     fn missing_keys_fall_back_to_defaults_and_ranges_are_clamped() {
-        let c = Config::from_toml("performance-page-data-points = 5000\n").unwrap();
-        assert_eq!(c.performance_page_data_points, 600);
-        assert_eq!(c.app_update_interval, 20);
+        let c = Config::from_toml("app-update-interval-u64 = 5000\n").unwrap();
+        assert_eq!(c.app_update_interval, 200);
+        assert_eq!(c.performance_page_cpu_graph, 2);
+    }
+
+    #[test]
+    fn keys_of_removed_settings_are_ignored() {
+        // Written by builds that still had the Settings dialog
+        let c = Config::from_toml(
+            "performance-page-data-points = 120\nperformance-smooth-graphs = true\n\
+             apps-page-merged-process-stats = true\nwindow-interface-style = \"dark\"\n\
+             first-time-running = false\nwindow-width = 1400\n",
+        )
+        .unwrap();
+        assert_eq!(c.window_width, 1400);
+        let text = c.to_toml();
+        assert!(!text.contains("data-points") && !text.contains("merged-process-stats"));
     }
 
     #[test]
@@ -540,7 +463,6 @@ mod tests {
             ),
             (2, 0)
         );
-        assert!(c.apps_page_remember_sorting && c.apps_page_remember_column_order);
         assert!(!c.migrate_layout([760, 540]), "only once");
 
         // New files start migrated; a large stored window is kept

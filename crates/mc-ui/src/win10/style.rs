@@ -76,7 +76,6 @@ pub fn install(ctx: &egui::Context) {
     ctx.set_visuals_of(egui::Theme::Light, visuals);
 
     ctx.all_styles_mut(|style| {
-        let semibold = fonts::family(fonts::SEMIBOLD);
         style.text_styles = [
             (TextStyle::Small, FontId::new(11., FontFamily::Proportional)),
             (TextStyle::Body, FontId::new(12., FontFamily::Proportional)),
@@ -93,9 +92,6 @@ pub fn install(ctx: &egui::Context) {
                 FontId::new(12., FontFamily::Monospace),
             ),
             (title1(), FontId::new(20., fonts::family(fonts::LIGHT))),
-            (title3(), FontId::new(15., semibold.clone())),
-            (title4(), FontId::new(13., semibold)),
-            (caption(), FontId::new(11., FontFamily::Proportional)),
         ]
         .into();
         style.spacing.item_spacing = egui::vec2(7., 7.);
@@ -108,16 +104,4 @@ pub fn install(ctx: &egui::Context) {
 
 pub fn title1() -> TextStyle {
     TextStyle::Name("title-1".into())
-}
-
-pub fn title3() -> TextStyle {
-    TextStyle::Name("title-3".into())
-}
-
-pub fn title4() -> TextStyle {
-    TextStyle::Name("title-4".into())
-}
-
-pub fn caption() -> TextStyle {
-    TextStyle::Name("caption".into())
 }

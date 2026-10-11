@@ -23,9 +23,7 @@ use mc_core::config::Config;
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, ScalingSettings,
-};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, ScalingSettings};
 use mc_magpie::{Fan, Readings};
 
 use super::cpu::{TEMPERATURE_HIGH_WATERMARK, TEMPERATURE_LOW_WATERMARK};
@@ -142,12 +140,6 @@ impl DevicePage for FanPage {
         };
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.speed_graph.apply_settings(settings);
-        self.temp_graph.apply_settings(settings);
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let Some(fan) = readings
             .fans
@@ -201,8 +193,8 @@ impl DevicePage for FanPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        self.speed_graph.update_animation(frame) | self.temp_graph.update_animation(frame)
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.speed_graph.set_grid_offset(offset) | self.temp_graph.set_grid_offset(offset)
     }
 
     fn win10_view(&mut self, _config: &Config) -> PageView<'_> {

@@ -26,7 +26,6 @@ pub mod cx;
 pub mod dialogs;
 pub mod icons;
 pub mod perf;
-pub mod prefs;
 pub mod smart;
 pub mod table;
 pub mod win10;

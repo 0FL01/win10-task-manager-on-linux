@@ -73,7 +73,6 @@ impl MainPage {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Dialog {
-    Preferences,
     KeyboardShortcuts,
     About,
     AboutSystem,

@@ -414,7 +414,6 @@ impl Tree {
         section: u8,
         inherited_icon: &RowIcon,
         app_icons: &HashMap<u32, String>,
-        use_merged_stats: bool,
         depth_guard: u16,
     ) -> Option<usize> {
         let process = process_map.get(&pid)?;
@@ -431,11 +430,7 @@ impl Tree {
         );
         node.pid = pid;
         node.command_line = process.cmd.join(" ");
-        node.stats = if use_merged_stats {
-            process.merged_usage_stats(process_map)
-        } else {
-            process.usage_stats
-        };
+        node.stats = process.usage_stats;
         node.icon = match app_icons.get(&pid) {
             Some(app_id) => RowIcon::App(app_id.clone()),
             None => inherited_icon.clone(),
@@ -454,7 +449,6 @@ impl Tree {
                 section,
                 &icon,
                 app_icons,
-                use_merged_stats,
                 depth_guard + 1,
             ) {
                 self.nodes[index].children.push(c);
@@ -465,7 +459,7 @@ impl Tree {
     }
 
     /// Builds the Apps page tree: an "Apps" section and a "Processes" section.
-    pub fn apps(readings: &Readings, use_merged_stats: bool) -> Self {
+    pub fn apps(readings: &Readings) -> Self {
         let mut tree = Tree::default();
         let process_map = &readings.running_processes;
 
@@ -509,7 +503,6 @@ impl Tree {
                     1,
                     &RowIcon::Default,
                     &app_icons,
-                    use_merged_stats,
                     0,
                 ) {
                     tree.nodes[procs_header].children.push(c);
@@ -545,7 +538,6 @@ impl Tree {
                     0,
                     &RowIcon::App(app.id.clone()),
                     &app_icons,
-                    use_merged_stats,
                     0,
                 ) {
                     tree.nodes[index].children.push(c);
@@ -558,7 +550,7 @@ impl Tree {
     }
 
     /// Builds the Services page tree: "User Services" and "System Services" sections.
-    pub fn services(readings: &Readings, use_merged_stats: bool) -> Self {
+    pub fn services(readings: &Readings) -> Self {
         let mut tree = Tree::default();
         let process_map = &readings.running_processes;
 
@@ -614,7 +606,6 @@ impl Tree {
                         section,
                         &RowIcon::Default,
                         &HashMap::new(),
-                        use_merged_stats,
                         0,
                     )
                 {
@@ -633,12 +624,13 @@ impl Tree {
     }
 
     /// GPU groups use unique process/client identities, independently of the legacy scalar stats.
-    pub fn apply_gpu(&mut self, readings: &Readings, gpu: &GpuSnapshot, merged: bool) {
+    pub fn apply_gpu(&mut self, readings: &Readings, gpu: &GpuSnapshot) {
         for node in &mut self.nodes {
             if node.kind == RowKind::SectionHeader {
                 continue;
             }
-            let descend = node.kind != RowKind::Process || merged;
+            // Process rows show their own values; apps and services include descendants
+            let descend = node.kind != RowKind::Process;
             let mut pending = if node.kind == RowKind::App {
                 node.app_pids.clone()
             } else {
@@ -906,8 +898,8 @@ mod tests {
         }
         let gpu =
             GpuSnapshot::from_readings(&readings, &mut crate::gpu::GpuIndices::default(), 1000);
-        let mut tree = Tree::apps(&readings, false);
-        tree.apply_gpu(&readings, &gpu, false);
+        let mut tree = Tree::apps(&readings);
+        tree.apply_gpu(&readings, &gpu);
         let header = tree.find_by_key("processes").unwrap();
         for column in [Column::Gpu, Column::GpuDedicatedMemory] {
             for sort_order in [SortOrder::Ascending, SortOrder::Descending] {
@@ -989,7 +981,7 @@ mod tests {
 
     #[test]
     fn apps_tree_has_sections_apps_and_processes() {
-        let tree = Tree::apps(&readings(), false);
+        let tree = Tree::apps(&readings());
         let apps = &tree.nodes[tree.roots[0]];
         let procs = &tree.nodes[tree.roots[1]];
         assert_eq!(apps.children.len(), 1);
@@ -1004,7 +996,7 @@ mod tests {
 
     #[test]
     fn processes_inherit_the_app_icon() {
-        let tree = Tree::apps(&readings(), false);
+        let tree = Tree::apps(&readings());
         let child = tree.find_by_key("processes/p10/p11").unwrap();
         assert_eq!(
             tree.nodes[child].icon,
@@ -1015,19 +1007,8 @@ mod tests {
     }
 
     #[test]
-    fn merged_stats_switch() {
-        let unmerged = Tree::apps(&readings(), false);
-        let merged = Tree::apps(&readings(), true);
-        let key = "processes/p20";
-        let u = &unmerged.nodes[unmerged.find_by_key(key).unwrap()];
-        let m = &merged.nodes[merged.find_by_key(key).unwrap()];
-        assert_eq!(u.stats.cpu_usage, 1.);
-        assert_eq!(m.stats.cpu_usage, 8.);
-    }
-
-    #[test]
     fn flatten_respects_expansion() {
-        let tree = Tree::apps(&readings(), false);
+        let tree = Tree::apps(&readings());
         let mut expanded = HashSet::new();
         let rows = tree.flatten(&expanded, &ViewOptions::default());
         // 2 headers + 1 app + 3 top level processes
@@ -1045,7 +1026,7 @@ mod tests {
 
     #[test]
     fn sorting_by_cpu_descending() {
-        let tree = Tree::apps(&readings(), false);
+        let tree = Tree::apps(&readings());
         let options = ViewOptions {
             sort_column: Some(Column::Cpu),
             sort_order: SortOrder::Descending,
@@ -1064,7 +1045,7 @@ mod tests {
 
     #[test]
     fn search_finds_nested_rows() {
-        let tree = Tree::apps(&readings(), false);
+        let tree = Tree::apps(&readings());
         let options = ViewOptions {
             search: "top".into(),
             ..Default::default()
@@ -1098,7 +1079,7 @@ mod tests {
                 ..Default::default()
             },
         );
-        let tree = Tree::services(&r, false);
+        let tree = Tree::services(&r);
         let all = tree.flatten(&HashSet::new(), &ViewOptions::default());
         assert_eq!(all.len(), 4);
 

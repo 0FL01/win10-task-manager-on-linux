@@ -20,16 +20,11 @@
 
 use super::{GraphPanel, PageView};
 use mc_core::config::Config;
-use mc_core::format::{
-    DataType, UnitSettings, to_human_readable_nice, to_long_human_readable_time,
-};
+use mc_core::format::{DataType, to_human_readable_nice, to_long_human_readable_time};
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, RoundingSettings,
-    ScalingSettings,
-};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
 use mc_magpie::{Battery, Readings};
 
 use super::{DevicePage, SummaryGraph, UpdateEnv};
@@ -144,15 +139,13 @@ pub struct BatteryPage {
     voltage_min_design: Option<String>,
     voltage_max_design: Option<String>,
     labels: Labels,
-    units: UnitSettings,
     max_duration: String,
 }
 
 impl BatteryPage {
     pub fn new(b: &Battery, config: &Config) -> Self {
-        let units = config.units();
-        let wh = |v: u32| to_human_readable_nice(v as f32 / 1000., &DataType::WattHours, &units);
-        let volts = |v: f32| to_human_readable_nice(v, &DataType::Volts, &units);
+        let wh = |v: u32| to_human_readable_nice(v as f32 / 1000., &DataType::WattHours);
+        let volts = |v: f32| to_human_readable_nice(v, &DataType::Volts);
 
         let mut summary = SummaryGraph::percent(COLOR, i18n("Battery"));
         summary.info1 = b.model.clone().unwrap_or_default();
@@ -211,7 +204,6 @@ impl BatteryPage {
             voltage_min_design: b.voltage_min_design.map(volts),
             voltage_max_design: b.voltage_max_design.map(volts),
             labels: Labels::default(),
-            units,
             max_duration: super::max_duration(config),
         };
         page.history_graph.set_base_color(COLOR);
@@ -296,12 +288,6 @@ impl DevicePage for BatteryPage {
         };
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.rate_graph.apply_settings(settings);
-        self.history_graph.set_do_animation(settings.sliding_graphs);
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let Some(b) = readings
             .batteries
@@ -310,9 +296,7 @@ impl DevicePage for BatteryPage {
         else {
             return false;
         };
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
-        let units = self.units;
 
         self.title = match (&self.kind, self.index) {
             (Some(k), Some(i)) if !k.is_empty() => format!("{k} {i}"),
@@ -328,11 +312,11 @@ impl DevicePage for BatteryPage {
         l.percentage = i18n_f("{}%", &[&format!("{:.0}", b.percentage * 100.)]);
         l.voltage = b
             .voltage
-            .map(|v| to_human_readable_nice(v, &DataType::Volts, &units));
+            .map(|v| to_human_readable_nice(v, &DataType::Volts));
         l.energy = b
             .energy
-            .map(|e| to_human_readable_nice(e as f32 / 1000., &DataType::WattHours, &units));
-        l.power = power.map(|p| to_human_readable_nice(p, &DataType::Watts, &units));
+            .map(|e| to_human_readable_nice(e as f32 / 1000., &DataType::WattHours));
+        l.power = power.map(|p| to_human_readable_nice(p, &DataType::Watts));
         l.time_to = if let Some(t) = b.time_to_full {
             Some((i18n("Full"), to_long_human_readable_time(t as u64)))
         } else {
@@ -366,15 +350,11 @@ impl DevicePage for BatteryPage {
         if self.power_mode {
             self.rate_graph
                 .add_data_point(vec![vec![power.unwrap_or(0.)]]);
-            l.rate_max_y = to_human_readable_nice(
-                self.rate_graph.dataset_max_scale(0),
-                &DataType::Watts,
-                &units,
-            );
+            l.rate_max_y =
+                to_human_readable_nice(self.rate_graph.dataset_max_scale(0), &DataType::Watts);
             l.rate_min_y = Some(to_human_readable_nice(
                 self.rate_graph.dataset_min_scale(0),
                 &DataType::Watts,
-                &units,
             ));
         } else {
             self.rate_graph.add_data_point(vec![vec![b.percentage]]);
@@ -395,8 +375,8 @@ impl DevicePage for BatteryPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        self.rate_graph.update_animation(frame)
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.rate_graph.set_grid_offset(offset)
     }
 
     fn win10_view(&mut self, _config: &Config) -> PageView<'_> {

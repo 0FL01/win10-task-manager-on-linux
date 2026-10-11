@@ -29,51 +29,16 @@ use crate::config::Config;
 
 pub const MAX_REMEMBERED_DEVICES: usize = 256;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum NetworkGroup {
-    Wired,
-    Wireless,
-    Vpn,
-    Virtual,
-    Other,
-}
-
-impl NetworkGroup {
-    pub fn from_connection_kind(kind: ConnectionKind) -> Self {
-        match kind {
-            ConnectionKind::Wired => NetworkGroup::Wired,
-            ConnectionKind::Wireless => NetworkGroup::Wireless,
-            ConnectionKind::Vpn => NetworkGroup::Vpn,
-            ConnectionKind::Docker
+/// Docker, bridge, veth and Multipass adapters: hidden unless View → "Show virtual network
+/// adapters" is checked.
+pub fn is_virtual_connection(kind: ConnectionKind) -> bool {
+    matches!(
+        kind,
+        ConnectionKind::Docker
             | ConnectionKind::Multipass
             | ConnectionKind::Bridge
-            | ConnectionKind::Virtual => NetworkGroup::Virtual,
-            ConnectionKind::Bluetooth
-            | ConnectionKind::InfiniBand
-            | ConnectionKind::Wwan
-            | ConnectionKind::Other => NetworkGroup::Other,
-        }
-    }
-
-    pub fn settings_key(&self) -> &'static str {
-        match self {
-            NetworkGroup::Wired => "performance-show-network-wired",
-            NetworkGroup::Wireless => "performance-show-network-wireless",
-            NetworkGroup::Vpn => "performance-show-network-vpn",
-            NetworkGroup::Virtual => "performance-show-network-virtual",
-            NetworkGroup::Other => "performance-show-network-other",
-        }
-    }
-
-    pub fn shown(&self, config: &Config) -> bool {
-        match self {
-            NetworkGroup::Wired => config.performance_show_network_wired,
-            NetworkGroup::Wireless => config.performance_show_network_wireless,
-            NetworkGroup::Vpn => config.performance_show_network_vpn,
-            NetworkGroup::Virtual => config.performance_show_network_virtual,
-            NetworkGroup::Other => config.performance_show_network_other,
-        }
-    }
+            | ConnectionKind::Virtual
+    )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -81,7 +46,7 @@ pub enum DeviceType {
     Cpu,
     Memory,
     Disk,
-    Network(NetworkGroup),
+    Network { virtual_adapter: bool },
     Gpu,
     Fan,
     Battery,
@@ -89,15 +54,13 @@ pub enum DeviceType {
 }
 
 impl DeviceType {
-    /// Whether the device category is enabled in the preferences.
+    /// Whether devices of this type are listed (virtual network adapters only on request).
     pub fn category_visible(&self, config: &Config) -> bool {
         match self {
-            DeviceType::Disk => config.performance_show_disks,
-            DeviceType::Network(group) => config.performance_show_network && group.shown(config),
-            DeviceType::Gpu => config.performance_show_gpus,
-            DeviceType::Fan => config.performance_show_fans,
-            DeviceType::Battery => config.performance_show_batteries,
-            DeviceType::Cpu | DeviceType::Memory | DeviceType::Unspecified => true,
+            DeviceType::Network { virtual_adapter } => {
+                !virtual_adapter || config.performance_show_network_virtual
+            }
+            _ => true,
         }
     }
 }

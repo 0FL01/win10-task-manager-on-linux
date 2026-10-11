@@ -18,11 +18,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-//! Win32-style building blocks of dialogs and the settings window (own design).
+//! Win32-style building blocks of dialogs (own design).
 
-use egui::{Align, Layout, Response, RichText, Sense, Stroke, Ui, Vec2, pos2};
+use egui::{Response, RichText, Sense, Stroke, Ui, Vec2, pos2};
 
-use super::{palette as pal, style};
+use super::palette as pal;
 
 /// Secondary (grey) text.
 pub fn caption(ui: &mut Ui, text: impl Into<String>) -> Response {
@@ -40,7 +40,7 @@ pub fn switch(ui: &mut Ui, on: &mut bool) -> Response {
     let border = if response.hovered() {
         pal::BUTTON_HOVER_BORDER
     } else {
-        Color::BOX
+        BOX_BORDER
     };
     let r = egui::Rect::from_min_size(rect.min.round(), rect.size());
     super::paint::fill(
@@ -72,73 +72,5 @@ pub fn switch(ui: &mut Ui, on: &mut bool) -> Response {
     response
 }
 
-struct Color;
-impl Color {
-    const BOX: egui::Color32 = egui::Color32::from_rgb(0x33, 0x33, 0x33);
-}
-
-/// Radio buttons in a row; returns `true` when the selection changed.
-pub fn toggle_group(ui: &mut Ui, options: &[(&str, &str)], selected: &mut usize) -> bool {
-    let mut changed = false;
-    ui.horizontal(|ui| {
-        for (i, (label, tooltip)) in options.iter().enumerate() {
-            if ui
-                .radio(*selected == i, *label)
-                .on_hover_text(*tooltip)
-                .clicked()
-                && *selected != i
-            {
-                *selected = i;
-                changed = true;
-            }
-        }
-    });
-    changed
-}
-
-/// Settings row: title (and subtitle) on the left, control on the right.
-pub fn row(ui: &mut Ui, title: &str, subtitle: Option<&str>, add_control: impl FnOnce(&mut Ui)) {
-    ui.horizontal(|ui| {
-        ui.set_min_width(ui.available_width());
-        ui.vertical(|ui| {
-            ui.spacing_mut().item_spacing.y = 1.;
-            ui.add(egui::Label::new(title).wrap());
-            if let Some(subtitle) = subtitle {
-                ui.add(
-                    egui::Label::new(
-                        RichText::new(subtitle)
-                            .text_style(style::caption())
-                            .color(pal::LABEL),
-                    )
-                    .wrap(),
-                );
-            }
-        });
-        ui.with_layout(Layout::right_to_left(Align::Center), add_control);
-    });
-}
-
-/// Win32 group box: a titled 1 px frame around `add_rows`.
-pub fn group(
-    ui: &mut Ui,
-    title: Option<&str>,
-    description: Option<&str>,
-    add_rows: impl FnOnce(&mut Ui),
-) {
-    if let Some(title) = title {
-        ui.add_space(4.);
-        ui.label(RichText::new(title).color(pal::GROUP_TEXT));
-    }
-    if let Some(description) = description {
-        caption(ui, description);
-    }
-    egui::Frame::new()
-        .stroke(Stroke::new(1., pal::TAB_BORDER))
-        .inner_margin(egui::Margin::symmetric(10, 8))
-        .show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
-            ui.spacing_mut().item_spacing.y = 8.;
-            add_rows(ui);
-        });
-    ui.add_space(8.);
-}
+/// Check box border (own design)
+const BOX_BORDER: egui::Color32 = egui::Color32::from_rgb(0x33, 0x33, 0x33);

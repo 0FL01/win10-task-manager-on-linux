@@ -21,7 +21,7 @@
 //! Horizontal "memory composition" bar: in use, modified, standby, free.
 
 use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::i18n::i18n_f;
 use mc_core::i18n::n_;
 use mc_magpie::Memory;
@@ -40,7 +40,7 @@ pub struct MemComposition {
 }
 
 impl MemComposition {
-    pub fn update(&mut self, mem: &Memory, units: &UnitSettings) {
+    pub fn update(&mut self, mem: &Memory) {
         let total = if mem.mem_total == 0 { 1 } else { mem.mem_total };
         let mem_avail = if mem.mem_available > mem.mem_total {
             mem.mem_free
@@ -53,7 +53,7 @@ impl MemComposition {
         self.standby = total.saturating_sub(self.used + mem.mem_free);
         self.free = mem.mem_free;
 
-        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes, units);
+        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
         self.tooltips = [
             i18n_f(
                 n_("In use ({})\n\nMemory used by the operating system and running applications"),

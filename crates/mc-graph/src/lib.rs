@@ -22,8 +22,8 @@
 //!
 //! Data handling (ring buffers, scaling, geometry) is reused unchanged from `mc-graph-core`;
 //! this crate only draws. Tessellated geometry is cached per (data generation, size, scale
-//! factor, style) and reused across frames, so a frame that does not follow new data (hover,
-//! sliding animation) only translates cached shapes.
+//! factor, style) and reused across frames, so a frame that does not follow new data (hover)
+//! only translates cached shapes.
 
 use egui::epaint::{Mesh, PathStroke, Vertex, WHITE_UV};
 use egui::{
@@ -31,8 +31,8 @@ use egui::{
 };
 
 pub use mc_graph_core::{
-    AnimationFrame, Dataset, DatasetGroup, DatasetPoints, DatasetSettings, FillingSettings,
-    MAX_DATA_POINTS, MIN_DATA_POINTS, RoundingSettings, ScalingSettings,
+    Dataset, DatasetGroup, DatasetPoints, DatasetSettings, FillingSettings, MAX_DATA_POINTS,
+    MIN_DATA_POINTS, RoundingSettings, ScalingSettings,
 };
 
 const GRAPH_RADIUS: f32 = 7.;
@@ -68,10 +68,8 @@ fn pixel_rect(out: &mut Vec<Shape>, rect: Rect, color: Color32) {
 const GRID_LINE_ALPHA: f32 = 51. / 255.;
 const GRID_VERTICAL_LINE_IDEAL_PIXEL_WIDTH: f32 = 60.;
 const GRID_HORIZONTAL_LINE_IDEAL_PIXEL_WIDTH: f32 = 50.;
-// no faster than 200 Hz; filters duplicate animation frames
-const ANIMATION_LOCKOUT: f32 = 0.005;
-/// Bezier segments are sampled with this many points when smoothing is enabled.
-const SMOOTH_SAMPLES: usize = 8;
+/// History length of every graph: one minute at the normal update speed.
+pub const DEFAULT_DATA_POINTS: u32 = 60;
 
 fn compute_line_count(pixel_size: f32, ideal_pix: f32, force_divisible: f32) -> u32 {
     let raw_num_lines = pixel_size / ideal_pix;
@@ -108,14 +106,11 @@ pub struct Graph {
 
     data_points: u32,
     base_color: Color32,
-    smooth_graphs: bool,
-    do_animation: bool,
     scroll: bool,
     grid_visible: bool,
     force_vertical_line_count_divisible_by: f32,
     force_horizontal_line_count_divisible_by: f32,
 
-    animation_progress: f32,
     scroll_offset: u32,
     style: GraphStyle,
 
@@ -134,15 +129,12 @@ impl Graph {
     pub fn new() -> Self {
         Self {
             groups: vec![],
-            data_points: 0,
+            data_points: DEFAULT_DATA_POINTS,
             base_color: Color32::BLACK,
-            smooth_graphs: false,
-            do_animation: false,
             scroll: true,
             grid_visible: true,
             force_vertical_line_count_divisible_by: 1.,
             force_horizontal_line_count_divisible_by: 2.,
-            animation_progress: 0.,
             scroll_offset: 0,
             style: GraphStyle::Rounded,
             generation: 0,
@@ -199,24 +191,6 @@ impl Graph {
     pub fn set_style(&mut self, style: GraphStyle) {
         if self.style != style {
             self.style = style;
-            self.invalidate();
-        }
-    }
-
-    pub fn set_smooth_graphs(&mut self, smooth: bool) {
-        if self.smooth_graphs != smooth {
-            self.smooth_graphs = smooth;
-            self.invalidate();
-        }
-    }
-
-    pub fn do_animation(&self) -> bool {
-        self.do_animation
-    }
-
-    pub fn set_do_animation(&mut self, animate: bool) {
-        if self.do_animation != animate {
-            self.do_animation = animate;
             self.invalidate();
         }
     }
@@ -412,27 +386,17 @@ impl Graph {
     }
 
     pub fn point_spacing_factor(&self) -> f32 {
-        let subtract = if self.do_animation { 2 } else { 1 };
-        let denom = self.data_points.saturating_sub(subtract).max(1);
-        1. / denom as f32
+        1. / self.data_points.saturating_sub(1).max(1) as f32
     }
 
-    /// Feeds the window-global animation clock. Returns `true` if the graph needs repainting.
-    pub fn update_animation(&mut self, frame: AnimationFrame) -> bool {
-        if frame.progress == 0. {
-            self.animation_progress = 0.;
-            if self.scroll_offset != frame.grid_offset {
-                self.scroll_offset = frame.grid_offset;
-                self.invalidate();
-            }
-            true
-        } else if self.do_animation && frame.progress > self.animation_progress + ANIMATION_LOCKOUT
-        {
-            self.animation_progress = frame.progress;
-            true
-        } else {
-            false
+    /// Moves the vertical grid lines with the window-global sample counter, so the grid scrolls
+    /// together with the data on every refresh. Returns `true` (the graph needs repainting).
+    pub fn set_grid_offset(&mut self, offset: u32) -> bool {
+        if self.scroll_offset != offset {
+            self.scroll_offset = offset;
+            self.invalidate();
         }
+        true
     }
 
     /// Draws the graph filling `size` (or the available space when `None`).
@@ -470,13 +434,6 @@ impl Graph {
         };
 
         let origin = area.min.to_vec2();
-        let slide = if self.do_animation && self.data_points > 2 {
-            let spacing = size.x / (self.data_points - 2) as f32;
-            spacing * (1. - self.animation_progress)
-        } else {
-            0.
-        };
-        let data_origin = origin + Vec2::new(slide, 0.);
         let add = |painter: &egui::Painter, shapes: &[Shape], at: Vec2| {
             for shape in shapes {
                 let mut s = shape.clone();
@@ -492,15 +449,15 @@ impl Graph {
             pixel_rect(&mut frame, area, Color32::WHITE);
             outer.extend(frame);
             let painter = ui.painter_at(area);
-            add(&painter, under, data_origin);
+            add(&painter, under, origin);
             add(&painter, grid, origin);
-            add(&painter, data, data_origin);
+            add(&painter, data, origin);
             return;
         }
 
         let painter = ui.painter_at(rect);
         add(&painter, grid, origin);
-        add(&painter, data, data_origin);
+        add(&painter, data, origin);
 
         // Rounded "clip": mask the corners with the panel colour, then draw the outline
         let bg = ui.visuals().panel_fill;
@@ -715,8 +672,8 @@ impl Graph {
         }
     }
 
-    /// Converts geometry into screen points: clips to the visible range, optionally smooths, and
-    /// decimates runs denser than the pixel grid.
+    /// Converts geometry into screen points: clips to the visible range and decimates runs denser
+    /// than the pixel grid.
     fn sample_run(&self, run: &[DatasetPoints], width: f32) -> Vec<Pos2> {
         // Points are ordered newest (right) to oldest (left); keep one point past each edge so
         // lines reach the border.
@@ -735,38 +692,11 @@ impl Graph {
         } else {
             1.
         };
-        let points = if spacing < 0.5 && visible.len() > 4 {
+        if spacing < 0.5 && visible.len() > 4 {
             decimate(&visible)
         } else {
             visible
-        };
-
-        if !self.smooth_graphs || points.len() < 2 {
-            return points;
         }
-
-        let mut out = Vec::with_capacity(points.len() * SMOOTH_SAMPLES);
-        out.push(points[0]);
-        for pair in points.windows(2) {
-            let (a, b) = (pair[0], pair[1]);
-            let mid_x = a.x + (b.x - a.x) / 2.;
-            let c1 = Pos2::new(mid_x, a.y);
-            let c2 = Pos2::new(mid_x, b.y);
-            for s in 1..=SMOOTH_SAMPLES {
-                let t = s as f32 / SMOOTH_SAMPLES as f32;
-                let mt = 1. - t;
-                let x = mt * mt * mt * a.x
-                    + 3. * mt * mt * t * c1.x
-                    + 3. * mt * t * t * c2.x
-                    + t * t * t * b.x;
-                let y = mt * mt * mt * a.y
-                    + 3. * mt * mt * t * c1.y
-                    + 3. * mt * t * t * c2.y
-                    + t * t * t * b.y;
-                out.push(Pos2::new(x, y));
-            }
-        }
-        out
     }
 }
 
@@ -867,22 +797,6 @@ fn paint_corner_masks(painter: &egui::Painter, rect: Rect, radius: f32, color: C
 }
 
 /// Settings shared by every graph on the performance page.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct GraphSettings {
-    pub data_points: u32,
-    pub smooth_graphs: bool,
-    pub sliding_graphs: bool,
-}
-
-impl Graph {
-    /// Equivalent of `graph_widget_settings::connect_to_settings`.
-    pub fn apply_settings(&mut self, settings: &GraphSettings) {
-        self.set_data_points(settings.data_points);
-        self.set_smooth_graphs(settings.smooth_graphs);
-        self.set_do_animation(settings.sliding_graphs);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -952,24 +866,6 @@ mod tests {
         assert_eq!(d.len(), 3);
         assert_eq!(d[0].y, 1.);
         assert_eq!(d[1].y, 9.);
-    }
-
-    #[test]
-    fn animation_lockout() {
-        let mut g = graph_with(&[1.]);
-        g.set_do_animation(true);
-        assert!(g.update_animation(AnimationFrame {
-            progress: 0.,
-            grid_offset: 1
-        }));
-        assert!(g.update_animation(AnimationFrame {
-            progress: 0.5,
-            grid_offset: 1
-        }));
-        assert!(!g.update_animation(AnimationFrame {
-            progress: 0.501,
-            grid_offset: 1
-        }));
     }
 
     #[test]

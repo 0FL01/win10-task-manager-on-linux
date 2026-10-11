@@ -159,42 +159,12 @@ pub enum DataType {
     WattHours,
 }
 
-/// The "bytes vs bits" and "base 2 vs base 10" unit preferences.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct UnitSettings {
-    pub memory_use_bytes: bool,
-    pub memory_use_base2: bool,
-    pub drive_use_bytes: bool,
-    pub drive_use_base2: bool,
-    pub network_use_bytes: bool,
-    pub network_use_base2: bool,
-}
-
-impl Default for UnitSettings {
-    fn default() -> Self {
-        Self {
-            memory_use_bytes: true,
-            memory_use_base2: true,
-            drive_use_bytes: true,
-            drive_use_base2: true,
-            network_use_bytes: false,
-            network_use_base2: false,
-        }
-    }
-}
-
-impl UnitSettings {
-    fn for_type(&self, data_type: DataType) -> Option<(bool, bool)> {
-        match data_type {
-            DataType::MemoryBytes => Some((self.memory_use_bytes, self.memory_use_base2)),
-            DataType::DriveBytes | DataType::DriveBytesPerSecond => {
-                Some((self.drive_use_bytes, self.drive_use_base2))
-            }
-            DataType::NetworkBytes | DataType::NetworkBytesPerSecond => {
-                Some((self.network_use_bytes, self.network_use_base2))
-            }
-            _ => None,
-        }
+/// Bytes and base 2 for memory and drives (MiB), bits and base 10 for network (Mbps), as in the
+/// Windows Task Manager. Returns `(use_bytes, use_base2)`.
+fn byte_units(data_type: DataType) -> (bool, bool) {
+    match data_type {
+        DataType::NetworkBytes | DataType::NetworkBytesPerSecond => (false, false),
+        _ => (true, true),
     }
 }
 
@@ -256,18 +226,14 @@ pub fn to_human_readable_adv_str(
     )
 }
 
-pub fn to_human_readable_nice(
-    value_bytes: f32,
-    data_type: &DataType,
-    units: &UnitSettings,
-) -> String {
+pub fn to_human_readable_nice(value_bytes: f32, data_type: &DataType) -> String {
     let (label, min_dec) = match data_type {
         DataType::Hertz => ("Hz", 0),
         DataType::Watts => ("W", -1),
         DataType::Volts => ("V", -1),
         DataType::WattHours => ("Wh", -1),
         _ => {
-            let (bytes, bases) = units.for_type(*data_type).unwrap_or((true, true));
+            let (bytes, bases) = byte_units(*data_type);
 
             return to_human_readable_adv_str(
                 value_bytes,
@@ -294,68 +260,48 @@ mod tests {
     use super::*;
 
     #[test]
-    fn memory_uses_binary_bytes_by_default() {
-        let units = UnitSettings::default();
+    fn memory_uses_binary_bytes() {
         assert_eq!(
-            to_human_readable_nice(1536. * 1024., &DataType::MemoryBytes, &units),
+            to_human_readable_nice(1536. * 1024., &DataType::MemoryBytes),
             "1.50 MiB"
         );
         assert_eq!(
-            to_human_readable_nice(8. * 1024. * 1024. * 1024., &DataType::MemoryBytes, &units),
+            to_human_readable_nice(8. * 1024. * 1024. * 1024., &DataType::MemoryBytes),
             "8.00 GiB"
         );
     }
 
     #[test]
     fn small_values_stay_in_the_minimum_unit() {
-        let units = UnitSettings::default();
         assert_eq!(
-            to_human_readable_nice(512., &DataType::MemoryBytes, &units),
+            to_human_readable_nice(512., &DataType::MemoryBytes),
             "0 KiB"
         );
     }
 
     #[test]
-    fn network_defaults_to_decimal_bits_per_second() {
-        let units = UnitSettings::default();
+    fn network_uses_decimal_bits_per_second() {
         assert_eq!(
-            to_human_readable_nice(125_000., &DataType::NetworkBytesPerSecond, &units),
+            to_human_readable_nice(125_000., &DataType::NetworkBytesPerSecond),
             "1.00 Mbps"
         );
     }
 
     #[test]
     fn drive_speed_uses_bytes_per_second() {
-        let units = UnitSettings::default();
         assert_eq!(
-            to_human_readable_nice(10. * 1024. * 1024., &DataType::DriveBytesPerSecond, &units),
+            to_human_readable_nice(10. * 1024. * 1024., &DataType::DriveBytesPerSecond),
             "10.0 MiB/s"
         );
     }
 
     #[test]
     fn hertz_and_watts() {
-        let units = UnitSettings::default();
         assert_eq!(
-            to_human_readable_nice(3_500_000_000., &DataType::Hertz, &units),
+            to_human_readable_nice(3_500_000_000., &DataType::Hertz),
             "3.50 GHz"
         );
-        assert_eq!(
-            to_human_readable_nice(15.25, &DataType::Watts, &units),
-            "15.2 W"
-        );
-    }
-
-    #[test]
-    fn unit_settings_switch_bases() {
-        let units = UnitSettings {
-            memory_use_base2: false,
-            ..Default::default()
-        };
-        assert_eq!(
-            to_human_readable_nice(1_500_000., &DataType::MemoryBytes, &units),
-            "1.50 MB"
-        );
+        assert_eq!(to_human_readable_nice(15.25, &DataType::Watts), "15.2 W");
     }
 
     #[test]

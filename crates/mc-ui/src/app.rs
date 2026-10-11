@@ -29,7 +29,6 @@ use egui::{Align, Context, Key, KeyboardShortcut, Layout, Modifiers, RichText, U
 use mc_core::config::{Config, ConfigWriter};
 use mc_core::i18n::i18n;
 use mc_core::i18n::n_;
-use mc_graph::AnimationFrame;
 use mc_magpie::{Event, INTERVAL_STEP, Icon, MagpieClient, Readings, Request};
 
 use crate::cx::{Command, Cx, Dialog, MainPage};
@@ -42,9 +41,6 @@ use crate::win10::performance::PerformanceView;
 use crate::win10::processes::ProcessesPage;
 use crate::win10::services::ServicesView;
 use crate::win10::{chrome, menu, metrics};
-
-/// Upper bound for sliding animation frames.
-const ANIMATION_FRAME: Duration = Duration::from_millis(33);
 
 pub enum DataSource {
     Magpie,
@@ -114,7 +110,6 @@ pub struct App {
 
     full_size: Option<egui::Vec2>,
 
-    last_refresh: Instant,
     grid_offset: u32,
     stashed: Option<Readings>,
     have_readings: bool,
@@ -159,9 +154,6 @@ impl App {
             }
         };
         magpie.set_update_speed(config.app_update_interval);
-        magpie.send(Request::SetCoreCountAffectsPercentages(
-            config.apps_page_core_count_affects_percentages,
-        ));
 
         ctx.set_fonts(options.fonts.definitions());
         crate::win10::style::install(ctx);
@@ -201,7 +193,6 @@ impl App {
             services,
             dialogs: Dialogs::default(),
             full_size: None,
-            last_refresh: Instant::now(),
             grid_offset: 0,
             stashed: None,
             have_readings: false,
@@ -253,17 +244,13 @@ impl App {
             mc_core::gpu::GpuSnapshot::from_readings(&readings, &mut self.gpu_indices, interval_ms);
         self.perf.update(&readings, &gpu, &mut self.config);
         if readings.includes_app_data {
-            self.apps.update(&readings, &gpu, &self.config);
-            self.services.update(&readings, &gpu, &self.config);
+            self.apps.update(&readings, &gpu);
+            self.services.update(&readings, &gpu);
             self.details.update(&readings, &gpu);
             self.services_view.update(&self.services);
         }
-        self.last_refresh = Instant::now();
         self.grid_offset = self.grid_offset.wrapping_add(1);
-        self.perf.animate(AnimationFrame {
-            progress: 0.,
-            grid_offset: self.grid_offset,
-        });
+        self.perf.set_grid_offset(self.grid_offset);
         self.have_readings = true;
         self.stats.readings_applied += 1;
 
@@ -320,25 +307,6 @@ impl App {
             log::debug!(target: "TaskManager::Window", "Reduced activity: {reduced}");
         }
 
-        // Sliding animation (only when visible and enabled)
-        if self.config.performance_sliding_graphs
-            && self.page == MainPage::Performance
-            && !minimized
-            && self.have_readings
-        {
-            let interval = self.refresh_interval().as_secs_f32().max(0.05);
-            let progress = (self.last_refresh.elapsed().as_secs_f32() / interval).clamp(0., 1.);
-            if progress > 0. {
-                self.perf.animate(AnimationFrame {
-                    progress,
-                    grid_offset: self.grid_offset,
-                });
-            }
-            if progress < 1. {
-                ctx.request_repaint_after(ANIMATION_FRAME);
-            }
-        }
-
         // Window geometry persistence. The size comes from the content area: `inner_rect` needs
         // the window position, which Wayland does not report, so it is always `None` there
         let (maximized, size) = ctx.input(|i| (i.viewport().maximized, i.content_rect().size()));
@@ -375,20 +343,6 @@ impl App {
         if self.config.app_update_interval != self.saved_config.app_update_interval {
             self.magpie
                 .set_update_speed(self.config.app_update_interval);
-        }
-        if self.config.apps_page_core_count_affects_percentages
-            != self.saved_config.apps_page_core_count_affects_percentages
-        {
-            self.magpie.send(Request::SetCoreCountAffectsPercentages(
-                self.config.apps_page_core_count_affects_percentages,
-            ));
-        }
-        if self.config.apps_page_merged_process_stats
-            != self.saved_config.apps_page_merged_process_stats
-            || self.config.apps_page_hide_is_zero != self.saved_config.apps_page_hide_is_zero
-        {
-            self.apps.set_options_dirty();
-            self.services.set_options_dirty();
         }
         if let Some(writer) = &self.writer {
             writer.save(&self.config);
@@ -454,9 +408,6 @@ impl App {
 
         if pressed(ctrl(Key::Q)) || pressed(ctrl(Key::W)) {
             commands.push(Command::Quit);
-        }
-        if pressed(ctrl(Key::Comma)) {
-            commands.push(Command::OpenDialog(Dialog::Preferences));
         }
         if pressed(KeyboardShortcut::new(
             Modifiers::COMMAND | Modifiers::SHIFT,
@@ -582,9 +533,6 @@ impl App {
                 // Runs the magpie setup script (nethogs capabilities, power, sensors) on request
                 if menu::item(ui, &i18n("Enable per-process network usage…"), "", true) {
                     commands.push(Command::OpenDialog(Dialog::FirstRun));
-                }
-                if menu::item(ui, &i18n("Settings…"), "Ctrl+,", true) {
-                    commands.push(Command::OpenDialog(Dialog::Preferences));
                 }
                 if menu::item(
                     ui,

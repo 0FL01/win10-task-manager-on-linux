@@ -21,11 +21,11 @@
 use super::{GraphPanel, PageView, over};
 use egui::Ui;
 use mc_core::config::Config;
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings};
+use mc_graph::{DatasetGroup, FillingSettings, Graph};
 use mc_magpie::Readings;
 
 use super::mem_composition::MemComposition;
@@ -67,15 +67,13 @@ pub struct MemoryPage {
     ram_type: String,
     devices_failed: bool,
     labels: Labels,
-    units: UnitSettings,
     max_duration: String,
 }
 
 impl MemoryPage {
     pub fn new(readings: &Readings, config: &Config) -> Self {
         let mem = &readings.mem_info;
-        let units = config.units();
-        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes, &units);
+        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
 
         let mut summary = SummaryGraph::new(COLOR, i18n("Memory"));
         let mut committed = DatasetGroup::new();
@@ -156,7 +154,6 @@ impl MemoryPage {
             ram_type,
             devices_failed: devices.is_empty(),
             labels: Labels::default(),
-            units,
             max_duration: super::max_duration(config),
         }
     }
@@ -179,18 +176,10 @@ impl DevicePage for MemoryPage {
         &mut self.summary
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.usage.apply_settings(settings);
-        self.swap.apply_settings(settings);
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let mem = &readings.mem_info;
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
-        let units = self.units;
-        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes, &units);
+        let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
 
         let mem_avail = if mem.mem_available > mem.mem_total {
             mem.mem_free
@@ -207,16 +196,13 @@ impl DevicePage for MemoryPage {
             vec![used as f32],
         ]);
         self.total_ram = h(mem.mem_total);
-        self.max_graph_ram = to_human_readable_nice(
-            self.usage.dataset_max_scale(0),
-            &DataType::MemoryBytes,
-            &units,
-        );
+        self.max_graph_ram =
+            to_human_readable_nice(self.usage.dataset_max_scale(0), &DataType::MemoryBytes);
 
         let swap_used = mem.swap_total.saturating_sub(mem.swap_free);
         self.swap.set_all_datasets_max_scale(mem.swap_total as f32);
         self.swap.add_data_point(vec![vec![swap_used as f32]]);
-        self.composition.update(mem, &units);
+        self.composition.update(mem);
 
         let l = &mut self.labels;
         l.in_use = h(used);
@@ -266,8 +252,8 @@ impl DevicePage for MemoryPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        self.usage.update_animation(frame) | self.swap.update_animation(frame)
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.usage.set_grid_offset(offset) | self.swap.set_grid_offset(offset)
     }
 
     fn win10_view(&mut self, config: &Config) -> PageView<'_> {

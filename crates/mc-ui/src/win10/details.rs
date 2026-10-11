@@ -221,24 +221,10 @@ impl DetailsPage {
     /// Saved sort, column widths and order.
     pub fn restore(&mut self, config: &mc_core::config::Config) {
         self.list.set_visible(&config.details_page_visible_columns);
-        let remember = config.apps_page_remember_column_order;
-        let sort = config.apps_page_remember_sorting;
         self.list.restore(
-            if remember {
-                &config.details_page_column_widths
-            } else {
-                ""
-            },
-            if remember {
-                &config.details_page_column_order
-            } else {
-                ""
-            },
-            if sort {
-                &config.details_page_sorting_column_name
-            } else {
-                ""
-            },
+            &config.details_page_column_widths,
+            &config.details_page_column_order,
+            &config.details_page_sorting_column_name,
             config.details_page_sorting_order,
         );
     }

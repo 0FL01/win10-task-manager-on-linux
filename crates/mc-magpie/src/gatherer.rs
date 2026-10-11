@@ -105,7 +105,6 @@ impl Readings {
 /// Requests from the UI. None of them block the caller; results arrive as [`Event`]s.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Request {
-    SetCoreCountAffectsPercentages(bool),
     TerminateProcesses(Vec<Pid>),
     KillProcesses(Vec<Pid>),
     InterruptProcesses(Vec<Pid>),
@@ -386,9 +385,6 @@ impl ThreadCtx {
 
 fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
     match request {
-        Request::SetCoreCountAffectsPercentages(show) => {
-            magpie.set_scale_cpu_usage_to_core_count(show);
-        }
         // Handled by `serve_until`
         Request::RefreshNow => {}
         Request::TerminateProcesses(pids) => magpie.terminate_processes(pids),

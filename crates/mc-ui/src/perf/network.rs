@@ -21,14 +21,11 @@
 use super::{GraphPanel, PageView, over};
 use egui::Ui;
 use mc_core::config::Config;
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f, strip_mnemonic};
-use mc_core::sidebar::{DeviceType, NetworkGroup};
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, RoundingSettings,
-    ScalingSettings,
-};
+use mc_core::sidebar::{DeviceType, is_virtual_connection};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
 use mc_magpie::magpie_types::network::{ConnectionKind, ConnectionState};
 use mc_magpie::{Connection, Readings};
 
@@ -82,8 +79,6 @@ pub struct NetworkPage {
     device_name: String,
     max_speed: Option<u64>,
     labels: Labels,
-    units: UnitSettings,
-    scaling_key: (bool, bool, bool),
     max_duration: String,
 }
 
@@ -126,43 +121,19 @@ impl NetworkPage {
                 .unwrap_or_else(|| i18n("Unknown")),
             max_speed: connection.max_speed_bytes_ps,
             labels: Labels::default(),
-            units: config.units(),
-            scaling_key: (false, false, false),
             max_duration: super::max_duration(config),
         };
-        page.update_graph_scaling(config);
+        page.set_graph_scaling();
         page
     }
 
-    fn update_graph_scaling(&mut self, config: &Config) {
-        self.scaling_key = (
-            config.performance_page_network_dynamic_scaling,
-            config.performance_page_network_use_base2,
-            config.performance_page_network_use_bytes,
-        );
+    /// Auto-scaled in bits per second with decimal steps (Mbps).
+    fn set_graph_scaling(&mut self) {
         for graph in [&mut self.graph, &mut self.summary.graph] {
-            match self.max_speed {
-                Some(max) if !config.performance_page_network_dynamic_scaling => {
-                    graph.set_all_datasets_scaling(ScalingSettings::Fixed);
-                    graph.set_all_datasets_max_scale(max as f32);
-                }
-                _ => {
-                    graph.set_all_datasets_scaling(ScalingSettings::ScaleUp);
-                    if config.performance_page_network_use_base2 {
-                        graph.set_all_datasets_rounding(RoundingSettings::Pow2);
-                    } else {
-                        graph.set_all_datasets_rounding(RoundingSettings::Pow2Base10);
-                        graph.set_all_datasets_watermarking_multiplier(
-                            if config.performance_page_network_use_bytes {
-                                1.
-                            } else {
-                                8.
-                            },
-                        );
-                    }
-                    graph.reset_auto_scaling();
-                }
-            }
+            graph.set_all_datasets_scaling(ScalingSettings::ScaleUp);
+            graph.set_all_datasets_rounding(RoundingSettings::Pow2Base10);
+            graph.set_all_datasets_watermarking_multiplier(8.);
+            graph.reset_auto_scaling();
         }
     }
 
@@ -177,7 +148,9 @@ impl DevicePage for NetworkPage {
     }
 
     fn device_type(&self) -> DeviceType {
-        DeviceType::Network(NetworkGroup::from_connection_kind(self.kind))
+        DeviceType::Network {
+            virtual_adapter: is_virtual_connection(self.kind),
+        }
     }
 
     fn summary(&self) -> &SummaryGraph {
@@ -188,11 +161,6 @@ impl DevicePage for NetworkPage {
         &mut self.summary
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.graph.apply_settings(settings);
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let Some(c) = readings
             .network_connections
@@ -201,19 +169,9 @@ impl DevicePage for NetworkPage {
         else {
             return false;
         };
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
         self.max_speed = c.max_speed_bytes_ps;
-        let key = (
-            env.config.performance_page_network_dynamic_scaling,
-            env.config.performance_page_network_use_base2,
-            env.config.performance_page_network_use_bytes,
-        );
-        if key != self.scaling_key {
-            self.update_graph_scaling(env.config);
-        }
-        let units = self.units;
-        let h = |v: f32, t: DataType| to_human_readable_nice(v, &t, &units);
+        let h = |v: f32, t: DataType| to_human_readable_nice(v, &t);
 
         self.graph
             .add_data_point(vec![vec![c.tx_rate_bytes_ps], vec![c.rx_rate_bytes_ps]]);
@@ -265,8 +223,8 @@ impl DevicePage for NetworkPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        self.graph.update_animation(frame)
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.graph.set_grid_offset(offset)
     }
 
     fn win10_view(&mut self, _config: &Config) -> PageView<'_> {

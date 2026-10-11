@@ -36,8 +36,7 @@ use crate::perf::MK_TO_0_C;
 use crate::table::{TableView, row_icon};
 use crate::win10::palette;
 
-fn nvme_rows(data: &smart_data::Nvme, cx: &Cx) -> Vec<(String, String)> {
-    let units = cx.config.units();
+fn nvme_rows(data: &smart_data::Nvme) -> Vec<(String, String)> {
     let na = i18n("N/A");
     let o = |v: Option<String>| v.unwrap_or_else(|| na.clone());
     vec![
@@ -57,13 +56,13 @@ fn nvme_rows(data: &smart_data::Nvme, cx: &Cx) -> Vec<(String, String)> {
             i18n("Total Data Read"),
             o(data
                 .total_data_read
-                .map(|v| to_human_readable_nice(v as f32, &DataType::DriveBytes, &units))),
+                .map(|v| to_human_readable_nice(v as f32, &DataType::DriveBytes))),
         ),
         (
             i18n("Total Data Written"),
             o(data
                 .total_data_written
-                .map(|v| to_human_readable_nice(v as f32, &DataType::DriveBytes, &units))),
+                .map(|v| to_human_readable_nice(v as f32, &DataType::DriveBytes))),
         ),
         (
             i18n("Warning Temp Time"),
@@ -127,7 +126,7 @@ fn ata_value(pretty: i64, unit: PrettyUnit) -> String {
 }
 
 /// Returns `false` once closed.
-pub fn smart_dialog(ctx: &Context, cx: &mut Cx, data: &SmartData) -> bool {
+pub fn smart_dialog(ctx: &Context, data: &SmartData) -> bool {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs());
@@ -164,7 +163,7 @@ pub fn smart_dialog(ctx: &Context, cx: &mut Cx, data: &SmartData) -> bool {
         ui.add_space(10.);
         match &data.data {
             Some(smart_data::Data::Nvme(nvme)) => {
-                let rows = nvme_rows(nvme, cx);
+                let rows = nvme_rows(nvme);
                 TableBuilder::new(ui)
                     .id_salt("smart-nvme")
                     .column(Column::remainder())

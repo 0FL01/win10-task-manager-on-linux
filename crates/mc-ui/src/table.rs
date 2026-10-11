@@ -26,7 +26,7 @@ use std::collections::HashSet;
 
 use egui::{Key, Sense, Ui, Vec2};
 use mc_core::config::{Config, SortOrder};
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::table::{
     Column, ColumnTotals, Node, RowIcon, RowKind, Tree, ViewOptions, VisibleRow, toggle_expanded,
 };
@@ -55,7 +55,6 @@ pub struct TableView {
     pub(crate) network_tcp_only: bool,
     pub(crate) hide_swap: bool,
     pub(crate) totals: ColumnTotals,
-    pub(crate) units: UnitSettings,
     pub(crate) scroll_to: Option<usize>,
     /// Capacities used for heat levels (bytes)
     pub(crate) mem_total: u64,
@@ -69,9 +68,6 @@ pub struct TableView {
 }
 
 fn sort_from_config(config: &Config, kind: TableKind) -> (Option<Column>, SortOrder) {
-    if !config.apps_page_remember_sorting {
-        return (None, SortOrder::None);
-    }
     let (name, order) = match kind {
         TableKind::Apps => (
             &config.apps_page_sorting_column_name,
@@ -88,18 +84,6 @@ fn sort_from_config(config: &Config, kind: TableKind) -> (Option<Column>, SortOr
 impl TableView {
     pub fn new(kind: TableKind, config: &mut Config) -> Self {
         let (sort_column, sort_order) = sort_from_config(config, kind);
-        if !config.apps_page_remember_sorting {
-            match kind {
-                TableKind::Apps => {
-                    config.apps_page_sorting_column_name.clear();
-                    config.apps_page_sorting_order = SortOrder::Ascending;
-                }
-                TableKind::Services => {
-                    config.services_page_sorting_column_name.clear();
-                    config.services_page_sorting_order = SortOrder::Ascending;
-                }
-            }
-        }
         Self {
             kind,
             tree: Tree::default(),
@@ -130,7 +114,6 @@ impl TableView {
             network_tcp_only: false,
             hide_swap: false,
             totals: ColumnTotals::default(),
-            units: config.units(),
             scroll_to: None,
             mem_total: 0,
             swap_total: 0,
@@ -143,18 +126,12 @@ impl TableView {
         }
     }
 
-    pub fn update(
-        &mut self,
-        readings: &Readings,
-        gpu: &mc_core::gpu::GpuSnapshot,
-        config: &Config,
-    ) {
-        let merged = config.apps_page_merged_process_stats;
+    pub fn update(&mut self, readings: &Readings, gpu: &mc_core::gpu::GpuSnapshot) {
         self.tree = match self.kind {
-            TableKind::Apps => Tree::apps(readings, merged),
-            TableKind::Services => Tree::services(readings, merged),
+            TableKind::Apps => Tree::apps(readings),
+            TableKind::Services => Tree::services(readings),
         };
-        self.tree.apply_gpu(readings, gpu, merged);
+        self.tree.apply_gpu(readings, gpu);
         self.totals = ColumnTotals::from_readings(readings, gpu);
         self.gpu_usage = gpu.usage.clone();
         self.gpu_summary = gpu.usage.text();
@@ -174,7 +151,6 @@ impl TableView {
         self.gpu_mem_total = self
             .gpu_dedicated_total
             .and_then(|d| d.checked_add(self.gpu_shared_total?));
-        self.units = config.units();
         self.gpu_cells = self
             .tree
             .nodes
@@ -183,13 +159,7 @@ impl TableView {
                 let bytes = |value: Option<u64>| {
                     value.map_or_else(
                         || "—".into(),
-                        |value| {
-                            to_human_readable_nice(
-                                value as f32,
-                                &DataType::MemoryBytes,
-                                &self.units,
-                            )
-                        },
+                        |value| to_human_readable_nice(value as f32, &DataType::MemoryBytes),
                     )
                 };
                 (
@@ -224,10 +194,6 @@ impl TableView {
             self.options.search = search.to_owned();
             self.rows_dirty = true;
         }
-    }
-
-    pub fn set_options_dirty(&mut self) {
-        self.rows_dirty = true;
     }
 
     /// Expanded/collapsed keys that survive a restart (groups and apps), `;` separated.
@@ -273,7 +239,6 @@ impl TableView {
 
     pub(crate) fn cell_text(&self, column: Column, node: &Node) -> String {
         let s = &node.stats;
-        let u = &self.units;
         if node.kind == RowKind::SectionHeader {
             return String::new();
         }
@@ -284,15 +249,11 @@ impl TableView {
                 _ => String::new(),
             },
             Column::Cpu => format!("{}%", s.cpu_usage.round() as u32),
-            Column::Memory => {
-                to_human_readable_nice(s.memory_usage as f32, &DataType::MemoryBytes, u)
-            }
-            Column::Swap => to_human_readable_nice(s.swap_usage as f32, &DataType::MemoryBytes, u),
-            Column::Drive => {
-                to_human_readable_nice(s.disk_usage, &DataType::DriveBytesPerSecond, u)
-            }
+            Column::Memory => to_human_readable_nice(s.memory_usage as f32, &DataType::MemoryBytes),
+            Column::Swap => to_human_readable_nice(s.swap_usage as f32, &DataType::MemoryBytes),
+            Column::Drive => to_human_readable_nice(s.disk_usage, &DataType::DriveBytesPerSecond),
             Column::Network => {
-                to_human_readable_nice(s.network_usage, &DataType::NetworkBytesPerSecond, u)
+                to_human_readable_nice(s.network_usage, &DataType::NetworkBytesPerSecond)
             }
             Column::Gpu
             | Column::GpuEngine

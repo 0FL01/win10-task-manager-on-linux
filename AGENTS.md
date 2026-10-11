@@ -10,7 +10,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `crates/mc-ui/` — egui UI, depends on egui only:
   - `app.rs` shell (state, data intake, commands);
   - `win10/` the Win10 look: `palette`/`metrics` (all numbers from the spec), `fonts` (Selawik/Segoe UI), `paint` (pixel-exact helpers), `chrome` (CSD title bar, menu bar, tabs, footer), `menu`, `listview`/`flatlist`, tabs `processes`, `performance`, `details`, `services`, and `style`/`dialog` for standard egui widgets;
-  - `perf/` device models (`DevicePage::win10_view`), `table.rs` (process/service tree view state), `dialogs.rs`, `prefs.rs`, `smart.rs`.
+  - `perf/` device models (`DevicePage::win10_view`), `table.rs` (process/service tree view state), `dialogs.rs`, `smart.rs`. There is no settings window: options live in the View/Options menus and context menus; everything else is fixed.
 - `crates/mc-ui/assets/fonts/` — bundled Selawik (SIL OFL 1.1, `OFL.txt`).
 - `crates/mc-ui/assets/icons/` — SVGs carried from Mission Center, embedded by the egui UI.
 - `apps/taskmanager/` — eframe binary `taskmanager` (app id `io.github.taskmanager.TaskManager`, settings `~/.config/taskmanager/config.toml`, copied once from `~/.config/missioncenter/`) (`--fixture`, `--synthetic`, `--dump-readings`, `--renderer wgpu|glow`, `--perf-overlay`, `--bench-seconds`).
@@ -33,7 +33,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - No I/O, IPC or blocking calls in `App::ui`/`App::logic`; talk to magpie only via `Request`s and `Event`s; persist settings via `ConfigWriter`.
 - No unbounded channels. Snapshots go through `LatestSlot` (overwrite), events through bounded `sync_channel`.
 - GPU percentages use the busiest engine; groups deduplicate PIDs/DRM clients before summing each engine. Unknown is not zero; device memory never comes from process sums. Collect counters on the host-side backend, not the Flatpak GUI.
-- Repaint only on events (new readings, input, icon decoded, sliding animation while it runs — capped by `ANIMATION_FRAME`). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only.
+- Repaint only on events (new readings, input, icon decoded). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only.
 - Rebuild table rows / format strings / graph geometry only when data, sort, filter, size or expansion change.
 - Translatable strings use `mc_core::i18n::{i18n, i18n_f, ni18n_f, ...}` with msgids identical to the GTK app (see `docs/port-spec/`); mnemonic underscores are part of the msgid, strip them for display with `strip_mnemonic`.
 - No `Arc<Mutex<AppState>>`; views mutate state through `Cx` and typed `Command`s.

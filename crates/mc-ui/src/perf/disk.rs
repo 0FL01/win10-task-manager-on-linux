@@ -21,14 +21,11 @@
 use super::{GraphPanel, PageView, over};
 use egui::Ui;
 use mc_core::config::Config;
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, RoundingSettings,
-    ScalingSettings,
-};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
 use mc_magpie::magpie_types::disks::PartitionInfo;
 use mc_magpie::{Disk, DiskKind, Readings, Request};
 
@@ -99,14 +96,11 @@ pub struct DiskPage {
     ejectable: bool,
     partitions: Vec<Partition>,
     labels: Labels,
-    units: UnitSettings,
-    unit_key: (bool, bool),
     max_duration: String,
 }
 
 impl DiskPage {
     pub fn new(disk: &Disk, config: &Config) -> Self {
-        let units = config.units();
         let mut summary = SummaryGraph::percent(COLOR, String::new());
         summary.info1 = disk.model.clone().unwrap_or_default();
 
@@ -144,7 +138,7 @@ impl DiskPage {
             title: String::new(),
             model: disk.model.clone().unwrap_or_else(|| i18n("Unknown")),
             capacity: if disk.capacity_bytes > 0 {
-                to_human_readable_nice(disk.capacity_bytes as f32, &DataType::MemoryBytes, &units)
+                to_human_readable_nice(disk.capacity_bytes as f32, &DataType::MemoryBytes)
             } else {
                 i18n("Unknown")
             },
@@ -160,30 +154,14 @@ impl DiskPage {
             ejectable: disk.ejectable,
             partitions: vec![],
             labels: Labels::default(),
-            units,
-            unit_key: (!units.drive_use_base2, units.drive_use_bytes),
             max_duration: super::max_duration(config),
         };
-        page.update_graph_scaling();
+        // Throughput in binary bytes (MiB/s)
+        page.transfer
+            .set_all_datasets_rounding(RoundingSettings::Pow2);
+        page.transfer.reset_auto_scaling();
         page.update_titles(disk);
         page
-    }
-
-    fn update_graph_scaling(&mut self) {
-        if self.units.drive_use_base2 {
-            self.transfer
-                .set_all_datasets_rounding(RoundingSettings::Pow2);
-        } else {
-            self.transfer
-                .set_all_datasets_rounding(RoundingSettings::Pow2Base10);
-            self.transfer
-                .set_all_datasets_watermarking_multiplier(if self.units.drive_use_bytes {
-                    1.
-                } else {
-                    8.
-                });
-        }
-        self.transfer.reset_auto_scaling();
     }
 
     fn update_titles(&mut self, disk: &Disk) {
@@ -199,7 +177,6 @@ impl DiskPage {
     }
 
     fn update_partitions(&mut self, map: &std::collections::HashMap<String, PartitionInfo>) {
-        let units = self.units;
         let mut parts: Vec<Partition> = map
             .values()
             .map(|p| {
@@ -214,10 +191,10 @@ impl DiskPage {
                     mountpoints: p.mountpoints.clone(),
                     used: p
                         .used
-                        .map(|u| to_human_readable_nice(u as f32, &DataType::DriveBytes, &units)),
+                        .map(|u| to_human_readable_nice(u as f32, &DataType::DriveBytes)),
                     total: p
                         .size
-                        .map(|s| to_human_readable_nice(s as f32, &DataType::DriveBytes, &units)),
+                        .map(|s| to_human_readable_nice(s as f32, &DataType::DriveBytes)),
                     fraction,
                     size,
                 }
@@ -249,12 +226,6 @@ impl DevicePage for DiskPage {
         self.index = index;
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.usage.apply_settings(settings);
-        self.transfer.apply_settings(settings);
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let Some(disk) = readings
             .disks_info
@@ -263,15 +234,8 @@ impl DevicePage for DiskPage {
         else {
             return false;
         };
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
-        let key = (!env.units.drive_use_base2, env.units.drive_use_bytes);
-        if key != self.unit_key {
-            self.unit_key = key;
-            self.update_graph_scaling();
-        }
-        let units = self.units;
-        let h = |v: f32, t: DataType| to_human_readable_nice(v, &t, &units);
+        let h = |v: f32, t: DataType| to_human_readable_nice(v, &t);
 
         self.update_titles(disk);
         self.usage.add_data_point(vec![vec![disk.busy_percent]]);
@@ -315,8 +279,8 @@ impl DevicePage for DiskPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        self.usage.update_animation(frame) | self.transfer.update_animation(frame)
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.usage.set_grid_offset(offset) | self.transfer.set_grid_offset(offset)
     }
 
     fn win10_view(&mut self, _config: &Config) -> PageView<'_> {

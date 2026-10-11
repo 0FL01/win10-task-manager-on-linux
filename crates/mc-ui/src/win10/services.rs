@@ -68,24 +68,10 @@ impl Default for ServicesView {
 impl ServicesView {
     /// Saved sort, column widths and order.
     pub fn restore(&mut self, config: &mc_core::config::Config) {
-        let remember = config.apps_page_remember_column_order;
-        let sort = config.apps_page_remember_sorting;
         self.list.restore(
-            if remember {
-                &config.services_page_column_widths
-            } else {
-                ""
-            },
-            if remember {
-                &config.services_page_column_order
-            } else {
-                ""
-            },
-            if sort {
-                &config.services_page_sorting_column_name
-            } else {
-                ""
-            },
+            &config.services_page_column_widths,
+            &config.services_page_column_order,
+            &config.services_page_sorting_column_name,
             config.services_page_sorting_order,
         );
     }

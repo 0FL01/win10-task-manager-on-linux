@@ -25,14 +25,14 @@ use std::collections::{HashMap, HashSet};
 
 use egui::{Color32, Ui};
 use mc_core::config::Config;
-use mc_core::format::{UnitSettings, to_short_human_readable_time};
+use mc_core::format::to_short_human_readable_time;
 use mc_core::gpu::GpuSnapshot;
 use mc_core::i18n::i18n;
 use mc_core::sidebar::{
     self, DeviceOverride, DeviceType, parse_device_overrides, resolve_device_visibility,
     serialize_device_overrides,
 };
-use mc_graph::{AnimationFrame, DatasetGroup, Graph, GraphSettings, ScalingSettings};
+use mc_graph::{DEFAULT_DATA_POINTS, DatasetGroup, Graph, ScalingSettings};
 use mc_magpie::{INTERVAL_STEP, Readings};
 
 use crate::cx::Cx;
@@ -51,8 +51,6 @@ pub const MK_TO_0_C: i32 = -273150;
 /// Values every device page needs while updating.
 pub struct UpdateEnv<'a> {
     pub config: &'a Config,
-    pub units: UnitSettings,
-    pub graph: GraphSettings,
     /// e.g. "60 seconds"
     pub max_duration: String,
 }
@@ -61,25 +59,13 @@ impl UpdateEnv<'_> {
     pub fn new(config: &Config) -> UpdateEnv<'_> {
         UpdateEnv {
             config,
-            units: config.units(),
-            graph: graph_settings(config),
             max_duration: max_duration(config),
         }
     }
 }
 
-pub fn graph_settings(config: &Config) -> GraphSettings {
-    GraphSettings {
-        data_points: config.performance_page_data_points.clamp(10, 600) as u32,
-        smooth_graphs: config.performance_smooth_graphs,
-        sliding_graphs: config.performance_sliding_graphs,
-    }
-}
-
 pub fn max_duration(config: &Config) -> String {
-    let seconds = (config.app_update_interval as f64
-        * INTERVAL_STEP
-        * config.performance_page_data_points as f64)
+    let seconds = (config.app_update_interval as f64 * INTERVAL_STEP * DEFAULT_DATA_POINTS as f64)
         .round() as u32;
     to_short_human_readable_time(seconds)
 }
@@ -95,9 +81,8 @@ pub trait DevicePage {
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool;
     /// Normalized GPU telemetry, delivered before the ordinary device update.
     fn update_gpu(&mut self, _snapshot: &GpuSnapshot) {}
-    fn apply_graph_settings(&mut self, settings: &GraphSettings);
     /// Returns `true` if a repaint is needed for the animation.
-    fn animate(&mut self, frame: AnimationFrame) -> bool;
+    fn set_grid_offset(&mut self, offset: u32) -> bool;
     fn data_summary(&self) -> String;
     /// Content of the Win10-style page: title, graphs, statistic blocks and key/value rows.
     fn win10_view(&mut self, config: &Config) -> PageView<'_>;
@@ -216,7 +201,6 @@ pub struct PerformancePage {
     pub edit_mode: bool,
     pub summary_mode: bool,
     pub(crate) loaded: bool,
-    graph_settings: Option<GraphSettings>,
     overrides_raw: String,
     overrides: HashMap<String, DeviceOverride>,
 }
@@ -230,7 +214,6 @@ impl PerformancePage {
             edit_mode: false,
             summary_mode: false,
             loaded: false,
-            graph_settings: None,
             overrides_raw: String::new(),
             overrides: HashMap::new(),
         }
@@ -341,13 +324,6 @@ impl PerformancePage {
         let env_config = config.clone();
         let env = UpdateEnv::new(&env_config);
 
-        if self.graph_settings != Some(env.graph) {
-            for d in self.devices.iter_mut() {
-                d.apply_graph_settings(&env.graph);
-            }
-            self.graph_settings = Some(env.graph);
-        }
-
         let before = self.devices.len();
         self.devices.retain_mut(|d| {
             d.update_gpu(gpu);
@@ -365,11 +341,11 @@ impl PerformancePage {
         self.loaded = true;
     }
 
-    pub fn animate(&mut self, frame: AnimationFrame) -> bool {
+    pub fn set_grid_offset(&mut self, offset: u32) -> bool {
         let mut repaint = false;
         for d in self.devices.iter_mut() {
-            repaint |= d.animate(frame);
-            repaint |= d.summary_mut().graph.update_animation(frame);
+            repaint |= d.set_grid_offset(offset);
+            repaint |= d.summary_mut().graph.set_grid_offset(offset);
         }
         repaint
     }

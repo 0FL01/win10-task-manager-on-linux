@@ -58,7 +58,7 @@ pub fn device_colors(kind: DeviceType) -> pal::DeviceColors {
         DeviceType::Cpu | DeviceType::Unspecified => pal::CPU,
         DeviceType::Memory => pal::MEMORY,
         DeviceType::Disk => pal::DISK,
-        DeviceType::Network(_) => pal::NETWORK,
+        DeviceType::Network { .. } => pal::NETWORK,
         DeviceType::Gpu => pal::GPU,
         DeviceType::Fan => pal::FAN,
         DeviceType::Battery => pal::BATTERY,

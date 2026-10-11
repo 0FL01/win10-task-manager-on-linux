@@ -509,7 +509,6 @@ pub struct Client {
     stop_requested: Arc<AtomicBool>,
 
     core_count: AtomicU32,
-    scale_cpu_usage_to_core_count: AtomicBool,
 }
 
 impl Drop for Client {
@@ -545,7 +544,6 @@ impl Client {
             stop_requested: Arc::new(AtomicBool::new(false)),
 
             core_count: AtomicU32::new(1),
-            scale_cpu_usage_to_core_count: AtomicBool::new(false),
         }
     }
 
@@ -643,11 +641,6 @@ impl Client {
 }
 
 impl Client {
-    pub fn set_scale_cpu_usage_to_core_count(&self, v: bool) {
-        self.scale_cpu_usage_to_core_count
-            .store(v, Ordering::Relaxed);
-    }
-
     pub fn about(&self) -> About {
         let mut socket = self.socket.borrow_mut();
 
@@ -901,13 +894,8 @@ impl Client {
             }
         );
 
-        let scale_cpu_usage_to_core_count =
-            self.scale_cpu_usage_to_core_count.load(Ordering::Relaxed);
-        let factor = if !scale_cpu_usage_to_core_count {
-            self.core_count.load(Ordering::Relaxed) as f32
-        } else {
-            1.
-        };
+        // Share of the whole machine, as in the Windows Task Manager
+        let factor = self.core_count.load(Ordering::Relaxed) as f32;
         for process in processes.values_mut() {
             process.usage_stats.cpu_usage /= factor;
         }

@@ -131,7 +131,6 @@ impl Dialogs {
         let mut close = vec![];
         for dialog in self.open.clone() {
             let keep = match &dialog {
-                Dialog::Preferences => crate::prefs::preferences(ctx, cx),
                 Dialog::KeyboardShortcuts => shortcuts(ctx),
                 Dialog::About => about_app(ctx, cx),
                 Dialog::AboutSystem => about_system(ctx, cx, self.about.as_ref()),
@@ -141,7 +140,7 @@ impl Dialogs {
                 }
                 Dialog::ServiceDetails(key) => self.service_details(ctx, cx, services, key),
                 Dialog::SmartData(_) => match &self.smart {
-                    Some((_, Some(data))) => smart::smart_dialog(ctx, cx, data),
+                    Some((_, Some(data))) => smart::smart_dialog(ctx, data),
                     Some((_, None)) => smart::smart_failure(ctx),
                     None => true,
                 },
@@ -475,8 +474,7 @@ fn process_details(ctx: &Context, cx: &mut Cx, node: Option<&mc_core::table::Nod
     let Some(node) = node else {
         return false;
     };
-    let units = cx.config.units();
-    let h = |v: f32, t: DataType| to_human_readable_nice(v, &t, &units);
+    let h = |v: f32, t: DataType| to_human_readable_nice(v, &t);
     let s = &node.stats;
     let response = egui::Modal::new(Id::new(("process-details", &node.key))).show(ctx, |ui| {
         ui.set_width(380.);
@@ -566,7 +564,6 @@ fn shortcuts(ctx: &Context) -> bool {
             &[
                 (n_("Open Menu"), "F10"),
                 (n_("Close Window"), "Ctrl+Q, Ctrl+W"),
-                (n_("Open Preferences"), "Ctrl+,"),
                 (n_("Show Keyboard Shortcuts"), "Ctrl+?"),
                 (n_("Show Performance Page"), "Alt+1, Ctrl+1"),
                 (n_("Show Apps Page"), "Alt+2, Ctrl+2"),

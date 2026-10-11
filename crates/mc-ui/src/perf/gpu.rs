@@ -22,13 +22,11 @@ use std::collections::HashMap;
 
 use egui::Ui;
 use mc_core::config::Config;
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice};
+use mc_core::format::{DataType, to_human_readable_nice};
 use mc_core::gpu::{GpuDevice, GpuSnapshot, engine_name, engine_note};
 use mc_core::i18n::{i18n, i18n_f, n_, strip_mnemonic};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, ScalingSettings,
-};
+use mc_graph::{DEFAULT_DATA_POINTS, DatasetGroup, FillingSettings, Graph, ScalingSettings};
 use mc_magpie::magpie_types::gpus::{ApiVersion, EngineKind, OpenGlVariant, TelemetryState};
 use mc_magpie::{Gpu, Readings};
 
@@ -151,14 +149,12 @@ pub struct GpuPage {
     selected: Vec<String>,
     single: bool,
     history_dirty: bool,
-    graph_settings: GraphSettings,
     summary: SummaryGraph,
     dedicated: Graph,
     shared: Graph,
     middle: Graph,
     bottom: Graph,
     support: Support,
-    units: UnitSettings,
     max_duration: String,
     stats: Vec<Vec<(String, String)>>,
     info: Vec<(String, String)>,
@@ -170,7 +166,7 @@ impl GpuPage {
         let mut summary = SummaryGraph::percent(COLOR, i18n_f("GPU {}", &["0"]));
         *summary.graph.groups_mut() = vec![missing_group(100.)];
         summary.info1 = device_name.clone();
-        let mut page = Self {
+        Self {
             name: page_name(&gpu.id),
             gpu_id: gpu.id.clone(),
             index: 0,
@@ -185,20 +181,16 @@ impl GpuPage {
             selected: vec![],
             single: false,
             history_dirty: true,
-            graph_settings: super::graph_settings(config),
             summary,
             dedicated: memory_graph(),
             shared: memory_graph(),
             middle: aux_graph(),
             bottom: aux_graph(),
             support: Support::default(),
-            units: config.units(),
             max_duration: super::max_duration(config),
             stats: vec![],
             info: vec![],
-        };
-        page.apply_graph_settings(&super::graph_settings(config));
-        page
+        }
     }
 
     fn title(&self) -> String {
@@ -277,7 +269,7 @@ impl GpuPage {
             for (graph, id) in self.slots.iter_mut().zip(&self.selected) {
                 let group = self.histories.get(id).cloned().unwrap_or_else(|| {
                     let mut group = missing_group(100.);
-                    group.update_data_points(self.graph_settings.data_points as usize);
+                    group.update_data_points(DEFAULT_DATA_POINTS as usize);
                     group
                 });
                 *graph.groups_mut() = vec![group];
@@ -310,10 +302,9 @@ impl GpuPage {
             .retain(|id, _| choices.iter().any(|(available, _)| id == available));
         for (id, _) in choices {
             let (value, _) = self.engine_value(&id);
-            let points = self.graph_settings.data_points;
             let history = self.histories.entry(id).or_insert_with(|| {
                 let mut group = missing_group(100.);
-                group.update_data_points(points as usize);
+                group.update_data_points(DEFAULT_DATA_POINTS as usize);
                 group
             });
             history.add_data(&[value.unwrap_or(f32::NAN)]);
@@ -366,7 +357,7 @@ impl GpuPage {
     }
 
     fn human(&self, value: f32, kind: DataType) -> String {
-        to_human_readable_nice(value, &kind, &self.units)
+        to_human_readable_nice(value, &kind)
     }
 
     fn bytes(&self, value: Option<u64>) -> String {
@@ -445,23 +436,6 @@ impl DevicePage for GpuPage {
         }
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.graph_settings = *settings;
-        for history in self.histories.values_mut() {
-            history.update_data_points(settings.data_points as usize);
-        }
-        for graph in self.slots.iter_mut().chain([
-            &mut self.dedicated,
-            &mut self.shared,
-            &mut self.middle,
-            &mut self.bottom,
-        ]) {
-            graph.apply_settings(settings);
-        }
-        self.summary.graph.apply_settings(settings);
-        self.history_dirty = true;
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let Some(gpu) = readings.gpus.values().find(|gpu| gpu.id == self.gpu_id) else {
             return false;
@@ -469,7 +443,6 @@ impl DevicePage for GpuPage {
         let Some(device) = self.device.clone() else {
             return false;
         };
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
         self.device_name = gpu.device_name.clone().unwrap_or_else(|| i18n("Unknown"));
         let sample = (device.epoch, device.sequence);
@@ -492,7 +465,7 @@ impl DevicePage for GpuPage {
                     let settings = group.dataset_settings.clone();
                     *group = DatasetGroup::new_with_fill(f32::NAN);
                     group.dataset_settings = settings;
-                    group.update_data_points(env.graph.data_points as usize);
+                    group.update_data_points(DEFAULT_DATA_POINTS as usize);
                 }
             }
         }
@@ -687,7 +660,7 @@ impl DevicePage for GpuPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
         let mut repaint = false;
         for graph in self.slots.iter_mut().chain([
             &mut self.dedicated,
@@ -695,7 +668,7 @@ impl DevicePage for GpuPage {
             &mut self.middle,
             &mut self.bottom,
         ]) {
-            repaint |= graph.update_animation(frame);
+            repaint |= graph.set_grid_offset(offset);
         }
         repaint
     }
@@ -878,10 +851,7 @@ mod tests {
     use mc_magpie::magpie_types::gpus::{DriverInfo, EngineTelemetry, MemoryTelemetry};
 
     fn setup() -> (GpuPage, Config, Readings, GpuSnapshot) {
-        let config = Config {
-            performance_page_data_points: 10,
-            ..Config::default()
-        };
+        let config = Config::default();
         let gpu = Gpu {
             id: "test-adapter".into(),
             device_name: Some("Test GPU".into()),
@@ -995,11 +965,14 @@ mod tests {
             "render".into(),
             OVERALL.into(),
         ];
-        for sequence in 1..25 {
+        for sequence in 1..DEFAULT_DATA_POINTS as u64 + 5 {
             snapshot.devices.get_mut("test-adapter").unwrap().sequence = sequence;
             feed(&mut page, &config, &readings, &snapshot);
         }
-        assert_eq!(page.histories["copy"].datas[0].get_data().len(), 10);
+        assert_eq!(
+            page.histories["copy"].datas[0].get_data().len(),
+            DEFAULT_DATA_POINTS as usize
+        );
         assert_eq!(
             page.slots[0].groups()[0].datas[0].get_data(),
             page.slots[1].groups()[0].datas[0].get_data()

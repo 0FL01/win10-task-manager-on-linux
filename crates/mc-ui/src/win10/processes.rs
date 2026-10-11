@@ -117,18 +117,11 @@ impl ProcessesPage {
         {
             return;
         }
-        // "Remember column order" off: default order and widths at start (changes made while
-        // running still apply)
-        let remember = config.apps_page_remember_column_order || self.columns_key.is_some();
-        let (order, widths) = if remember {
-            (
-                config.apps_page_column_order.clone(),
-                config.apps_page_column_widths.clone(),
-            )
-        } else {
-            (String::new(), String::new())
-        };
-        let key = (config.apps_page_visible_columns.clone(), order, widths);
+        let key = (
+            config.apps_page_visible_columns.clone(),
+            config.apps_page_column_order.clone(),
+            config.apps_page_column_widths.clone(),
+        );
         let visible: Vec<Column> = config
             .apps_page_visible_columns
             .split(';')
@@ -262,7 +255,6 @@ impl ProcessesPage {
                 Some(mc_core::format::to_human_readable_nice(
                     t.system_network_bytes_ps,
                     &mc_core::format::DataType::NetworkBytesPerSecond,
-                    &table.units,
                 )),
                 false,
             ),
@@ -377,7 +369,6 @@ impl ProcessesPage {
             let rate = mc_core::format::to_human_readable_nice(
                 table.totals.system_network_bytes_ps,
                 &mc_core::format::DataType::NetworkBytesPerSecond,
-                &table.units,
             );
             let mut tip = mc_core::i18n::i18n_f("All network interfaces: {}", &[&rate]);
             if table.hide_network {

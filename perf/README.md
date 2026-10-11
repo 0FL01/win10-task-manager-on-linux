@@ -22,9 +22,8 @@ development and installation. `--out FILE` selects another report path.
 - Every run starts a fresh nested compositor (`kwin_wayland --virtual`, 1280x800) so the user's
   desktop is not touched and an idle compositor cannot stop frame callbacks mid-run.
 - Both renderers use the same magpie daemon with a 1 s refresh interval and the CPU page selected;
-  settings are injected through temporary `taskmanager/config.toml` directories. CPU-page runs
-  measure sliding graphs off and on. A separate Processes-page scenario uses 1000 synthetic
-  processes and no daemon.
+  settings are injected through temporary `taskmanager/config.toml` directories. A separate
+  Processes-page scenario uses 1000 synthetic processes and no daemon.
 - After a warm-up the CPU time of the UI process and of the daemon (`/proc/<pid>/stat`) is sampled
   over the measurement window; PSS comes from `/proc/<pid>/smaps_rollup`, GPU memory from the DRM
   `fdinfo` entries of the UI process.

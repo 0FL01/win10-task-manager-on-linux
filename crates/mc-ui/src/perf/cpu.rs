@@ -21,14 +21,11 @@
 use super::{GraphPanel, PageView, over};
 use egui::Ui;
 use mc_core::config::Config;
-use mc_core::format::{DataType, UnitSettings, to_human_readable_nice, to_uptime};
+use mc_core::format::{DataType, to_human_readable_nice, to_uptime};
 use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, strip_mnemonic};
 use mc_core::sidebar::DeviceType;
-use mc_graph::{
-    AnimationFrame, DatasetGroup, FillingSettings, Graph, GraphSettings, RoundingSettings,
-    ScalingSettings,
-};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
 use mc_magpie::Readings;
 
 use super::{DevicePage, SummaryGraph, UpdateEnv, fixed_group};
@@ -89,8 +86,6 @@ pub struct CpuPage {
     labels: Labels,
 
     max_duration: String,
-    units: UnitSettings,
-    graph_settings: Option<GraphSettings>,
 }
 
 fn compute_column_count(n: usize) -> usize {
@@ -147,8 +142,6 @@ impl CpuPage {
             l3_cache: String::new(),
             labels: Labels::default(),
             max_duration: super::max_duration(config),
-            units: config.units(),
-            graph_settings: None,
         };
         page.set_static_information(readings, config);
         page
@@ -189,10 +182,6 @@ impl CpuPage {
                 g
             })
             .collect();
-
-        if let Some(s) = self.graph_settings {
-            self.apply_graph_settings(&s);
-        }
     }
 
     fn configure_thread_wise(&mut self, selection: i32, cpu_count: usize) {
@@ -228,7 +217,7 @@ impl CpuPage {
                 } else {
                     let hz = khz as f32 * 1000.;
                     self.bottom.set_dataset_max_scale(CLOCK_DATASET, hz);
-                    to_human_readable_nice(hz, &DataType::Hertz, &self.units)
+                    to_human_readable_nice(hz, &DataType::Hertz)
                 }
             }
             None => i18n("Unknown"),
@@ -248,7 +237,7 @@ impl CpuPage {
             .map(|c| c.to_string())
             .unwrap_or_else(|| i18n("Unknown"));
         let cache = |v: Option<u64>| {
-            v.map(|b| to_human_readable_nice(b as f32, &DataType::MemoryBytes, &self.units))
+            v.map(|b| to_human_readable_nice(b as f32, &DataType::MemoryBytes))
                 .unwrap_or_else(|| i18n("N/A"))
         };
         self.l1_cache = cache(cpu.l1_combined_cache_bytes);
@@ -282,12 +271,10 @@ impl CpuPage {
             GRAPH_POWER => to_human_readable_nice(
                 self.bottom.dataset_max_scale(POWER_DATASET),
                 &DataType::Watts,
-                &self.units,
             ),
             GRAPH_CLOCK => to_human_readable_nice(
                 self.bottom.dataset_max_scale(CLOCK_DATASET),
                 &DataType::Hertz,
-                &self.units,
             ),
             GRAPH_TEMPERATURE => {
                 format!(
@@ -317,20 +304,8 @@ impl DevicePage for CpuPage {
         &mut self.summary
     }
 
-    fn apply_graph_settings(&mut self, settings: &GraphSettings) {
-        self.graph_settings = Some(*settings);
-        self.overall.apply_settings(settings);
-        self.thread_wise.apply_settings(settings);
-        self.bottom.apply_settings(settings);
-        for g in self.per_core.iter_mut() {
-            g.apply_settings(settings);
-        }
-        self.summary.graph.set_do_animation(settings.sliding_graphs);
-    }
-
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
         let cpu = &readings.cpu;
-        self.units = env.units;
         self.max_duration = env.max_duration.clone();
 
         if self.per_core.len() != cpu.core_usage_percent.len() {
@@ -362,12 +337,12 @@ impl DevicePage for CpuPage {
         } else {
             let hz = cpu.current_frequency_mhz as f32 * 1_000_000.;
             self.bottom.add_single_data_point(CLOCK_DATASET, vec![hz]);
-            to_human_readable_nice(hz, &DataType::Hertz, &self.units)
+            to_human_readable_nice(hz, &DataType::Hertz)
         };
         l.speed = freq_text.clone();
         l.power_draw = cpu.power_draw_w.map(|w| {
             self.bottom.add_single_data_point(POWER_DATASET, vec![w]);
-            to_human_readable_nice(w, &DataType::Watts, &self.units)
+            to_human_readable_nice(w, &DataType::Watts)
         });
         l.processes = cpu.total_process_count.to_string();
         l.threads = cpu.total_thread_count.to_string();
@@ -399,12 +374,12 @@ impl DevicePage for CpuPage {
         true
     }
 
-    fn animate(&mut self, frame: AnimationFrame) -> bool {
-        let mut repaint = self.overall.update_animation(frame);
-        repaint |= self.thread_wise.update_animation(frame);
-        repaint |= self.bottom.update_animation(frame);
+    fn set_grid_offset(&mut self, offset: u32) -> bool {
+        let mut repaint = self.overall.set_grid_offset(offset);
+        repaint |= self.thread_wise.set_grid_offset(offset);
+        repaint |= self.bottom.set_grid_offset(offset);
         for g in self.per_core.iter_mut() {
-            repaint |= g.update_animation(frame);
+            repaint |= g.set_grid_offset(offset);
         }
         repaint
     }

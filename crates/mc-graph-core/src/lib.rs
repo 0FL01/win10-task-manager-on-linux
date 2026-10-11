@@ -22,11 +22,9 @@
 //!
 //! This must be kept toolkit agnostic.
 
-pub mod animation;
 pub mod dataset;
 pub mod scaling;
 
-pub use animation::AnimationFrame;
 pub use dataset::{Dataset, DatasetGroup, DatasetPoints, DatasetSettings};
 pub use scaling::{FillingSettings, RoundingSettings, ScalingSettings};
 
