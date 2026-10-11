@@ -19,7 +19,7 @@ case $distro in
         expected_version="${version}-1.fc44"
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install "$package"
+        zypper --non-interactive install --allow-unsigned-rpm "$package"
         package_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}' taskmanager)
         expected_version="${version}-1.tw"
         ;;
@@ -60,7 +60,8 @@ test -d /usr/share/licenses/taskmanager || test -d /usr/share/doc/taskmanager
 for soname in libX11.so.6 libXcursor.so.1 libX11-xcb.so.1 libXi.so.6 libxcb.so.1 \
     libxkbcommon.so.0 libxkbcommon-x11.so.0 libwayland-client.so.0 libwayland-egl.so.1 \
     libGL.so.1 libEGL.so.1 libvulkan.so.1; do
-    if ! ldconfig -p | grep -Fq "$soname"; then
+    # With pipefail, grep -q may stop early and turn ldconfig's SIGPIPE into a false miss.
+    if ! ldconfig -p | grep -F "$soname" >/dev/null; then
         printf 'Missing runtime dlopen dependency: %s\n' "$soname" >&2
         exit 1
     fi
