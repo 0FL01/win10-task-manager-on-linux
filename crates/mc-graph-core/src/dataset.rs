@@ -428,7 +428,7 @@ impl Dataset {
             .iter()
             .take(self.used_data)
             .map(|v| {
-                if !v.is_normal() && !(v.is_nan() || v == &0.0) {
+                if !(v.is_normal() || v.is_nan() || v == &0.0) {
                     low_watermark
                 } else {
                     *v
