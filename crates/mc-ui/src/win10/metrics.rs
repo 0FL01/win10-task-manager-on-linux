@@ -65,6 +65,9 @@ pub const MENU_LINE_2_Y: f32 = 51.;
 pub const POPUP_ITEM_H: f32 = 22.;
 pub const POPUP_TEXT_X: f32 = 33.;
 pub const POPUP_MIN_W: f32 = 200.;
+/// Space after the label (room for the submenu chevron) and between label and shortcut
+pub const POPUP_TEXT_RIGHT_PAD: f32 = 40.;
+pub const POPUP_SHORTCUT_GAP: f32 = 32.;
 
 pub const TAB_BOTTOM_LINE_Y: f32 = 76.;
 pub const TAB_FIRST_LEFT: f32 = 3.;

@@ -61,7 +61,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Drop-down menus (own design): background `#f2f2f2`, 1 px border `#cccccc`, 2 px inner margin,
   shadow offset 2/2 blur 4 (black 19 %), item height 22, text at item left + 33 (check/radio column
   centred at + 13), hover fill `#91c9f7`, separators `#d7d7d7` (7 px tall, from + 28), submenu
-  chevron at right − 12, shortcuts right-aligned at right − 24, minimum width 200.
+  chevron at right − 12, shortcuts right-aligned at right − 24. Width = widest item (text at
+  + 33, then 40 px, or 32 px + shortcut + 24 px), minimum 200. Submenus open to the right of the
+  parent (to the left near the window edge), first item level with the parent item.
 - Unselected tab hover (own design): fill `#e5f3ff`.
 
 ## Tab strip

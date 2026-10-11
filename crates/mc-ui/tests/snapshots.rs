@@ -132,6 +132,31 @@ fn render(
             harness.run_steps(1);
         }
     }
+    if name == "perf-context-submenu" {
+        // Right-click the CPU page, then hover the first item ("Change Top Graph To")
+        let at = egui::pos2(520., 250.);
+        harness.input_mut().events.extend([
+            egui::Event::PointerMoved(at),
+            egui::Event::PointerButton {
+                pos: at,
+                button: egui::PointerButton::Secondary,
+                pressed: true,
+                modifiers: Default::default(),
+            },
+            egui::Event::PointerButton {
+                pos: at,
+                button: egui::PointerButton::Secondary,
+                pressed: false,
+                modifiers: Default::default(),
+            },
+        ]);
+        harness.run_steps(4);
+        harness
+            .input_mut()
+            .events
+            .push(egui::Event::PointerMoved(at + egui::vec2(60., 14.)));
+        harness.run_steps(6);
+    }
     if name == "gpu-summary" {
         harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
         harness.run_steps(2);
@@ -204,6 +229,17 @@ fn min_size_processes() {
 #[test]
 fn no_network_data_processes() {
     render("no-network-processes", "apps-page", (1030., 705.), 1., None);
+}
+
+#[test]
+fn performance_context_submenu() {
+    render(
+        "perf-context-submenu",
+        "performance-page",
+        (1030., 705.),
+        1.,
+        None,
+    );
 }
 
 #[test]

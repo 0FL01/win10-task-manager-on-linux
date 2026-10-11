@@ -53,6 +53,19 @@ pub fn style(style: &mut Style) {
     style.visuals.popup_shadow = frame().shadow;
 }
 
+/// Width of a menu row. The popup's first (sizing) pass measures the rows' natural widths, so the
+/// menu is as wide as its widest item; later passes fill that width. Using the available width in
+/// the sizing pass would make every menu as wide as egui's default area (600 px), and submenus
+/// that wide no longer fit beside their parent.
+fn menu_width(ui: &Ui, natural: f32) -> f32 {
+    let natural = natural.max(m::POPUP_MIN_W);
+    if ui.is_sizing_pass() {
+        natural
+    } else {
+        ui.available_width().max(natural)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mark {
     None,
@@ -68,7 +81,14 @@ fn row(
     enabled: bool,
     submenu: bool,
 ) -> Response {
-    let width = ui.available_width().max(m::POPUP_MIN_W);
+    let painter = ui.painter();
+    let right = if shortcut.is_empty() {
+        m::POPUP_TEXT_RIGHT_PAD
+    } else {
+        m::POPUP_SHORTCUT_GAP + paint::text_width(painter, shortcut, Font::Body) + 24.
+    };
+    let natural = m::POPUP_TEXT_X + paint::text_width(painter, label, Font::Body) + right;
+    let width = menu_width(ui, natural.ceil());
     let sense = if enabled {
         Sense::click()
     } else {
@@ -152,7 +172,7 @@ pub fn radio(ui: &mut Ui, label: &str, selected: bool) -> bool {
 }
 
 pub fn separator(ui: &mut Ui) {
-    let width = ui.available_width().max(m::POPUP_MIN_W);
+    let width = menu_width(ui, m::POPUP_MIN_W);
     let (rect, _) = ui.allocate_exact_size(vec2(width, 7.), Sense::hover());
     let y = rect.top() + 3.;
     paint::hline(
@@ -195,4 +215,88 @@ pub fn context(ui: &Ui, id: Id, pos: Pos2, open: &mut bool, content: impl FnOnce
         ui.set_min_width(m::POPUP_MIN_W);
         content(ui)
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use egui::{Context, Event, Order, RawInput, Rect};
+
+    use super::*;
+
+    /// Opens a context menu at `at`, hovers its submenu row and returns the parent menu rect,
+    /// the submenu rect and the hovered row's top.
+    fn open_submenu(at: Pos2) -> (Rect, Option<Rect>, f32) {
+        let ctx = Context::default();
+        let screen = Rect::from_min_size(Pos2::ZERO, vec2(1080., 700.));
+        let menus = |ctx: &Context| -> Vec<Rect> {
+            ctx.memory(|mem| {
+                let mut rects: Vec<Rect> = mem
+                    .areas()
+                    .visible_layer_ids()
+                    .into_iter()
+                    .filter(|layer| layer.order == Order::Foreground)
+                    .filter_map(|layer| mem.area_rect(layer.id))
+                    .collect();
+                rects.sort_by(|a, b| a.left().total_cmp(&b.left()));
+                rects
+            })
+        };
+        let mut pointer = pos2(1., 1.);
+        let mut parent = Rect::NOTHING;
+        let mut row_top = 0.;
+        for frame in 0..16 {
+            let input = RawInput {
+                screen_rect: Some(screen),
+                time: Some(frame as f64 * 0.1),
+                events: vec![Event::PointerMoved(pointer)],
+                ..Default::default()
+            };
+            let mut output = ctx.run_ui(input, |ui| {
+                let mut open = true;
+                context(ui, Id::new("test-menu"), at, &mut open, |ui| {
+                    item(ui, "Copy", "Ctrl+C", true);
+                    submenu(ui, "Change graph to", |ui| {
+                        radio(ui, "Overall utilization", true);
+                        radio(ui, "Logical processors", false);
+                    });
+                });
+            });
+            output.textures_delta.clear();
+            if frame == 4 {
+                parent = menus(&ctx)
+                    .into_iter()
+                    .find(|r| r.contains(at + vec2(1., 1.)))
+                    .expect("context menu is shown");
+                // Second row: frame border + margin, then one item
+                row_top = parent.top() + 3. + m::POPUP_ITEM_H;
+                pointer = pos2(parent.left() + 60., row_top + m::POPUP_ITEM_H / 2.);
+            }
+        }
+        let submenu = menus(&ctx).into_iter().find(|r| *r != parent);
+        (parent, submenu, row_top)
+    }
+
+    #[test]
+    fn menus_fit_their_content_and_submenus_open_beside_them() {
+        let (parent, submenu, row_top) = open_submenu(pos2(300., 200.));
+        let submenu = submenu.expect("submenu opens on hover");
+        assert!(parent.width() < 300., "content-sized menu: {parent:?}");
+        assert!(submenu.width() < 300., "content-sized submenu: {submenu:?}");
+        assert!(
+            submenu.left() >= parent.right() - 1.,
+            "{parent:?} {submenu:?}"
+        );
+        assert!(
+            (submenu.top() - (row_top - 3.)).abs() <= 3.,
+            "{submenu:?} row {row_top}"
+        );
+
+        // Near the right edge the submenu flips to the left of its parent
+        let (parent, submenu, _) = open_submenu(pos2(1080. - 230., 200.));
+        let submenu = submenu.expect("submenu opens on hover");
+        assert!(
+            submenu.right() <= parent.left() + 1.,
+            "{parent:?} {submenu:?}"
+        );
+    }
 }
