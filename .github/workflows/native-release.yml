@@ -251,8 +251,8 @@ jobs:
             --output target/release-assets \
             --version "$VERSION" \
             --commit "$GITHUB_SHA" \
-            --run-number "$GITHUB_RUN_NUMBER"
-          cp "target/taskmanager-${VERSION}-source.tar.gz" target/release-assets/
+            --run-number "$GITHUB_RUN_NUMBER" \
+            --source-archive "target/taskmanager-${VERSION}-source.tar.gz"
       - name: Create immutable draft release and publish assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -295,6 +295,4 @@ jobs:
             exit 1
           fi
           gh release upload "$tag" "${assets[@]}"
-          gh release edit "$tag" --draft=false
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" \
-            --method PATCH --field "make_latest=$make_latest" >/dev/null
+          gh release edit "$tag" --draft=false --latest="$make_latest"

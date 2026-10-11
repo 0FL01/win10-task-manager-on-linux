@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -26,6 +27,8 @@ class CollectReleaseTests(unittest.TestCase):
             root = Path(temporary)
             downloads = root / "downloads"
             output = root / "release"
+            source = root / "taskmanager-1.2.7-source.tar.gz"
+            source.write_bytes(b"stamped project sources")
             for distro, suffix in packages.items():
                 directory = downloads / f"native-{distro}" / "ci-packages"
                 directory.mkdir(parents=True)
@@ -46,6 +49,8 @@ class CollectReleaseTests(unittest.TestCase):
                     "abc123",
                     "--run-number",
                     "7",
+                    "--source-archive",
+                    str(source),
                 ],
                 check=True,
                 capture_output=True,
@@ -56,6 +61,12 @@ class CollectReleaseTests(unittest.TestCase):
             self.assertEqual(manifest["version"], "1.2.7")
             self.assertEqual({build["distro"] for build in manifest["builds"]}, set(packages))
             self.assertEqual(len([path for path in output.iterdir() if path.name.endswith(collect_release.PACKAGE_SUFFIXES)]), 5)
+            self.assertIn(source.name, manifest["source_inputs"])
+            self.assertEqual((output / source.name).read_bytes(), source.read_bytes())
+            self.assertIn(
+                f"{hashlib.sha256(source.read_bytes()).hexdigest()}  {source.name}",
+                (output / "SHA256SUMS").read_text().splitlines(),
+            )
             checksum_names = {line.split("  ", 1)[1] for line in (output / "SHA256SUMS").read_text().splitlines()}
             self.assertEqual(
                 checksum_names,

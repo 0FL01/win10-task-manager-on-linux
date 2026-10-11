@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'status=$?; printf "Native verification failed (exit %s) at line %s: %s\n" "$status" "$LINENO" "$BASH_COMMAND" >&2' ERR
 
 usage() {
     printf 'Usage: %s DISTRO PACKAGE UPSTREAM_VERSION\n' "${0##*/}" >&2
@@ -25,7 +26,9 @@ case $distro in
         ;;
     debian13|ubuntu26.04)
         apt-get update
-        DEBIAN_FRONTEND=noninteractive apt-get install -y "$package"
+        # Minimal Ubuntu images exclude translations unless explicitly included.
+        DEBIAN_FRONTEND=noninteractive apt-get \
+            -o 'Dpkg::Options::=--path-include=/usr/share/locale/*' install -y "$package"
         package_version=$(dpkg-query -W -f='${Version}' taskmanager)
         if [[ $distro == debian13 ]]; then
             expected_version="${version}-1+deb13"
@@ -35,7 +38,9 @@ case $distro in
         ;;
     arch)
         pacman -Syu --noconfirm
-        pacman -U --noconfirm "$package"
+        # Keep the image's repositories/signature policy, but extract translations.
+        pacman --config <(printf '%s\n' '[options]' 'Include = /etc/pacman.conf' \
+            '[options]' 'NoExtract = !usr/share/locale/*') -U --noconfirm "$package"
         package_version=$(pacman -Q taskmanager | awk '{print $2}')
         expected_version="${version}-1"
         ;;
@@ -72,7 +77,7 @@ case $distro in
         dnf install -y binutils dbus-x11 python3 xorg-x11-server-Xvfb xorg-x11-xauth mesa-dri-drivers mesa-vulkan-drivers
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install binutils dbus-1 python3 xorg-x11-server xauth Mesa-dri libvulkan_lvp
+        zypper --non-interactive install binutils dbus-1 python3 xorg-x11-server xvfb-run xauth Mesa-dri libvulkan_lvp
         ;;
     arch)
         pacman -S --needed --noconfirm binutils dbus python xorg-server-xvfb xorg-xauth mesa vulkan-swrast

@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--version", required=True)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--run-number", type=int, required=True)
+    parser.add_argument("--source-archive", type=Path, required=True)
     args = parser.parse_args()
     downloads = args.downloads.resolve()
     output = args.output.resolve()
@@ -51,7 +52,8 @@ def main():
             output / f"build-{build['distro']}.json",
         )
 
-    source_inputs = []
+    shutil.copy2(args.source_archive, output / args.source_archive.name)
+    source_inputs = [args.source_archive.name]
     for archive in sorted(downloads.rglob("libdrm-*.tar.xz")):
         name = archive.name
         if name in {path.name for path in output.iterdir()}:
