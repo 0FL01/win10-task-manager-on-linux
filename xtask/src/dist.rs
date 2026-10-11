@@ -131,21 +131,7 @@ pub fn update_pot(root: &Path) -> Result<(), String> {
             "--package-name=taskmanager",
         ])
         .args(["-o", "po/taskmanager.pot", "--language=Rust"]);
-    for kw in [
-        "n_",
-        "i18n",
-        "i18n_f",
-        "i18n_k",
-        "ni18n:1,2",
-        "ni18n_f:1,2",
-        "ni18n_k:1,2",
-        "pi18n:1c,2",
-        "pi18n_f:1c,2",
-        "pi18n_k:1c,2",
-        "pni18n:1c,2,3",
-        "pni18n_f:1c,2,3",
-        "pni18n_k:1c,2,3",
-    ] {
+    for kw in ["n_", "i18n", "i18n_f", "ni18n_f:1,2", "pi18n:1c,2"] {
         cmd.arg(format!("--keyword={kw}"));
     }
     for f in rust_sources(root) {

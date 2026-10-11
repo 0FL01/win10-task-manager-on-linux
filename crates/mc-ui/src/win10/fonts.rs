@@ -143,9 +143,6 @@ impl Fonts {
                 .families
                 .insert(family(name), chains.next().unwrap_or_default());
         }
-        // Legacy views still ask for "bold"
-        let semibold = fonts.families[&family(SEMIBOLD)].clone();
-        fonts.families.insert(family("bold"), semibold);
 
         if let Some(bytes) = self
             .system_mono

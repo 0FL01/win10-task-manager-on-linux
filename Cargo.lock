@@ -2301,7 +2301,6 @@ dependencies = [
  "log",
  "mc-graph-core",
  "mc-magpie",
- "regex",
  "serde",
  "textdistance",
  "toml",

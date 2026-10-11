@@ -10,7 +10,6 @@ description = "GUI independent state, settings, formatting and models for Task M
 gettext.workspace = true
 log.workspace = true
 mc-magpie.workspace = true
-regex.workspace = true
 serde.workspace = true
 toml.workspace = true
 mc-graph-core.workspace = true

@@ -25,7 +25,6 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 use gettext::Catalog;
-use regex::{Captures, Regex};
 
 pub const GETTEXT_PACKAGE: &str = "taskmanager";
 
@@ -108,11 +107,6 @@ pub fn init(locale_dir: &Path) {
     CATALOG.get_or_init(|| load_catalog(locale_dir, GETTEXT_PACKAGE));
 }
 
-/// Installs an already parsed catalog; intended for tests.
-pub fn init_with_catalog(catalog: Option<Catalog>) {
-    let _ = CATALOG.set(catalog);
-}
-
 fn catalog() -> Option<&'static Catalog> {
     CATALOG.get().and_then(Option::as_ref)
 }
@@ -138,13 +132,6 @@ fn pgettext(ctx: &str, msg: &str) -> String {
     }
 }
 
-fn npgettext(ctx: &str, single: &str, multiple: &str, n: u32) -> String {
-    match catalog() {
-        Some(c) => c.npgettext(ctx, single, multiple, n as u64).to_owned(),
-        None => if n == 1 { single } else { multiple }.to_owned(),
-    }
-}
-
 fn freplace(input: String, args: &[&str]) -> String {
     let mut parts = input.split("{}");
     let mut output = parts.next().unwrap_or_default().to_string();
@@ -152,19 +139,6 @@ fn freplace(input: String, args: &[&str]) -> String {
         output += &((*a).to_string() + p);
     }
     output
-}
-
-fn kreplace(input: String, kwargs: &[(&str, &str)]) -> String {
-    let mut s = input;
-    for (k, v) in kwargs {
-        if let Ok(re) = Regex::new(&format!("\\{{{}\\}}", regex::escape(k))) {
-            s = re
-                .replace_all(&s, |_: &Captures<'_>| (*v).to_string())
-                .to_string();
-        }
-    }
-
-    s
 }
 
 /// Marks a literal for extraction by xgettext (keyword `n_`) without translating it; the
@@ -183,56 +157,16 @@ pub fn i18n_f(format: &str, args: &[&str]) -> String {
     freplace(gettext(format), args)
 }
 
-pub fn i18n_k(format: &str, kwargs: &[(&str, &str)]) -> String {
-    kreplace(gettext(format), kwargs)
-}
-
 // Singular and plural translations functions
-
-pub fn ni18n(single: &str, multiple: &str, number: u32) -> String {
-    ngettext(single, multiple, number)
-}
 
 pub fn ni18n_f(single: &str, multiple: &str, number: u32, args: &[&str]) -> String {
     freplace(ngettext(single, multiple, number), args)
-}
-
-pub fn ni18n_k(single: &str, multiple: &str, number: u32, kwargs: &[(&str, &str)]) -> String {
-    kreplace(ngettext(single, multiple, number), kwargs)
 }
 
 // Translations with context functions
 
 pub fn pi18n(ctx: &str, format: &str) -> String {
     pgettext(ctx, format)
-}
-
-pub fn pi18n_f(ctx: &str, format: &str, args: &[&str]) -> String {
-    freplace(pgettext(ctx, format), args)
-}
-
-pub fn pi18n_k(ctx: &str, format: &str, kwargs: &[(&str, &str)]) -> String {
-    kreplace(pgettext(ctx, format), kwargs)
-}
-
-// Singular and plural with context
-
-pub fn pni18n(ctx: &str, single: &str, multiple: &str, number: u32) -> String {
-    npgettext(ctx, single, multiple, number)
-}
-
-pub fn pni18n_f(ctx: &str, single: &str, multiple: &str, number: u32, args: &[&str]) -> String {
-    freplace(npgettext(ctx, single, multiple, number), args)
-}
-
-pub fn pni18n_k(
-    ctx: &str,
-    single: &str,
-    multiple: &str,
-    number: u32,
-    kwargs: &[(&str, &str)],
-) -> String {
-    kreplace(npgettext(ctx, single, multiple, number), kwargs)
 }
 
 /// Removes GTK mnemonic underscores (`_Quit` -> `Quit`); egui has no mnemonics.
@@ -264,16 +198,8 @@ mod tests {
     }
 
     #[test]
-    fn keyword_replacement() {
-        assert_eq!(
-            kreplace("{name} is {age}".into(), &[("name", "Bob"), ("age", "4")]),
-            "Bob is 4"
-        );
-    }
-
-    #[test]
     fn untranslated_plural_selection() {
-        assert_eq!(ni18n("{} day", "{} days", 1), "{} day");
+        assert_eq!(ni18n_f("{} day", "{} days", 1, &["1"]), "1 day");
         assert_eq!(ni18n_f("{} day", "{} days", 3, &["3"]), "3 days");
     }
 

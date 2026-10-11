@@ -23,8 +23,8 @@
 
 use egui::containers::menu::MenuConfig;
 use egui::{
-    Align, Color32, CursorIcon, Frame, Id, Margin, Popup, PopupCloseBehavior, Rect,
-    ResizeDirection, Response, Sense, Ui, UiKind, UiStackInfo, ViewportCommand, pos2,
+    Align, Color32, CursorIcon, Id, Popup, PopupCloseBehavior, Rect, ResizeDirection, Response,
+    Sense, Ui, UiKind, UiStackInfo, ViewportCommand, pos2,
 };
 
 use super::paint::{self, Font};
@@ -500,56 +500,4 @@ pub fn button(ui: &mut Ui, rect: Rect, id: Id, label: &str, enabled: bool) -> Re
         Align::Center,
     );
     response
-}
-
-/// Hyperlink with a small icon at the footer (after the details toggle).
-pub fn footer_link(
-    ui: &mut Ui,
-    window: Rect,
-    line_y: f32,
-    label: &str,
-    icon: impl FnOnce(&egui::Painter, Rect),
-) -> Response {
-    let painter = ui.painter().clone();
-    paint::vline(
-        &painter,
-        window.left() + m::FOOTER_LINK_ICON_X - 9.,
-        line_y + m::FOOTER_CAP_DY - 1.,
-        line_y + m::FOOTER_CAP_DY + 10.,
-        pal::POPUP_SEPARATOR,
-    );
-    let icon_rect = Rect::from_min_size(
-        pos2(window.left() + m::FOOTER_LINK_ICON_X, line_y + 17.),
-        egui::vec2(16., 16.),
-    );
-    icon(&painter, icon_rect);
-    let width = paint::text_width(&painter, label, Font::Body).round();
-    let x = window.left() + m::FOOTER_LINK_TEXT_X;
-    let rect = Rect::from_min_max(pos2(x, line_y + 17.), pos2(x + width, line_y + 33.));
-    let response = ui.interact(rect, ui.id().with("footer-link"), Sense::click());
-    if response.hovered() {
-        ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
-        paint::hline(
-            &painter,
-            x,
-            x + width - 1.,
-            line_y + m::FOOTER_CAP_DY + 11.,
-            pal::LINK,
-        );
-    }
-    paint::text(
-        &painter,
-        x,
-        line_y + m::FOOTER_CAP_DY,
-        label,
-        Font::Body,
-        pal::LINK,
-        Align::Min,
-    );
-    response
-}
-
-/// Frame used for popups and dialogs content areas (white, no margin).
-pub fn plain_frame() -> Frame {
-    Frame::new().fill(pal::WHITE).inner_margin(Margin::ZERO)
 }

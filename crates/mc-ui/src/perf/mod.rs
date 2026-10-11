@@ -227,11 +227,6 @@ impl PerformancePage {
         self.devices.iter().position(|d| d.name() == name)
     }
 
-    pub fn selected_device(&mut self) -> Option<&mut Box<dyn DevicePage>> {
-        let index = self.device_index(&self.selected)?;
-        self.devices.get_mut(index)
-    }
-
     fn create_missing_devices(&mut self, readings: &Readings, config: &Config) {
         let mut present: Vec<String> = vec!["cpu".into(), "memory".into()];
         present.extend(

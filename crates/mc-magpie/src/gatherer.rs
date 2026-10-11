@@ -260,22 +260,10 @@ impl MagpieClient {
         self.speed.store(speed.max(1), atomic::Ordering::Release);
     }
 
-    pub fn update_speed(&self) -> u64 {
-        self.speed.load(atomic::Ordering::Acquire)
-    }
-
-    pub fn update_interval(&self) -> Duration {
-        Duration::from_secs_f64(self.update_speed() as f64 * INTERVAL_STEP)
-    }
-
     /// When set, processes, apps and services are not refreshed.
     pub fn set_reduced_activity(&self, reduced: bool) {
         self.reduced_activity
             .store(reduced, atomic::Ordering::Release);
-    }
-
-    pub fn reduced_activity(&self) -> bool {
-        self.reduced_activity.load(atomic::Ordering::Acquire)
     }
 
     /// Queues a request without blocking. Returns `false` if it had to be dropped.

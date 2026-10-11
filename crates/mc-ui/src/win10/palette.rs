@@ -96,7 +96,6 @@ pub const SERVICES_ICON: Color32 = rgb(0x7c8c96);
 
 pub const LABEL: Color32 = rgb(0x707070);
 pub const DEVICE_SELECTED: Color32 = rgb(0xd9d9d9);
-pub const GRID: Color32 = rgb(0xd9eaf4);
 
 /// Border/line and fill colour of a performance device.
 #[derive(Debug, Clone, Copy, PartialEq)]

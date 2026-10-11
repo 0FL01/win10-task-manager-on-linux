@@ -185,13 +185,6 @@ impl TableView {
         self.selected.as_deref().and_then(|k| self.node(k))
     }
 
-    pub fn set_search(&mut self, search: &str) {
-        if self.options.search != search {
-            self.options.search = search.to_owned();
-            self.rows_dirty = true;
-        }
-    }
-
     /// Expanded/collapsed keys that survive a restart (groups and apps), `;` separated.
     pub fn persistent_expanded(&self) -> String {
         let mut keys: Vec<&str> = self

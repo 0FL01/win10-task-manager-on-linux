@@ -38,5 +38,4 @@ macro_rules! g_debug {
     };
 }
 
-#[allow(unused_imports)]
 pub(crate) use {g_critical, g_debug, g_warning};

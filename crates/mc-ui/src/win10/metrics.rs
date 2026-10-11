@@ -21,8 +21,6 @@
 //! Geometry of the Win10-style interface in logical points (docs/win10-spec/spec.md). All
 //! `y` values are window coordinates; a 1 px border surrounds the window.
 
-/// Reference window size.
-pub const WINDOW_SIZE: [f32; 2] = [1030., 705.];
 /// Smallest full window at which the Performance page still lays out without overlaps
 pub const MIN_WINDOW_SIZE: [f32; 2] = [760., 540.];
 
@@ -94,8 +92,6 @@ pub const FOOTER_BUTTON_H: f32 = 21.;
 pub const FOOTER_BUTTON_DY: f32 = 14.;
 /// Gap between the button's right edge and the window's right edge
 pub const FOOTER_BUTTON_RIGHT: f32 = 8.;
-pub const FOOTER_LINK_ICON_X: f32 = 123.;
-pub const FOOTER_LINK_TEXT_X: f32 = 142.;
 
 /// Inside our 1 px window border (the reference's 15 px include the frame column)
 pub const SCROLLBAR_W: f32 = 14.;

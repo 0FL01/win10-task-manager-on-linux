@@ -50,7 +50,6 @@ mc-ui = { path = "crates/mc-ui" }
 nng-c = "1.11"
 nng-c-sys = { version = "1.11", default-features = false }
 rand = "0.10"
-regex = "1.12"
 rust-ini = "0.21"
 serde = { version = "1", features = ["derive"] }
 libc = "0.2"

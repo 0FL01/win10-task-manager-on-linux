@@ -387,23 +387,6 @@ impl IconCache {
             Icon::Empty(_) => None,
         })
     }
-
-    /// Any icon from the user's icon theme by name.
-    pub fn themed(
-        &mut self,
-        ctx: &egui::Context,
-        name: &str,
-        points: f32,
-    ) -> Option<&TextureHandle> {
-        let size = Self::pixel_size(ctx, points);
-        let key = IconKey::Themed(name.to_owned(), size);
-        let name = name.to_owned();
-        self.get_or_request(key.clone(), || Some(Job::Themed { key, name, size }))
-    }
-
-    pub fn has_pending(&self) -> bool {
-        !self.pending.is_empty()
-    }
 }
 
 /// The application icon as RGBA pixels, for the window icon.

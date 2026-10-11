@@ -231,30 +231,6 @@ pub fn merge_new_devices(order: &mut Vec<String>, mut present: Vec<String>) {
     }
 }
 
-/// Moves `dragged` before or after `target`. Returns `false` if `target` is unknown.
-pub fn move_in_order(
-    order: &mut Vec<String>,
-    dragged: &str,
-    target: &str,
-    after_target: bool,
-) -> bool {
-    if dragged == target {
-        return true;
-    }
-
-    let mut candidate = order.clone();
-    candidate.retain(|name| name != dragged);
-
-    let at = match candidate.iter().position(|name| name == target) {
-        Some(index) if after_target => index + 1,
-        Some(index) => index,
-        None => return false,
-    };
-    candidate.insert(at, dragged.to_owned());
-    *order = candidate;
-    true
-}
-
 /// Computes the sidebar order for the devices currently present, updating the stored order
 /// string in `config`. Returns the names in display order (absent devices omitted).
 pub fn rebuild_order(config: &mut Config, present: &[String]) -> Vec<String> {
@@ -626,17 +602,6 @@ mod tests {
     }
 
     // New behaviour of the egui port
-
-    #[test]
-    fn move_in_order_places_relative_to_target() {
-        let mut order = names(&["cpu", "memory", "disk-sda"]);
-        assert!(move_in_order(&mut order, "disk-sda", "cpu", false));
-        assert_eq!(order, names(&["disk-sda", "cpu", "memory"]));
-        assert!(move_in_order(&mut order, "disk-sda", "memory", true));
-        assert_eq!(order, names(&["cpu", "memory", "disk-sda"]));
-        assert!(!move_in_order(&mut order, "cpu", "gpu-0", true));
-        assert_eq!(order, names(&["cpu", "memory", "disk-sda"]));
-    }
 
     #[test]
     fn rebuild_order_stores_and_filters() {
