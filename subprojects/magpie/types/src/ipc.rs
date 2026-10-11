@@ -32,9 +32,7 @@ use crate::ipc::request::Body;
 use crate::memory::{memory_request, MemoryRequest};
 use crate::network::ConnectionsRequest;
 use crate::processes::{
-    processes_request, ContinueProcessesRequest, HangupProcessesRequest, InterruptProcessesRequest,
-    KillProcessesRequest, ProcessesRequest, SuspendProcessesRequest, TerminateProcessesRequest,
-    User1ProcessesRequest, User2ProcessesRequest,
+    processes_request, KillProcessesRequest, ProcessesRequest, TerminateProcessesRequest,
 };
 use crate::services::{
     services_request, RequestServiceDisable, RequestServiceEnable, RequestServiceLogs,
@@ -145,66 +143,6 @@ pub fn req_kill_processes(pids: Vec<u32>) -> Request {
             request: Some(processes_request::Request::Kill(KillProcessesRequest {
                 pids,
             })),
-        })),
-    }
-}
-
-pub fn req_interrupt_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::Interrupt(
-                InterruptProcessesRequest { pids },
-            )),
-        })),
-    }
-}
-
-pub fn req_signal_user_one_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::User1(User1ProcessesRequest {
-                pids,
-            })),
-        })),
-    }
-}
-
-pub fn req_signal_user_two_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::User2(User2ProcessesRequest {
-                pids,
-            })),
-        })),
-    }
-}
-
-pub fn req_hangup_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::Hangup(HangupProcessesRequest {
-                pids,
-            })),
-        })),
-    }
-}
-
-pub fn req_continue_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::Continue(
-                ContinueProcessesRequest { pids },
-            )),
-        })),
-    }
-}
-
-pub fn req_suspend_processes(pids: Vec<u32>) -> Request {
-    Request {
-        body: Some(Body::GetProcesses(ProcessesRequest {
-            request: Some(processes_request::Request::Suspend(
-                SuspendProcessesRequest { pids },
-            )),
         })),
     }
 }

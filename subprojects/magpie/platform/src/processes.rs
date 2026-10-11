@@ -54,12 +54,6 @@ pub trait ProcessManager {
 
     fn terminate_processes(&self, pids: Vec<u32>);
     fn kill_processes(&self, pids: Vec<u32>);
-    fn interrupt_processes(&self, pids: Vec<u32>);
-    fn signal_user_one_processes(&self, pids: Vec<u32>);
-    fn signal_user_two_processes(&self, pids: Vec<u32>);
-    fn hangup_processes(&self, pids: Vec<u32>);
-    fn continue_processes(&self, pids: Vec<u32>);
-    fn suspend_processes(&self, pids: Vec<u32>);
 }
 
 pub struct ProcessesHandler<PC, PM>

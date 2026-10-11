@@ -303,34 +303,6 @@ where
         self.processes.process_manager.kill_processes(pids)
     }
 
-    pub fn interrupt_processes(&self, pids: Vec<u32>) {
-        self.processes.process_manager.interrupt_processes(pids)
-    }
-
-    pub fn signal_user_one_processes(&self, pids: Vec<u32>) {
-        self.processes
-            .process_manager
-            .signal_user_one_processes(pids)
-    }
-
-    pub fn signal_user_two_processes(&self, pids: Vec<u32>) {
-        self.processes
-            .process_manager
-            .signal_user_two_processes(pids)
-    }
-
-    pub fn hangup_processes(&self, pids: Vec<u32>) {
-        self.processes.process_manager.hangup_processes(pids)
-    }
-
-    pub fn continue_processes(&self, pids: Vec<u32>) {
-        self.processes.process_manager.continue_processes(pids)
-    }
-
-    pub fn suspend_processes(&self, pids: Vec<u32>) {
-        self.processes.process_manager.suspend_processes(pids)
-    }
-
     pub fn user_services(&self) -> Vec<Service> {
         self.services
             .user_local_cache

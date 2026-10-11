@@ -64,60 +64,6 @@ pub fn handle_request(kind: Option<ProcessesRequestKind>) -> nng::Buffer {
                 })),
             }
         }
-        Some(ProcessesRequestKind::Interrupt(mut req)) => {
-            dbg_request_name = "Interrupt";
-            cache.interrupt_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
-        Some(ProcessesRequestKind::User1(mut req)) => {
-            dbg_request_name = "User1";
-            cache.signal_user_one_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
-        Some(ProcessesRequestKind::User2(mut req)) => {
-            dbg_request_name = "User2";
-            cache.signal_user_two_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
-        Some(ProcessesRequestKind::Hangup(mut req)) => {
-            dbg_request_name = "Hangup";
-            cache.hangup_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
-        Some(ProcessesRequestKind::Continue(mut req)) => {
-            dbg_request_name = "Continue";
-            cache.continue_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
-        Some(ProcessesRequestKind::Suspend(mut req)) => {
-            dbg_request_name = "Suspend";
-            cache.suspend_processes(std::mem::take(&mut req.pids));
-            Response {
-                body: Some(ResponseBody::Processes(ProcessesResponse {
-                    response: Some(ProcessesResponseKind::TermKill(Default::default())),
-                })),
-            }
-        }
         _ => {
             dbg_request_name = "Unknown";
             log::error!("Invalid or empty request: {:?}", kind);

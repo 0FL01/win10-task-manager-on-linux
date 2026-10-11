@@ -54,30 +54,6 @@ impl magpie_platform::processes::ProcessManager for ProcessManager {
     fn kill_processes(&self, pids: Vec<u32>) {
         send_signal!(pids, libc::SIGKILL);
     }
-
-    fn interrupt_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGINT);
-    }
-
-    fn signal_user_one_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGUSR1);
-    }
-
-    fn signal_user_two_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGUSR2);
-    }
-
-    fn hangup_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGHUP);
-    }
-
-    fn continue_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGCONT);
-    }
-
-    fn suspend_processes(&self, pids: Vec<u32>) {
-        send_signal!(pids, libc::SIGSTOP);
-    }
 }
 
 impl ProcessManager {

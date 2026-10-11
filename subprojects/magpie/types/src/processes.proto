@@ -69,42 +69,14 @@ message KillProcessesRequest {
   repeated uint32 pids = 1;
 }
 
-message InterruptProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
-message User1ProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
-message User2ProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
-message HangupProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
-message ContinueProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
-message SuspendProcessesRequest {
-  repeated uint32 pids = 1;
-}
-
 message ProcessesRequest {
   oneof request {
     magpie.common.Empty process_map = 1;
     TerminateProcessesRequest terminate = 2;
     KillProcessesRequest kill = 3;
-    InterruptProcessesRequest interrupt = 4;
-    HangupProcessesRequest hangup = 5;
-    ContinueProcessesRequest continue = 6;
-    SuspendProcessesRequest suspend = 7;
-    User1ProcessesRequest user1 = 8;
-    User2ProcessesRequest user2 = 9;
   }
+  // 4-9: interrupt, hangup, continue, suspend, user1, user2 signals (removed)
+  reserved 4 to 9;
 }
 
 message ProcessesResponse {
