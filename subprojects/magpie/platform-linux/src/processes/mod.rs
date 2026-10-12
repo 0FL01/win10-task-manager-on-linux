@@ -339,24 +339,26 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                 )
             };
 
-            let task_count = match std::fs::read_dir(task_path(pid).as_str()) {
-                Ok(tasks) => {
-                    let mut task_count = 0u64;
-                    for task in tasks.filter_map(|t| t.ok()) {
-                        if task.file_name().to_string_lossy().parse::<u32>().is_err() {
-                            continue;
+            let task_count = stat::num_threads(&stat_parsed).unwrap_or_else(|| {
+                match std::fs::read_dir(task_path(pid).as_str()) {
+                    Ok(tasks) => {
+                        let mut task_count = 0u64;
+                        for task in tasks.filter_map(|t| t.ok()) {
+                            if task.file_name().to_string_lossy().parse::<u32>().is_err() {
+                                continue;
+                            }
+                            task_count += 1;
                         }
-                        task_count += 1;
+                        task_count
                     }
-                    task_count
-                }
-                Err(e) => {
-                    if !profile::proc_io_error(&e) {
-                        log::debug!("Failed to read task directory for process {pid}: {e}");
+                    Err(e) => {
+                        if !profile::proc_io_error(&e) {
+                            log::debug!("Failed to read task directory for process {pid}: {e}");
+                        }
+                        1
                     }
-                    1
                 }
-            };
+            });
 
             process.pid = pid;
             process.start_time_ticks = stat::start_time_ticks(&stat_parsed);

@@ -39,7 +39,8 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
   - Source: plan §3.
   - Acceptance: valid zero retained; malformed/missing/overflow fields fall back; CPU/I/O/memory baselines and CPU-page independent collection unchanged; measured benefit or documented rollback.
   - Primary evidence: stat/count tests, process/profile/syscall observations, commit.
-  - Status: pending.
+  - Status: verified.
+  - Evidence: eight stat tests pass, including comm whitespace/parens, valid zero, missing/negative/malformed/overflow and lazy fallback. Controlled live procfs checks with 0/1/4/16 held worker threads report stat/task counts 1/2/5/17, identical. Two paired 8/40 profiles (`threads-{a,b}-profile.log` and `threads-{a,b}2-profile.log`) show refresh.processes CPU/call 95.27→71.96 and 96.92→70.31 ms, then reversed-order 83.32→70.31 and 82.73→70.83 ms (~14–27% lower, ~600 PIDs). Quiet 8/40/3 runs all 3/3 valid; reversed pair whole-daemon CPU 38.79→37.13% and 40.88→38.76%. Earlier quiet results varied, including synthetic runs with no daemon and byte-identical UI hashes; do not attribute that environmental variation to this backend change or claim uniform total CPU gain. No established adjacent memory/latency regression. Existing task-directory/error fallback and CPU-page collection retained. Retain this slice.
 - R6: Attribute Apps stages; test the compact process snapshot only if preparation is a material expense.
   - Source: plan §4.
   - Acceptance: bounded fixed-stage reporting; preserve grouping/icons/invalidation and short process-cache lock. Conditional candidate requires evidence and measured benefit, otherwise record why it was not selected.
@@ -65,15 +66,15 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
 - Existing diagnostic bundle/benchmark paths, minimal measurement helpers if required by the evidence surface, and this goal. Toolchain Rust 1.96.1; backend workspace separate.
 
 ## Current Checkpoint
-- Closes: R5.
-- Smallest next action: freeze the retained process-row-reuse bundle; add checked stat field-20 accessor and use the existing task-directory fallback only when missing/invalid.
-- Expected evidence: unchanged thread counts for stable workloads and less process-scan CPU/work at comparable PID counts; independent CPU-page collector and sampling baselines unchanged.
+- Closes: R6.
+- Smallest next action: freeze the retained thread-count bundle and add four bounded fixed Apps subphase timers; measure inventory, process metadata preparation, matching/cgroup work and icon resolution separately.
+- Expected evidence: stage CPU/call selects the compact owned process metadata candidate only if snapshot preparation is material; otherwise close the conditional optimization with measured reasons.
 
 ## Current State
 - Diagnostic work committed as `0f3c6fa` from initial base `fce5c3c`; current bundle at `target/diagnostic/bundle/`, frozen baseline at `target/diagnostic/opt-baseline/`.
 - Existing quiet/profile benchmarks: 8 s warm-up, 40 s measurement, 3 repeats, both renderers, live CPU page and 1000-process synthetic fixture; all 3/3 valid.
 - Existing root/client/UI/backend/xtask tests and Rust 1.96.1 Clippy passed. Final native smoke emitted UI and daemon final summaries.
-- R2 reader, R3 snapshot index and R4 process-row reuse retained after parity tests and measured CPU/allocation benefit; R5–R6 not implemented yet. Read-only RECON verified stat field 20 num_threads.
+- R2 reader, R3 snapshot index, R4 process-row reuse and R5 stat thread count retained after parity tests and measured CPU/allocation benefit; R6 Apps attribution not implemented yet.
 
 ## Approved Plan (copy)
 
@@ -188,6 +189,8 @@ PSS/RSS — весь процесс, не функция; heaptrack UI не пр
 - 2026-10-12: isolated virtual KWin `--no-lockscreen` restored all four short reproduction runs (1/1 per scenario/renderer). Retain the one-flag harness fix and document it; rerun the full baseline/candidate comparisons with that same launcher.
 - 2026-10-12: R2 verified/retained: 12 fdinfo tests, 24 valid quiet A/B runs, two profile A/B pairs per renderer (~8–17% fdinfo CPU/call saving). Broad strace perturbed callbacks/cleanup; incomplete traces discarded and owned leftovers stopped. Filtered tracing with bounded interruptible ownership completed both reports; no traced-time resource claims. Next: R3 snapshot index only.
 - 2026-10-12: R3 verified/retained: validated snapshot-local client index preserves ordered full-scan selection; nine parity tests pass. Synthetic quiet UI CPU ~67–69% lower with both renderers; snapshot CPU/call ~89% lower in separate profiling. Heaptrack peak unchanged and allocation counts slightly higher, so this is a CPU optimization, not a RAM reduction. Next: R4 process-row reuse only.
+
+- R5: stat/task parity checked for controlled live thread workloads, parser/fallback tests pass. Two paired profiles show ~14–27% lower process-refresh CPU/call; quiet controls show environmental variation, not a proven neighboring regression. Retain; next Apps stage attribution.
 
 ## Completion
 - Pending final outcome verification and commits.
