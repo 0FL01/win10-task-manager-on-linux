@@ -40,8 +40,16 @@ jobs:
             ~/.cargo/git
             ~/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu
             ~/.rustup/downloads
-          key: cargo-checks-1.96.1-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
-          restore-keys: cargo-checks-1.96.1-
+          key: rust-home-1.96.1-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
+          restore-keys: rust-home-1.96.1-
+      - name: Restore target cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            target
+            subprojects/magpie/target
+          key: checks-target-1.96.1-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
+          restore-keys: checks-target-1.96.1-
       - name: Install build and offscreen-render dependencies
         run: |
           sudo apt-get update
@@ -111,24 +119,6 @@ jobs:
         with:
           submodules: recursive
           persist-credentials: false
-      - name: Restore target Cargo cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu
-            ~/.rustup/downloads
-          key: cargo-${{ matrix.distro }}-1.96.1-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
-          restore-keys: cargo-${{ matrix.distro }}-1.96.1-
-      - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.96.1 --profile minimal
-          rustup default 1.96.1
-      - name: Stamp this run's version
-        run: >-
-          python3 support/ci/release-meta.py stamp
-          --version "$VERSION" --date "$RELEASE_DATE"
       - name: Pull native base image
         id: base
         run: |
@@ -139,11 +129,41 @@ jobs:
             exit 1
           fi
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: Restore Rust cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu
+            ~/.rustup/downloads
+          key: rust-home-1.96.1-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
+          restore-keys: rust-home-1.96.1-
+      - name: Restore native target cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            target/release
+            target/magpie
+          key: native-target-${{ matrix.distro }}-${{ steps.base.outputs.digest }}-${{ hashFiles('Cargo.lock', 'subprojects/magpie/Cargo.lock') }}
+          restore-keys: native-target-${{ matrix.distro }}-${{ steps.base.outputs.digest }}-
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install 1.96.1 --profile minimal
+          rustup default 1.96.1
+      - name: Stamp this run's version
+        run: >-
+          python3 support/ci/release-meta.py stamp
+          --version "$VERSION" --date "$RELEASE_DATE"
       - name: Build native toolchain image
         env:
           BASE_IMAGE_DIGEST: ${{ steps.base.outputs.digest }}
         run: |
+          docker buildx create --use
           docker build --pull \
+            --load \
+            --cache-from type=gha,scope=native-${DISTRO} \
+            --cache-to type=gha,mode=max,scope=native-${DISTRO} \
             --build-arg "BASE_IMAGE=$BASE_IMAGE_DIGEST" \
             --build-arg "NATIVE_DISTRO=$DISTRO" \
             --build-arg "BUILDER_UID=$(id -u)" \
