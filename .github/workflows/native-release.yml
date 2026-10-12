@@ -276,6 +276,15 @@ jobs:
             --downloads target/native-artifacts \
             --output target/release-assets \
             --source-archive "target/taskmanager-${VERSION}-source.tar.gz"
+      - name: Generate release notes
+        if: steps.eligibility.outputs.release_needed == 'true'
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          LATEST_TAG: ${{ steps.eligibility.outputs.latest_tag }}
+        run: >-
+          python3 support/ci/release-notes.py
+          --version "$VERSION" --latest-tag "$LATEST_TAG" --head "$GITHUB_SHA"
+          --output target/release-notes.md
       - name: Create immutable draft release and publish assets
         if: steps.eligibility.outputs.release_needed == 'true'
         env:
@@ -302,7 +311,7 @@ jobs:
             --draft \
             --target "$GITHUB_SHA" \
             --title "Task Manager $VERSION" \
-            --notes "Automated native packages for Fedora 44, openSUSE Tumbleweed, Arch Linux, Debian 13 and Ubuntu 26.04 (x86_64). Built from commit $GITHUB_SHA."
+            --notes-file target/release-notes.md
           shopt -s nullglob
           assets=(target/release-assets/*)
           if [[ ${#assets[@]} -ne 6 ]]; then
