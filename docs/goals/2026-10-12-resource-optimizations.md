@@ -180,6 +180,8 @@ PSS/RSS — весь процесс, не функция; heaptrack UI не пр
 ## Checkpoint History
 - 2026-10-12: contract frozen; diagnostic baseline is prior verified work, optimization experiments not yet started.
 - 2026-10-12: R1 verified; diagnostic baseline committed/frozen with hashes and toolchain metadata, relative daemon smoke passed. Next: fdinfo reader experiment only.
+- 2026-10-12: R2 reader parity tests passed (12 fdinfo tests), candidate bundle built. Baseline quiet runs valid, but all subsequent candidate runs lacked exit stats; identical UI hash and synthetic/native reduced reproduction stalled at two logic passes while host screen locker was active. Diagnose isolated virtual KWin lockscreen handling, without unlocking/changing the host session; minimum benchmark helper change is within the envelope. Discard invalid runs and repeat both sides under identical launcher options.
+- 2026-10-12: isolated virtual KWin `--no-lockscreen` restored all four short reproduction runs (1/1 per scenario/renderer). Retain the one-flag harness fix and document it; rerun the full baseline/candidate comparisons with that same launcher.
 
 ## Completion
 - Pending final outcome verification and commits.

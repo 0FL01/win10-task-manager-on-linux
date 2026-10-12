@@ -76,6 +76,9 @@ can be redirected to a separate file under `target/diagnostic/`.
 
 ## Method
 
+Each run uses a fresh virtual KWin with `--no-lockscreen`: this isolates benchmark frame
+callbacks from the host session's screen locker without unlocking or reconfiguring that session.
+
 - Every run starts a fresh nested compositor (`kwin_wayland --virtual`, 1280x800) so the user's
   desktop is not touched and an idle compositor cannot stop frame callbacks mid-run.
 - Both renderers use the same magpie daemon with a 1 s refresh interval and the CPU page selected;
