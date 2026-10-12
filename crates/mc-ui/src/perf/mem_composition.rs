@@ -177,11 +177,11 @@ impl MemComposition {
 
         let response = ui.interact(clipped, ui.id().with("memory-composition"), Sense::hover());
         if self.total == 0 {
-            let _ = response.on_hover_text(&self.tooltips[0]);
+            let _ = response.on_hover_text_at_pointer(&self.tooltips[0]);
         } else if let Some(pos) = response.hover_pos()
             && let Some(index) = Self::segment_at(&segments, pos)
         {
-            let _ = response.on_hover_text(&self.tooltips[index]);
+            let _ = response.on_hover_text_at_pointer(&self.tooltips[index]);
         }
     }
 

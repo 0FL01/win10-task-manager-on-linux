@@ -766,7 +766,7 @@ impl App {
         let line_y = if graph_summary {
             window.bottom() - 1.
         } else {
-            chrome::footer_line(ui, window)
+            chrome::footer_line(ui, window, compact || self.page != MainPage::Performance)
         };
         let expanded = !self.config.window_fewer_details;
         let toggle = if expanded {

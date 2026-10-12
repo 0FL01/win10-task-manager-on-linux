@@ -86,6 +86,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Content starts at y 77. List views have a 1 px `#a0a0a0` frame line on top (Details/Services
   y 89) or under the header (Processes y 133).
 - Footer: top line `#a0a0a0` at y 655, area y 656–703 (48 px), background `#ffffff`.
+  Full Performance omits this stroke (user-approved correction); the footer/content anchor
+  stays at `window.bottom() − 50`. Other tabs and compact mode retain the separator.
   - "Fewer details": circle 19×19 at x 9, y 670 (stroke `#999999`, our own glyph: circle with a
     chevron); text x 36, cap top y 675.
   - Right button "End task": x 939–1021, y 669–689 (83×21).
@@ -180,7 +182,7 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - Single-graph pages use one cell x 241–1004, y 151–465.
   - Several graph panels (CPU bottom graph, swap) share the height; each
     further caption has its cap top 24 px below the previous graph, its graph 13 px lower.
-  - Graph area ends 24 px above the statistics; statistics end 24 px above the footer line.
+  - Graph area ends 24 px above the statistics; statistics end 24 px above the footer boundary.
 - Stat block (below graphs):
   - labels 12 px `#707070` cap top 494 / 545 / 596;
   - values 20 px black cap top 515 / 566 / 617;
@@ -193,6 +195,7 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   "used/total (percent)" on one line, so these items are 60 px like the reference.
 - Footer: "Fewer details" as Processes, then a 16 px own icon at x 120 and link
   "Open Resource Monitor"-style text (ours: none — no external tool; the slot stays empty).
+  No horizontal separator in full Performance; footer controls and content retain their anchors.
 
 ### Unix Performance parity (own adaptation, not historical pixel probes)
 
@@ -204,6 +207,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Ordinary graph cells are hover-only, preserving page context menu and double-click ownership.
   Logical CPU labels are array ordinals (CPU 0, CPU 1, ...), not kernel or physical core IDs.
   RAM/Disk graphs explain their metrics; graph summary retains these tooltips.
+  These graph tooltips and composition tooltips anchor at the pointer, not the graph/bar corner,
+  using egui's pointer-tooltip gap and edge fitting (own adaptation). Delay and click ownership
+  are unchanged; existing GPU tile tooltips retain their behavior.
 - Memory composition is always shown in the full page, after RAM and optional Swap and before
   statistics, with a caption and a 52-point square bar. Segments use existing memory fill/line,
   Free stays white, boundaries are cumulative and zero-width segments have no artificial width.
@@ -280,7 +286,7 @@ typefaces, grid and one-pixel paint helpers; the following geometry is our own a
 | chrome lines under menu | `#f2f2f2`, `#f0f0f0` |
 | tab border / list separators | `#d9d9d9` |
 | unselected tab | `#f0f0f0` |
-| list frame / footer line | `#a0a0a0` |
+| list frame / retained footer separator (not full Performance) | `#a0a0a0` |
 | header separator gradient | `#e8e8e8` → `#bbbbbb` |
 | heat zero / low | `#fff4c4` / `#f9eca8` |
 | heat cell separator | `#ead5a0` |

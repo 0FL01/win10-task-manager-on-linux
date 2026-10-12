@@ -1,7 +1,7 @@
 # Goal: Win10 Performance parity with Unix memory semantics
 
-Status: complete
-Source: user screenshots, audited plan, and “Реализовать и коммит пуш; делай копию плана в цель и итеративно реализовать”.
+Status: active
+Source: user screenshots, audited plan, “Реализовать и коммит пуш; делай копию плана в цель и итеративно реализовать”, and the rejected tooltip/footer renders followed by “реализовать и коммит пуш”.
 Last updated: 2026-10-12
 
 ## Objective
@@ -27,12 +27,14 @@ affected constraints remain satisfied.
     volume, frame and RAM-tooltip render assertions passed.
 - R2: CPU ordinal hover labels and RAM/Disk contextual graph explanations.
   - Source: user CPU/Disk screenshots and audited plan B.
-  - Acceptance: CPU N labels match logical-mode graph positions; tooltips preserve click,
-    context-menu and summary behavior, without new repaint/cache invalidation.
-  - Primary evidence: CPU model and real hover/input tests.
+  - Acceptance: CPU N labels match logical-mode graph positions; ordinary CPU/RAM/Disk,
+    summary and composition tooltips anchor near the pointer, not the graph/bar corner.
+    Preserve click, context-menu and summary behavior without new repaint/cache invalidation.
+  - Primary evidence: CPU model and real tooltip-position/input tests.
   - Status: verified
-  - Evidence: CPU modes/count unit test and CPU0/CPU1/menu/double-click/summary UI test passed;
-    RAM and both Disk tooltip assertions passed.
+  - Evidence: tooltip rectangle assertions passed for two points in one CPU cell, summary,
+    RAM, composition and both Disk graphs; the long RAM tooltip stays inside the right edge.
+    Existing label, clipping, menu and double-click assertions passed; real renders reviewed.
 - R3: Thin disk transfer graph and usable Memory vertical stack at the existing minimum.
   - Source: circled disk comparison, compact-window request, audited plan C.
   - Acceptance: disk lower graph 66 logical points; composition 52; Memory-only overflow
@@ -46,18 +48,22 @@ affected constraints remain satisfied.
   - Acceptance: intended clean commit on origin; required jobs and expected artifacts/releases
     successful for that SHA.
   - Primary evidence: Git SHA/ref, GitHub Actions jobs and artifacts/release.
+  - Status: pending
+  - Evidence: previous delivery 6669726 passed Actions 38175799892 and published v1.2.12;
+    the accepted correction still needs its own commit, push and exact-SHA CI verification.
+- R5: Remove the separator above the full Performance footer without changing geometry.
+  - Source: the user's crossed-out footer line and approved correction plan.
+  - Acceptance: no separator in expanded Performance; preserve footer/content coordinates,
+    other tabs, compact mode, summary mode, graph sizes and Memory scrolling.
+  - Primary evidence: Performance white-footer probes and unchanged other-tab/compact probes.
   - Status: verified
-  - Evidence: implementation 666972682d4cf4006160d683f8d7c6ea9eac391e pushed to origin/main;
-    [Actions 38175799892](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38175799892)
-    succeeded (checks, metadata, five native jobs, publish). Six nonempty CI artifacts verified:
-    ui-snapshots and native packages for Arch, Debian 13, Fedora 44, Tumbleweed and Ubuntu 26.04.
-    [v1.2.12](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.12)
-    is published for that SHA with five uploaded packages and one source archive.
+  - Evidence: full Performance footer is white across its interior at y=655 and at the
+    minimum-size anchor y=490; all other-tab and compact footer probes still pass.
 
 ### Constraints
 - Preserve Mission Center attribution, clean-room assets, i18n and bounded/event-driven UI.
 - No backend/IPC changes, I/O in UI, new settings, dependencies, cache layer or public test hooks.
-- Keep CPU probes, GPU behavior, page-wide click ownership and existing graph/sidebar/stat data.
+- Keep CPU graph geometry/probes, GPU behavior, page-wide click ownership and graph/sidebar/stat data.
 - Never commit reference screenshots, private readings, build artifacts or credentials.
 
 ### Non-goals
@@ -70,6 +76,8 @@ affected constraints remain satisfied.
   seven direct producers; `win10/performance.rs`, metrics, nearest model/probe tests.
 - `mc-magpie/src/synthetic.rs`: consistent example memory counters and its existing test.
 - `docs/win10-spec/spec.md`, this goal and `po/taskmanager.pot`.
+- Correction: `mc-ui/src/app.rs`, `win10/chrome.rs`, the existing performance tooltip calls,
+  `tests/win10_probes.rs` and `docs/win10-spec/probes.json`. No text/POT changes are needed.
 - No collector/schema, configuration migration, packaging or dependency changes expected.
 
 ## Copy of the audited execution plan
@@ -135,18 +143,30 @@ One fresh `--no-config --synthetic 300` smoke; real ZFS readings optional if ava
 Commit, push and verify required GitHub Actions jobs and expected artifacts/releases.
 
 ## Current Checkpoint
-- Closed: R1–R4 and affected constraints. No runtime work remains.
+- Closes: R4; commit/push the verified correction and check all required jobs and expected
+  native/UI artifacts and release assets on that exact SHA. No runtime work remains.
 
 ## Current State
-- Resolved: R1–R4 verified; implementation 6669726, baseline main 0ef2e66.
-- Last relevant evidence: `cargo +1.96.1 fmt --all --check`, `cargo +1.96.1 xtask pot`,
-  `cargo +1.96.1 test --locked --workspace -- --test-threads=1` (155 passed, 5 existing ignored),
-  `cargo +1.96.1 clippy --locked --workspace --all-targets -- -D warnings` all passed.
-  Fresh native glow smoke `cargo +1.96.1 run --locked -p taskmanager-app -- --no-config
-  --synthetic 300 --bench-seconds 3` exited successfully. Actual Memory/Disk renders reviewed
-  under target/ui-snapshots; all five focused UI scenarios and frozen CPU/frame probes passed.
+- Resolved: R1/R2/R3/R5 verified; original implementation 6669726, repair baseline 3cf3255.
+- Current repair evidence: `cargo +1.96.1 test --locked -p mc-ui --test win10_probes --
+  --test-threads=1` (18 passed, 2 existing ignored), `cargo +1.96.1 fmt --all --check`,
+  `cargo +1.96.1 test --locked --workspace -- --test-threads=1` (155 passed, 5 existing ignored)
+  and `cargo +1.96.1 clippy --locked --workspace --all-targets -- -D warnings` all passed.
+  Real CPU, RAM, composition and right-edge tooltip renders reviewed in target/ui-snapshots.
+  No counter, layout-size, tooltip-text, localization-template or GPU behavior changes.
 - Blocker: none.
-- Next: none. Serial offscreen tests match the required CI gate.
+- Next: commit, push and verify required CI and expected outputs on the repair SHA.
+
+## Accepted correction plan
+- Use egui 0.36.2 `on_hover_text_at_pointer` for ordinary graph cells, the summary fallback
+  and composition tooltips. Keep clipping, IDs, delay, text and GPU tile behavior unchanged.
+- Add `draw_separator` to `footer_line`; keep its coordinate return unchanged. The only caller
+  passes `compact || self.page != MainPage::Performance`; summary continues to bypass it.
+- Document the full-Performance exception. Move the grey common footer probe to the other
+  three tab groups and add the white Performance probe; compact retains its grey probe.
+- Extend existing CPU/RAM/Disk/composition tests with tooltip rectangle assertions, including
+  two positions in one CPU cell and a long tooltip near the right edge. Update the minimum
+  Performance footer assertion. No new framework, tooltip renderer, counters or settings.
 
 ## Checkpoint History
 - 2026-10-11: frozen user-approved contract and copied corrected plan; no implementation yet.
@@ -157,12 +177,13 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
   access the native workflow; local `gh` is absent, so use those tools to verify CI after push.
 - 2026-10-12: 6669726 pushed, all eight CI jobs succeeded, six artifacts and release v1.2.12
   verified against its exact SHA. Frozen outcomes and closure check complete.
+- 2026-10-12: user rejected tooltip location and Performance footer separator. Reopened R2/R4,
+  added explicit R5 and copied the approved narrow correction plan; no adjacent redesign.
+- 2026-10-12: R2/R5 correction and regression assertions passed, including real pointer-adjacent
+  renders and unchanged other-tab/compact separators. Final fmt/workspace/1.96.1 Clippy gates
+  passed; only R4 delivery verification remains.
 
 ## Completion
-- Resolved outcomes: R1–R4 verified, no pending or blocked requirements.
-- Commands and artifacts: local gates/smoke above; Actions 38175799892 and published v1.2.12.
-- Constraint and diff-scope check: confined to listed views, renderer/metrics, synthetic example,
-  tests, spec, localization template and goal. No backend/IPC/settings/dependency changes;
-  attribution and event-driven/cache behavior preserved, saved sizes unchanged, CPU/GPU
-  regressions passed. No private/reference/build artifacts committed.
-- Final status: complete.
+- Pending: R4 delivery verification. The local correction evidence above is current; earlier
+  CI proves the previous source tree, not the correction awaiting push.
+- Final status: active.

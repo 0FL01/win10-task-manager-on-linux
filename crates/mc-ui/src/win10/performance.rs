@@ -742,7 +742,7 @@ fn graph_panels_ui(
             } else if let Some(tooltip) = panel.tooltips.get(slot) {
                 let mut response = response;
                 response.rect = response.rect.intersect(ui.clip_rect());
-                response.on_hover_text(tooltip);
+                response.on_hover_text_at_pointer(tooltip);
             }
         }
         graph_top += height + m::GPU_PANEL_GAP + 13.;
@@ -938,7 +938,7 @@ fn page_ui(
                     ui.id().with(("perf-hover", device, index, k)),
                     Sense::hover(),
                 )
-                .on_hover_text(tooltip);
+                .on_hover_text_at_pointer(tooltip);
             }
         }
         graph_top += height + PANEL_GAP + 13.;

@@ -683,6 +683,25 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
     h.run_steps(40);
     assert!(h.query_by_label("CPU 0").is_some());
     assert!(h.query_by_label("CPU 1").is_none());
+    let first_tip = h.get_by_label("CPU 0").rect();
+    let offset = first_tip.min - cpu0;
+    assert!(
+        (0. ..=12.).contains(&offset.x),
+        "CPU tooltip near pointer: {first_tip:?}"
+    );
+    assert!(
+        (12. ..=28.).contains(&offset.y),
+        "CPU tooltip below pointer: {first_tip:?}"
+    );
+    let moved_cpu0 = cpu0 + egui::vec2(40., 20.);
+    h.hover_at(moved_cpu0);
+    h.run_steps(40);
+    let moved_tip = h.get_by_label("CPU 0").rect();
+    assert_eq!(
+        moved_tip.min - first_tip.min,
+        moved_cpu0 - cpu0,
+        "tooltip follows the pointer inside the same graph cell"
+    );
     h.hover_at(cpu1);
     h.run_steps(40);
     assert!(h.query_by_label("CPU 1").is_some());
@@ -733,6 +752,15 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
     h.hover_at(summary_cpu0);
     h.run_steps(40);
     assert!(h.query_by_label("CPU 0").is_some(), "CPU hover in summary");
+    let summary_offset = h.get_by_label("CPU 0").rect().min - summary_cpu0;
+    assert!(
+        (0. ..=12.).contains(&summary_offset.x),
+        "summary tooltip near pointer"
+    );
+    assert!(
+        (12. ..=28.).contains(&summary_offset.y),
+        "summary tooltip below pointer"
+    );
     let summary = h.render().expect("offscreen wgpu render unavailable");
     summary
         .save(out.join("win10-performance-cpu-summary-hover.png"))
@@ -747,6 +775,13 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
     let restored = h.render().expect("offscreen wgpu render unavailable");
     assert_eq!(hex(&restored, 212, 600), "#d9d9d9", "sidebar restored");
     assert_eq!(hex(&restored, 241, 200), "#117dbb", "CPU page restored");
+    for x in 1..1029 {
+        assert_eq!(
+            hex(&restored, x, 655),
+            "#ffffff",
+            "no Performance footer separator at {x}"
+        );
+    }
 }
 
 #[test]
@@ -820,11 +855,22 @@ fn performance_memory_composition_regions_and_ram_hover() {
         h.hover_at(egui::pos2(x, 438.));
         h.run_steps(40);
         let header = format!("{category} ({})\n\n", values[index]);
-        let tooltip = h
+        let tooltip_node = h
             .query_by_label_contains(&header)
-            .unwrap_or_else(|| panic!("no selected {category} tooltip at x={x}"))
-            .value()
-            .unwrap();
+            .unwrap_or_else(|| panic!("no selected {category} tooltip at x={x}"));
+        if index == 0 {
+            let rect = tooltip_node.rect();
+            let offset = rect.min - egui::pos2(x, 438.);
+            assert!(
+                (0. ..=12.).contains(&offset.x),
+                "composition tooltip near pointer: {rect:?}"
+            );
+            assert!(
+                (12. ..=28.).contains(&offset.y),
+                "composition tooltip below pointer: {rect:?}"
+            );
+        }
+        let tooltip = tooltip_node.value().unwrap();
         assert!(
             tooltip.starts_with(&header),
             "selected region must lead the tooltip"
@@ -836,9 +882,17 @@ fn performance_memory_composition_regions_and_ram_hover() {
         .unwrap()
         .save(out.join("win10-performance-memory-composition-hover.png"))
         .unwrap();
-    h.hover_at(egui::pos2(600., 200.));
+    let ram_pointer = egui::pos2(300., 200.);
+    h.hover_at(ram_pointer);
     h.run_steps(40);
-    let ram_tip = h.get_by_label_contains("MemAvailable").value().unwrap();
+    let ram_node = h.get_by_label_contains("MemAvailable");
+    let offset = ram_node.rect().min - ram_pointer;
+    assert!((0. ..=12.).contains(&offset.x), "RAM tooltip near pointer");
+    assert!(
+        (12. ..=28.).contains(&offset.y),
+        "RAM tooltip below pointer"
+    );
+    let ram_tip = ram_node.value().unwrap();
     assert!(
         !ram_tip.starts_with("Used ("),
         "RAM graph has its own explanation"
@@ -846,6 +900,21 @@ fn performance_memory_composition_regions_and_ram_hover() {
     h.render()
         .unwrap()
         .save(out.join("win10-performance-memory-ram-hover.png"))
+        .unwrap();
+    h.hover_at(egui::pos2(995., 200.));
+    h.run_steps(40);
+    let edge_tip = h.get_by_label_contains("MemAvailable").rect();
+    assert!(
+        h.ctx.content_rect().contains_rect(edge_tip),
+        "long tooltip stays inside the window: {edge_tip:?}"
+    );
+    assert!(
+        (12. ..=28.).contains(&(edge_tip.top() - 200.)),
+        "edge fitting keeps the tooltip by the pointer, not at the graph bottom"
+    );
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-memory-ram-hover-edge.png"))
         .unwrap();
 }
 
@@ -954,11 +1023,35 @@ fn performance_disk_transfer_strip_and_graph_hover() {
                 )
                 .is_some()
             );
+            let rect = h
+                .get_by_label("Percentage of time the drive is processing read or write requests")
+                .rect();
+            let offset = rect.min - egui::pos2(300., 200.);
+            assert!(
+                (0. ..=12.).contains(&offset.x),
+                "Disk active-time tooltip near pointer"
+            );
+            assert!(
+                (12. ..=28.).contains(&offset.y),
+                "Disk active-time tooltip below pointer"
+            );
             h.hover_at(egui::pos2(300., 430.));
             h.run_steps(40);
             assert!(
                 h.query_by_label("Read and write activity on this drive")
                     .is_some()
+            );
+            let rect = h
+                .get_by_label("Read and write activity on this drive")
+                .rect();
+            let offset = rect.min - egui::pos2(300., 430.);
+            assert!(
+                (0. ..=12.).contains(&offset.x),
+                "Disk transfer tooltip near pointer"
+            );
+            assert!(
+                (12. ..=28.).contains(&offset.y),
+                "Disk transfer tooltip below pointer"
             );
             h.render()
                 .unwrap()
@@ -1100,7 +1193,11 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         "compressed value is the formatter's 16 MiB fixture value"
     );
     assert_eq!(hex(&scrolled, 212, 400), "#d9d9d9", "sidebar remains fixed");
-    assert_eq!(hex(&scrolled, 300, 490), "#a0a0a0", "footer remains fixed");
+    assert_eq!(
+        hex(&scrolled, 300, 490),
+        "#ffffff",
+        "Performance footer has no separator"
+    );
 
     h.set_size(egui::vec2(1030., 705.));
     h.remove_cursor();

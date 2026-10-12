@@ -378,16 +378,18 @@ pub fn tabs(ui: &mut Ui, window: Rect, labels: &[String], selected: usize) -> Op
     clicked
 }
 
-/// Footer line; returns the y of the line.
-pub fn footer_line(ui: &Ui, window: Rect) -> f32 {
+/// Footer boundary; optionally draws the separator and always returns its y.
+pub fn footer_line(ui: &Ui, window: Rect, draw_separator: bool) -> f32 {
     let y = window.bottom() - m::FOOTER_H;
-    paint::hline(
-        ui.painter(),
-        window.left() + 1.,
-        window.right() - 2.,
-        y,
-        pal::LIST_FRAME,
-    );
+    if draw_separator {
+        paint::hline(
+            ui.painter(),
+            window.left() + 1.,
+            window.right() - 2.,
+            y,
+            pal::LIST_FRAME,
+        );
+    }
     y
 }
 
