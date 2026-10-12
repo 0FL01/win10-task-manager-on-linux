@@ -1,8 +1,8 @@
 # Goal: Iterative resource optimizations
 
-Status: active
+Status: complete
 Source: user-approved plan below; user instruction: «Делай копию плана в цель и итеративно реализовать и коммит».
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 ## Objective
 Reduce backend/UI CPU and temporary allocations without reducing metrics, refresh frequency or functionality. Implement the approved slices separately, retain only measured improvements, and commit verified results.
@@ -51,7 +51,8 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
   - Source: latest user instruction and plan criteria.
   - Acceptance: root/backend checks pass on Rust 1.96.1; final bundle runs; all retained changes and goal evidence committed. No push requested.
   - Primary evidence: fmt/workspace tests/backend release tests/Clippy/runtime evidence and git history/status.
-  - Status: pending.
+  - Status: verified.
+  - Evidence: Rust 1.96.1 root/backend formatting checks pass; full root workspace has 175 passing tests and five pre-existing ignored tests, including real offscreen snapshots/pixel probes. Backend release platform/Linux/types checks pass (10 platform + 60 Linux tests); workspace all-target Clippy with -D warnings passes. Final bundle built/verified and quiet 8/40/3 reports all 3/3 valid; final repeat UI CPU 1.85/1.85% live, 0.95/1.07% synthetic, daemon 29.47/31.09% (wgpu/glow, percent of one core). Retained slices are committed through `7f69c7a`; this closure is committed separately. No push.
 
 ### Constraints and Non-goals
 - Preserve Readings/fixtures, refresh frequency, metric completeness, PID/start-time checks, unknown/idle/partial states, client/device deduplication and busiest-engine percentages. Device memory does not come from process sums.
@@ -67,15 +68,14 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
 - Existing diagnostic bundle/benchmark paths, minimal measurement helpers if required by the evidence surface, and this goal. Toolchain Rust 1.96.1; backend workspace separate.
 
 ## Current Checkpoint
-- Closes: R7.
-- Smallest next action: run final root/backend formatting/tests and Rust 1.96.1 Clippy, then verify the final bundle in a quiet 8/40/3 run and commit closure.
-- Expected evidence: all required gates and live/synthetic runs pass; all retained slices and outcome evidence are committed, raw artifacts remain ignored.
+- Complete. All R1–R7 resolved; no next implementation checkpoint.
 
 ## Current State
 - Diagnostic work committed as `0f3c6fa` from initial base `fce5c3c`; current bundle at `target/diagnostic/bundle/`, frozen baseline at `target/diagnostic/opt-baseline/`.
 - Existing quiet/profile benchmarks: 8 s warm-up, 40 s measurement, 3 repeats, both renderers, live CPU page and 1000-process synthetic fixture; all 3/3 valid.
 - Existing root/client/UI/backend/xtask tests and Rust 1.96.1 Clippy passed. Final native smoke emitted UI and daemon final summaries.
 - R2 reader, R3 snapshot index, R4 process-row reuse and R5 stat thread count retained after parity tests and measured CPU/allocation benefit. R6 attribution retained; compact snapshot not selected because matching dominates.
+- Final root/backend gates pass. Candidate/control/final-repeat quiet reports are all valid; byte-identical synthetic UI controls demonstrate environment variation, so whole-application improvements are not inferred from historical unmatched runs.
 
 ## Approved Plan (copy)
 
@@ -193,6 +193,18 @@ PSS/RSS — весь процесс, не функция; heaptrack UI не пр
 
 - R5: stat/task parity checked for controlled live thread workloads, parser/fallback tests pass. Two paired profiles show ~14–27% lower process-refresh CPU/call; quiet controls show environmental variation, not a proven neighboring regression. Retain; next Apps stage attribution.
 - R6: eight bounded profile tests and live stage attribution passed. Matching is ~43 ms CPU/update versus ~0.5–0.6 ms preparation; icon resolution is startup-only in this workload. Retain fixed diagnostics, do not implement the unselected compact snapshot. Next: final required gates and closure.
+- R7: final fmt/workspace tests/backend release tests/Clippy pass. Final quiet run, previous-thread-slice control and candidate repeat all have 3/3 valid runs per scenario/renderer. Initial synthetic UI CPU 1.37/1.05%, control 0.92/1.02%, candidate repeat 0.95/1.07% with byte-identical UI ELFs; no established diagnostic-stage resource regression. Do not claim total CPU/RAM improvement from the unmatched first final run.
 
 ## Completion
-- Pending final outcome verification and commits.
+- Resolved: R1 baseline/plan, R2 fdinfo reader, R3 snapshot-local index, R4 process-row reuse, R5 stat thread count, R6 Apps attribution/conditional decision, R7 final verification/commits.
+- Retained commits: `7147215` GPU reader, `99c7570` client index, `250a3ca` row reuse, `5f4537c` stat count, `7f69c7a` Apps attribution; supporting diagnostic/goal/harness commits `0f3c6fa`, `e872126`, `c4cffc2`.
+- Final checks (using existing offline Cargo/native dependency caches):
+  - `cargo +1.96.1 fmt --all --check`
+  - `cargo +1.96.1 fmt --manifest-path subprojects/magpie/Cargo.toml --all --check`
+  - `cargo +1.96.1 test --locked --offline --workspace -- --test-threads=1`
+  - `cargo +1.96.1 clippy --locked --offline --workspace --all-targets -- -D warnings`
+  - `cargo +1.96.1 test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform-linux -p magpie-types -p magpie-platform --locked --offline --release -- --test-threads=1`
+  - Verified diagnostic build, private GPU closure/daemon --test and live/synthetic renders in both renderers, without installation/root.
+- Reports remain ignored under `target/diagnostic/`: per-slice A/B quiet/profile/heaptrack evidence and `resource-final-{quiet,control-quiet,repeat-quiet}.md`. Final repeat PSS: UI 55.4/57.8 MiB live, 112.7/114.9 MiB synthetic; daemon 107.6/108.1 MiB. Synthetic includes fixture storage; no peak-heap/PSS saving claimed.
+- Constraints checked: no skipped metric/refresh, persistent PID/FD cache, public Readings/fixture change, dependency/IPC/allocator rewrite, submodule edit, system installation/security override or push. Existing PID/start-time, client dedup, unknown/idle/partial, busiest-engine and private GPU loading behavior remain covered.
+- Final status: complete. Closure commit contains this evidence; private artifacts are not staged.
