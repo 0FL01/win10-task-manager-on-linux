@@ -33,7 +33,8 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
   - Source: plan §2b.
   - Acceptance: missing-entry fallback retained; app/service groups still aggregate unique clients; measured benefit or documented rollback.
   - Primary evidence: table/GPU tests, benchmark/profile observations, commit.
-  - Status: pending.
+  - Status: verified.
+  - Evidence: 14 table tests pass, including full-field cached-row/fallback parity and overlapping app/service descendants with shared clients; mc-core Clippy passes. Quiet 8/40/3 `ui-reuse-{a,b}-quiet.md` all 3/3 valid, synthetic UI CPU 1.02→1.00% and 1.05→1.02%, live 2.15→1.75% and 2.05→1.67% (wgpu/glow; no uniform whole-system gain claimed). Separate synthetic profiles show apply CPU/call 11.55→9.67 and 11.52→6.19 ms. Two rootless UI heaptrack pairs, 15 readings each, allocation calls 2235707→2140643 and 2235960→2141395 (~95k fewer); first filtered apply_gpu allocation bucket 75870→14250 calls, not the global summary. Peak heap remains 75.64 MB; no RAM-size saving or established adjacent resource regression. Retain for repeatable allocation reduction.
 - R5: Test num_threads from already-read stat with the existing task-directory fallback.
   - Source: plan §3.
   - Acceptance: valid zero retained; malformed/missing/overflow fields fall back; CPU/I/O/memory baselines and CPU-page independent collection unchanged; measured benefit or documented rollback.
@@ -64,15 +65,15 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
 - Existing diagnostic bundle/benchmark paths, minimal measurement helpers if required by the evidence surface, and this goal. Toolchain Rust 1.96.1; backend workspace separate.
 
 ## Current Checkpoint
-- Closes: R4.
-- Smallest next action: freeze the retained indexed UI bundle, reuse snapshot.processes only for process rows with original missing-entry fallback, and test overlapping app/service groups separately.
-- Expected evidence: less table.gpu CPU/temporary work with unchanged row/group stats; compare against the indexed bundle, not the original pre-index baseline.
+- Closes: R5.
+- Smallest next action: freeze the retained process-row-reuse bundle; add checked stat field-20 accessor and use the existing task-directory fallback only when missing/invalid.
+- Expected evidence: unchanged thread counts for stable workloads and less process-scan CPU/work at comparable PID counts; independent CPU-page collector and sampling baselines unchanged.
 
 ## Current State
 - Diagnostic work committed as `0f3c6fa` from initial base `fce5c3c`; current bundle at `target/diagnostic/bundle/`, frozen baseline at `target/diagnostic/opt-baseline/`.
 - Existing quiet/profile benchmarks: 8 s warm-up, 40 s measurement, 3 repeats, both renderers, live CPU page and 1000-process synthetic fixture; all 3/3 valid.
 - Existing root/client/UI/backend/xtask tests and Rust 1.96.1 Clippy passed. Final native smoke emitted UI and daemon final summaries.
-- R2 reader and R3 snapshot index retained after parity tests and measured CPU benefit; R4–R6 not implemented yet. Read-only RECON also verified repeated UI process-row aggregation and stat field 20 num_threads.
+- R2 reader, R3 snapshot index and R4 process-row reuse retained after parity tests and measured CPU/allocation benefit; R5–R6 not implemented yet. Read-only RECON verified stat field 20 num_threads.
 
 ## Approved Plan (copy)
 
@@ -180,6 +181,7 @@ PSS/RSS — весь процесс, не функция; heaptrack UI не пр
 Первый шаг — fdinfo reader без metadata, затем отдельно индекс GPU-клиентов и reuse process GPU stats: убрать лишнюю работу без потери полноты данных.
 
 ## Checkpoint History
+- R4: cached process-row values/fallback and unique-client group semantics verified; repeatable ~95k fewer allocation calls in paired 15-reading UI runs, unchanged peak heap. Retain and proceed to R5.
 - 2026-10-12: contract frozen; diagnostic baseline is prior verified work, optimization experiments not yet started.
 - 2026-10-12: R1 verified; diagnostic baseline committed/frozen with hashes and toolchain metadata, relative daemon smoke passed. Next: fdinfo reader experiment only.
 - 2026-10-12: R2 reader parity tests passed (12 fdinfo tests), candidate bundle built. Baseline quiet runs valid, but all subsequent candidate runs lacked exit stats; identical UI hash and synthetic/native reduced reproduction stalled at two logic passes while host screen locker was active. Diagnose isolated virtual KWin lockscreen handling, without unlocking/changing the host session; minimum benchmark helper change is within the envelope. Discard invalid runs and repeat both sides under identical launcher options.

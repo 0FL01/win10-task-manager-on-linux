@@ -629,6 +629,14 @@ impl Tree {
             if node.kind == RowKind::SectionHeader {
                 continue;
             }
+            if node.kind == RowKind::Process {
+                node.gpu = gpu
+                    .processes
+                    .get(&node.pid)
+                    .cloned()
+                    .unwrap_or_else(|| gpu.aggregate([node.pid]));
+                continue;
+            }
             // Process rows show their own values; apps and services include descendants
             let descend = node.kind != RowKind::Process;
             let mut pending = if node.kind == RowKind::App {
@@ -988,6 +996,95 @@ mod tests {
         let r = readings();
         let app = &r.running_apps["org.mozilla.firefox"];
         assert_eq!(primary_processes(app, &r.running_processes), vec![10]);
+    }
+
+    #[test]
+    fn gpu_process_rows_reuse_snapshot_but_groups_still_deduplicate_clients() {
+        use crate::gpu::GpuIndices;
+        use mc_magpie::magpie_types::gpus::{ProcessIdentity, TelemetryState};
+
+        let fields = |stats: &GpuStats| {
+            (
+                stats.usage.percent.map(f32::to_bits),
+                stats.usage.engine.clone(),
+                stats.usage.state,
+                stats.dedicated,
+                stats.shared,
+                stats.memory,
+                stats.dedicated_state,
+                stats.shared_state,
+                stats.memory_state,
+                stats.memory_is_resident,
+            )
+        };
+        let mut r = mc_magpie::synthetic_readings(0, 8);
+        let mut pids: Vec<_> = r.running_processes.keys().copied().collect();
+        pids.sort_unstable();
+        let (parent, child) = (pids[0], pids[1]);
+        for process in r.running_processes.values_mut() {
+            process.children.clear();
+        }
+        // Repeated descendants and overlapping app memberships are intentional.
+        r.running_processes.get_mut(&parent).unwrap().children = vec![child, child];
+        for gpu in r.gpus.values_mut() {
+            let telemetry = gpu.telemetry.as_mut().unwrap();
+            let mut shared = telemetry.clients[0].clone();
+            shared.owners = [parent, child]
+                .map(|pid| ProcessIdentity {
+                    pid,
+                    start_time_ticks: r.running_processes[&pid].start_time_ticks.unwrap(),
+                })
+                .to_vec();
+            shared.dedicated_memory_bytes = Some(1024);
+            shared.shared_memory_bytes = Some(2048);
+            shared.allocated_memory_bytes = Some(3072);
+            telemetry.clients = vec![shared];
+        }
+        let mut gpu = GpuSnapshot::from_readings(&r, &mut GpuIndices::default(), 1000);
+        let own = gpu.aggregate([parent]);
+        let group = gpu.aggregate([parent, child]);
+        assert!(group.memory.is_some());
+        assert_eq!(group.memory, own.memory); // Shared clients, not SUM(per-PID).
+        // A distinguishable cached record proves reuse, not recomputation.
+        let cached = gpu.processes.get_mut(&parent).unwrap();
+        cached.usage.percent = Some(12.);
+        cached.usage.engine = None;
+        cached.usage.state = TelemetryState::Partial;
+        cached.dedicated = Some(4242);
+        cached.shared = Some(777);
+        cached.memory = Some(888);
+        cached.dedicated_state = TelemetryState::Partial;
+        cached.shared_state = TelemetryState::Unknown;
+        cached.memory_state = TelemetryState::Warmup;
+        cached.memory_is_resident = false;
+
+        let mut tree = Tree::default();
+        let mut header = Node::new("header".into(), RowKind::SectionHeader, 0, String::new());
+        header.gpu = cached.clone();
+        tree.push(header);
+        let mut process = Node::new("process".into(), RowKind::Process, 0, String::new());
+        process.pid = parent;
+        tree.push(process);
+        let mut app = Node::new("app".into(), RowKind::App, 0, String::new());
+        app.app_pids = vec![parent, child, parent];
+        tree.push(app);
+        let mut service = Node::new("service".into(), RowKind::Service, 0, String::new());
+        service.pid = parent;
+        tree.push(service);
+        tree.apply_gpu(&r, &gpu);
+        assert_eq!(fields(&tree.nodes[0].gpu), fields(&gpu.processes[&parent]));
+        assert_eq!(fields(&tree.nodes[1].gpu), fields(&gpu.processes[&parent]));
+        assert_eq!(fields(&tree.nodes[2].gpu), fields(&group));
+        assert_eq!(fields(&tree.nodes[3].gpu), fields(&group));
+
+        gpu.processes.remove(&parent);
+        tree.apply_gpu(&r, &gpu);
+        assert_eq!(fields(&tree.nodes[1].gpu), fields(&own));
+        assert_eq!(fields(&tree.nodes[2].gpu), fields(&group));
+        assert_eq!(fields(&tree.nodes[3].gpu), fields(&group));
+        tree.apply_gpu(&Readings::new(), &GpuSnapshot::default());
+        assert_eq!(tree.nodes[1].gpu.usage.state, TelemetryState::Unsupported);
+        assert_eq!(tree.nodes[1].gpu.memory, None);
     }
 
     #[test]
