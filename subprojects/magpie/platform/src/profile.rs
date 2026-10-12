@@ -19,7 +19,7 @@ pub const TARGET: &str = "TaskManager::Profile";
 const REPORT_LIMIT: usize = 8 * 1024;
 const BUCKETS: usize = 32; // powers of two microseconds, last bucket is overflow
 const DOMAINS: usize = 11;
-const EXTRA: usize = 14;
+const EXTRA: usize = 18;
 const PHASES: usize = 5 * DOMAINS + EXTRA;
 type Clock = fn() -> Option<u64>;
 static ENABLED: AtomicBool = AtomicBool::new(false);
@@ -78,6 +78,10 @@ pub enum Phase {
     GpuNativeInit,
     GpuForkedProbes,
     GpuNvmlInit,
+    AppsInventory,
+    AppsSnapshot,
+    AppsMatching,
+    AppsIcons,
 }
 
 impl Phase {
@@ -102,6 +106,10 @@ impl Phase {
             Self::GpuNativeInit => 5 * DOMAINS + 11,
             Self::GpuForkedProbes => 5 * DOMAINS + 12,
             Self::GpuNvmlInit => 5 * DOMAINS + 13,
+            Self::AppsInventory => 5 * DOMAINS + 14,
+            Self::AppsSnapshot => 5 * DOMAINS + 15,
+            Self::AppsMatching => 5 * DOMAINS + 16,
+            Self::AppsIcons => 5 * DOMAINS + 17,
         }
     }
 }
@@ -121,6 +129,10 @@ const EXTRA_NAMES: [&str; EXTRA] = [
     "gpu.native-init",
     "gpu.forked-probes",
     "gpu.nvml-init",
+    "apps.inventory",
+    "apps.snapshot",
+    "apps.matching",
+    "apps.icons",
 ];
 
 pub fn enabled() -> bool {
@@ -424,6 +436,22 @@ fn report(snapshots: &[Snapshot; PHASES], errors: [u64; 9], final_report: bool) 
     cpu.sort_unstable_by_key(|i| (std::cmp::Reverse(snapshots[*i].cpu), *i));
     wall.sort_unstable_by_key(|i| (std::cmp::Reverse(snapshots[*i].wall), *i));
     let mut selected = [false; PHASES];
+    // Keep attribution visible even when a small stage misses the tops or the
+    // final report fills with initialization phases. Still one bounded record.
+    out.push_str(" apps_stages=[");
+    for phase in [
+        Phase::AppsInventory,
+        Phase::AppsSnapshot,
+        Phase::AppsMatching,
+        Phase::AppsIcons,
+    ] {
+        let i = phase.index();
+        if snapshots[i].active() {
+            selected[i] = true;
+            append_phase(&mut out, i, snapshots[i]);
+        }
+    }
+    out.push(']');
     for (name, indices) in [("top5_cpu", cpu), ("top5_wall", wall)] {
         let _ = write!(out, " {name}=[");
         for i in indices
@@ -627,5 +655,31 @@ mod tests {
             io_category(&std::io::Error::from(std::io::ErrorKind::InvalidData)),
             ProcError::Unexpected
         );
+    }
+
+    #[test]
+    fn apps_stages_remain_visible_in_bounded_reports() {
+        let snapshots = [Snapshot {
+            calls: u64::MAX,
+            wall: u64::MAX,
+            max: u64::MAX,
+            cpu: u64::MAX,
+            cpu_calls: u64::MAX,
+            items: u64::MAX,
+            coalesced: u64::MAX,
+            histogram: [0; BUCKETS],
+        }; PHASES];
+        for final_report in [false, true] {
+            let text = report(&snapshots, [u64::MAX; 9], final_report);
+            assert!(text.len() <= REPORT_LIMIT);
+            for name in [
+                "apps.inventory",
+                "apps.snapshot",
+                "apps.matching",
+                "apps.icons",
+            ] {
+                assert!(text.contains(name), "missing {name}");
+            }
+        }
     }
 }
