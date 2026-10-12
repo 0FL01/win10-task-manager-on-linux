@@ -190,6 +190,10 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
   passed; only R4 delivery verification remains.
 - 2026-10-12: f4073e2 pushed, all eight CI jobs succeeded, six CI artifacts and published
   v1.2.14 with six assets verified against the exact correction SHA. Closure check complete.
+- 2026-10-13: follow-up (separate request): swap and compression statistics moved from the
+  statistic rows into a Memory swap block (bar plus zram/zswap rows, data-driven visibility;
+  spec "Swap block"). The backend reports /proc/swaps areas with per-zram mm_stat and the zswap
+  flag. Minimum Memory overflow is now virtual 536, scroll 123 (was 545/132).
 
 ## Completion
 - Resolved outcomes: R1–R5 verified with current local and correction-SHA CI evidence.

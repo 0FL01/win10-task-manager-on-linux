@@ -282,7 +282,7 @@ where
     }
 
     pub fn memory(&self) -> Memory {
-        *self.memory.local_cache.lock()
+        self.memory.local_cache.lock().clone()
     }
 
     pub fn memory_devices(&self) -> Vec<MemoryDevice> {

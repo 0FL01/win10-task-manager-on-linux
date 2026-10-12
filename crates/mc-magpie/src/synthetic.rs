@@ -27,7 +27,7 @@ use magpie_types::battery::{Battery, HistoryPoint};
 use magpie_types::disks::{Disk, DiskKind, PartitionInfo, SmartInterface};
 use magpie_types::fan::Fan;
 use magpie_types::gpus::{ApiVersion, Gpu};
-use magpie_types::memory::{Memory, MemoryDevice};
+use magpie_types::memory::{Memory, MemoryDevice, SwapDevice, ZramStats};
 use magpie_types::network::{Connection, ConnectionKind, ConnectionState, WirelessConnection};
 use magpie_types::processes::{Process, ProcessUsageStats};
 
@@ -68,6 +68,7 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
     r.cpu.power_draw_w = Some(wave(step, 13., 2., 5., 35.));
 
     let gib = 1024u64 * 1024 * 1024;
+    let mib = 1024u64 * 1024;
     let used = (wave(step, 29., 0., 0.35, 0.6) * 32. * gib as f32) as u64;
     let cached = 8 * gib;
     let shared = gib;
@@ -84,6 +85,31 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
         dirty: 64 * 1024 * 1024,
         swap_total: 8 * gib,
         swap_free: 7 * gib,
+        // 1 GiB of swap in use: a quarter on disk, the rest in zram at 3:1
+        swap_devices: vec![
+            SwapDevice {
+                name: "/dev/zram0".into(),
+                size: 4 * gib,
+                used: 768 * mib,
+                priority: 100,
+                zram: Some(ZramStats {
+                    orig_data_size: 768 * mib,
+                    compr_data_size: 224 * mib,
+                    mem_used_total: 256 * mib,
+                }),
+            },
+            SwapDevice {
+                name: "/swapfile".into(),
+                size: 4 * gib,
+                used: 256 * mib,
+                priority: -2,
+                zram: None,
+            },
+        ],
+        zram_orig_size: 768 * mib,
+        zram_compr_size: 224 * mib,
+        zram_mem_used: 256 * mib,
+        zswap_enabled: Some(false),
         max_devices: 4,
         ..Default::default()
     };

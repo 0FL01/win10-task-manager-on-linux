@@ -23,7 +23,21 @@ use std::io::{BufRead, BufReader};
 use std::process::Command;
 
 use glob::glob;
-use magpie_platform::memory::{Memory, MemoryDevice};
+use magpie_platform::memory::{Memory, MemoryDevice, SwapDevice, ZramStats};
+
+/// Parses the leading `orig_data_size compr_data_size mem_used_total` of a zram `mm_stat`.
+fn parse_mm_stat(mm_stat: &str) -> Option<ZramStats> {
+    let mut parts = mm_stat.split_whitespace().map(str::parse::<u64>);
+    Some(ZramStats {
+        orig_data_size: parts.next()?.ok()?,
+        compr_data_size: parts.next()?.ok()?,
+        mem_used_total: parts.next()?.ok()?,
+    })
+}
+
+fn read_mm_stat(device: &str) -> Option<ZramStats> {
+    parse_mm_stat(&std::fs::read_to_string(format!("/sys/block/{device}/mm_stat")).ok()?)
+}
 
 /// Read zram compression statistics from /sys/block/zram*/mm_stat
 /// Aggregates stats across all zram devices
@@ -38,24 +52,96 @@ fn read_zram_stats(memory: &mut Memory) {
     };
 
     for path in paths.filter_map(Result::ok) {
-        let Ok(mm_stat) = std::fs::read_to_string(&path) else {
+        let Some(stats) = std::fs::read_to_string(&path)
+            .ok()
+            .as_deref()
+            .and_then(parse_mm_stat)
+        else {
             continue;
         };
-
-        // mm_stat format: orig_data_size compr_data_size mem_used_total mem_limit max_used_memory ...
-        let parts: Vec<&str> = mm_stat.split_whitespace().collect();
-        if parts.len() >= 3 {
-            if let (Ok(orig), Ok(compr), Ok(mem_used)) = (
-                parts[0].parse::<u64>(),
-                parts[1].parse::<u64>(),
-                parts[2].parse::<u64>(),
-            ) {
-                memory.zram_orig_size += orig;
-                memory.zram_compr_size += compr;
-                memory.zram_mem_used += mem_used;
-            }
-        }
+        memory.zram_orig_size += stats.orig_data_size;
+        memory.zram_compr_size += stats.compr_data_size;
+        memory.zram_mem_used += stats.mem_used_total;
     }
+}
+
+/// Decodes the octal escapes (`\040` for a space) the kernel uses in /proc/swaps names.
+fn unescape_swap_name(name: &str) -> String {
+    let bytes = name.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        let octal = bytes
+            .get(i + 1..i + 4)
+            .filter(|digits| bytes[i] == b'\\' && digits.iter().all(|d| (b'0'..=b'7').contains(d)))
+            .map(|digits| {
+                digits
+                    .iter()
+                    .fold(0u32, |acc, d| acc * 8 + u32::from(d - b'0'))
+            })
+            .and_then(|value| u8::try_from(value).ok());
+        if let Some(byte) = octal {
+            out.push(byte);
+            i += 4;
+            continue;
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+/// Parses /proc/swaps: `Filename Type Size Used Priority`, sizes in KiB.
+fn parse_proc_swaps(swaps: &str) -> Vec<SwapDevice> {
+    swaps
+        .lines()
+        .skip(1)
+        .filter_map(|line| {
+            let mut fields = line.split_whitespace();
+            let name = unescape_swap_name(fields.next()?);
+            let _kind = fields.next()?;
+            let size = fields.next()?.parse::<u64>().ok()?;
+            let used = fields.next()?.parse::<u64>().ok()?;
+            let priority = fields.next()?.parse::<i32>().ok()?;
+            Some(SwapDevice {
+                name,
+                size: size.saturating_mul(1024),
+                used: used.saturating_mul(1024),
+                priority,
+                zram: None,
+            })
+        })
+        .collect()
+}
+
+/// `zram0` for `/dev/zram0`; `None` for anything that is not a zram block device.
+fn zram_device_name(swap_name: &str) -> Option<&str> {
+    let device = swap_name.strip_prefix("/dev/")?;
+    let index = device.strip_prefix("zram")?;
+    (!index.is_empty() && index.bytes().all(|b| b.is_ascii_digit())).then_some(device)
+}
+
+fn read_swap_devices(memory: &mut Memory) {
+    memory.swap_devices = match std::fs::read_to_string("/proc/swaps") {
+        Ok(swaps) => parse_proc_swaps(&swaps),
+        Err(e) => {
+            log::debug!("Failed to read `/proc/swaps`: {e}");
+            Vec::new()
+        }
+    };
+    for device in &mut memory.swap_devices {
+        device.zram = zram_device_name(&device.name).and_then(read_mm_stat);
+    }
+}
+
+fn read_zswap_enabled(memory: &mut Memory) {
+    memory.zswap_enabled = std::fs::read_to_string("/sys/module/zswap/parameters/enabled")
+        .ok()
+        .and_then(|value| match value.trim() {
+            "Y" | "y" | "1" => Some(true),
+            "N" | "n" | "0" => Some(false),
+            _ => None,
+        });
 }
 
 fn update_zfs_arc_usage(memory: &mut Memory) {
@@ -216,6 +302,8 @@ fn refresh_memory(memory: &mut Memory) {
     }
 
     read_zram_stats(memory);
+    read_swap_devices(memory);
+    read_zswap_enabled(memory);
     update_zfs_arc_usage(memory);
 }
 
@@ -372,5 +460,68 @@ impl magpie_platform::memory::MemoryCache for MemoryCache {
 
     fn devices(&self) -> &[MemoryDevice] {
         &self.devices
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn proc_swaps_parses_bytes_priorities_and_escaped_names() {
+        let swaps = "Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n\
+            /swapfile                               file\t\t33554428\t823708\t\t10\n\
+            /dev/zram0                              partition\t15268860\t7450164\t\t100\n\
+            /mnt/my\\040swap                          file\t\t1024\t\t0\t\t-2\n";
+        let devices = parse_proc_swaps(swaps);
+        assert_eq!(devices.len(), 3);
+        assert_eq!(devices[0].name, "/swapfile");
+        assert_eq!(devices[0].size, 33554428 * 1024);
+        assert_eq!(devices[0].used, 823708 * 1024);
+        assert_eq!(devices[0].priority, 10);
+        assert_eq!(devices[1].name, "/dev/zram0");
+        assert_eq!(devices[1].priority, 100);
+        assert_eq!(devices[2].name, "/mnt/my swap");
+        assert_eq!(devices[2].priority, -2);
+    }
+
+    #[test]
+    fn proc_swaps_without_areas_or_with_broken_lines_is_empty() {
+        assert!(parse_proc_swaps("").is_empty());
+        assert!(parse_proc_swaps("Filename Type Size Used Priority\n").is_empty());
+        assert!(parse_proc_swaps(
+            "Filename Type Size Used Priority\n/swapfile file x 0 -2\n/dev/sda2\n"
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn only_zram_block_devices_get_mm_stat() {
+        assert_eq!(zram_device_name("/dev/zram0"), Some("zram0"));
+        assert_eq!(zram_device_name("/dev/zram12"), Some("zram12"));
+        assert_eq!(zram_device_name("/dev/zram"), None);
+        assert_eq!(zram_device_name("/swap/zram0"), None);
+        assert_eq!(zram_device_name("/dev/zram0p1"), None);
+        assert_eq!(zram_device_name("/swapfile"), None);
+    }
+
+    #[test]
+    fn mm_stat_reads_leading_three_columns() {
+        let stats = parse_mm_stat(
+            "7092310016 1900551853 1948770304        0 4198735872    47251  5020964    77521  1390373\n",
+        )
+        .unwrap();
+        assert_eq!(stats.orig_data_size, 7092310016);
+        assert_eq!(stats.compr_data_size, 1900551853);
+        assert_eq!(stats.mem_used_total, 1948770304);
+        assert!(parse_mm_stat("1 2").is_none());
+        assert!(parse_mm_stat("1 x 3").is_none());
+    }
+
+    #[test]
+    fn swap_name_escapes_decode_and_invalid_ones_stay() {
+        assert_eq!(unescape_swap_name("/a\\040b\\011c"), "/a b\tc");
+        assert_eq!(unescape_swap_name("/a\\9b"), "/a\\9b");
+        assert_eq!(unescape_swap_name("/a\\"), "/a\\");
     }
 }

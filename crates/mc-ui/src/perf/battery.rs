@@ -443,6 +443,7 @@ impl DevicePage for BatteryPage {
             stats,
             info,
             composition: None,
+            swap_compression: None,
         }
     }
 

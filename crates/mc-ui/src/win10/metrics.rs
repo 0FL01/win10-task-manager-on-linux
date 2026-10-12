@@ -112,3 +112,7 @@ pub const GPU_COMPACT_INSET: f32 = 12.;
 pub const DISK_TRANSFER_H: f32 = 66.;
 pub const MEMORY_COMPOSITION_H: f32 = 52.;
 pub const MEMORY_GRAPH_MIN_H: f32 = 52.;
+/// Own design: swap usage bar and the zram/zswap rows below it (key/value row pitch).
+pub const MEMORY_SWAP_BAR_H: f32 = 20.;
+pub const MEMORY_SWAP_ROW_H: f32 = 18.;
+pub const MEMORY_SWAP_ROW_CAP: f32 = 6.;

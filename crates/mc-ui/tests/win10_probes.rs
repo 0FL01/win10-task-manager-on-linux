@@ -818,10 +818,10 @@ fn performance_memory_composition_regions_and_ram_hover() {
     image
         .save(out.join("win10-performance-memory-composition.png"))
         .unwrap();
-    // The 52-point bar has exclusive bounds [241, 1005) × [413, 465).
+    // The 52-point bar has exclusive bounds [241, 1005) × [389, 441); swap follows below.
     let edges = [241, 580, 747, 771, 783, 1005];
     for x in 241..1005 {
-        for y in [413, 464] {
+        for y in [389, 440] {
             assert_eq!(hex(&image, x, y), "#8b12ae", "composition frame ({x},{y})");
         }
         let expected = if edges[..5].contains(&x) || x == 1004 {
@@ -832,14 +832,14 @@ fn performance_memory_composition_regions_and_ram_hover() {
             "#ffffff"
         };
         assert_eq!(
-            hex(&image, x, 438),
+            hex(&image, x, 414),
             expected,
             "composition boundary/fill at {x}"
         );
     }
-    assert_eq!(hex(&image, 1005, 438), "#ffffff", "exclusive right edge");
-    assert_eq!(hex(&image, 990, 412), "#ffffff", "above composition");
-    assert_eq!(hex(&image, 990, 465), "#ffffff", "below composition");
+    assert_eq!(hex(&image, 1005, 414), "#ffffff", "exclusive right edge");
+    assert_eq!(hex(&image, 990, 388), "#ffffff", "above composition");
+    assert_eq!(hex(&image, 990, 441), "#ffffff", "below composition");
 
     for (index, (category, explanation)) in [
         ("Used", "MemAvailable"),
@@ -852,7 +852,7 @@ fn performance_memory_composition_regions_and_ram_hover() {
     .enumerate()
     {
         let x = (edges[index] + edges[index + 1]) as f32 / 2.;
-        h.hover_at(egui::pos2(x, 438.));
+        h.hover_at(egui::pos2(x, 414.));
         h.run_steps(40);
         let header = format!("{category} ({})\n\n", values[index]);
         let tooltip_node = h
@@ -860,7 +860,7 @@ fn performance_memory_composition_regions_and_ram_hover() {
             .unwrap_or_else(|| panic!("no selected {category} tooltip at x={x}"));
         if index == 0 {
             let rect = tooltip_node.rect();
-            let offset = rect.min - egui::pos2(x, 438.);
+            let offset = rect.min - egui::pos2(x, 414.);
             assert!(
                 (0. ..=12.).contains(&offset.x),
                 "composition tooltip near pointer: {rect:?}"
@@ -938,7 +938,7 @@ fn performance_memory_composition_hidpi_logical_geometry() {
     assert_eq!(image.dimensions(), (2060, 1410));
     // Physical pixels verify the same logical bar, including two-pixel square lines.
     for x in 482..2010 {
-        for y in [826, 827, 928, 929] {
+        for y in [778, 779, 880, 881] {
             assert_eq!(hex(&image, x, y), "#8b12ae", "2x bar frame ({x},{y})");
         }
         let logical_x = x / 2;
@@ -949,11 +949,115 @@ fn performance_memory_composition_hidpi_logical_geometry() {
         } else {
             "#ffffff"
         };
-        assert_eq!(hex(&image, x, 876), expected, "2x composition at {x}");
+        assert_eq!(hex(&image, x, 828), expected, "2x composition at {x}");
     }
-    assert_eq!(hex(&image, 2010, 876), "#ffffff", "2x exclusive right edge");
-    assert_eq!(hex(&image, 1980, 825), "#ffffff", "above 2x bar");
-    assert_eq!(hex(&image, 1980, 930), "#ffffff", "below 2x bar");
+    assert_eq!(hex(&image, 2010, 828), "#ffffff", "2x exclusive right edge");
+    assert_eq!(hex(&image, 1980, 777), "#ffffff", "above 2x bar");
+    assert_eq!(hex(&image, 1980, 882), "#ffffff", "below 2x bar");
+}
+
+#[test]
+fn performance_memory_swap_block_and_visibility() {
+    fn has_text(h: &Harness<'static, Option<App>>, label: &str) -> bool {
+        h.output().shapes.iter().any(|shape| {
+            matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == label)
+        })
+    }
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    let config = Config {
+        performance_selected_page: "memory".into(),
+        ..Default::default()
+    };
+
+    // Synthetic swap: 1 of 8 GiB used, zram0 holds 768 MiB in 256 MiB, no zswap pool.
+    let mut h = performance_harness(config.clone(), mc_magpie::synthetic_readings(0, 50), 1.);
+    let image = h.render().expect("offscreen wgpu render unavailable");
+    image
+        .save(out.join("win10-performance-memory-swap.png"))
+        .unwrap();
+    // The 20-point bar has exclusive bounds [241, 1005) × [478, 498); 1/8 ends at x 337.
+    for x in 241..1005 {
+        for y in [478, 497] {
+            assert_eq!(hex(&image, x, y), "#8b12ae", "swap bar frame ({x},{y})");
+        }
+        let expected = if x == 241 || x == 337 || x == 1004 {
+            "#8b12ae"
+        } else if x < 337 {
+            "#f4f2f4"
+        } else {
+            "#ffffff"
+        };
+        assert_eq!(hex(&image, x, 488), expected, "swap bar fill at {x}");
+    }
+    assert_eq!(hex(&image, 990, 477), "#ffffff", "above swap bar");
+    assert!(has_text(&h, "Swap usage"));
+    assert!(has_text(&h, "1.00 GiB / 8.00 GiB (13%)"));
+    assert!(has_text(&h, "zram · RAM compression"));
+    assert!(has_text(&h, "3.0×"));
+    assert!(
+        !has_text(&h, "zswap · Compressed cache"),
+        "an empty zswap pool takes no row"
+    );
+
+    h.hover_at(egui::pos2(300., 488.));
+    h.run_steps(40);
+    let tooltip = h
+        .get_by_label_contains("Logical swap slots")
+        .value()
+        .unwrap();
+    assert!(tooltip.contains("/dev/zram0: 768 MiB of 4.00 GiB, priority 100"));
+    assert!(tooltip.contains("/swapfile: 256 MiB of 4.00 GiB, priority -2"));
+    h.hover_at(egui::pos2(300., 507.));
+    h.run_steps(40);
+    let tooltip = h.get_by_label_contains("zram (3.0×)").value().unwrap();
+    assert!(tooltip.contains("Saved: 512 MiB"));
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-memory-swap-hover.png"))
+        .unwrap();
+
+    // Without swap the whole block, its caption and the menu toggle disappear.
+    let mut reading = mc_magpie::synthetic_readings(0, 50);
+    reading.mem_info.swap_total = 0;
+    reading.mem_info.swap_free = 0;
+    reading.mem_info.swap_devices.clear();
+    let mut h = performance_harness(config, reading, 1.);
+    let image = h.render().expect("offscreen wgpu render unavailable");
+    image
+        .save(out.join("win10-performance-memory-no-swap.png"))
+        .unwrap();
+    for label in [
+        "Swap usage",
+        "zram · RAM compression",
+        "zswap · Compressed cache",
+    ] {
+        assert!(!has_text(&h, label), "{label} is hidden without swap");
+    }
+    // Composition takes the place right above the statistics: [464, 516).
+    assert_eq!(hex(&image, 300, 464), "#8b12ae", "composition top");
+    assert_eq!(hex(&image, 300, 515), "#8b12ae", "composition bottom");
+    assert_eq!(
+        hex(&image, 300, 516),
+        "#ffffff",
+        "nothing below composition"
+    );
+    h.hover_at(egui::pos2(600., 300.));
+    h.event(egui::Event::PointerButton {
+        pos: egui::pos2(600., 300.),
+        button: egui::PointerButton::Secondary,
+        pressed: true,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.event(egui::Event::PointerButton {
+        pos: egui::pos2(600., 300.),
+        button: egui::PointerButton::Secondary,
+        pressed: false,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(4);
+    assert!(has_text(&h, "Graph summary view"), "context menu is open");
+    assert!(!has_text(&h, "Show Swap Usage"));
 }
 
 #[test]
@@ -1068,8 +1172,12 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     let mut reading = mc_magpie::synthetic_readings(0, 50);
     reading.mem_info.zswapped = 32 * 1024 * 1024;
     reading.mem_info.zswap = 16 * 1024 * 1024;
-    let compressed_value =
-        to_human_readable_nice(reading.mem_info.zswap as f32, &DataType::MemoryBytes);
+    let h_bytes = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
+    let zswap_detail = format!(
+        "{} in {} RAM",
+        h_bytes(reading.mem_info.zswapped),
+        h_bytes(reading.mem_info.zswap)
+    );
     let mut h = performance_harness(
         Config {
             window_width: 760,
@@ -1110,11 +1218,9 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
             _ => None,
         })
         .unwrap();
-    assert_eq!(in_use.y, 407., "stats start at 405, caption at 410");
-    assert!(
-        ink_box(&initial, &[241, 410, 280, 421]).is_some(),
-        "first stats row has rendered ink"
-    );
+    assert_eq!(in_use.y, 500., "stats start at 498, caption at 503");
+    assert_eq!(hex(&initial, 241, 418), "#8b12ae", "swap bar top");
+    assert_eq!(hex(&initial, 241, 437), "#8b12ae", "swap bar bottom");
 
     h.hover_at(egui::pos2(300., 350.));
     h.run_steps(40);
@@ -1140,18 +1246,24 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     scrolled
         .save(out.join("win10-performance-memory-minimum-scrolled.png"))
         .unwrap();
-    // Virtual 545 - viewport 413 = 132 points of reachable overflow.
+    // Virtual 536 - viewport 413 = 123 points of reachable overflow.
     assert_eq!(
-        hex(&scrolled, 300, 329 - 132),
+        hex(&scrolled, 300, 329 - 123),
         "#8b12ae",
-        "scroll clamps at 132"
+        "scroll clamps at 123"
     );
     assert_eq!(
-        hex(&scrolled, 300, 380 - 132),
+        hex(&scrolled, 300, 380 - 123),
         "#8b12ae",
         "scrolled composition bottom"
     );
-    for label in ["Swap used", "Swap available", "Compressed", "Savings"] {
+    for label in [
+        "In use",
+        "Cached",
+        "zram · RAM compression",
+        "zswap · Compressed cache",
+        zswap_detail.as_str(),
+    ] {
         let (clip, text) = h
             .output()
             .shapes
@@ -1181,17 +1293,14 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
             "{label} has rendered ink"
         );
     }
-    assert!(
-        ink_box(&scrolled, &[241, 452, 330, 468]).is_some(),
-        "compressed byte value is visible"
-    );
-    assert!(
-        h.output().shapes.iter().any(|shape| {
-            matches!(&shape.shape, egui::Shape::Text(text)
-            if text.galley.job.text == compressed_value && text.pos == egui::pos2(241., 446.))
-        }),
-        "compressed value is the formatter's 16 MiB fixture value"
-    );
+    for label in ["Swap used", "Swap available", "Compressed", "Savings"] {
+        assert!(
+            !h.output().shapes.iter().any(|shape| {
+                matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == label)
+            }),
+            "{label} moved from the statistics into the swap block"
+        );
+    }
     assert_eq!(hex(&scrolled, 212, 400), "#d9d9d9", "sidebar remains fixed");
     assert_eq!(
         hex(&scrolled, 300, 490),

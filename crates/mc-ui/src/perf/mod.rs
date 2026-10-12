@@ -45,6 +45,7 @@ pub mod gpu;
 pub mod mem_composition;
 pub mod memory;
 pub mod network;
+pub mod swap_compression;
 
 pub const MK_TO_0_C: i32 = -273150;
 
@@ -153,6 +154,7 @@ pub struct PageView<'a> {
     /// Key/value rows right of the statistics
     pub info: Vec<(String, String)>,
     pub composition: Option<&'a mem_composition::MemComposition>,
+    pub swap_compression: Option<&'a swap_compression::SwapCompression>,
 }
 
 /// `"<label><duration>"`, e.g. "Utilization over 1 minute".

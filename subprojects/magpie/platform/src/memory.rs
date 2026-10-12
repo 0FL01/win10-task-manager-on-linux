@@ -26,6 +26,8 @@ use rayon::ThreadPool;
 
 pub type Memory = types::memory::Memory;
 pub type MemoryDevice = types::memory::MemoryDevice;
+pub type SwapDevice = types::memory::SwapDevice;
+pub type ZramStats = types::memory::ZramStats;
 
 pub type MemoryInfo = types::memory::memory_response::MemoryInfo;
 pub type MemoryRequestKind = types::memory::memory_request::Kind;
@@ -86,7 +88,7 @@ where
         drop(refresh);
         let mut publish = Span::new(Phase::Publish(Domain::Memory));
         publish.items(1 + memory.devices().len());
-        *self.local_cache.lock() = *memory.memory();
+        self.local_cache.lock().clone_from(memory.memory());
         *self.local_device_cache.lock() = memory.devices().to_vec();
     }
 

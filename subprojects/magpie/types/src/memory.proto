@@ -85,6 +85,25 @@ message Memory {
   required uint64 zram_orig_size = 58;   // Original uncompressed data size
   required uint64 zram_compr_size = 59;  // Compressed data size
   required uint64 zram_mem_used = 60;    // Total memory allocated by zram
+
+  // Active swap areas from /proc/swaps, in kernel priority order
+  repeated SwapDevice swap_devices = 61;
+  // /sys/module/zswap/parameters/enabled; unset when zswap is unavailable
+  optional bool zswap_enabled = 62;
+}
+
+message ZramStats {
+  required uint64 orig_data_size = 1;  // Uncompressed data stored
+  required uint64 compr_data_size = 2; // Compressed data size
+  required uint64 mem_used_total = 3;  // RAM allocated, including allocator overhead
+}
+
+message SwapDevice {
+  required string name = 1;      // Decoded /proc/swaps file name
+  required uint64 size = 2;      // Bytes
+  required uint64 used = 3;      // Bytes
+  required sint32 priority = 4;
+  optional ZramStats zram = 5;   // Set for zram swap devices with readable mm_stat
 }
 
 message MemoryDevice {

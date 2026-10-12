@@ -219,8 +219,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   These graph tooltips and composition tooltips anchor at the pointer, not the graph/bar corner,
   using egui's pointer-tooltip gap and edge fitting (own adaptation). Delay and click ownership
   are unchanged; existing GPU tile tooltips retain their behavior.
-- Memory composition is always shown in the full page, after RAM and optional Swap and before
-  statistics, with a caption and a 52-point square bar. Segments use existing memory fill/line,
+- Memory composition is always shown in the full page, after RAM and optional Swap graph and
+  before the swap block, with a caption and a 52-point square bar. Segments use existing memory fill/line,
   Free stays white, boundaries are cumulative and zero-width segments have no artificial width.
 - The disjoint draw order is Used / Cache / Shared / Buff / Free: Shared = Shmem, Buff = Buffers,
   Cache = max(Cached − Shmem, 0) + SReclaimable, Free = collector-reported MemFree, Used = remainder.
@@ -228,11 +228,29 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   MemTotal for inconsistent counters, with a tooltip note; zero total is unavailable.
   Used differs from existing MemAvailable-based In use, Cache from the raw Cached card.
   Every region tooltip explains its volume and includes all five values, including invisible ones.
+- Swap block (own design): after composition, caption "Swap usage" with
+  "used / total (percent%)" on the right (graph-caption style), a 20-point bar drawn like
+  composition (memory fill for SwapTotal − SwapFree, white rest, 1 px memory line) and one
+  18-point key/value row per active compression layer (label `#707070`, ratio and
+  "stored in RAM-used RAM" black, cap 6 points below the row top; value column at
+  max(109, longest label + 12), detail 12 points after the widest ratio).
+  - Swap is logical slot usage and includes pages held in zram/zswap; it is not a third pool.
+  - zram row: zram devices that are active swap areas in /proc/swaps; ratio =
+    orig_data_size / mem_used_total, saved = orig_data_size − mem_used_total.
+  - zswap row: ratio = Zswapped / Zswap; when zswap is disabled but the pool still holds
+    pages, the row stays and its tooltip says the pool is draining.
+  - A zero denominator shows "—". Rows need at least 1 MiB stored, so they do not flicker.
+  - Visibility follows data, not flags: no swap (SwapTotal 0) → no caption, bar, rows or
+    "Show Swap Usage" item; zram not used as swap and empty/disabled zswap take no row.
+  - The statistics stay at the two Windows rows (In use/Available, Committed/Cached); swap and
+    compression values left the statistics. Tooltips anchor at the pointer: the bar lists
+    every swap area with used/size/priority, rows give stored/compressed/RAM used/saved.
 - RAM/Swap graphs have a 52-point minimum. Only Memory scrolls its entire vertical page when
-  its graphs/composition/statistics cannot fit, using the existing scrollbar. Sidebar/footer
-  remain fixed; horizontal metadata rules are unchanged. At 760×540, Swap plus compression
-  needs a 545-point virtual page and 132 points of scroll. Device/summary transitions reset it.
-  Graph-only summary omits composition. CPU probes and GPU layout remain unchanged.
+  its graphs/composition/swap block/statistics cannot fit, using the existing scrollbar.
+  Sidebar/footer remain fixed; horizontal metadata rules are unchanged. At 760×540, the Swap
+  graph plus a swap block with zram and zswap rows needs a 536-point virtual page and 123
+  points of scroll. Device/summary transitions reset it. Graph-only summary omits composition
+  and the swap block. CPU probes and GPU layout remain unchanged.
 
 ## GPU monitoring (own adaptation, not measured)
 

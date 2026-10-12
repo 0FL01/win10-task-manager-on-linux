@@ -351,6 +351,7 @@ impl DevicePage for DiskPage {
             stats,
             info,
             composition: None,
+            swap_compression: None,
         }
     }
 
