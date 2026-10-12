@@ -29,6 +29,7 @@ use magpie_platform::gpus::{
     ClientTelemetry, DriverInfo, EngineKind, EngineTelemetry, Gpu, GpuTelemetry, MemoryTelemetry,
     Process, ProcessIdentity, ProcessKind, ProcessObservation, TelemetryState,
 };
+use magpie_platform::profile::{Phase, Span};
 
 use crate::gpu_info_valid;
 
@@ -691,6 +692,7 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
 
         let (gpu_count, gpu_list) = GPU_LIST
             .get_or_init(|| {
+                let _profile = Span::new(Phase::GpuNativeInit);
                 unsafe {
                     nvtop::init_extract_gpuinfo_intel();
                     nvtop::init_extract_gpuinfo_amdgpu();
@@ -738,6 +740,7 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
         let mut gpus = HashMap::with_capacity(gpu_count);
         let mut buffer = String::with_capacity(1024);
 
+        let mut inventory_profile = Span::new(Phase::GpuInventory);
         let devices = {
             let mut gpu_list = gpu_list.write().unwrap();
             let gpu_list = gpu_list.deref_mut();
@@ -804,7 +807,11 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
             gpus.entry(device.id.clone())
                 .or_insert_with(|| inventory_gpu(device));
         }
+        inventory_profile.items(inventory.len());
+        drop(inventory_profile);
 
+        let mut probes = Span::new(Phase::GpuForkedProbes);
+        probes.items(1 + inventory.len());
         let vulkan_devices = unsafe {
             run_forked(|| {
                 Ok(vulkan_info::VulkanInfo::new()
@@ -865,6 +872,7 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
             }
         }
 
+        drop(probes);
         let native_tokens = devices
             .iter()
             .map(|(node, device)| (*node, device_token(device)))
@@ -890,6 +898,7 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
     }
 
     fn refresh(&mut self) {
+        let mut inventory_profile = Span::new(Phase::GpuInventory);
         let mut gpu_list = self.gpu_list.write().unwrap();
         let gpu_list = gpu_list.deref_mut();
 
@@ -962,18 +971,25 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
             }
         }
 
+        inventory_profile.items(inventory.len());
+        drop(inventory_profile);
         self.sequence = self.sequence.saturating_add(1);
         let sample_start = Instant::now();
+        let mut fdinfo_profile = Span::new(Phase::GpuFdinfo);
+        fdinfo_profile.items(fd_devices.len());
         let mut fd_samples =
             self.fdinfo
                 .collect(Path::new("/proc"), &fd_devices, self.started.elapsed());
         let native_identities = fdinfo::process_identities(Path::new("/proc"));
+        drop(fdinfo_profile);
         // A machine with no GPU/driver at startup may acquire one later. Retry
         // the optional library on the existing collection path, without workers.
         if self.nvml.is_none() && self.gpus.values().any(|gpu| gpu.vendor_id == 0x10de) {
             self.nvml = nvml::Nvml::new();
         }
 
+        let mut native_profile = Span::new(Phase::GpuNative);
+        native_profile.items(self.devices.len());
         let (dynamic_ok, processes_ok) =
             with_live_native(gpu_list, &self.devices, &inventory, |list| unsafe {
                 // Reset flags before collection: failed queries may not retain an
@@ -1190,6 +1206,7 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
             }
         }
 
+        drop(native_profile);
         let mut retry_nvml = false;
         for device in inventory.values() {
             let gpu = self.gpus.get_mut(&device.id).unwrap();

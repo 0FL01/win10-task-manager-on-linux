@@ -20,6 +20,7 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -64,6 +65,7 @@ where
     MC: AboutCache + Send,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::About));
         Self {
             about: Mutex::new(MC::new()),
             local_cache: Mutex::new(About::default()),
@@ -72,17 +74,24 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::About));
         let mut about = self.about.lock();
         about.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::About));
+        publish.items(1);
         *self.local_cache.lock() = about.about().clone();
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::About));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::About);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

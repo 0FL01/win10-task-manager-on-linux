@@ -32,6 +32,7 @@ use crate::client::{
     Process, Service, SmartData,
 };
 use crate::log_compat::{g_critical, g_debug, g_warning};
+use crate::profile::{self, Counter, Phase, Span};
 use crate::{About, Icon, Pid, BASE_INTERVAL, INTERVAL_STEP};
 
 /// Callback used to wake the consumer (typically `egui::Context::request_repaint`).
@@ -147,7 +148,12 @@ struct Outbox {
 
 impl Outbox {
     fn publish(&self, readings: Readings) {
+        let before = profile::enabled().then(|| self.readings.dropped());
         self.readings.publish(readings);
+        profile::count(Counter::Published);
+        if before.is_some_and(|before| self.readings.dropped() > before) {
+            profile::count(Counter::Overwritten);
+        }
         (self.waker)();
     }
 
@@ -157,11 +163,15 @@ impl Outbox {
         let result = match self.events.try_send(event) {
             Ok(()) => Ok(()),
             Err(TrySendError::Full(event)) => {
-                g_warning!(
-                    "TaskManager::Gatherer",
-                    "UI is not draining events, dropping {:?}",
-                    std::mem::discriminant(&event)
-                );
+                if profile::enabled() {
+                    profile::count(Counter::EventFull);
+                } else {
+                    g_warning!(
+                        "TaskManager::Gatherer",
+                        "UI is not draining events, dropping {:?}",
+                        std::mem::discriminant(&event)
+                    );
+                }
                 Err(event)
             }
             Err(TrySendError::Disconnected(event)) => Err(event),
@@ -271,10 +281,14 @@ impl MagpieClient {
         match self.requests.try_send(request) {
             Ok(()) => true,
             Err(TrySendError::Full(request)) => {
-                g_critical!(
-                    "TaskManager::SysInfo",
-                    "Gatherer request queue is full, dropping {request:?}"
-                );
+                if profile::enabled() {
+                    profile::count(Counter::RequestFull);
+                } else {
+                    g_critical!(
+                        "TaskManager::SysInfo",
+                        "Gatherer request queue is full, dropping {request:?}"
+                    );
+                }
                 false
             }
             Err(TrySendError::Disconnected(request)) => {
@@ -347,6 +361,7 @@ impl ThreadCtx {
 }
 
 fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
+    let _profile = Span::new(Phase::Action);
     match request {
         // Handled by `serve_until`
         Request::RefreshNow => {}
@@ -376,7 +391,8 @@ fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
 }
 
 macro_rules! timed {
-    ($what: literal, $e: expr) => {{
+    ($what: literal, $phase: ident, $e: expr) => {{
+        let _profile = Span::new(Phase::$phase);
         let timer = Instant::now();
         let result = $e;
         g_debug!(
@@ -389,6 +405,7 @@ macro_rules! timed {
 }
 
 fn gather_from_magpie(ctx: ThreadCtx) {
+    let startup = Span::new(Phase::GatherStartup);
     let magpie = Client::new();
     magpie.start();
 
@@ -397,9 +414,11 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut known_icons = HashSet::<String>::new();
     let mut users = crate::users::UserResolver::default();
     let mut sockets = crate::sockets::SocketTraffic::default();
+    drop(startup);
 
     while ctx.running() {
         let cycle_start = Instant::now();
+        let mut cycle = Span::new(Phase::GatherCycle);
         let reduced = ctx.reduced_activity.load(atomic::Ordering::Acquire);
 
         let mut readings = Readings::new();
@@ -407,29 +426,39 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         readings.includes_app_data = !reduced;
 
         if !reduced {
-            readings.running_processes = timed!("Process", magpie.processes());
-            readings.process_users =
-                timed!("Process users", users.resolve(&readings.running_processes));
+            readings.running_processes = timed!("Process", Processes, magpie.processes());
+            readings.process_users = timed!(
+                "Process users",
+                Users,
+                users.resolve(&readings.running_processes)
+            );
             // Per-process network traffic from TCP socket counters, no privileges needed
             readings.network_unavailable = !timed!(
                 "Socket traffic",
+                Sockets,
                 sockets.sample(&mut readings.running_processes)
             );
-            readings.running_apps = timed!("Running apps", magpie.apps());
+            readings.running_apps = timed!("Running apps", Apps, magpie.apps());
         }
 
-        readings.disks_info = timed!("Disks info", magpie.disks_info());
-        readings.gpus = timed!("GPU info", magpie.gpus());
-        readings.cpu = timed!("CPU info", magpie.cpu());
-        readings.mem_info = timed!("Memory info", magpie.memory());
-        readings.network_connections = timed!("Network devices info", magpie.network_connections());
-        readings.fans = timed!("Fans info", magpie.fans_info());
-        readings.batteries = timed!("Batteries info", magpie.batteries_info());
+        readings.disks_info = timed!("Disks info", Disks, magpie.disks_info());
+        readings.gpus = timed!("GPU info", Gpus, magpie.gpus());
+        readings.cpu = timed!("CPU info", Cpu, magpie.cpu());
+        readings.mem_info = timed!("Memory info", Memory, magpie.memory());
+        readings.network_connections = timed!(
+            "Network devices info",
+            Network,
+            magpie.network_connections()
+        );
+        readings.fans = timed!("Fans info", Fans, magpie.fans_info());
+        readings.batteries = timed!("Batteries info", Batteries, magpie.batteries_info());
 
         if !reduced {
-            readings.user_services = timed!("User services", magpie.user_services());
-            readings.system_services = timed!("System services", magpie.system_services());
+            readings.user_services = timed!("User services", UserServices, magpie.user_services());
+            readings.system_services =
+                timed!("System services", SystemServices, magpie.system_services());
 
+            let _profile = Span::new(Phase::GatherIcons);
             let missing = readings
                 .running_apps
                 .keys()
@@ -453,15 +482,19 @@ fn gather_from_magpie(ctx: ThreadCtx) {
             }
         }
 
+        let sort = Span::new(Phase::DiskSort);
         readings
             .disks_info
             .sort_unstable_by(|d1, d2| d1.id.cmp(&d2.id));
+        drop(sort);
 
         if !ctx.running() {
             break;
         }
 
+        cycle.items(readings.running_processes.len());
         ctx.outbox.publish(readings);
+        drop(cycle);
 
         g_debug!(
             "TaskManager::Perf",
@@ -470,6 +503,9 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         );
 
         let deadline = cycle_start + ctx.interval();
+        if Instant::now() > deadline {
+            profile::count(Counter::Overrun);
+        }
         if !ctx.serve_until(deadline, |request| {
             handle_request(&magpie, &ctx.outbox, request)
         }) {

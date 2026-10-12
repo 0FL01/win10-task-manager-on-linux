@@ -206,6 +206,8 @@ impl Shell {
 
 fn main() -> eframe::Result {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
+    let _profile_reporter = mc_magpie::profile::Reporter::start();
+    let startup = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::Startup);
     let args = parse_args();
 
     if let Some((n, dir)) = args.dump {
@@ -297,10 +299,12 @@ fn main() -> eframe::Result {
     let quit_at = args
         .bench_seconds
         .map(|s| Instant::now() + Duration::from_secs_f64(s));
+    drop(startup);
     eframe::run_native(
         mc_ui::APP_NAME,
         native,
         Box::new(move |cc| {
+            let _profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::AppInit);
             let always_on_top_mode = match cc.display_handle().map(|handle| handle.as_raw()) {
                 Ok(RawDisplayHandle::Wayland(_)) => AlwaysOnTopMode::Unavailable,
                 Ok(_) => AlwaysOnTopMode::Viewport,

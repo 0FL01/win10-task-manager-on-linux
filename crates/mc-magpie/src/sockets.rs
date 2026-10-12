@@ -306,12 +306,15 @@ impl SocketTraffic {
     pub fn sample(&mut self, processes: &mut HashMap<u32, Process>) -> bool {
         let now = Instant::now();
         let mut sockets = Vec::with_capacity(self.last.len().max(64));
+        let mut dump = crate::profile::Span::new(crate::profile::Phase::SocketDump);
         for family in [libc::AF_INET as u8, libc::AF_INET6 as u8] {
             if let Err(e) = dump_tcp(family, &mut sockets) {
                 log::debug!(target: "TaskManager::Sockets", "sock_diag unavailable: {e}");
                 return false;
             }
         }
+        dump.items(sockets.len());
+        drop(dump);
         // SAFETY: getuid has no preconditions
         let uid = *self.uid.get_or_insert_with(|| unsafe { libc::getuid() });
 
@@ -364,6 +367,8 @@ impl SocketTraffic {
             .filter(|inode| !self.owners.contains_key(inode) && !self.unowned.contains(inode))
             .collect();
         if !unknown.is_empty() {
+            let mut profile = crate::profile::Span::new(crate::profile::Phase::SocketOwners);
+            profile.items(unknown.len());
             // Processes that owned sockets before are the likeliest owners of new ones
             let previous: HashSet<u32> = self.owners.values().copied().collect();
             let order = previous.iter().copied().chain(

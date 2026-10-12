@@ -22,6 +22,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::gpus::Gpu;
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -83,6 +84,7 @@ where
     PM: ProcessManager + Send + Sync,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Processes));
         Self {
             processes: Mutex::new(PC::new()),
             process_manager: PM::new(),
@@ -92,8 +94,12 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Processes));
         let mut processes = self.processes.lock();
         processes.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Processes));
+        publish.items(processes.cached_entries().len());
         *self.local_cache.lock() = processes.cached_entries().clone();
     }
 
@@ -103,14 +109,18 @@ where
         gpus: &'static Mutex<HashMap<String, Gpu>>,
     ) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Processes));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Processes);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();
             {
+                let _merge = Span::new(Phase::ProcessGpuMerge);
                 let gpu_processes = gpus
                     .lock()
                     .values()

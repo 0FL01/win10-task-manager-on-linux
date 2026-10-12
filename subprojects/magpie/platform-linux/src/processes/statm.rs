@@ -39,7 +39,9 @@ pub fn open(pid: u32) -> Option<std::fs::File> {
     let statm_file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::warn!("Failed to open `statm` file for process {}: {}", pid, e,);
+            if !magpie_platform::profile::proc_io_error(&e) {
+                log::warn!("Failed to open `statm` file for process {}: {}", pid, e,);
+            }
             return None;
         }
     };

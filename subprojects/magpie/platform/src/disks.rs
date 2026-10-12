@@ -20,6 +20,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -97,6 +98,7 @@ where
     DM: DisksManager + Send + Sync,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Disks));
         Self {
             disks: Mutex::new(DC::new()),
             disk_manager: DM::new(),
@@ -106,17 +108,24 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Disks));
         let mut disks = self.disks.lock();
         disks.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Disks));
+        publish.items(disks.cached_entries().len());
         *self.local_cache.lock() = disks.cached_entries().to_vec();
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Disks));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Disks);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

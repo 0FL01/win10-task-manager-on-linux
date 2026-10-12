@@ -29,6 +29,7 @@ use egui::{Align, Context, Key, KeyboardShortcut, Layout, Modifiers, RichText, U
 use mc_core::config::{Config, ConfigWriter};
 use mc_core::i18n::i18n;
 use mc_core::i18n::n_;
+use mc_magpie::profile::{self, Counter, Phase, Span};
 use mc_magpie::{Event, INTERVAL_STEP, Icon, MagpieClient, Readings, Request};
 
 use crate::always_on_top::AlwaysOnTopState;
@@ -258,20 +259,34 @@ impl App {
     }
 
     fn apply_readings(&mut self, readings: Readings) {
+        let mut apply = Span::new(Phase::Apply);
+        apply.items(readings.running_processes.len());
         let interval_ms = self.refresh_interval().as_millis() as u64;
+        let stage = Span::new(Phase::GpuSnapshot);
         let gpu =
             mc_core::gpu::GpuSnapshot::from_readings(&readings, &mut self.gpu_indices, interval_ms);
+        drop(stage);
+        let stage = Span::new(Phase::PerformanceUpdate);
         self.perf.update(&readings, &gpu, &mut self.config);
+        drop(stage);
         if readings.includes_app_data {
+            let stage = Span::new(Phase::AppsUpdate);
             self.apps.update(&readings, &gpu);
+            drop(stage);
+            let stage = Span::new(Phase::ServicesUpdate);
             self.services.update(&readings, &gpu);
+            drop(stage);
+            let stage = Span::new(Phase::DetailsUpdate);
             self.details.update(&readings, &gpu);
+            drop(stage);
+            let _stage = Span::new(Phase::ServicesViewUpdate);
             self.services_view.update(&self.services);
         }
         self.grid_offset = self.grid_offset.wrapping_add(1);
         self.perf.set_grid_offset(self.grid_offset);
         self.have_readings = true;
         self.stats.readings_applied += 1;
+        profile::count(Counter::Applied);
     }
 
     fn handle_event(&mut self, event: Event) {
@@ -284,6 +299,7 @@ impl App {
 
     /// Non-visual per-frame work; runs even when the window is hidden.
     pub fn logic(&mut self, ctx: &Context) {
+        let _profile = Span::new(Phase::Logic);
         while let Some(event) = self.magpie.try_event() {
             self.handle_event(event);
         }
@@ -725,6 +741,7 @@ impl App {
 
     /// Draws the whole window.
     pub fn ui(&mut self, ui: &mut Ui) {
+        let _profile = Span::new(Phase::Ui);
         let started = Instant::now();
         let ctx = ui.ctx().clone();
 
@@ -810,19 +827,24 @@ impl App {
         };
         match self.page {
             _ if compact => {
+                let _profile = Span::new(Phase::ProcessesDraw);
                 self.processes
                     .compact_ui(ui, &mut cx, &mut self.apps, content);
             }
             MainPage::Processes => {
+                let _profile = Span::new(Phase::ProcessesDraw);
                 self.processes.ui(ui, &mut cx, &mut self.apps, content);
             }
             MainPage::Performance => {
+                let _profile = Span::new(Phase::PerformanceDraw);
                 self.performance.ui(ui, &mut cx, &mut self.perf, content);
             }
             MainPage::Details => {
+                let _profile = Span::new(Phase::DetailsDraw);
                 self.details.ui(ui, &mut cx, content);
             }
             MainPage::Services => {
+                let _profile = Span::new(Phase::ServicesDraw);
                 self.services_view.ui(ui, &mut cx, content);
             }
         }
@@ -832,6 +854,7 @@ impl App {
         }
 
         {
+            let _profile = Span::new(Phase::DialogsDraw);
             let mut cx = Cx {
                 icons: &mut self.icons,
                 config: &mut self.config,

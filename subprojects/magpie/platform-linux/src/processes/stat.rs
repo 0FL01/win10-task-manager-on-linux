@@ -41,11 +41,13 @@ pub fn open(pid: u32) -> Option<std::fs::File> {
     let stat_file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::warn!(
-                "Failed to open `stat` file for process {}, skipping: {}",
-                pid,
-                e,
-            );
+            if !magpie_platform::profile::proc_io_error(&e) {
+                log::warn!(
+                    "Failed to open `stat` file for process {}, skipping: {}",
+                    pid,
+                    e,
+                );
+            }
             return None;
         }
     };

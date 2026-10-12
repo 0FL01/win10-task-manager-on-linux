@@ -22,6 +22,7 @@ use std::collections::HashMap;
 use std::num::NonZero;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -88,6 +89,7 @@ where
     SM: ServiceManager + Send + Sync,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Services));
         Self {
             services: Mutex::new(SC::new()),
             service_manager: SM::new(),
@@ -98,18 +100,25 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Services));
         let mut services = self.services.lock();
         services.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Services));
+        publish.items(services.user_entries().len() + services.system_entries().len());
         *self.user_local_cache.lock() = services.user_entries().clone();
         *self.system_local_cache.lock() = services.system_entries().clone();
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Services));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Services);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

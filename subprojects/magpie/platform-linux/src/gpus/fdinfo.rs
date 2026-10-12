@@ -305,12 +305,22 @@ pub(super) fn starttime_from_stat(text: &str) -> Option<u64> {
 }
 
 fn identity(root: &Path, pid: u32) -> std::io::Result<Option<u64>> {
-    let text = std::fs::read_to_string(root.join(pid.to_string()).join("stat"))?;
-    Ok(starttime_from_stat(&text))
+    let text =
+        std::fs::read_to_string(root.join(pid.to_string()).join("stat")).inspect_err(|error| {
+            magpie_platform::profile::proc_io_error(error);
+        })?;
+    let identity = starttime_from_stat(&text);
+    if identity.is_none() {
+        magpie_platform::profile::proc_error(magpie_platform::profile::ProcError::Invalid);
+    }
+    Ok(identity)
 }
 
 pub(super) fn process_identities(root: &Path) -> HashMap<u32, u64> {
     std::fs::read_dir(root)
+        .inspect_err(|_| {
+            magpie_platform::profile::proc_error(magpie_platform::profile::ProcError::Root);
+        })
         .into_iter()
         .flatten()
         .filter_map(Result::ok)
@@ -502,6 +512,7 @@ impl Collector {
         let entries = match std::fs::read_dir(proc_root) {
             Ok(entries) => entries,
             Err(error) => {
+                magpie_platform::profile::proc_error(magpie_platform::profile::ProcError::Root);
                 for sample in samples.values_mut() {
                     sample.partial = true;
                     sample.state = Some(if denied(&error) {
@@ -542,6 +553,7 @@ impl Collector {
                         let fd = match fd {
                             Ok(fd) => fd,
                             Err(error) => {
+                                magpie_platform::profile::proc_io_error(&error);
                                 failed = Some(if denied(&error) {
                                     TelemetryState::PermissionDenied
                                 } else {
@@ -553,6 +565,7 @@ impl Collector {
                         let text = match std::fs::read_to_string(fd.path()) {
                             Ok(text) => text,
                             Err(error) => {
+                                magpie_platform::profile::proc_io_error(&error);
                                 failed = Some(if denied(&error) {
                                     TelemetryState::PermissionDenied
                                 } else {
@@ -603,6 +616,7 @@ impl Collector {
                     }
                 }
                 Err(error) => {
+                    magpie_platform::profile::proc_io_error(&error);
                     failed = Some(if denied(&error) {
                         TelemetryState::PermissionDenied
                     } else {

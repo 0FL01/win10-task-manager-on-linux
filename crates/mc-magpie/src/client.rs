@@ -334,6 +334,8 @@ fn make_request(
         );
     }
 
+    use crate::profile::{Phase, Span};
+    let encode = Span::new(Phase::IpcEncode);
     let mut req_buf = Vec::new();
 
     if let Err(e) = request.encode(&mut req_buf) {
@@ -346,6 +348,8 @@ fn make_request(
         return None;
     }
 
+    drop(encode);
+    let send = Span::new(Phase::IpcSend);
     if let Err(error_code) = socket
         .send(nng_c::socket::Buf::from(req_buf.as_slice()))
         .map_err(|e| e.raw_code())
@@ -410,6 +414,8 @@ fn make_request(
         return None;
     }
 
+    drop(send);
+    let wait = Span::new(Phase::IpcWait);
     let message = match socket.recv_msg().map_err(|e| e.raw_code()) {
         Ok(buffer) => buffer,
         Err(error_code) => {
@@ -475,6 +481,7 @@ fn make_request(
         }
     };
 
+    drop(wait);
     if message.body().is_empty() {
         g_critical!(
             "TaskManager::Gatherer",
@@ -483,6 +490,8 @@ fn make_request(
         return None;
     }
 
+    let mut decode = Span::new(Phase::IpcDecode);
+    decode.items(message.body().len());
     let response = match ipc::Response::decode(message.body()) {
         Ok(r) => r,
         Err(e) => {
@@ -601,6 +610,26 @@ impl Client {
                     }
                 }
 
+                // Native profiling needs the daemon's final aggregate. Give its
+                // existing TERM handler a bounded grace period; ordinary shutdown
+                // and the Flatpak spawner retain their previous behavior.
+                #[cfg(unix)]
+                if crate::profile::enabled() && !is_flatpak() {
+                    if let Ok(pid) = libc::pid_t::try_from(child.id()) {
+                        if unsafe { libc::kill(pid, libc::SIGTERM) } == 0 {
+                            let deadline = std::time::Instant::now() + Duration::from_secs(1);
+                            while std::time::Instant::now() < deadline {
+                                match child.try_wait() {
+                                    Ok(Some(_)) => return,
+                                    Ok(None) => std::thread::sleep(Duration::from_millis(10)),
+                                    Err(_) => break,
+                                }
+                            }
+                            log::warn!(target: "TaskManager::Profile",
+                                "daemon profile shutdown exceeded grace period; final report may be incomplete");
+                        }
+                    }
+                }
                 let _ = child.kill();
             })
         }

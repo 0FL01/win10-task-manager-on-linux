@@ -23,12 +23,12 @@ use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use clap::Parser;
-use log::LevelFilter;
 use prost::Message;
 use signal_hook::consts::signal::*;
 use signal_hook::flag as signal_flag;
 
 use magpie_platform::ipc::{Request, RequestBody, Response, ResponseBody, ResponseError};
+use magpie_platform::profile::{Domain, Phase, Reporter, Span};
 use magpie_platform::DataCache;
 
 #[cfg(target_os = "linux")]
@@ -94,9 +94,25 @@ fn os_signals_listen(flag: Arc<AtomicBool>) {
 }
 
 fn handle_request(request_data: &[u8], socket: nng::nng_socket) {
+    let mut profile = Span::new(Phase::RequestTotal);
+    profile.items(request_data.len());
     let response = match Request::decode(request_data) {
         Ok(req) => {
             if let Some(body) = req.body {
+                let domain = match &body {
+                    RequestBody::GetAbout(_) => Domain::About,
+                    RequestBody::GetApps(_) | RequestBody::GetAppsIcons(_) => Domain::Apps,
+                    RequestBody::GetBattery(_) => Domain::Battery,
+                    RequestBody::GetCpu(_) => Domain::Cpu,
+                    RequestBody::GetDisks(_) => Domain::Disks,
+                    RequestBody::GetFans(_) => Domain::Fans,
+                    RequestBody::GetGpus(_) => Domain::Gpus,
+                    RequestBody::GetMemory(_) => Domain::Memory,
+                    RequestBody::GetConnections(_) => Domain::Network,
+                    RequestBody::GetProcesses(_) => Domain::Processes,
+                    RequestBody::GetServices(_) => Domain::Services,
+                };
+                let _profile = Span::new(Phase::Request(domain));
                 match body {
                     RequestBody::GetAbout(_) => about::handle_request(),
                     RequestBody::GetApps(_) => apps::handle_request(),
@@ -466,6 +482,28 @@ fn test_packaged_gpu_libraries() -> magpie_platform::Result<()> {
     Ok(())
 }
 
+/// Native current-thread clock only. It excludes runtime/worker peers and
+/// forked probe CPU. A failed clock is unavailable, never a fabricated zero.
+fn profile_thread_cpu_ns() -> Option<u64> {
+    #[cfg(target_os = "linux")]
+    {
+        let mut time = libc::timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        };
+        // SAFETY: initialized writable timespec; this constant requests only
+        // the calling thread, without constructing clocks for arbitrary TIDs.
+        if unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut time) } != 0 {
+            return None;
+        }
+        let seconds = u64::try_from(time.tv_sec).ok()?;
+        let nanos = u64::try_from(time.tv_nsec).ok()?;
+        seconds.checked_mul(1_000_000_000)?.checked_add(nanos)
+    }
+    #[cfg(not(target_os = "linux"))]
+    None
+}
+
 fn main() -> magpie_platform::Result<()> {
     #[derive(Parser, Debug)]
     #[command(version, about, long_about = None)]
@@ -490,27 +528,23 @@ fn main() -> magpie_platform::Result<()> {
     }
 
     env_logger::init();
+    let _profile_reporter = Reporter::start(profile_thread_cpu_ns);
     unsafe { nng::nng_log_set_logger(Some(nng::nng_log_fn)) };
-    match log::max_level() {
-        LevelFilter::Off => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_NONE) };
-        }
-        LevelFilter::Error => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_ERR) };
-        }
-        LevelFilter::Warn => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_WARN) };
-        }
-        LevelFilter::Info => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_INFO) };
-        }
-        LevelFilter::Debug => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_DEBUG) };
-        }
-        LevelFilter::Trace => {
-            unsafe { nng::nng_log_set_level(nng::NNG_LOG_DEBUG) };
-        }
-    }
+    // A profile-only trace filter must not enable verbose native NNG logging.
+    let nng_level = if log::log_enabled!(target: "magpie::nng", log::Level::Debug)
+        || log::log_enabled!(target: "magpie::nng", log::Level::Trace)
+    {
+        nng::NNG_LOG_DEBUG
+    } else if log::log_enabled!(target: "magpie::nng", log::Level::Info) {
+        nng::NNG_LOG_INFO
+    } else if log::log_enabled!(target: "magpie::nng", log::Level::Warn) {
+        nng::NNG_LOG_WARN
+    } else if log::log_enabled!(target: "magpie::nng", log::Level::Error) {
+        nng::NNG_LOG_ERR
+    } else {
+        nng::NNG_LOG_NONE
+    };
+    unsafe { nng::nng_log_set_level(nng_level) };
 
     let addr = match std::mem::take(&mut args.addr) {
         Some(mut addr) => {

@@ -14,11 +14,12 @@ use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::thread::sleep;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::{dist, root};
 
 const SOCKET_PREFIX: &str = "wayland-mcbench";
+const MEMORY_INTERVAL: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
 struct Options {
@@ -48,9 +49,9 @@ impl Variant {
 #[derive(Default, Clone)]
 struct Sample {
     ui_cpu_percent: f64,
-    daemon_cpu_percent: f64,
-    pss_kib: u64,
-    vram_kib: u64,
+    daemon_cpu_percent: Option<f64>,
+    memory: Vec<MemoryPoint>,
+    vram_kib: Option<u64>,
     frames: Option<u64>,
     p95_ms: Option<f64>,
     readings: Option<u64>,
@@ -60,7 +61,39 @@ struct Sample {
 struct Row {
     scenario: String,
     variant: Variant,
+    daemon: Option<PathBuf>,
     samples: Vec<Sample>,
+}
+
+struct Backend {
+    daemon: PathBuf,
+    hwdb: PathBuf,
+    locale: Option<PathBuf>,
+}
+
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
+struct Memory {
+    rss_kib: Option<u64>,
+    pss_kib: Option<u64>,
+}
+
+#[derive(Clone)]
+struct MemoryPoint {
+    seconds: f64,
+    ui: Memory,
+    daemon: Memory,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct ProcStat {
+    ticks: u64,
+    start_time: u64,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct DaemonIdentity {
+    pid: u32,
+    start_time: u64,
 }
 
 /// Own spawned processes through every early-return path, including socket startup failures.
@@ -114,12 +147,26 @@ fn clk_tck() -> f64 {
         .unwrap_or(100.)
 }
 
-fn proc_ticks(pid: u32) -> Option<u64> {
+fn proc_stat(pid: u32) -> Option<ProcStat> {
     let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
-    let rest = &stat[stat.rfind(')')? + 2..];
+    parse_proc_stat(&stat)
+}
+
+fn parse_proc_stat(stat: &str) -> Option<ProcStat> {
+    let rest = stat.get(stat.rfind(')')? + 2..)?;
     let fields: Vec<&str> = rest.split_whitespace().collect();
+    if matches!(*fields.first()?, "Z" | "X") {
+        return None;
+    }
     // fields[11] = utime, fields[12] = stime (1-based 14/15 minus pid and comm)
-    Some(fields.get(11)?.parse::<u64>().ok()? + fields.get(12)?.parse::<u64>().ok()?)
+    Some(ProcStat {
+        ticks: fields
+            .get(11)?
+            .parse::<u64>()
+            .ok()?
+            .checked_add(fields.get(12)?.parse::<u64>().ok()?)?,
+        start_time: fields.get(19)?.parse().ok()?,
+    })
 }
 
 fn children(pid: u32) -> Vec<u32> {
@@ -150,24 +197,77 @@ fn children(pid: u32) -> Vec<u32> {
     out
 }
 
-fn pss_kib(pid: u32) -> u64 {
-    fs::read_to_string(format!("/proc/{pid}/smaps_rollup"))
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("Pss:"))
-                .and_then(|l| l.split_whitespace().nth(1))
-                .and_then(|v| v.parse().ok())
+fn kib_field(text: &str, key: &str) -> Option<u64> {
+    let line = text.lines().find_map(|l| l.strip_prefix(key))?;
+    let mut fields = line.split_whitespace();
+    let value = fields.next()?.parse().ok()?;
+    (fields.next()? == "kB").then_some(value)
+}
+
+fn parse_proc_memory(text: &str) -> Memory {
+    Memory {
+        rss_kib: kib_field(text, "Rss:"),
+        pss_kib: kib_field(text, "Pss:"),
+    }
+}
+
+fn proc_memory(pid: u32) -> Memory {
+    let mut memory = fs::read_to_string(format!("/proc/{pid}/smaps_rollup"))
+        .map(|s| parse_proc_memory(&s))
+        .unwrap_or_default();
+    if memory.rss_kib.is_none() {
+        memory.rss_kib = fs::read_to_string(format!("/proc/{pid}/status"))
+            .ok()
+            .and_then(|s| kib_field(&s, "VmRSS:"));
+    }
+    memory
+}
+
+/// Match the actual executable, not its truncated comm or an arbitrary descendant.
+fn daemon_stat(pid: u32, expected: &Path) -> Option<ProcStat> {
+    if fs::read_link(format!("/proc/{pid}/exe")).ok()? != expected {
+        return None;
+    }
+    proc_stat(pid)
+}
+
+fn find_daemon(ui_pid: u32, expected: &Path) -> Option<DaemonIdentity> {
+    let mut matching = children(ui_pid).into_iter().filter_map(|pid| {
+        Some(DaemonIdentity {
+            pid,
+            start_time: daemon_stat(pid, expected)?.start_time,
         })
-        .unwrap_or(0)
+    });
+    let daemon = matching.next()?;
+    // Multiple matching descendants cannot establish a single daemon CPU window.
+    matching.next().is_none().then_some(daemon)
+}
+
+fn daemon_memory(daemon: Option<&DaemonIdentity>, expected: &Path) -> Memory {
+    let Some(daemon) = daemon else {
+        return Memory::default();
+    };
+    let memory = proc_memory(daemon.pid);
+    if daemon_stat(daemon.pid, expected).is_some_and(|s| s.start_time == daemon.start_time) {
+        memory
+    } else {
+        Memory::default()
+    }
+}
+
+fn cpu_percent(start: &ProcStat, end: &ProcStat, tck: f64, elapsed: f64) -> Option<f64> {
+    if start.start_time != end.start_time || tck <= 0. || elapsed <= 0. {
+        return None;
+    }
+    Some(end.ticks.checked_sub(start.ticks)? as f64 / tck / elapsed * 100.)
 }
 
 /// Sum of `drm-memory-*` / `drm-total-*` entries over the process' DRM file descriptors,
 /// de-duplicated by `drm-client-id`.
-fn vram_kib(pid: u32) -> u64 {
+fn vram_kib(pid: u32) -> Option<u64> {
     let mut clients: HashMap<String, u64> = HashMap::new();
     let Ok(dir) = fs::read_dir(format!("/proc/{pid}/fdinfo")) else {
-        return 0;
+        return None;
     };
     for entry in dir.flatten() {
         let Ok(text) = fs::read_to_string(entry.path()) else {
@@ -180,7 +280,7 @@ fn vram_kib(pid: u32) -> u64 {
         else {
             continue;
         };
-        let mut total = 0;
+        let mut total = None;
         for line in text.lines() {
             if (line.starts_with("drm-memory-") || line.starts_with("drm-total-"))
                 && let Some(v) = line
@@ -189,17 +289,20 @@ fn vram_kib(pid: u32) -> u64 {
                     .and_then(|v| v.parse::<u64>().ok())
             {
                 let unit = line.split_whitespace().nth(2).unwrap_or("KiB");
-                total += match unit {
+                let value = match unit {
                     "MiB" => v * 1024,
                     "GiB" => v * 1024 * 1024,
                     "B" => v / 1024,
                     _ => v,
                 };
+                *total.get_or_insert(0) += value;
             }
         }
-        clients.insert(client, total);
+        if let Some(total) = total {
+            clients.insert(client, total);
+        }
     }
-    clients.values().sum()
+    (!clients.is_empty()).then(|| clients.values().sum())
 }
 
 fn wait_for_socket(path: &Path, timeout: Duration) -> bool {
@@ -255,11 +358,9 @@ fn write_egui_settings(dir: &Path, page: &str) -> std::io::Result<()> {
     )
 }
 
-#[allow(clippy::too_many_arguments)]
 fn run_once(
     opts: &Options,
-    daemon: &Path,
-    hwdb: &Path,
+    backend: &Backend,
     variant: Variant,
     page: &str,
     synthetic: Option<usize>,
@@ -272,7 +373,8 @@ fn run_once(
     let stats = tmp.join("stats.txt");
     let total = opts.warmup + opts.seconds + 2;
 
-    let magpie_dir = daemon
+    let magpie_dir = backend
+        .daemon
         .parent()
         .ok_or("daemon binary has no parent directory")?;
     let path = format!(
@@ -299,15 +401,26 @@ fn run_once(
     cmd.env_remove("DISPLAY")
         .env("XDG_CONFIG_HOME", &tmp)
         .env("PATH", path)
-        .env("MC_MAGPIE_HW_DB", hwdb)
+        .env("MC_MAGPIE_HW_DB", &backend.hwdb)
         .stdout(Stdio::null())
         .stderr(Stdio::inherit());
+    if let Some(locale) = &backend.locale {
+        cmd.env("MC_LOCALEDIR", locale);
+    }
 
     let socket_name = format!("{SOCKET_PREFIX}-{tag}");
     let compositor = start_compositor(&socket_name)?;
     cmd.env("WAYLAND_DISPLAY", &socket_name);
 
-    let result = measure(opts, variant, &mut cmd, &stats, tck);
+    let result = measure(
+        opts,
+        variant,
+        &mut cmd,
+        &stats,
+        &backend.daemon,
+        synthetic.is_none(),
+        tck,
+    );
     drop(compositor);
 
     let mut sample = result?;
@@ -324,6 +437,8 @@ fn measure(
     variant: Variant,
     cmd: &mut Command,
     stats: &Path,
+    daemon_binary: &Path,
+    live: bool,
     tck: f64,
 ) -> Result<Sample, String> {
     let mut child = ManagedChild::new(
@@ -337,26 +452,67 @@ fn measure(
         return Err(format!("{} exited during warmup: {status}", variant.name()));
     }
 
-    let daemon_pids = children(pid);
-    child.descendants.clone_from(&daemon_pids);
-    let ui0 = proc_ticks(pid).ok_or("app exited during warmup")?;
-    let d0: u64 = daemon_pids.iter().filter_map(|p| proc_ticks(*p)).sum();
+    child.descendants = children(pid);
+    let ui0 = proc_stat(pid).ok_or("app exited during warmup")?;
+    let daemon0 = live.then(|| find_daemon(pid, daemon_binary)).flatten();
+    let d0 = daemon0
+        .as_ref()
+        .and_then(|d| daemon_stat(d.pid, daemon_binary));
+    let mut daemon_window_valid = daemon0.is_some() && d0.is_some();
     let t0 = Instant::now();
-    sleep(Duration::from_secs(opts.seconds));
-    if let Ok(Some(status)) = child.child.try_wait() {
-        return Err(format!(
-            "{} exited during measurement: {status}",
-            variant.name()
-        ));
+    let mut memory = vec![MemoryPoint {
+        seconds: 0.,
+        ui: proc_memory(pid),
+        daemon: daemon_memory(daemon0.as_ref(), daemon_binary),
+    }];
+    let end = t0 + Duration::from_secs(opts.seconds);
+    let mut next = (t0 + MEMORY_INTERVAL).min(end);
+    let (ui1, d1, elapsed) = loop {
+        sleep(next.saturating_duration_since(Instant::now()));
+        if let Ok(Some(status)) = child.child.try_wait() {
+            return Err(format!(
+                "{} exited during measurement: {status}",
+                variant.name()
+            ));
+        }
+        let ui = proc_stat(pid).ok_or("app exited during measurement")?;
+        let daemon = live.then(|| find_daemon(pid, daemon_binary)).flatten();
+        daemon_window_valid &= daemon.is_some() && daemon == daemon0;
+        let ticks = daemon
+            .as_ref()
+            .and_then(|d| daemon_stat(d.pid, daemon_binary));
+        daemon_window_valid &= ticks
+            .as_ref()
+            .zip(daemon.as_ref())
+            .is_some_and(|(s, d)| s.start_time == d.start_time);
+        let elapsed = t0.elapsed().as_secs_f64();
+        memory.push(MemoryPoint {
+            seconds: elapsed,
+            ui: proc_memory(pid),
+            daemon: daemon_memory(daemon.as_ref(), daemon_binary),
+        });
+        if next == end {
+            break (ui, ticks, elapsed);
+        }
+        next = (next + MEMORY_INTERVAL).min(end);
+    };
+    let daemon_cpu_percent = if daemon_window_valid {
+        d0.as_ref()
+            .zip(d1.as_ref())
+            .and_then(|(a, b)| cpu_percent(a, b, tck, elapsed))
+    } else {
+        None
+    };
+    if live && daemon_cpu_percent.is_none() {
+        eprintln!(
+            "[bench] daemon CPU unavailable: no verified, unchanged daemon over the CPU window"
+        );
     }
-    let ui1 = proc_ticks(pid).ok_or("app exited during measurement")?;
-    let d1: u64 = daemon_pids.iter().filter_map(|p| proc_ticks(*p)).sum();
-    let elapsed = t0.elapsed().as_secs_f64();
 
     let mut sample = Sample {
-        ui_cpu_percent: (ui1 - ui0) as f64 / tck / elapsed * 100.,
-        daemon_cpu_percent: d1.saturating_sub(d0) as f64 / tck / elapsed * 100.,
-        pss_kib: pss_kib(pid),
+        ui_cpu_percent: cpu_percent(&ui0, &ui1, tck, elapsed).ok_or("invalid UI CPU window")?,
+        daemon_cpu_percent,
+        memory,
         vram_kib: vram_kib(pid),
         ..Default::default()
     };
@@ -400,6 +556,28 @@ fn median(mut v: Vec<f64>) -> f64 {
     v[v.len() / 2]
 }
 
+fn median_text(values: impl Iterator<Item = f64>, precision: usize) -> String {
+    let value = median(values.collect());
+    if value.is_nan() {
+        "n/a".into()
+    } else {
+        format!("{value:.precision$}")
+    }
+}
+
+fn memory_summary(points: &[MemoryPoint], daemon: bool) -> (Memory, Memory) {
+    let get = |p: &MemoryPoint| if daemon { p.daemon } else { p.ui };
+    let final_sample = points.last().map(get).unwrap_or_default();
+    let maximum = points
+        .iter()
+        .map(get)
+        .fold(Memory::default(), |a, b| Memory {
+            rss_kib: a.rss_kib.max(b.rss_kib),
+            pss_kib: a.pss_kib.max(b.pss_kib),
+        });
+    (final_sample, maximum)
+}
+
 fn parse(args: &[String]) -> Result<Options, String> {
     let root = root();
     let mut o = Options {
@@ -411,21 +589,89 @@ fn parse(args: &[String]) -> Result<Options, String> {
         repeats: 3,
         out: root.join("perf/bench-latest.md"),
     };
+    let mut glow = None;
+    let mut custom_binary = false;
+    let mut explicit_out = false;
     let mut it = args.iter();
     while let Some(a) = it.next() {
-        let mut next = || it.next().cloned().unwrap_or_default();
+        let mut next = || {
+            it.next()
+                .cloned()
+                .ok_or_else(|| format!("missing value for {a}"))
+        };
         match a.as_str() {
             "--gtk" => return Err("--gtk is no longer supported; bench-idle benchmarks the wgpu and glow renderers (use --egui or --egui-glow to override their binaries)".into()),
-            "--egui" => o.egui = next().into(),
-            "--egui-glow" => o.egui_glow = next().into(),
-            "--seconds" => o.seconds = next().parse().unwrap_or(o.seconds),
-            "--warmup" => o.warmup = next().parse().unwrap_or(o.warmup),
-            "--repeats" => o.repeats = next().parse().unwrap_or(o.repeats),
-            "--out" => o.out = next().into(),
-            _ => {}
+            "--egui" => { o.egui = next()?.into(); custom_binary = true; }
+            "--egui-glow" => { glow = Some(PathBuf::from(next()?)); custom_binary = true; }
+            "--seconds" => o.seconds = next()?.parse().map_err(|_| "invalid --seconds")?,
+            "--warmup" => o.warmup = next()?.parse().map_err(|_| "invalid --warmup")?,
+            "--repeats" => o.repeats = next()?.parse().map_err(|_| "invalid --repeats")?,
+            "--out" => { o.out = next()?.into(); explicit_out = true; }
+            _ => return Err(format!("unknown bench-idle option {a}")),
         }
     }
+    if o.seconds == 0 || o.repeats == 0 {
+        return Err("--seconds and --repeats must be greater than zero".into());
+    }
+    o.egui_glow = glow.unwrap_or_else(|| o.egui.clone());
+    if custom_binary && !explicit_out {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|e| e.to_string())?
+            .as_nanos();
+        o.out = root.join(format!("target/diagnostic/bench-{stamp}.md"));
+    }
     Ok(o)
+}
+
+fn sibling_daemon(binary: &Path) -> Option<PathBuf> {
+    let binary = fs::canonicalize(binary).ok()?;
+    let sibling = binary.parent()?.join("missioncenter-magpie");
+    fs::canonicalize(sibling).ok().filter(|p| p.is_file())
+}
+
+fn prepare_backend(
+    binary: &Path,
+    root: &Path,
+    default_daemon: &mut Option<PathBuf>,
+    default_hwdb: &mut Option<PathBuf>,
+) -> Result<Backend, String> {
+    let daemon = if let Some(sibling) = sibling_daemon(binary) {
+        sibling
+    } else {
+        if default_daemon.is_none() {
+            *default_daemon = Some(dist::magpie_binary(root)?);
+        }
+        fs::canonicalize(default_daemon.as_ref().unwrap()).map_err(|e| e.to_string())?
+    };
+    let prefix = fs::canonicalize(binary)
+        .map_err(|e| e.to_string())?
+        .parent()
+        .and_then(Path::parent)
+        .ok_or("UI binary has no bundle prefix")?
+        .to_path_buf();
+    let bundled_hwdb = prefix.join("share/missioncenter/hw.db");
+    let hwdb = if let Some(path) = std::env::var_os("MC_MAGPIE_HW_DB") {
+        path.into()
+    } else if bundled_hwdb.is_file() {
+        bundled_hwdb
+    } else {
+        if default_hwdb.is_none() {
+            *default_hwdb = Some(dist::hwdb(root, &root.join("target/hwdb"))?);
+        }
+        default_hwdb.as_ref().unwrap().clone()
+    };
+    let locale = std::env::var_os("MC_LOCALEDIR")
+        .map(PathBuf::from)
+        .or_else(|| {
+            let path = prefix.join("share/locale");
+            path.is_dir().then_some(path)
+        });
+    Ok(Backend {
+        daemon,
+        hwdb,
+        locale,
+    })
 }
 
 pub fn bench_idle(args: &[String]) -> Result<(), String> {
@@ -436,8 +682,17 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
         }
     }
     let root = root();
-    let daemon = dist::magpie_binary(&root)?;
-    let hwdb = dist::hwdb(&root, &root.join("target/hwdb"))?;
+    let mut default_daemon = None;
+    let mut default_hwdb = None;
+    let backends = [
+        prepare_backend(&opts.egui, &root, &mut default_daemon, &mut default_hwdb)?,
+        prepare_backend(
+            &opts.egui_glow,
+            &root,
+            &mut default_daemon,
+            &mut default_hwdb,
+        )?,
+    ];
     let tck = clk_tck();
 
     let mut rows: Vec<Row> = vec![];
@@ -461,13 +716,16 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
 
     for (scenario, page, synthetic, variants) in &scenarios {
         for variant in variants {
+            let backend = &backends[match variant {
+                Variant::EguiWgpu => 0,
+                Variant::EguiGlow => 1,
+            }];
             let mut samples = vec![];
             for r in 0..opts.repeats {
                 eprintln!("[bench] {scenario} / {} / run {}", variant.name(), r + 1);
                 match run_once(
                     &opts,
-                    &daemon,
-                    &hwdb,
+                    backend,
                     *variant,
                     page,
                     *synthetic,
@@ -481,6 +739,7 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
             rows.push(Row {
                 scenario: scenario.clone(),
                 variant: *variant,
+                daemon: synthetic.is_none().then(|| backend.daemon.clone()),
                 samples,
             });
         }
@@ -494,50 +753,112 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
     md.push_str(&format!(
         "# Idle benchmark (generated by `cargo xtask bench-idle`)\n\n\
          Nested `kwin_wayland --virtual` 1280x800, refresh interval 1 s, warmup {} s, measurement {} s, {} repeats, medians shown.\n\
-         CPU = % of one core. `daemon` = magpie child process. Frames/readings/p95 come from the egui app itself.\n\n\
+         CPU = % of one core. Daemon CPU requires the matching executable and unchanged PID/start time throughout the sampled window. Frames/readings/p95 come from the egui app itself.\n\n\
           Runs without rendered frames are discarded; `valid` = kept runs. Rows with no valid runs make the benchmark fail after saving this report.\n\n\
-         | scenario | variant | valid | UI CPU % | daemon CPU % | PSS MiB | GPU mem MiB | frames/reading | UI pass p95 ms |\n\
-         |---|---|---|---|---|---|---|---|---|\n",
-        opts.warmup, opts.seconds, opts.repeats
+         UI wgpu: `{}`; UI glow: `{}`. These binaries are used as supplied, without rebuilding the UI.\n\
+         RUST_LOG: `{}`.\n\n",
+        opts.warmup, opts.seconds, opts.repeats,
+        opts.egui.display(), opts.egui_glow.display(),
+        std::env::var("RUST_LOG").unwrap_or_default(),
     ));
+    for row in rows.iter().filter(|r| r.daemon.is_some()) {
+        md.push_str(&format!(
+            "- {} / {} daemon: `{}`\n",
+            row.scenario,
+            row.variant.name(),
+            row.daemon.as_ref().unwrap().display()
+        ));
+    }
+    md.push_str("\n| scenario | variant | valid | UI CPU % | daemon CPU % | GPU mem MiB | frames/reading | UI pass p95 ms |\n|---|---|---|---|---|---|---|---|\n");
     for row in rows {
         let s = &row.samples;
-        let f = |g: &dyn Fn(&Sample) -> f64| median(s.iter().map(g).collect());
-        let frames_per_reading = {
-            let v: Vec<f64> = s
-                .iter()
-                .filter_map(|x| match (x.frames, x.readings) {
-                    (Some(f), Some(r)) if r > 0 => Some(f as f64 / r as f64),
-                    _ => None,
-                })
-                .collect();
-            if v.is_empty() {
-                "n/a".to_owned()
-            } else {
-                format!("{:.2}", median(v))
-            }
-        };
-        let p95 = {
-            let v: Vec<f64> = s.iter().filter_map(|x| x.p95_ms).collect();
-            if v.is_empty() {
-                "n/a".to_owned()
-            } else {
-                format!("{:.2}", median(v))
-            }
-        };
+        let frames_per_reading = median_text(
+            s.iter().filter_map(|x| match (x.frames, x.readings) {
+                (Some(f), Some(r)) if r > 0 => Some(f as f64 / r as f64),
+                _ => None,
+            }),
+            2,
+        );
+        let p95 = median_text(s.iter().filter_map(|x| x.p95_ms), 2);
         md.push_str(&format!(
-            "| {} | {} | {}/{} | {:.2} | {:.2} | {:.1} | {:.1} | {} | {} |\n",
+            "| {} | {} | {}/{} | {} | {} | {} | {} | {} |\n",
             row.scenario,
             row.variant.name(),
             s.iter().filter(|x| x.valid).count(),
             opts.repeats,
-            f(&|x| x.ui_cpu_percent),
-            f(&|x| x.daemon_cpu_percent),
-            f(&|x| x.pss_kib as f64) / 1024.,
-            f(&|x| x.vram_kib as f64) / 1024.,
+            median_text(s.iter().map(|x| x.ui_cpu_percent), 2),
+            median_text(s.iter().filter_map(|x| x.daemon_cpu_percent), 2),
+            median_text(
+                s.iter()
+                    .filter_map(|x| x.vram_kib)
+                    .map(|v| v as f64 / 1024.),
+                1
+            ),
             frames_per_reading,
             p95,
         ));
+    }
+    md.push_str("\n## Process memory (MiB)\n\nExternal RSS/PSS samples at measurement start, every 10 s, and measurement end. Final values and maximum observed values are distinct; the sampled maximum is not an absolute peak. `n/a` means absent/unreadable, including the synthetic scenario's daemon. RSS falls back to VmRSS when smaps_rollup is unavailable; PSS has no fallback. Each summary component is the median of available run values.\n\n| scenario | variant | UI final RSS / PSS | UI maximum observed RSS / PSS | daemon final RSS / PSS | daemon maximum observed RSS / PSS |\n|---|---|---|---|---|---|\n");
+    for row in rows {
+        let pair = |daemon, maximum| {
+            let memories: Vec<_> = row
+                .samples
+                .iter()
+                .map(|s| {
+                    let (final_sample, max) = memory_summary(&s.memory, daemon);
+                    if maximum { max } else { final_sample }
+                })
+                .collect();
+            format!(
+                "{} / {}",
+                median_text(
+                    memories
+                        .iter()
+                        .filter_map(|m| m.rss_kib)
+                        .map(|v| v as f64 / 1024.),
+                    1
+                ),
+                median_text(
+                    memories
+                        .iter()
+                        .filter_map(|m| m.pss_kib)
+                        .map(|v| v as f64 / 1024.),
+                    1
+                ),
+            )
+        };
+        md.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} |\n",
+            row.scenario,
+            row.variant.name(),
+            pair(false, false),
+            pair(false, true),
+            pair(true, false),
+            pair(true, true)
+        ));
+    }
+    md.push_str("\n### Individual memory observations\n\nSeconds are relative to the post-warmup measurement start.\n\n| scenario | variant | run | seconds | UI RSS MiB | UI PSS MiB | daemon RSS MiB | daemon PSS MiB |\n|---|---|---|---|---|---|---|---|\n");
+    for row in rows {
+        for (run, sample) in row.samples.iter().enumerate() {
+            for point in &sample.memory {
+                let mib = |value: Option<u64>| {
+                    value
+                        .map(|v| format!("{:.1}", v as f64 / 1024.))
+                        .unwrap_or_else(|| "n/a".into())
+                };
+                md.push_str(&format!(
+                    "| {} | {} | {} | {:.3} | {} | {} | {} | {} |\n",
+                    row.scenario,
+                    row.variant.name(),
+                    run + 1,
+                    point.seconds,
+                    mib(point.ui.rss_kib),
+                    mib(point.ui.pss_kib),
+                    mib(point.daemon.rss_kib),
+                    mib(point.daemon.pss_kib)
+                ));
+            }
+        }
     }
     if let Some(parent) = opts.out.parent() {
         let _ = fs::create_dir_all(parent);
@@ -615,6 +936,172 @@ mod tests {
     }
 
     #[test]
+    fn one_custom_binary_selects_both_renderers_and_preserves_default_report() {
+        let opts = parse(&args(&["--egui", "bundle/bin/taskmanager"])).unwrap();
+        assert_eq!(opts.egui_glow, opts.egui);
+        assert!(opts.out.starts_with(root().join("target/diagnostic")));
+        assert_ne!(opts.out, root().join("perf/bench-latest.md"));
+        let opts = parse(&args(&[
+            "--egui-glow",
+            "glow",
+            "--egui",
+            "wgpu",
+            "--out",
+            "custom.md",
+        ]))
+        .unwrap();
+        assert_eq!(opts.egui, Path::new("wgpu"));
+        assert_eq!(opts.egui_glow, Path::new("glow"));
+        assert_eq!(opts.out, Path::new("custom.md"));
+    }
+
+    #[test]
+    fn parser_rejects_missing_or_invalid_measurement_window() {
+        for values in [
+            &["--egui"][..],
+            &["--out"][..],
+            &["--seconds", "0"][..],
+            &["--seconds", "bad"][..],
+            &["--repeats", "0"][..],
+        ] {
+            assert!(parse(&args(values)).is_err(), "{values:?}");
+        }
+    }
+
+    #[test]
+    fn memory_parser_preserves_unknown_and_real_zero() {
+        assert_eq!(
+            parse_proc_memory("Rss: 2048 kB\nPss: 1024 kB\nPss_Anon: 1 kB\n"),
+            Memory {
+                rss_kib: Some(2048),
+                pss_kib: Some(1024)
+            }
+        );
+        assert_eq!(
+            parse_proc_memory("Pss: 0 kB\n"),
+            Memory {
+                rss_kib: None,
+                pss_kib: Some(0)
+            }
+        );
+        for text in [
+            "",
+            "Pss_Anon: 100 kB\n",
+            "Rss: -1 kB\nPss: bad kB\n",
+            "Rss: 4 bytes\nPss: 5\n",
+        ] {
+            assert_eq!(parse_proc_memory(text), Memory::default());
+        }
+        assert_eq!(kib_field("VmRSS: 400 kB\n", "VmRSS:"), Some(400));
+        assert_eq!(proc_memory(u32::MAX), Memory::default());
+    }
+
+    #[test]
+    fn sampled_maximum_does_not_replace_an_unavailable_final_value() {
+        let points = [
+            MemoryPoint {
+                seconds: 0.,
+                ui: Memory {
+                    rss_kib: Some(100),
+                    pss_kib: Some(20),
+                },
+                daemon: Memory::default(),
+            },
+            MemoryPoint {
+                seconds: 10.,
+                ui: Memory {
+                    rss_kib: Some(80),
+                    pss_kib: None,
+                },
+                daemon: Memory::default(),
+            },
+        ];
+        assert_eq!(memory_summary(&points, false), (points[1].ui, points[0].ui));
+        assert_eq!(
+            memory_summary(&points, true),
+            (Memory::default(), Memory::default())
+        );
+    }
+
+    #[test]
+    fn cpu_window_rejects_pid_reuse_and_backwards_counters() {
+        let start = ProcStat {
+            ticks: 10,
+            start_time: 2,
+        };
+        assert_eq!(
+            cpu_percent(
+                &start,
+                &ProcStat {
+                    ticks: 30,
+                    start_time: 2
+                },
+                100.,
+                10.
+            ),
+            Some(2.)
+        );
+        assert_eq!(
+            cpu_percent(
+                &start,
+                &ProcStat {
+                    ticks: 30,
+                    start_time: 3
+                },
+                100.,
+                10.
+            ),
+            None
+        );
+        assert_eq!(
+            cpu_percent(
+                &start,
+                &ProcStat {
+                    ticks: 9,
+                    start_time: 2
+                },
+                100.,
+                10.
+            ),
+            None
+        );
+        assert_eq!(cpu_percent(&start, &start, 100., 0.), None);
+        let executable = std::env::current_exe().unwrap();
+        assert!(daemon_stat(std::process::id(), &executable).is_some());
+        assert!(daemon_stat(std::process::id(), Path::new("/not/the/daemon")).is_none());
+        let fields = "S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19";
+        assert_eq!(
+            parse_proc_stat(&format!("123 (comm with ) spaces) {fields}")),
+            Some(ProcStat {
+                ticks: 23,
+                start_time: 19
+            })
+        );
+        assert!(parse_proc_stat("123 (broken)").is_none());
+    }
+
+    #[test]
+    fn sibling_bundle_uses_matching_backend_without_building_default() {
+        let dir = std::env::temp_dir().join(format!("mc-bench-bundle-test-{}", std::process::id()));
+        fs::create_dir_all(dir.join("bin")).unwrap();
+        fs::create_dir_all(dir.join("share/missioncenter")).unwrap();
+        fs::create_dir_all(dir.join("share/locale")).unwrap();
+        let binary = dir.join("bin/taskmanager");
+        let daemon = dir.join("bin/missioncenter-magpie");
+        fs::write(&binary, []).unwrap();
+        fs::write(&daemon, []).unwrap();
+        fs::write(dir.join("share/missioncenter/hw.db"), []).unwrap();
+        let mut default_daemon = None;
+        let mut default_hwdb = None;
+        let backend =
+            prepare_backend(&binary, &root(), &mut default_daemon, &mut default_hwdb).unwrap();
+        assert_eq!(backend.daemon, fs::canonicalize(&daemon).unwrap());
+        assert!(default_daemon.is_none());
+        assert!(default_hwdb.is_none());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
     fn invalid_measurements_fail_after_saving_report() {
         let mut opts = parse(&[]).unwrap();
         let dir = std::env::temp_dir().join(format!("mc-bench-report-test-{}", std::process::id()));
@@ -622,18 +1109,20 @@ mod tests {
         let rows = [Row {
             scenario: "performance/cpu".into(),
             variant: Variant::EguiWgpu,
+            daemon: None,
             samples: vec![],
         }];
         let error = write_report(&opts, &rows).unwrap_err();
         assert!(error.contains("no valid measurements"));
         assert!(error.contains("performance/cpu / egui-wgpu"));
         let report = fs::read_to_string(&opts.out).unwrap();
-        assert!(report.contains("| performance/cpu | egui-wgpu | 0/3 | NaN"));
+        assert!(report.contains("| performance/cpu | egui-wgpu | 0/3 | n/a"));
         assert!(report.contains("Rows with no valid runs make the benchmark fail"));
 
         let rows = [Row {
             scenario: "performance/cpu".into(),
             variant: Variant::EguiWgpu,
+            daemon: None,
             samples: vec![Sample {
                 frames: Some(6),
                 readings: Some(3),
@@ -643,7 +1132,8 @@ mod tests {
         }];
         write_report(&opts, &rows).unwrap();
         let report = fs::read_to_string(&opts.out).unwrap();
-        assert!(report.contains("| egui-wgpu | 1/3 | 0.00 | 0.00 | 0.0 | 0.0 | 2.00 | n/a |"));
+        assert!(report.contains("| egui-wgpu | 1/3 | 0.00 | n/a | n/a | 2.00 | n/a |"));
+        assert!(report.contains("| egui-wgpu | n/a / n/a | n/a / n/a | n/a / n/a | n/a / n/a |"));
         fs::remove_dir_all(dir).unwrap();
     }
 
@@ -665,7 +1155,7 @@ mod tests {
         let descendant: u32 = line.trim().parse().unwrap();
         assert!(child.descendants.is_empty());
         drop(child);
-        assert!(proc_ticks(pid).is_none(), "spawned process was not reaped");
+        assert!(proc_stat(pid).is_none(), "spawned process was not reaped");
         let deadline = Instant::now() + Duration::from_secs(2);
         loop {
             let stat = fs::read_to_string(format!("/proc/{descendant}/stat"));
