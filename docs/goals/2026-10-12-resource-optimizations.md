@@ -21,7 +21,8 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
   - Source: plan §1.
   - Acceptance: complete reads/UTF-8/error parity, no skipped FDs or changed collector semantics; tests and paired quiet/profile observations support retaining or reverting.
   - Primary evidence: reader/fdinfo tests, syscall summary, paired benchmark/profile report, commit.
-  - Status: pending.
+  - Status: verified.
+  - Evidence: 12 fdinfo tests passed; complete reads/error/UTF-8 semantics retained. Two paired 8/40 profile comparisons (`gpu-{a,b}-{profile,repeat-profile}.log`) show CPU/call 175.1→161.6 and 187.6→172.3 ms, then 189.7→157.8 and 187.6→169.4 ms (wgpu/glow), ~8–17% lower in all four pairs at comparable PID counts. Full quiet 8/40/3 `gpu-{a2,b2}-quiet.md` all 3/3 valid; no confirmed adjacent CPU/PSS/UI-latency regression, whole-daemon gain is not uniform. Filtered rootless syscall summaries (`gpu-{a,b}-filtered-statx.txt`) show 351157→316368 statx calls despite 8→14 GPU completions; these include all traced descendants, are mechanism evidence only, not benchmark CPU. Retain the reader in this checkpoint's commit.
 - R3: Test a snapshot-local PID-to-client index with full-scan parity.
   - Source: plan §2a.
   - Acceptance: identical aggregation and state semantics; measured CPU/allocations benefit without confirmed resource regression, or documented rollback.
@@ -62,15 +63,15 @@ Complete the frozen outcomes using the listed change envelope and primary eviden
 - Existing diagnostic bundle/benchmark paths, minimal measurement helpers if required by the evidence surface, and this goal. Toolchain Rust 1.96.1; backend workspace separate.
 
 ## Current Checkpoint
-- Closes: R2.
-- Smallest next action: implement the private complete-read fdinfo reader, run parity tests, rebuild the candidate and compare it against the frozen bundle.
-- Expected evidence: fewer metadata syscalls plus repeated CPU/call and quiet benchmark benefit without functional/resource regression; retain or revert before the next slice.
+- Closes: R3.
+- Smallest next action: freeze the retained GPU bundle, implement only the snapshot-local client index and full-scan parity tests, then compare against that frozen bundle.
+- Expected evidence: synthetic snapshot/apply CPU improvement with unchanged aggregation and no confirmed resource regression; keep R4 process-row reuse separate.
 
 ## Current State
 - Diagnostic work committed as `0f3c6fa` from initial base `fce5c3c`; current bundle at `target/diagnostic/bundle/`, frozen baseline at `target/diagnostic/opt-baseline/`.
 - Existing quiet/profile benchmarks: 8 s warm-up, 40 s measurement, 3 repeats, both renderers, live CPU page and 1000-process synthetic fixture; all 3/3 valid.
 - Existing root/client/UI/backend/xtask tests and Rust 1.96.1 Clippy passed. Final native smoke emitted UI and daemon final summaries.
-- Read-only RECON verified Rust 1.96.1 metadata sizing in both string-reading helpers, repeated UI full-client scans, and stat field 20 num_threads. No optimization from this plan implemented yet.
+- R2 reader retained after tests, repeated targeted CPU benefit and syscall mechanism evidence; R3–R6 not implemented yet. Read-only RECON also verified repeated UI full-client scans and stat field 20 num_threads.
 
 ## Approved Plan (copy)
 
@@ -182,6 +183,7 @@ PSS/RSS — весь процесс, не функция; heaptrack UI не пр
 - 2026-10-12: R1 verified; diagnostic baseline committed/frozen with hashes and toolchain metadata, relative daemon smoke passed. Next: fdinfo reader experiment only.
 - 2026-10-12: R2 reader parity tests passed (12 fdinfo tests), candidate bundle built. Baseline quiet runs valid, but all subsequent candidate runs lacked exit stats; identical UI hash and synthetic/native reduced reproduction stalled at two logic passes while host screen locker was active. Diagnose isolated virtual KWin lockscreen handling, without unlocking/changing the host session; minimum benchmark helper change is within the envelope. Discard invalid runs and repeat both sides under identical launcher options.
 - 2026-10-12: isolated virtual KWin `--no-lockscreen` restored all four short reproduction runs (1/1 per scenario/renderer). Retain the one-flag harness fix and document it; rerun the full baseline/candidate comparisons with that same launcher.
+- 2026-10-12: R2 verified/retained: 12 fdinfo tests, 24 valid quiet A/B runs, two profile A/B pairs per renderer (~8–17% fdinfo CPU/call saving). Broad strace perturbed callbacks/cleanup; incomplete traces discarded and owned leftovers stopped. Filtered tracing with bounded interruptible ownership completed both reports; no traced-time resource claims. Next: R3 snapshot index only.
 
 ## Completion
 - Pending final outcome verification and commits.

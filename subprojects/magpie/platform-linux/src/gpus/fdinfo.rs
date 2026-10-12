@@ -5,6 +5,7 @@
 //! DRM fdinfo accounting, following the kernel's drm-usage-stats contract.
 //! No PID/FD heuristic is a substitute for a device and drm-client-id pair.
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::io::{self, Read};
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -461,6 +462,25 @@ fn sum_regions(regions: &BTreeMap<String, u64>, dedicated: bool) -> Option<u64> 
     result
 }
 
+/// Procfs reports no useful reservation size. Avoid File's metadata-sizing
+/// convenience readers, but still consume every byte and reject partial text.
+fn read_text<'a>(reader: &mut impl Read, bytes: &'a mut Vec<u8>) -> io::Result<&'a str> {
+    bytes.clear();
+    let mut chunk = [0; 4096];
+    loop {
+        match reader.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(count) => {
+                bytes.try_reserve(count)?;
+                bytes.extend_from_slice(&chunk[..count]);
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(error),
+        }
+    }
+    std::str::from_utf8(bytes).map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))
+}
+
 impl Collector {
     pub fn collect(
         &mut self,
@@ -524,6 +544,7 @@ impl Collector {
                 return samples;
             }
         };
+        let mut text_buffer = Vec::new();
         for entry in entries.filter_map(Result::ok) {
             let Ok(pid) = entry.file_name().to_string_lossy().parse::<u32>() else {
                 continue;
@@ -562,7 +583,9 @@ impl Collector {
                                 continue;
                             }
                         };
-                        let text = match std::fs::read_to_string(fd.path()) {
+                        let text = match std::fs::File::open(fd.path())
+                            .and_then(|mut file| read_text(&mut file, &mut text_buffer))
+                        {
                             Ok(text) => text,
                             Err(error) => {
                                 magpie_platform::profile::proc_io_error(&error);
@@ -574,7 +597,7 @@ impl Collector {
                                 continue;
                             }
                         };
-                        let parsed = parse(&text);
+                        let parsed = parse(text);
                         if parsed.driver.is_empty()
                             && parsed.client_id.is_none()
                             && parsed.pdev.is_none()
@@ -978,6 +1001,69 @@ mod tests {
     }
     fn fd(ns: u64) -> String {
         format!("drm-driver: amdgpu\ndrm-pdev: 0000:01:00.0\ndrm-client-id: 42\ndrm-engine-gfx: {ns} ns\ndrm-engine-capacity-gfx: 2\ndrm-memory-vram: 4 KiB\ndrm-total-gtt: 8 KiB\ndrm-shared-vram: 3 KiB\n")
+    }
+    struct Chunked<'a> {
+        bytes: &'a [u8],
+        chunk: usize,
+        interrupted: bool,
+        fail_after_chunk: bool,
+    }
+    impl Read for Chunked<'_> {
+        fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+            if std::mem::take(&mut self.interrupted) {
+                return Err(io::ErrorKind::Interrupted.into());
+            }
+            if self.chunk == 0 {
+                return Err(io::ErrorKind::PermissionDenied.into());
+            }
+            let count = self.bytes.len().min(self.chunk).min(output.len());
+            output[..count].copy_from_slice(&self.bytes[..count]);
+            self.bytes = &self.bytes[count..];
+            if self.fail_after_chunk {
+                self.chunk = 0;
+            }
+            Ok(count)
+        }
+    }
+    #[test]
+    fn complete_reads_handle_short_chunks_interruption_and_reused_buffers() {
+        let text = "ignored: 0\n".repeat(2000) + &fd(1_000_000_000);
+        let mut buffer = b"previous fd contents".to_vec();
+        let mut reader = Chunked {
+            bytes: text.as_bytes(),
+            chunk: 7,
+            interrupted: true,
+            fail_after_chunk: false,
+        };
+        let result = read_text(&mut reader, &mut buffer).unwrap();
+        assert_eq!(result, text);
+        assert_eq!(parse(result).client_id, Some(42));
+        assert_eq!(read_text(&mut &b""[..], &mut buffer).unwrap(), "");
+        reader.bytes = "имя".as_bytes();
+        reader.chunk = 1;
+        assert_eq!(read_text(&mut reader, &mut buffer).unwrap(), "имя");
+    }
+    #[test]
+    fn incomplete_reads_and_invalid_utf8_are_errors_not_parseable_text() {
+        let mut buffer = Vec::new();
+        let mut reader = Chunked {
+            bytes: b"drm-client-id: 42\n",
+            chunk: 4,
+            interrupted: false,
+            fail_after_chunk: true,
+        };
+        assert_eq!(
+            read_text(&mut reader, &mut buffer).unwrap_err().kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        assert_eq!(buffer, b"drm-");
+        assert_eq!(
+            read_text(&mut &b"\xff"[..], &mut buffer)
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::InvalidData
+        );
+        assert_eq!(read_text(&mut &b"valid"[..], &mut buffer).unwrap(), "valid");
     }
     #[test]
     fn deduplicates_across_fds_and_pids_and_uses_elapsed_capacity() {
