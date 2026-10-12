@@ -107,12 +107,14 @@ impl NetworkWrapper {
         stats_cache: &mut HashMap<String, TransferStats>,
         bus: &zbus::Connection,
     ) {
-        self.connection.wireless_connection =
-            if self.connection.kind == ConnectionKind::Wireless as i32 {
-                wireless::wireless_connection(&self.connection.id, rt, &self.device_proxy)
-            } else {
-                None
-            };
+        (
+            self.connection.wireless_connection,
+            self.connection.max_speed_bytes_ps,
+        ) = if self.connection.kind == ConnectionKind::Wireless as i32 {
+            wireless::wireless_connection(&self.connection.id, rt, &self.device_proxy)
+        } else {
+            (None, stats::max_speed(&self.connection.id))
+        };
 
         self.connection.state = match sync!(rt, self.device_proxy.get_property::<u32>("State")) {
             Ok(p) => match p {
@@ -152,8 +154,6 @@ impl NetworkWrapper {
             self.connection.tx_total_bytes,
             self.connection.rx_total_bytes,
         );
-
-        self.connection.max_speed_bytes_ps = stats::max_speed(&self.connection.id);
 
         self.connection.ipv4_address =
             ip::ipv4_address(&self.connection.id, rt, bus, &self.device_proxy);

@@ -142,6 +142,11 @@ impl magpie_platform::network::NetworkCache for NetworkCache {
             self.connection_wrappers
                 .insert(if_name.into_owned(), prev_network);
         }
+
+        self.connections
+            .retain(|if_name, _| self.connection_wrappers.contains_key(if_name));
+        self.stats_cache
+            .retain(|if_name, _| self.connection_wrappers.contains_key(if_name));
     }
 
     fn cached_entries(&self) -> &HashMap<String, Connection> {

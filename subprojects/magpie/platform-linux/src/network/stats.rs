@@ -29,7 +29,11 @@ pub fn max_speed(if_name: &str) -> Option<u64> {
     let mut path: ArrayString<256> = ArrayString::new();
     let _ = write!(&mut path, "/sys/class/net/{if_name}/speed");
 
-    read_u64(path.as_str(), "max device speed").map(|speed| (speed * 1_000_000) / 8)
+    read_u64(path.as_str(), "max device speed").and_then(mbps_to_bytes_ps)
+}
+
+fn mbps_to_bytes_ps(mbps: u64) -> Option<u64> {
+    mbps.checked_mul(125_000).filter(|speed| *speed != 0)
 }
 
 pub fn bytes_transfered(if_name: &str) -> (Option<u64>, Option<u64>) {
@@ -85,4 +89,19 @@ pub fn transfer_rates(
     }
 
     (tx_rate_bps, rx_rate_bps)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::mbps_to_bytes_ps;
+
+    #[test]
+    fn sysfs_speed_conversion() {
+        assert_eq!(mbps_to_bytes_ps(1_000), Some(125_000_000));
+        assert_eq!(mbps_to_bytes_ps(0), None);
+        let max_mbps = u64::MAX / 125_000;
+        assert_eq!(mbps_to_bytes_ps(max_mbps), Some(max_mbps * 125_000));
+        assert_eq!(mbps_to_bytes_ps(max_mbps + 1), None);
+        assert_eq!(mbps_to_bytes_ps(u64::MAX), None);
+    }
 }

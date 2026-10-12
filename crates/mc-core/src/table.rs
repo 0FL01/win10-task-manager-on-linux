@@ -788,11 +788,11 @@ pub struct ColumnTotals {
     pub drive_percent: f32,
     pub swap_percent: f32,
     pub network_bytes_ps: f32,
-    /// Send + receive rate of the physical interfaces (bridges, Docker, VPN and virtual
-    /// interfaces repeat traffic of the physical ones); available without per-process data
+    /// Send + receive rate of connected or traffic-carrying physical interfaces (bridges,
+    /// Docker, VPN and virtual interfaces repeat traffic); available without per-process data
     pub system_network_bytes_ps: f32,
-    /// Summed link speed of those interfaces, when known (0 otherwise)
-    pub system_network_capacity_bytes_ps: f32,
+    /// Summed link speed, only when every participating interface has a usable speed and rate
+    pub system_network_capacity_bytes_ps: Option<f32>,
     pub gpu_percent: Option<f32>,
     pub gpu_memory_percent: Option<f32>,
 }
@@ -828,22 +828,33 @@ impl ColumnTotals {
             .map(|p| p.usage_stats.network_usage.round())
             .sum();
 
-        let physical = || {
-            readings.network_connections.values().filter(|c| {
-                use mc_magpie::magpie_types::network::ConnectionKind as K;
-                matches!(
-                    K::try_from(c.kind),
-                    Ok(K::Wired | K::Wireless | K::Wwan | K::Bluetooth | K::InfiniBand)
-                )
-            })
-        };
-        let system_network_bytes_ps = physical()
+        let mut physical = readings.network_connections.values().filter(|c| {
+            use mc_magpie::magpie_types::network::{ConnectionKind as K, ConnectionState};
+            matches!(
+                K::try_from(c.kind),
+                Ok(K::Wired | K::Wireless | K::Wwan | K::Bluetooth | K::InfiniBand)
+            ) && (c.state == ConnectionState::Connected as i32
+                || c.tx_rate_bytes_ps != 0.
+                || c.rx_rate_bytes_ps != 0.)
+        });
+        let system_network_bytes_ps: f32 = physical
+            .clone()
             .map(|c| c.tx_rate_bytes_ps + c.rx_rate_bytes_ps)
             .sum();
-        let system_network_capacity_bytes_ps = physical()
-            .filter_map(|c| c.max_speed_bytes_ps)
-            .map(|s| s as f32)
-            .sum();
+        let system_network_capacity_bytes_ps = physical
+            .try_fold(0., |sum, c| {
+                if !c.tx_rate_bytes_ps.is_finite()
+                    || !c.rx_rate_bytes_ps.is_finite()
+                    || c.tx_rate_bytes_ps < 0.
+                    || c.rx_rate_bytes_ps < 0.
+                {
+                    return None;
+                }
+                c.max_speed_bytes_ps
+                    .filter(|speed| *speed > 0)
+                    .map(|speed| sum + speed as f32)
+            })
+            .filter(|sum| *sum > 0. && sum.is_finite() && system_network_bytes_ps.is_finite());
 
         let gpu_percent = gpu.usage.percent;
         let gpu_memory_percent = gpu
@@ -1121,7 +1132,7 @@ mod tests {
 
     #[test]
     fn system_network_total_counts_physical_interfaces_only() {
-        use mc_magpie::magpie_types::network::{Connection, ConnectionKind};
+        use mc_magpie::magpie_types::network::{Connection, ConnectionKind, ConnectionState};
         let mut r = Readings::new();
         for (id, kind, rate) in [
             ("eth0", ConnectionKind::Wired, 1000.),
@@ -1134,15 +1145,118 @@ mod tests {
                 Connection {
                     id: id.into(),
                     kind: kind as i32,
+                    state: ConnectionState::Connected as i32,
                     tx_rate_bytes_ps: rate,
                     rx_rate_bytes_ps: rate,
+                    max_speed_bytes_ps: Some(125_000_000),
                     ..Default::default()
                 },
             );
         }
-        assert_eq!(
-            ColumnTotals::from_readings(&r, &GpuSnapshot::default()).system_network_bytes_ps,
-            3000.
+        let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+        assert_eq!(totals.system_network_bytes_ps, 3000.);
+        assert_eq!(totals.system_network_capacity_bytes_ps, Some(250_000_000.));
+    }
+
+    #[test]
+    fn system_network_capacity_requires_every_active_link_speed() {
+        use mc_magpie::magpie_types::network::{Connection, ConnectionKind, ConnectionState};
+        let mut r = Readings::new();
+        r.network_connections.insert(
+            "eth0".into(),
+            Connection {
+                kind: ConnectionKind::Wired as i32,
+                state: ConnectionState::Connected as i32,
+                tx_rate_bytes_ps: 5_000_000.,
+                rx_rate_bytes_ps: 7_500_000.,
+                max_speed_bytes_ps: Some(125_000_000),
+                ..Default::default()
+            },
         );
+        r.network_connections.insert(
+            "wlan0".into(),
+            Connection {
+                kind: ConnectionKind::Wireless as i32,
+                state: ConnectionState::Connected as i32,
+                ..Default::default()
+            },
+        );
+        // An idle connected link with unknown speed still makes the denominator incomplete.
+        for speed in [None, Some(0)] {
+            r.network_connections
+                .get_mut("wlan0")
+                .unwrap()
+                .max_speed_bytes_ps = speed;
+            let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+            assert_eq!(totals.system_network_bytes_ps, 12_500_000.);
+            assert_eq!(totals.system_network_capacity_bytes_ps, None);
+        }
+        r.network_connections.get_mut("wlan0").unwrap().state =
+            ConnectionState::Disconnected as i32;
+        let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+        assert_eq!(totals.system_network_capacity_bytes_ps, Some(125_000_000.));
+        assert_eq!(
+            totals.system_network_bytes_ps * 100.
+                / totals.system_network_capacity_bytes_ps.unwrap(),
+            10.
+        );
+        // Traffic keeps a link in the calculation even if NetworkManager cannot report state.
+        let wifi = r.network_connections.get_mut("wlan0").unwrap();
+        wifi.state = ConnectionState::Unknown as i32;
+        wifi.rx_rate_bytes_ps = 12_500_000.;
+        assert_eq!(
+            ColumnTotals::from_readings(&r, &GpuSnapshot::default())
+                .system_network_capacity_bytes_ps,
+            None
+        );
+        r.network_connections
+            .get_mut("wlan0")
+            .unwrap()
+            .max_speed_bytes_ps = Some(125_000_000);
+        let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+        assert_eq!(totals.system_network_bytes_ps, 25_000_000.);
+        assert_eq!(totals.system_network_capacity_bytes_ps, Some(250_000_000.));
+        r.network_connections.remove("wlan0");
+        assert_eq!(
+            ColumnTotals::from_readings(&r, &GpuSnapshot::default())
+                .system_network_capacity_bytes_ps,
+            Some(125_000_000.)
+        );
+    }
+
+    #[test]
+    fn system_network_totals_follow_speed_changes_and_missing_links() {
+        let mut r = mc_magpie::synthetic_readings(0, 0);
+        let wifi = r.network_connections.get_mut("wlan0").unwrap();
+        wifi.tx_rate_bytes_ps = 0.;
+        wifi.rx_rate_bytes_ps = 0.;
+        wifi.max_speed_bytes_ps = Some(6_750_000);
+        let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+        assert_eq!(totals.system_network_bytes_ps, 0.);
+        assert_eq!(totals.system_network_capacity_bytes_ps, Some(6_750_000.));
+        r.network_connections
+            .get_mut("wlan0")
+            .unwrap()
+            .max_speed_bytes_ps = Some(12_500_000);
+        assert_eq!(
+            ColumnTotals::from_readings(&r, &GpuSnapshot::default())
+                .system_network_capacity_bytes_ps,
+            Some(12_500_000.)
+        );
+        for rate in [-1., f32::NAN, f32::INFINITY] {
+            r.network_connections
+                .get_mut("wlan0")
+                .unwrap()
+                .rx_rate_bytes_ps = rate;
+            assert_eq!(
+                ColumnTotals::from_readings(&r, &GpuSnapshot::default())
+                    .system_network_capacity_bytes_ps,
+                None
+            );
+        }
+        r.network_connections.clear();
+        let totals = ColumnTotals::from_readings(&r, &GpuSnapshot::default());
+        assert_eq!(totals.system_network_bytes_ps, 0.);
+        assert_eq!(totals.system_network_capacity_bytes_ps, None);
     }
 }

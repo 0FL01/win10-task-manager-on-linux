@@ -130,9 +130,18 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   Clicking a header sorts (numeric columns start descending, Name ascending).
 - Name cell indent: + 22 px per tree level (expander, icon and text move together).
 - Processes without an app icon get our own generic window glyph (16×16).
-- Network column (own): the summary is the link utilisation of the physical interfaces (rate /
-  summed link speed; the rate when no speed is known), its tooltip shows the rate. Summaries too wide
-  for 16 px fall back to 12 px. Per-process values come from the gatherer's TCP socket counters
+- Network column (own design, not a verified Windows multi-adapter algorithm): the summary is
+  `100 × Σ(RX + TX) / Σ(link speed)` over connected or traffic-carrying physical interfaces
+  (Wired, Wireless, WWAN, Bluetooth, InfiniBand). Idle disconnected interfaces and virtual
+  duplicates are excluded. Link speed comes from sysfs Mbps for non-Wi-Fi devices and the current
+  NetworkManager `Device.Wireless.Bitrate` in Kbit/s for Wi-Fi, not `AccessPoint.MaxBitrate`.
+  Every participating interface must have a known positive speed and finite nonnegative rates;
+  otherwise, or when there are no participating interfaces, the summary is "—", without alert
+  colour. Known zero traffic is 0%. Round to an integer and clamp the displayed percentage to
+  0–100% (own design: full-duplex RX + TX can exceed the one-direction link speed). The tooltip
+  keeps the unclamped throughput, explains that utilisation is relative to the local link rather
+  than the Internet plan, and explains missing speed data. Summaries too wide for 16 px fall back
+  to 12 px. Per-process values remain rates from the gatherer's TCP socket counters
   (`mc-magpie::sockets`, no privileges: netlink sock_diag counters + `/proc/<pid>/fd`; loopback
   counted for the client side only; UDP and other users' processes not visible); the tooltip
   says so. If sock_diag is unavailable cells show "—" and the tooltip explains why.

@@ -45,6 +45,10 @@ pub const NETWORK_TCP_HINT: &str = n_(
 pub const NETWORK_HINT: &str = n_(
     "Per-process network usage is unavailable: the kernel's socket statistics could not be read. The column total shows all network interfaces.",
 );
+const NETWORK_LINK_HINT: &str =
+    n_("Utilization is relative to the reported local link speed, not your Internet plan's speed.");
+const NETWORK_LINK_UNKNOWN_HINT: &str =
+    n_("Link utilization is unavailable: no usable link speed data.");
 const NAME_W: f32 = 234.;
 const VALUE_W: f32 = 72.;
 const INDENT: f32 = 22.;
@@ -245,19 +249,11 @@ impl ProcessesPage {
                 .gpu_memory_percent
                 .map(pct)
                 .unwrap_or((Some("—".into()), false)),
-            // System-wide (available without per-process data, includes traffic not attributed
-            // to a process): link utilisation like the reference, the rate when no link speed is
-            // known
-            Column::Network if t.system_network_capacity_bytes_ps > 0. => {
-                pct(t.system_network_bytes_ps * 100. / t.system_network_capacity_bytes_ps)
-            }
-            Column::Network => (
-                Some(mc_core::format::to_human_readable_nice(
-                    t.system_network_bytes_ps,
-                    &mc_core::format::DataType::NetworkBytesPerSecond,
-                )),
-                false,
-            ),
+            // System-wide; unknown capacity is not zero or a throughput summary.
+            Column::Network => t
+                .system_network_capacity_bytes_ps
+                .map(|capacity| pct((t.system_network_bytes_ps / capacity * 100.).clamp(0., 100.)))
+                .unwrap_or((Some("—".into()), false)),
             Column::Name
             | Column::Pid
             | Column::GpuEngine
@@ -371,6 +367,10 @@ impl ProcessesPage {
                 &mc_core::format::DataType::NetworkBytesPerSecond,
             );
             let mut tip = mc_core::i18n::i18n_f("All network interfaces: {}", &[&rate]);
+            tip = format!("{tip}\n\n{}", i18n(NETWORK_LINK_HINT));
+            if table.totals.system_network_capacity_bytes_ps.is_none() {
+                tip = format!("{tip}\n\n{}", i18n(NETWORK_LINK_UNKNOWN_HINT));
+            }
             if table.hide_network {
                 tip = format!("{tip}\n\n{}", i18n(NETWORK_HINT));
             } else {
@@ -835,5 +835,56 @@ impl ProcessesPage {
             self.context = Some((table.tree.nodes[apps[index]].key.clone(), pos));
         }
         self.row_menu(ui, cx, table);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::table::TableKind;
+
+    #[test]
+    fn network_summary_is_percent_or_unknown_not_throughput() {
+        let mut table = TableView::new(TableKind::Apps, &mut Config::default());
+        table.totals.system_network_bytes_ps = 277_500.; // 2.22 Mbps
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("—".into()), false)
+        );
+        table.totals.system_network_capacity_bytes_ps = Some(125_000_000.);
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("0%".into()), false)
+        );
+        table.totals.system_network_capacity_bytes_ps = Some(12_500_000.);
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("2%".into()), false)
+        );
+        table.hide_network = true;
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("2%".into()), false)
+        );
+        table.totals.system_network_bytes_ps = 0.;
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("0%".into()), false)
+        );
+        table.totals.system_network_bytes_ps = 11_250_000.;
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("90%".into()), true)
+        );
+        table.totals.system_network_bytes_ps = 25_000_000.;
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("100%".into()), true)
+        );
+        table.totals.system_network_capacity_bytes_ps = None;
+        assert_eq!(
+            ProcessesPage::summary(&table, Column::Network),
+            (Some("—".into()), false)
+        );
     }
 }

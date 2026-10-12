@@ -29,7 +29,7 @@ pub fn wireless_connection(
     if_name: &str,
     rt: &Handle,
     device_proxy: &Proxy,
-) -> Option<WirelessConnection> {
+) -> (Option<WirelessConnection>, Option<u64>) {
     let device_path = device_proxy.path();
 
     let device_proxy = match sync!(
@@ -44,7 +44,15 @@ pub fn wireless_connection(
         Ok(p) => p,
         Err(e) => {
             log::warn!("Failed to get wireless device proxy for {if_name}: {e}");
-            return None;
+            return (None, None);
+        }
+    };
+
+    let speed_bytes_ps = match sync!(rt, device_proxy.get_property::<u32>("Bitrate")) {
+        Ok(kbps) => kbps_to_bytes_ps(kbps),
+        Err(e) => {
+            log::warn!("Failed to get wireless device bitrate for {if_name}: {e}");
+            None
         }
     };
 
@@ -55,7 +63,7 @@ pub fn wireless_connection(
         Ok(p) => p,
         Err(e) => {
             log::warn!("Failed to get access point object path for {if_name}: {e}");
-            return None;
+            return (None, speed_bytes_ps);
         }
     };
 
@@ -71,7 +79,7 @@ pub fn wireless_connection(
         Ok(p) => p,
         Err(e) => {
             log::warn!("Failed to get access point proxy for {if_name}: {e}");
-            return None;
+            return (None, speed_bytes_ps);
         }
     };
 
@@ -108,10 +116,29 @@ pub fn wireless_connection(
         }
     };
 
-    Some(WirelessConnection {
-        ssid,
-        frequency_mhz,
-        bitrate_kbps,
-        signal_strength_percent,
-    })
+    (
+        Some(WirelessConnection {
+            ssid,
+            frequency_mhz,
+            bitrate_kbps,
+            signal_strength_percent,
+        }),
+        speed_bytes_ps,
+    )
+}
+
+fn kbps_to_bytes_ps(kbps: u32) -> Option<u64> {
+    (kbps != 0).then_some(u64::from(kbps) * 125)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::kbps_to_bytes_ps;
+
+    #[test]
+    fn wireless_bitrate_conversion() {
+        assert_eq!(kbps_to_bytes_ps(54_000), Some(6_750_000));
+        assert_eq!(kbps_to_bytes_ps(0), None);
+        assert_eq!(kbps_to_bytes_ps(u32::MAX), Some(536_870_911_875));
+    }
 }

@@ -258,7 +258,7 @@ fn union_nvidia_pci_devices(inventory: &mut HashMap<String, GpuDevice>, pci_root
             u32::from_str_radix(value.trim().trim_start_matches("0x"), 16).ok()
         };
         if hex_attribute("vendor") != Some(0x10de)
-            || !hex_attribute("class").is_some_and(|class| class >> 16 == 0x03)
+            || hex_attribute("class").is_none_or(|class| class >> 16 != 0x03)
         {
             continue;
         }
