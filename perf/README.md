@@ -28,7 +28,7 @@ cargo +1.96.1 xtask diagnostic
 ```
 
 This command takes no options. It builds both independent workspaces with Rust 1.96.1,
-`--locked --release`, `CARGO_PROFILE_RELEASE_DEBUG=2` and
+`--locked --release --no-default-features --features diagnostic-profile` (plus both UI renderers), `CARGO_PROFILE_RELEASE_DEBUG=2` and
 `CARGO_PROFILE_RELEASE_STRIP=none`. The existing release optimization level 3 and single codegen
 unit remain in effect. UI and daemon build caches are isolated at `target/diagnostic/ui/` and
 `target/diagnostic/magpie/`. The completed local bundle is published at:
@@ -38,6 +38,12 @@ unit remain in effect. UI and daemon build caches are isolated at `target/diagno
 - `target/diagnostic/bundle/lib/taskmanager/gpu/` — private GPU ABI libraries, `licenses/` and
   verified `manifest.json` from `support/bundle-gpu-libs.py`;
 - `target/diagnostic/bundle/share/missioncenter/hw.db` and `share/locale/` — runtime data.
+
+Ordinary release/install/package builds default to `production-logging`: the `log` crate
+compiles out DEBUG/TRACE (and INFO), keeping WARN/ERROR, regardless of `RUST_LOG`.
+Aggregate profiling code is not compiled unless `diagnostic-profile` is selected. The two
+binary build modes are mutually exclusive; diagnostic commands disable production defaults
+explicitly. Changing `RUST_LOG` cannot turn a production package into a diagnostic build.
 
 The command prints an absolute-path `env` invocation selecting its hardware database and locales.
 For example, from the repository root:

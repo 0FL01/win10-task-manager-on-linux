@@ -11,9 +11,11 @@ name = "taskmanager"
 path = "src/main.rs"
 
 [features]
-default = ["glow", "wgpu"]
+default = ["glow", "wgpu", "production-logging"]
 wgpu = ["eframe/wgpu"]
 glow = ["eframe/glow"]
+production-logging = ["log/release_max_level_warn"]
+diagnostic-profile = ["mc-magpie/diagnostic-profile"]
 
 [dependencies]
 eframe.workspace = true

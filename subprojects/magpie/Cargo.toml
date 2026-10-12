@@ -15,6 +15,11 @@ members = [
     "types",
 ]
 
+[features]
+default = ["production-logging"]
+production-logging = ["log/release_max_level_warn"]
+diagnostic-profile = ["magpie-platform/diagnostic-profile"]
+
 [dependencies]
 env_logger = "0.11"
 libc = "0.2"

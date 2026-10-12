@@ -47,6 +47,17 @@ fn release_build(root: &Path, target: &Path, ui: bool, diagnostic: bool) -> Comm
         cmd.arg("--manifest-path")
             .arg(root.join("subprojects/magpie/Cargo.toml"));
     }
+    if diagnostic {
+        cmd.args([
+            "--no-default-features",
+            "--features",
+            if ui {
+                "diagnostic-profile,glow,wgpu"
+            } else {
+                "diagnostic-profile"
+            },
+        ]);
+    }
     cmd.arg("--target-dir").arg(target);
     cmd
 }
@@ -286,9 +297,7 @@ pub fn install(args: &[String]) -> Result<(), String> {
     // the binaries themselves, e.g. Flatpak)
     if !data_only {
         let locale_dir = prefix.join("share/locale");
-        run(Command::new("cargo")
-            .current_dir(&root)
-            .args(["build", "--locked", "--release", "-p", "taskmanager-app"])
+        run(release_build(&root, &root.join("target"), true, false)
             .env("MC_LOCALEDIR", &locale_dir))?;
 
         mkdir(&base.join("bin"))?;
@@ -406,8 +415,18 @@ mod tests {
             let args: Vec<_> = cmd.get_args().map(|a| a.to_string_lossy()).collect();
             assert_eq!(&args[..4], &["+1.96.1", "build", "--locked", "--release"]);
             assert_eq!(args[4], if ui { "-p" } else { "--manifest-path" });
-            assert_eq!(args[6], "--target-dir");
-            assert_eq!(args[7], target.to_string_lossy());
+            assert_eq!(args[6], "--no-default-features");
+            assert_eq!(args[7], "--features");
+            assert_eq!(
+                args[8],
+                if ui {
+                    "diagnostic-profile,glow,wgpu"
+                } else {
+                    "diagnostic-profile"
+                }
+            );
+            assert_eq!(args[9], "--target-dir");
+            assert_eq!(args[10], target.to_string_lossy());
             let env: Vec<_> = cmd.get_envs().collect();
             assert_eq!(
                 env,
@@ -423,9 +442,17 @@ mod tests {
                 ]
             );
         }
-        let normal = release_build(&root, &root.join("target/magpie"), false, false);
-        assert_eq!(normal.get_args().next().unwrap(), "build");
-        assert_eq!(normal.get_envs().count(), 0);
+        for ui in [false, true] {
+            let normal = release_build(&root, &root.join("target/production"), ui, false);
+            let args: Vec<_> = normal.get_args().map(|arg| arg.to_string_lossy()).collect();
+            assert_eq!(args[0], "build");
+            assert!(
+                !args
+                    .iter()
+                    .any(|arg| arg.contains("diagnostic") || arg == "--no-default-features")
+            );
+            assert_eq!(normal.get_envs().count(), 0);
+        }
     }
 
     #[test]

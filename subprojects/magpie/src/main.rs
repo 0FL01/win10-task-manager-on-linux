@@ -18,6 +18,24 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#[cfg(all(feature = "production-logging", feature = "diagnostic-profile"))]
+compile_error!(
+    "production-logging and diagnostic-profile are mutually exclusive; use --no-default-features for diagnostic builds"
+);
+
+#[cfg(all(
+    not(debug_assertions),
+    not(feature = "production-logging"),
+    not(feature = "diagnostic-profile")
+))]
+compile_error!("release builds require production-logging or explicit diagnostic-profile");
+
+#[cfg(all(feature = "production-logging", not(debug_assertions)))]
+const _: () = assert!(
+    matches!(log::STATIC_MAX_LEVEL, log::LevelFilter::Warn),
+    "production releases must statically cap logging at Warn"
+);
+
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
@@ -28,7 +46,9 @@ use signal_hook::consts::signal::*;
 use signal_hook::flag as signal_flag;
 
 use magpie_platform::ipc::{Request, RequestBody, Response, ResponseBody, ResponseError};
-use magpie_platform::profile::{Domain, Phase, Reporter, Span};
+#[cfg(feature = "diagnostic-profile")]
+use magpie_platform::profile::Reporter;
+use magpie_platform::profile::{Domain, Phase, Span};
 use magpie_platform::DataCache;
 
 #[cfg(target_os = "linux")]
@@ -484,6 +504,7 @@ fn test_packaged_gpu_libraries() -> magpie_platform::Result<()> {
 
 /// Native current-thread clock only. It excludes runtime/worker peers and
 /// forked probe CPU. A failed clock is unavailable, never a fabricated zero.
+#[cfg(feature = "diagnostic-profile")]
 fn profile_thread_cpu_ns() -> Option<u64> {
     #[cfg(target_os = "linux")]
     {
@@ -528,6 +549,7 @@ fn main() -> magpie_platform::Result<()> {
     }
 
     env_logger::init();
+    #[cfg(feature = "diagnostic-profile")]
     let _profile_reporter = Reporter::start(profile_thread_cpu_ns);
     unsafe { nng::nng_log_set_logger(Some(nng::nng_log_fn)) };
     // A profile-only trace filter must not enable verbose native NNG logging.

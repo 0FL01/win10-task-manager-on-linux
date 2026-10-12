@@ -6,6 +6,10 @@ license.workspace = true
 rust-version.workspace = true
 description = "Toolkit agnostic client for the Magpie statistics daemon"
 
+[features]
+default = []
+diagnostic-profile = []
+
 [dependencies]
 arrayvec.workspace = true
 libc.workspace = true

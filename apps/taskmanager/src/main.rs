@@ -18,6 +18,24 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#[cfg(all(feature = "production-logging", feature = "diagnostic-profile"))]
+compile_error!(
+    "production-logging and diagnostic-profile are mutually exclusive; use --no-default-features for diagnostic builds"
+);
+
+#[cfg(all(
+    not(debug_assertions),
+    not(feature = "production-logging"),
+    not(feature = "diagnostic-profile")
+))]
+compile_error!("release builds require production-logging or explicit diagnostic-profile");
+
+#[cfg(all(feature = "production-logging", not(debug_assertions)))]
+const _: () = assert!(
+    matches!(log::STATIC_MAX_LEVEL, log::LevelFilter::Warn),
+    "production releases must statically cap logging at Warn"
+);
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;

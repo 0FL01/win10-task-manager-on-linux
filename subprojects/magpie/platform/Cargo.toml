@@ -3,6 +3,10 @@ name = "magpie-platform"
 version = "1.2.0"
 edition = "2021"
 
+[features]
+default = []
+diagnostic-profile = []
+
 [dependencies]
 anyhow = "1.0"
 log = "0.4"
