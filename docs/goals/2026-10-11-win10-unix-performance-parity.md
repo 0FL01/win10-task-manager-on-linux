@@ -1,6 +1,6 @@
 # Goal: Win10 Performance parity with Unix memory semantics
 
-Status: active
+Status: complete
 Source: user screenshots, audited plan, “Реализовать и коммит пуш; делай копию плана в цель и итеративно реализовать”, and the rejected tooltip/footer renders followed by “реализовать и коммит пуш”.
 Last updated: 2026-10-12
 
@@ -48,9 +48,13 @@ affected constraints remain satisfied.
   - Acceptance: intended clean commit on origin; required jobs and expected artifacts/releases
     successful for that SHA.
   - Primary evidence: Git SHA/ref, GitHub Actions jobs and artifacts/release.
-  - Status: pending
-  - Evidence: previous delivery 6669726 passed Actions 38175799892 and published v1.2.12;
-    the accepted correction still needs its own commit, push and exact-SHA CI verification.
+  - Status: verified
+  - Evidence: correction f4073e29af23074af0c9fc185e067953bfbb03de pushed to origin/main;
+    [Actions 38212353483](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38212353483)
+    succeeded (checks, metadata, five native jobs, publish). Six nonempty, unexpired artifacts
+    verified on that SHA: ui-snapshots and native packages for Arch, Debian 13, Fedora 44,
+    Tumbleweed and Ubuntu 26.04. [v1.2.14](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.14)
+    is published for that SHA with five uploaded packages and one source archive.
 - R5: Remove the separator above the full Performance footer without changing geometry.
   - Source: the user's crossed-out footer line and approved correction plan.
   - Acceptance: no separator in expanded Performance; preserve footer/content coordinates,
@@ -143,11 +147,11 @@ One fresh `--no-config --synthetic 300` smoke; real ZFS readings optional if ava
 Commit, push and verify required GitHub Actions jobs and expected artifacts/releases.
 
 ## Current Checkpoint
-- Closes: R4; commit/push the verified correction and check all required jobs and expected
-  native/UI artifacts and release assets on that exact SHA. No runtime work remains.
+- Closed: R1–R5. Local gates, correction-SHA CI, native/UI artifacts and release assets verified.
+  No runtime work remains.
 
 ## Current State
-- Resolved: R1/R2/R3/R5 verified; original implementation 6669726, repair baseline 3cf3255.
+- Resolved: R1–R5 verified; original implementation 6669726, accepted correction f4073e2.
 - Current repair evidence: `cargo +1.96.1 test --locked -p mc-ui --test win10_probes --
   --test-threads=1` (18 passed, 2 existing ignored), `cargo +1.96.1 fmt --all --check`,
   `cargo +1.96.1 test --locked --workspace -- --test-threads=1` (155 passed, 5 existing ignored)
@@ -155,7 +159,9 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
   Real CPU, RAM, composition and right-edge tooltip renders reviewed in target/ui-snapshots.
   No counter, layout-size, tooltip-text, localization-template or GPU behavior changes.
 - Blocker: none.
-- Next: commit, push and verify required CI and expected outputs on the repair SHA.
+- Delivery evidence: Actions 38212353483 succeeded; six CI artifacts and v1.2.14 assets verified
+  against f4073e29af23074af0c9fc185e067953bfbb03de.
+- Next: none; objective complete.
 
 ## Accepted correction plan
 - Use egui 0.36.2 `on_hover_text_at_pointer` for ordinary graph cells, the summary fallback
@@ -182,8 +188,14 @@ Commit, push and verify required GitHub Actions jobs and expected artifacts/rele
 - 2026-10-12: R2/R5 correction and regression assertions passed, including real pointer-adjacent
   renders and unchanged other-tab/compact separators. Final fmt/workspace/1.96.1 Clippy gates
   passed; only R4 delivery verification remains.
+- 2026-10-12: f4073e2 pushed, all eight CI jobs succeeded, six CI artifacts and published
+  v1.2.14 with six assets verified against the exact correction SHA. Closure check complete.
 
 ## Completion
-- Pending: R4 delivery verification. The local correction evidence above is current; earlier
-  CI proves the previous source tree, not the correction awaiting push.
-- Final status: active.
+- Resolved outcomes: R1–R5 verified with current local and correction-SHA CI evidence.
+- Commands and artifacts: fmt, 155 workspace tests (5 existing ignored), strict Rust 1.96.1
+  Clippy, Actions 38212353483, six CI artifacts and v1.2.14 native packages/source archive.
+- Constraint and diff-scope check: only approved tooltip anchoring, Performance separator,
+  spec/probes/tests and goal state changed; other tabs, compact/GPU behavior, graph geometry,
+  memory accounting, text, settings, dependencies and backend remain unchanged.
+- Final status: complete.
