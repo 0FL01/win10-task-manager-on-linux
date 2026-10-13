@@ -64,6 +64,14 @@ class VerifyNativeTests(unittest.TestCase):
             "[options]\nInclude = /etc/pacman.conf\n[options]\nNoExtract = !usr/share/locale/*\n",
         )
 
+    def test_rpm_install_explicitly_includes_optional_hardware_prerequisites(self):
+        for distro, manager in (("fedora44", "dnf"), ("opensuse-tumbleweed", "zypper")):
+            with self.subTest(distro=distro):
+                result = self.install_arguments(distro, manager)
+                self.assertIn("polkit", result["args"])
+                if distro == "opensuse-tumbleweed":
+                    self.assertIn("pkexec", result["args"])
+
     def test_opensuse_helpers_include_xvfb_dependencies_and_session_daemon(self):
         result = self.install_arguments("opensuse-tumbleweed", "zypper", helpers=True)
         self.assertIn("gawk", result["args"])

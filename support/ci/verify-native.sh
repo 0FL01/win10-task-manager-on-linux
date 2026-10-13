@@ -15,12 +15,14 @@ version=$3
 
 case $distro in
     fedora44)
-        dnf install -y "$package"
+        # Exercise optional hardware access even when the image disables weak dependencies.
+        dnf install -y "$package" polkit
         package_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}' taskmanager)
         expected_version="${version}-1.fc44"
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install --allow-unsigned-rpm "$package"
+        # Tumbleweed splits pkexec from polkit; do not rely on image recommendation policy.
+        zypper --non-interactive install --allow-unsigned-rpm "$package" polkit pkexec
         package_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}' taskmanager)
         expected_version="${version}-1.tw"
         ;;
