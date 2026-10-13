@@ -162,38 +162,55 @@ fn caption_glyph(
 /// Invisible resize zones along the window edges (only for a restored window).
 pub fn resize_edges(ui: &mut Ui, window: Rect) {
     let g = m::RESIZE_GRIP;
+    let c = m::RESIZE_CORNER;
     let (l, t, r, b) = (window.left(), window.top(), window.right(), window.bottom());
     let zones = [
         (
-            Rect::from_min_max(pos2(l, t), pos2(l + g, t + g)),
+            Rect::from_min_max(pos2(l, t), pos2(l + c, t + g)),
             ResizeDirection::NorthWest,
         ),
         (
-            Rect::from_min_max(pos2(r - g, t), pos2(r, t + g)),
+            Rect::from_min_max(pos2(r - c, t), pos2(r, t + g)),
             ResizeDirection::NorthEast,
         ),
         (
-            Rect::from_min_max(pos2(l, b - g), pos2(l + g, b)),
+            Rect::from_min_max(pos2(l, b - g), pos2(l + c, b)),
             ResizeDirection::SouthWest,
         ),
         (
-            Rect::from_min_max(pos2(r - g, b - g), pos2(r, b)),
+            Rect::from_min_max(pos2(r - c, b - g), pos2(r, b)),
             ResizeDirection::SouthEast,
         ),
         (
-            Rect::from_min_max(pos2(l + g, t), pos2(r - g, t + g)),
+            Rect::from_min_max(pos2(l, t + g), pos2(l + g, t + c)),
+            ResizeDirection::NorthWest,
+        ),
+        (
+            Rect::from_min_max(pos2(r - g, t + g), pos2(r, t + c)),
+            ResizeDirection::NorthEast,
+        ),
+        (
+            Rect::from_min_max(pos2(l, b - c), pos2(l + g, b - g)),
+            ResizeDirection::SouthWest,
+        ),
+        (
+            Rect::from_min_max(pos2(r - g, b - c), pos2(r, b - g)),
+            ResizeDirection::SouthEast,
+        ),
+        (
+            Rect::from_min_max(pos2(l + c, t), pos2(r - c, t + g)),
             ResizeDirection::North,
         ),
         (
-            Rect::from_min_max(pos2(l + g, b - g), pos2(r - g, b)),
+            Rect::from_min_max(pos2(l + c, b - g), pos2(r - c, b)),
             ResizeDirection::South,
         ),
         (
-            Rect::from_min_max(pos2(l, t + g), pos2(l + g, b - g)),
+            Rect::from_min_max(pos2(l, t + c), pos2(l + g, b - c)),
             ResizeDirection::West,
         ),
         (
-            Rect::from_min_max(pos2(r - g, t + g), pos2(r, b - g)),
+            Rect::from_min_max(pos2(r - g, t + c), pos2(r, b - c)),
             ResizeDirection::East,
         ),
     ];
@@ -205,12 +222,27 @@ pub fn resize_edges(ui: &mut Ui, window: Rect) {
             ResizeDirection::NorthWest | ResizeDirection::SouthEast => CursorIcon::ResizeNwSe,
             ResizeDirection::NorthEast | ResizeDirection::SouthWest => CursorIcon::ResizeNeSw,
         };
-        if response.hovered() || response.dragged() {
+        // Egui's proximity hit testing must not advertise a resize outside the border.
+        let on_border = ui.input(|input| {
+            input
+                .pointer
+                .hover_pos()
+                .is_some_and(|pos| rect.contains(pos))
+        });
+        if response.hovered() && on_border {
             ui.ctx().set_cursor_icon(cursor);
         }
-        if response.drag_started() {
+        if response.drag_started_by(egui::PointerButton::Primary) && on_border {
             ui.ctx()
                 .send_viewport_cmd(ViewportCommand::BeginResize(direction));
+            // The native compositor owns this gesture now, including its button release.
+            // Keeping an egui drag would lock the cursor and suppress the next resize when
+            // Wayland sends PointerGone instead of forwarding that release to the client.
+            ui.ctx().stop_dragging();
+            // stop_dragging clears widget ownership, not the held button. Without clearing
+            // that too, hover remains suppressed until some later client-side release.
+            ui.ctx()
+                .input_mut(|input| input.pointer = egui::PointerState::default());
         }
     }
 }
