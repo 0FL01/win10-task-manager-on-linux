@@ -19,17 +19,14 @@
  */
 
 use std::collections::HashMap;
-use std::hash::Hasher;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use ahash::AHasher;
 use futures_lite::StreamExt;
 use thiserror::Error;
-use zbus::proxy::PropertyStream;
 use zbus::zvariant::OwnedObjectPath;
-use zbus::{zvariant, Connection, Proxy};
+use zbus::Connection;
 
 use magpie_platform::services::Service;
 
@@ -37,12 +34,14 @@ use crate::services::systemd::systemd_manager::UnitFilesChangedStream;
 use crate::util::{is_snap, user_bus};
 use crate::{async_runtime, sync, system_bus};
 
+use properties::{Pending, PendingMap, Stamp, Tracked, TrackedValue};
 use service::{ActiveState, LoadState};
 use systemd_manager::SystemDManagerProxy;
 
 pub use manager::ServiceManager;
 
 mod manager;
+mod properties;
 mod service;
 mod systemd_manager;
 
@@ -90,108 +89,42 @@ async fn stream_has_contents(stream: &mut UnitFilesChangedStream) -> Option<bool
     }
 }
 
-async fn stream_peeker<T>(stream: &mut PropertyStream<'_, T>) -> Option<T>
-where
-    T: TryFrom<zvariant::OwnedValue>,
-    T::Error: Into<zbus::Error>,
-    T: Unpin,
-{
-    use futures::stream::Stream;
-    use std::task::{Context, Poll};
-
-    // Create a dummy context for polling
-    let mut stream = std::pin::pin!(stream);
-
-    // Poll the stream for a next value without blocking
-    match stream
-        .as_mut()
-        .poll_next(&mut Context::from_waker(&futures::task::noop_waker()))
-    {
-        Poll::Ready(Some(sig)) => sig.get().await.ok(),
-        Poll::Ready(None) => None, // Stream ended without values
-        Poll::Pending => None,     // No immediate value available
-    }
-}
-
 struct ServiceCache {
     pub service: Service,
-
-    pub main_pid_receiver: PropertyStream<'static, u32>,
-    pub user_receiver: PropertyStream<'static, String>,
-    pub group_receiver: PropertyStream<'static, String>,
-
-    pub active_state_receiver: PropertyStream<'static, String>,
+    unit_path: OwnedObjectPath,
+    /// Message that set each tracked property; older observations are ignored.
+    stamps: [Option<Stamp>; 4],
 }
 
 impl ServiceCache {
-    async fn new(service: Service, unit_path: OwnedObjectPath, bus: &Connection) -> Option<Self> {
-        let Ok(unit_proxy) = Proxy::new(
-            bus,
-            "org.freedesktop.systemd1",
-            unit_path.clone(),
-            "org.freedesktop.systemd1.Unit",
-        )
-        .await
-        else {
-            return None;
-        };
-
-        let Ok(service_proxy) = Proxy::new(
-            bus,
-            "org.freedesktop.systemd1",
-            unit_path.clone(),
-            "org.freedesktop.systemd1.Service",
-        )
-        .await
-        else {
-            return None;
-        };
-
-        Some(Self {
+    fn new(service: Service, unit_path: OwnedObjectPath) -> Self {
+        Self {
             service,
-
-            main_pid_receiver: service_proxy
-                .receive_property_changed::<u32>("MainPID")
-                .await,
-            user_receiver: service_proxy
-                .receive_property_changed::<String>("User")
-                .await,
-            group_receiver: service_proxy
-                .receive_property_changed::<String>("Group")
-                .await,
-
-            active_state_receiver: unit_proxy
-                .receive_property_changed::<String>("ActiveState")
-                .await,
-        })
+            unit_path,
+            stamps: Default::default(),
+        }
     }
 
-    #[inline]
-    async fn update_service_properties(&mut self) -> Result<(), SystemDError> {
-        let (active_state, pid, user, group) = tokio::join!(
-            stream_peeker(&mut self.active_state_receiver),
-            stream_peeker(&mut self.main_pid_receiver),
-            stream_peeker(&mut self.user_receiver),
-            stream_peeker(&mut self.group_receiver),
-        );
+    /// Applies received values; returns invalidated properties that must be read again.
+    fn update_service_properties(&mut self, mut pending: Pending) -> Vec<Tracked> {
+        let mut invalidated = Vec::new();
+        for (property, (stamp, value)) in pending.take() {
+            let slot = &mut self.stamps[property as usize];
+            if !stamp.supersedes(slot.as_ref()) {
+                continue;
+            }
+            *slot = Some(stamp);
 
-        if let Some(active_state) = active_state {
-            self.set_active(active_state);
+            match (property, value) {
+                (Tracked::ActiveState, Some(TrackedValue::Text(state))) => self.set_active(state),
+                (Tracked::MainPid, Some(TrackedValue::Pid(pid))) => self.set_pid(pid),
+                (Tracked::User, Some(TrackedValue::Text(user))) => self.set_user(user),
+                (Tracked::Group, Some(TrackedValue::Text(group))) => self.set_group(group),
+                (_, None) => invalidated.push(property),
+                _ => {}
+            }
         }
-
-        if let Some(pid) = pid {
-            self.set_pid(pid);
-        }
-
-        if let Some(user) = user {
-            self.set_user(user);
-        }
-
-        if let Some(group) = group {
-            self.set_group(group);
-        }
-
-        Ok(())
+        invalidated
     }
 
     fn set_active(&mut self, active_state: String) {
@@ -218,6 +151,7 @@ pub struct SystemD {
     systemd1: SystemDManagerProxy<'static>,
     bus: &'static Connection,
     service_cache: HashMap<u64, ServiceCache>,
+    pending: PendingMap,
 
     subscribe_ok: bool,
     full_refresh_required: Arc<AtomicBool>,
@@ -298,6 +232,14 @@ impl SystemD {
             true
         };
 
+        let pending = PendingMap::default();
+        match sync!(rt, properties::subscribe(bus)) {
+            Ok(stream) => {
+                rt.spawn(properties::watch(stream, bus_id, pending.clone()));
+            }
+            Err(e) => log::error!("Failed to receive unit property changes: {e}"),
+        }
+
         let listener = match sync!(rt, systemd1.receive_unit_files_changed()) {
             Ok(sig) => Some(sig),
             Err(e) => {
@@ -310,6 +252,7 @@ impl SystemD {
             systemd1,
             bus,
             service_cache: HashMap::new(),
+            pending,
 
             subscribe_ok,
             full_refresh_required,
@@ -393,12 +336,7 @@ impl SystemD {
                 String,
                 OwnedObjectPath,
             )| {
-                let service_id = {
-                    let mut hasher = AHasher::default();
-                    hasher.write(self.bus_id.as_bytes());
-                    hasher.write((*unit_obj_path).as_bytes());
-                    hasher.finish()
-                };
+                let service_id = properties::service_id(self.bus_id, unit_obj_path.as_str());
                 let (unit_file_path, enabled) = match unit_files.get(&name) {
                     Some((ufp, e)) => (Some(ufp.clone()), *e),
                     None => (None, false),
@@ -448,9 +386,15 @@ impl SystemD {
                 }
             }
 
+            let mut pending = self.pending.lock();
             for id in self.to_remove.drain(..) {
                 self.service_cache.remove(&id);
+                pending.remove(&id);
             }
+
+            // Track new units before reading them so changes racing the initial reads are
+            // kept; stamps decide which value is newer. Values arrive on later refreshes.
+            let mut reads = Vec::new();
 
             for (
                 id,
@@ -501,17 +445,36 @@ impl SystemD {
                     file_path: unit_file_path,
                 };
 
-                let Some(newval) =
-                    sync!(rt, ServiceCache::new(new_service, unit_obj_path, self.bus))
-                else {
-                    continue;
-                };
-                self.service_cache.insert(id, newval);
+                pending.entry(id).or_default();
+                for &property in Tracked::for_unit(&new_service.name) {
+                    reads.push((id, unit_obj_path.clone(), property));
+                }
+                self.service_cache
+                    .insert(id, ServiceCache::new(new_service, unit_obj_path));
+            }
+            drop(pending);
+
+            if !reads.is_empty() {
+                rt.spawn(properties::read(self.bus, reads, self.pending.clone()));
             }
         }
 
+        let mut reads = Vec::new();
+        {
+            let mut pending = self.pending.lock();
+            for (id, pending) in pending.iter_mut().filter(|(_, p)| !p.is_empty()) {
+                if let Some(service) = self.service_cache.get_mut(id) {
+                    for property in service.update_service_properties(std::mem::take(pending)) {
+                        reads.push((*id, service.unit_path.clone(), property));
+                    }
+                }
+            }
+        }
+        if !reads.is_empty() {
+            rt.spawn(properties::read(self.bus, reads, self.pending.clone()));
+        }
+
         for service_cache in self.service_cache.values_mut() {
-            let _ = sync!(rt, service_cache.update_service_properties());
             if let Some((_, enabled)) = unit_files.get(&service_cache.service.name) {
                 service_cache.service.enabled = *enabled;
             }
