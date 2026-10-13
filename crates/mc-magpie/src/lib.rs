@@ -45,6 +45,7 @@ macro_rules! cmd_flatpak_host {
 #[allow(clippy::all)]
 mod client;
 mod fixture;
+pub mod footprint;
 mod gatherer;
 mod hardware_access;
 mod hardware_worker;

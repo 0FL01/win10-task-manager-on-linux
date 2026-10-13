@@ -260,6 +260,7 @@ impl Shell {
 }
 
 fn main() -> eframe::Result {
+    mc_magpie::footprint::configure();
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
     let _profile_reporter = mc_magpie::profile::Reporter::start();
     let startup = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::Startup);

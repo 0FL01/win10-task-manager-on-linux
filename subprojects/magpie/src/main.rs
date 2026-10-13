@@ -62,6 +62,7 @@ mod battery;
 mod cpu;
 mod disks;
 mod fan;
+mod footprint;
 mod gpus;
 mod memory;
 mod network;
@@ -328,7 +329,10 @@ fn serve(socket: nng::nng_socket, stop_requested: Arc<AtomicBool>) -> magpie_pla
         move || os_signals_listen(stop_requested)
     });
 
+    let mut trimmer = footprint::Trimmer::new();
     while !stop_requested.load(Ordering::Relaxed) {
+        trimmer.tick();
+
         let mut message_buffer: *mut libc::c_void = std::ptr::null_mut();
         let mut message_len: libc::size_t = 0;
 
@@ -535,6 +539,8 @@ fn main() -> magpie_platform::Result<()> {
         #[arg(long)]
         test: bool,
     }
+
+    footprint::configure();
 
     let mut args = Args::parse();
     if args.test {

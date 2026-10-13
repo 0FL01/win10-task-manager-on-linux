@@ -501,9 +501,11 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut users = crate::users::UserResolver::default();
     let mut sockets = crate::sockets::SocketTraffic::default();
     let mut hardware_sample: Option<crate::hardware_worker::Sample> = None;
+    let mut trimmer = crate::footprint::Trimmer::new();
     drop(startup);
 
     while ctx.running() {
+        trimmer.tick();
         let cycle_start = Instant::now();
         let mut cycle = Span::new(Phase::GatherCycle);
         let reduced = ctx.reduced_activity.load(atomic::Ordering::Acquire);
