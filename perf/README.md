@@ -115,6 +115,35 @@ callbacks from the host session's screen locker without unlocking or reconfiguri
 Not covered automatically: input-driven scrolling (needs input injection) and the minimized state
 (eframe skips the UI pass while hidden by design; `logic` still drains data).
 
+The UI is single-instance on the session bus: while Task Manager already runs in the session, a
+launched UI only activates that window and exits. Run measurements under `dbus-run-session` in
+that case; the system bus (system services) stays the real one.
+
+## Memory footprint (2026-10-13)
+
+Release builds of `10562c3` (before) and the memory work (after), one host (16 threads, ~620
+processes, ~530 system units, AMD radeonsi/glow), nested `kwin_wayland --virtual` 1280x800,
+private session bus, live daemon, 1 s updates. `RssAnon`/`RssFile` from `/proc/<pid>/status`
+after ≥80 s; CPU from `/proc/<pid>/stat` over the window after a 10 s warm-up, relative to one
+core. Peak heap from `heaptrack --record-only` (120 s, Processes page).
+
+| Processes page | before | after |
+|---|---|---|
+| daemon `RssAnon` (5 runs) | 83.5–85.1 MiB | 8.2–8.7 MiB |
+| daemon peak heap | 71.1 MB | 6.4 MB |
+| daemon threads | 37 | 13 |
+| daemon CPU (runs 3–5) | 30.5 / 31.8 / 32.0 % | 30.9 / 30.9 / 31.7 % |
+| UI `RssAnon` (5 runs) | 34.9–35.1 MiB | 30.0–30.6 MiB |
+| UI peak heap | 23.4 MB | 22.2 MB |
+| UI threads | 52–53 | 28–29 |
+| UI CPU (runs 3–5) | 1.93 / 2.00 / 2.01 % | 2.00 / 2.02 / 2.01 % |
+
+The Performance page gives the same picture (daemon 84.2 → 8.3 MiB, UI 35.2 → 30.6 MiB). UI
+`RssFile` (~67 MiB) is unchanged: mostly Mesa's `libLLVM`/`libgallium`, clean pages shared with
+other GL clients. Causes found with heaptrack, in order of size: zbus property caches of two
+proxies per systemd unit (57.7 MB), glibc arena retention and NNG pools sized by core count,
+per-process file mapping lists for the shared-memory estimate, and system font bytes held twice.
+
 ## Reports and historical evidence
 
 - `bench-latest.md` — generated current-run output, git-ignored; it is not reviewed release evidence.

@@ -121,7 +121,8 @@ Useful flags of the `taskmanager` binary:
 * `--perf-overlay` (or F12) — show frame and UI pass timings
 
 Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
-`RUST_LOG` (logging).
+`RUST_LOG` (logging). On glibc both processes limit malloc to two arenas unless `MALLOC_ARENA_MAX` (or the
+`glibc.malloc.arena_max` tunable) is set.
 
 Production release builds compile logging down to WARN/ERROR; DEBUG/TRACE cannot be enabled
 with `RUST_LOG`, and the aggregate profiler is compiled out. Local profiling requires the
