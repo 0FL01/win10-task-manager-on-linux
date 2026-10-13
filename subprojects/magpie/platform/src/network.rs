@@ -20,6 +20,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -65,6 +66,7 @@ where
     NC: NetworkCache + Send,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Network));
         Self {
             network: Mutex::new(NC::new()),
             local_cache: Mutex::new(Default::default()),
@@ -73,17 +75,24 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Network));
         let mut network = self.network.lock();
         network.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Network));
+        publish.items(network.cached_entries().len());
         *self.local_cache.lock() = network.cached_entries().clone();
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Network));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Network);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

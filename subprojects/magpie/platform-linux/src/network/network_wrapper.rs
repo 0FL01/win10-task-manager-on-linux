@@ -85,7 +85,11 @@ impl NetworkWrapper {
         conn.kind = match sync!(rt, device_proxy.get_property::<u64>("DeviceType")) {
             Ok(p) => util::connection_kind_from_nm_id(p),
             Err(e) => {
-                log::warn!("Failed to get DeviceType for {iface}: {e}");
+                if !magpie_platform::profile::metric_error(
+                    magpie_platform::profile::MetricError::NetworkType,
+                ) {
+                    log::warn!("Failed to get DeviceType for {iface}: {e}");
+                }
                 util::connection_kind_from_name(iface)
             }
         } as i32;

@@ -91,6 +91,31 @@ tmp=$VERIFY_TEST_TMPDIR
             self.assertIn("xvfb-run", arguments)
             self.assertIn("-s", arguments)
             self.assertEqual(arguments[arguments.index("-s") + 1], "-screen 0 1280x1024x24")
+            self.assertIn("RUST_LOG=trace", arguments)
+            self.assertIn("RUST_LOG_STYLE=never", arguments)
+
+    def test_production_smoke_rejects_debug_trace_and_profile_reports(self):
+        script = (ROOT / "support/ci/verify-native.sh").read_text()
+        definition = script[script.index("run_gui() {"):script.index("\nrun_gui glow synthetic")]
+        for message, expected in [
+            ("[timestamp WARN component] retained warning", 0),
+            ("[timestamp DEBUG component] debug leak", 1),
+            ("[timestamp TRACE component] trace leak", 1),
+            ("ui profile final elapsed_s=1", 1),
+            ("daemon profile 10s cumulative", 1),
+        ]:
+            with self.subTest(message=message), tempfile.TemporaryDirectory() as temporary:
+                result = subprocess.run(
+                    ["bash", "-c", """
+timeout() { printf '%s\n' "$VERIFY_TEST_LOG"; }
+check_stats() { return 0; }
+tmp=$VERIFY_TEST_TMPDIR
+""" + definition + "\nrun_gui glow real"],
+                    env={**os.environ, "VERIFY_TEST_TMPDIR": temporary, "VERIFY_TEST_LOG": message},
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, expected, result.stderr)
 
 
 if __name__ == "__main__":

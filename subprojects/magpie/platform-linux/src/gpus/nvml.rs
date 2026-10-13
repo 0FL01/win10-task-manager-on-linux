@@ -300,6 +300,8 @@ fn state(status: Status) -> TelemetryState {
 
 impl Nvml {
     pub fn new() -> Option<Self> {
+        let _profile =
+            magpie_platform::profile::Span::new(magpie_platform::profile::Phase::GpuNvmlInit);
         // NVML initialization is reference counted. Our reference is separate
         // from NVTOP's, and the library outlives every copied symbol.
         unsafe {
@@ -416,6 +418,9 @@ impl Nvml {
     }
 
     pub fn sample(&self, pci: &str, timestamp: u64) -> Result<Sample, TelemetryState> {
+        let mut profile =
+            magpie_platform::profile::Span::new(magpie_platform::profile::Phase::GpuNvml);
+        profile.items(1);
         self.api.sample(pci, timestamp)
     }
 }

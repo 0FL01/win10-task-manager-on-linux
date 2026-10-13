@@ -8,6 +8,7 @@
 //! Building the daemon, translations and installing the Cargo application.
 
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -62,19 +63,139 @@ pub fn magpie_dev_binary(root: &Path) -> Result<PathBuf, String> {
 
 /// Builds a completed relocatable daemon tree (bin + private GPU libraries).
 pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
-    let built = build_magpie(root)?;
     let target = root.join("target/magpie");
-    fs::create_dir_all(target.join("bin")).map_err(|e| e.to_string())?;
-    let named = target.join("bin/missioncenter-magpie");
+    stage_magpie(root, &target, &target, false, None)
+}
+
+fn release_build(root: &Path, target: &Path, ui: bool, diagnostic: bool) -> Command {
+    let mut cmd = Command::new("cargo");
+    if diagnostic {
+        cmd.arg("+1.96.1")
+            .env("CARGO_PROFILE_RELEASE_DEBUG", "2")
+            .env("CARGO_PROFILE_RELEASE_STRIP", "none");
+    }
+    cmd.current_dir(root)
+        .args(["build", "--locked", "--release"]);
+    if ui {
+        cmd.args(["-p", "taskmanager-app"]);
+    } else {
+        cmd.arg("--manifest-path")
+            .arg(root.join("subprojects/magpie/Cargo.toml"));
+    }
+    if diagnostic {
+        cmd.args([
+            "--no-default-features",
+            "--features",
+            if ui {
+                "diagnostic-profile,glow,wgpu"
+            } else {
+                "diagnostic-profile"
+            },
+        ]);
+    }
+    cmd.arg("--target-dir").arg(target);
+    cmd
+}
+
+fn stage_magpie(
+    root: &Path,
+    target: &Path,
+    prefix: &Path,
+    diagnostic: bool,
+    patchelf: Option<&Path>,
+) -> Result<PathBuf, String> {
+    run(&mut release_build(root, target, false, diagnostic))?;
+    let built = target.join("release/magpie");
+    fs::create_dir_all(prefix.join("bin")).map_err(|e| e.to_string())?;
+    let named = prefix.join("bin/missioncenter-magpie");
     fs::copy(&built, &named).map_err(|e| e.to_string())?;
-    run(Command::new("python3")
+    let mut bundle = Command::new("python3");
+    bundle
         .arg(root.join("support/bundle-gpu-libs.py"))
         .arg("--binary")
         .arg(&named)
         .arg("--dest")
-        .arg(target.join("lib/taskmanager/gpu")))?;
+        .arg(prefix.join("lib/taskmanager/gpu"));
+    if let Some(path) = patchelf {
+        bundle.env("PATCHELF", path);
+    }
+    run(&mut bundle)?;
     run(Command::new(&named).arg("--test"))?;
     Ok(named)
+}
+
+fn diagnostic_patchelf(root: &Path) -> Result<PathBuf, String> {
+    if let Some(path) = std::env::var_os("PATCHELF") {
+        return Ok(path.into());
+    }
+    let executable = |path: &Path| {
+        fs::metadata(path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+    };
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    let candidates = std::env::split_paths(&path)
+        .map(|dir| dir.join("patchelf"))
+        .chain([
+            root.join("target/gpu-bundle-tools/bin/patchelf"),
+            root.join("target/gpu-bundle-tools/gpu-patchelf"),
+        ]);
+    candidates.into_iter().find(|p| executable(p)).ok_or_else(|| {
+        "patchelf >= 0.18 is required; set PATCHELF or provide target/gpu-bundle-tools/bin/patchelf"
+            .into()
+    })
+}
+
+fn shell_quote(path: &Path) -> String {
+    format!("'{}'", path.to_string_lossy().replace('\'', "'\\''"))
+}
+
+/// A local, symbol-bearing release bundle; normal build/install targets are untouched.
+pub fn diagnostic(args: &[String]) -> Result<(), String> {
+    if !args.is_empty() {
+        return Err("diagnostic takes no arguments".into());
+    }
+    let root = crate::root();
+    let diagnostic = root.join("target/diagnostic");
+    let bundle = diagnostic.join("bundle");
+    let stage = diagnostic.join("bundle-stage");
+    let patchelf = diagnostic_patchelf(&root)?;
+    run(Command::new(&patchelf).arg("--version"))?;
+    run(&mut release_build(
+        &root,
+        &diagnostic.join("ui"),
+        true,
+        true,
+    ))?;
+    if stage.exists() {
+        fs::remove_dir_all(&stage).map_err(|e| e.to_string())?;
+    }
+    stage_magpie(
+        &root,
+        &diagnostic.join("magpie"),
+        &stage,
+        true,
+        Some(&patchelf),
+    )?;
+    fs::copy(
+        diagnostic.join("ui/release/taskmanager"),
+        stage.join("bin/taskmanager"),
+    )
+    .map_err(|e| e.to_string())?;
+    hwdb(&root, &stage.join("share/missioncenter"))?;
+    compile_mo(&root, &stage.join("share/locale"))?;
+    // Publish only after the helper has verified libraries, notices and relative RUNPATH.
+    if bundle.exists() {
+        fs::remove_dir_all(&bundle).map_err(|e| e.to_string())?;
+    }
+    fs::rename(&stage, &bundle).map_err(|e| e.to_string())?;
+    let binary = bundle.join("bin/taskmanager");
+    println!("diagnostic binary: {}", binary.display());
+    println!(
+        "run locally:\nenv MC_MAGPIE_HW_DB={} MC_LOCALEDIR={} {}",
+        shell_quote(&bundle.join("share/missioncenter/hw.db")),
+        shell_quote(&bundle.join("share/locale")),
+        shell_quote(&binary),
+    );
+    Ok(())
 }
 
 fn copy_tree(from: &Path, to: &Path) -> Result<(), String> {
@@ -211,9 +332,7 @@ pub fn install(args: &[String]) -> Result<(), String> {
     // the binaries themselves, e.g. Flatpak)
     if !data_only {
         let locale_dir = prefix.join("share/locale");
-        run(Command::new("cargo")
-            .current_dir(&root)
-            .args(["build", "--locked", "--release", "-p", "taskmanager-app"])
+        run(release_build(&root, &root.join("target"), true, false)
             .env("MC_LOCALEDIR", &locale_dir))?;
 
         mkdir(&base.join("bin"))?;
@@ -424,5 +543,73 @@ mod hardware_tests {
         assert!(socket.contains("ListenStream=/run/taskmanager-hardware.sock"));
         assert!(!directory.join("var/lib/taskmanager-hardware").exists());
         fs::remove_dir_all(directory).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn diagnostic_builds_are_locked_symbol_bearing_and_isolated() {
+        let root = crate::root();
+        for (ui, directory) in [(true, "ui"), (false, "magpie")] {
+            let target = root.join("target/diagnostic").join(directory);
+            let cmd = release_build(&root, &target, ui, true);
+            let args: Vec<_> = cmd.get_args().map(|a| a.to_string_lossy()).collect();
+            assert_eq!(&args[..4], &["+1.96.1", "build", "--locked", "--release"]);
+            assert_eq!(args[4], if ui { "-p" } else { "--manifest-path" });
+            assert_eq!(args[6], "--no-default-features");
+            assert_eq!(args[7], "--features");
+            assert_eq!(
+                args[8],
+                if ui {
+                    "diagnostic-profile,glow,wgpu"
+                } else {
+                    "diagnostic-profile"
+                }
+            );
+            assert_eq!(args[9], "--target-dir");
+            assert_eq!(args[10], target.to_string_lossy());
+            let env: Vec<_> = cmd.get_envs().collect();
+            assert_eq!(
+                env,
+                vec![
+                    (
+                        std::ffi::OsStr::new("CARGO_PROFILE_RELEASE_DEBUG"),
+                        Some(std::ffi::OsStr::new("2")),
+                    ),
+                    (
+                        std::ffi::OsStr::new("CARGO_PROFILE_RELEASE_STRIP"),
+                        Some(std::ffi::OsStr::new("none")),
+                    ),
+                ]
+            );
+        }
+        for ui in [false, true] {
+            let normal = release_build(&root, &root.join("target/production"), ui, false);
+            let args: Vec<_> = normal.get_args().map(|arg| arg.to_string_lossy()).collect();
+            assert_eq!(args[0], "build");
+            assert!(
+                !args
+                    .iter()
+                    .any(|arg| arg.contains("diagnostic") || arg == "--no-default-features")
+            );
+            assert_eq!(normal.get_envs().count(), 0);
+        }
+    }
+
+    #[test]
+    fn diagnostic_rejects_arguments_before_building() {
+        assert!(
+            diagnostic(&["--rpm".into()])
+                .unwrap_err()
+                .contains("no arguments")
+        );
+    }
+
+    #[test]
+    fn printed_command_quotes_spaces_and_apostrophes() {
+        assert_eq!(shell_quote(Path::new("/a b/c'd")), "'/a b/c'\\''d'");
     }
 }

@@ -8,6 +8,9 @@ fn main() {
             ".",
             "#[derive(serde::Serialize, serde::Deserialize)] #[serde(rename_all = \"snake_case\")]",
         )
+        // Fields added after recorded fixtures existed
+        .field_attribute(".magpie.memory.Memory.swap_devices", "#[serde(default)]")
+        .field_attribute(".magpie.memory.Memory.zswap_enabled", "#[serde(default)]")
         .compile_fds(
             protox::compile(
                 [

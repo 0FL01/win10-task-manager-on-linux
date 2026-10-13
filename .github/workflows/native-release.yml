@@ -82,6 +82,10 @@ jobs:
         run: >-
           cargo test --manifest-path subprojects/magpie/Cargo.toml
           -p magpie-platform-linux -p magpie-types --locked --release
+      - name: Opt-in diagnostic profile tests
+        run: |
+          cargo test --locked -p mc-magpie --features diagnostic-profile
+          cargo test --manifest-path subprojects/magpie/Cargo.toml -p magpie-platform --features diagnostic-profile --locked --release
       - name: Keep offscreen renders on failure
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6

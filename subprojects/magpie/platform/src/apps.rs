@@ -21,6 +21,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -76,6 +77,7 @@ where
     AC: AppCache + Send,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Apps));
         Self {
             apps: Mutex::new(AC::new()),
             local_cache: Mutex::new(Vec::new()),
@@ -85,8 +87,12 @@ where
     }
 
     pub fn refresh(&self, processes: &'static Mutex<HashMap<u32, Process>>) {
+        let refresh = Span::new(Phase::Refresh(Domain::Apps));
         let mut apps = self.apps.lock();
         apps.refresh(processes);
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Apps));
+        publish.items(apps.cached_entries().len());
         *self.local_cache.lock() = apps.cached_entries().to_vec();
         *self.local_icons_cache.lock() = apps.cached_icons();
     }
@@ -97,10 +103,13 @@ where
         processes: &'static Mutex<HashMap<u32, Process>>,
     ) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Apps));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Apps);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh(processes);

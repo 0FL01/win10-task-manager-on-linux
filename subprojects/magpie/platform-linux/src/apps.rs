@@ -26,6 +26,7 @@ use freedesktop_icons::{default_theme_gtk, lookup};
 
 use magpie_platform::apps::{App, Icon, IconKind};
 use magpie_platform::processes::Process;
+use magpie_platform::profile::{Phase, Span};
 use magpie_platform::Mutex;
 
 const APP_IGNORELIST: &[&str] = &[
@@ -79,17 +80,24 @@ impl magpie_platform::apps::AppCache for AppCache {
     fn refresh(&mut self, processes: &Mutex<HashMap<u32, Process>>) {
         let start = std::time::Instant::now();
 
+        let mut inventory = Span::new(Phase::AppsInventory);
         let mut installed_apps = app_rummage::installed_apps();
         for app in APP_IGNORELIST {
             installed_apps.remove(*app);
         }
+        inventory.items(installed_apps.len());
+        drop(inventory);
 
+        let mut snapshot = Span::new(Phase::AppsSnapshot);
         let processes = processes
             .lock()
             .values()
             .map(|p| ProcessNewType(p.clone()))
             .collect::<Vec<_>>();
+        snapshot.items(processes.len());
+        drop(snapshot);
 
+        let mut matching = Span::new(Phase::AppsMatching);
         let mut running_apps = app_rummage::running_apps(&installed_apps, &processes);
 
         for (running_app, _) in &running_apps {
@@ -120,6 +128,8 @@ impl magpie_platform::apps::AppCache for AppCache {
                 pids: pids.drain(..).map(NonZero::<u32>::get).collect(),
             })
             .collect();
+        matching.items(processes.len());
+        drop(matching);
 
         log::debug!(
             "PERF: Refreshed process information in {:?}",
@@ -132,6 +142,8 @@ impl magpie_platform::apps::AppCache for AppCache {
     }
 
     fn refresh_icons(&mut self) {
+        let mut icons = Span::new(Phase::AppsIcons);
+        icons.items(self.unresolved_icons.len());
         let start = std::time::Instant::now();
 
         for (appid, icon) in self.unresolved_icons.drain() {

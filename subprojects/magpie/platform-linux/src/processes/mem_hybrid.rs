@@ -25,9 +25,10 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use arrayvec::{ArrayString, ArrayVec};
+use magpie_platform::profile::{self, Phase, Span};
 
 use crate::processes::MAX_U32_LEN;
-use crate::util::parse_u64;
+use crate::util::parse_proc_u64 as parse_u64;
 
 const MAPS_REFRESH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
 
@@ -49,6 +50,8 @@ impl MemoryMaps {
         let now = Instant::now();
 
         let mut do_refresh = || {
+            let mut profile = Span::new(Phase::ProcessMaps);
+            profile.items(pids.len());
             let mut share_count: HashMap<Arc<str>, u32> = HashMap::new();
             let mut file_mappings: HashMap<u32, Vec<FileMapping>> = HashMap::new();
 
@@ -83,6 +86,8 @@ impl MemoryMaps {
                 if now.duration_since(t) >= MAPS_REFRESH_INTERVAL {
                     do_refresh();
                     self.last_maps_walk = Some(now);
+                } else {
+                    profile::coalesced(Phase::ProcessMaps);
                 }
             }
         }
@@ -121,11 +126,13 @@ fn read_status(pid: u32) -> Option<ProcStatus> {
         let bytes_read = match status_file.read_until(b'\n', &mut buffer) {
             Ok(n) => n,
             Err(err) => {
-                log::error!(
-                    "Failed to read line from `status` file for process {}: {}",
-                    pid,
-                    err,
-                );
+                if !profile::proc_io_error(&err) {
+                    log::error!(
+                        "Failed to read line from `status` file for process {}: {}",
+                        pid,
+                        err,
+                    );
+                }
                 return None;
             }
         };
@@ -160,11 +167,13 @@ fn read_file_mappings(pid: u32) -> Option<Vec<FileMapping>> {
         let bytes_read = match maps_file.read_until(b'\n', &mut buffer) {
             Ok(n) => n,
             Err(err) => {
-                log::error!(
-                    "Failed to read line from `maps` file for process {}: {}",
-                    pid,
-                    err,
-                );
+                if !profile::proc_io_error(&err) {
+                    log::error!(
+                        "Failed to read line from `maps` file for process {}: {}",
+                        pid,
+                        err,
+                    );
+                }
                 return None;
             }
         };
@@ -266,7 +275,9 @@ fn open_status(pid: u32) -> Option<std::fs::File> {
     let file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(err) => {
-            log::debug!("Failed to open `status` file for process {}: {}", pid, err,);
+            if !profile::proc_io_error(&err) {
+                log::debug!("Failed to open `status` file for process {}: {}", pid, err,);
+            }
             return None;
         }
     };
@@ -283,7 +294,9 @@ fn open_maps(pid: u32) -> Option<std::fs::File> {
     let file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(err) => {
-            log::debug!("Failed to open `maps` file for process {}: {}", pid, err,);
+            if !profile::proc_io_error(&err) {
+                log::debug!("Failed to open `maps` file for process {}: {}", pid, err,);
+            }
             return None;
         }
     };

@@ -211,6 +211,7 @@ fn current_icon_theme() -> Option<String> {
 }
 
 fn run_job(job: Job) -> (IconKey, Option<ColorImage>) {
+    let _profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::IconDecode);
     match job {
         Job::Svg {
             key,
@@ -261,8 +262,11 @@ impl IconCache {
 
     /// Uploads decoded images; call from `logic`. Returns `true` if anything changed.
     pub fn poll(&mut self, ctx: &egui::Context) -> bool {
+        let mut profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::IconUpload);
+        let mut count = 0;
         let mut changed = false;
         while let Ok((key, image)) = self.results.try_recv() {
+            count += 1;
             self.pending.remove(&key);
             match image {
                 Some(image) => {
@@ -276,6 +280,7 @@ impl IconCache {
             }
             changed = true;
         }
+        profile.items(count);
         changed
     }
 

@@ -161,7 +161,8 @@ impl PerformanceView {
                 let count = view.panels.len().max(1) as f32;
                 let stack_h = count * m::MEMORY_GRAPH_MIN_H
                     + count * (PANEL_GAP + 13.)
-                    + m::MEMORY_COMPOSITION_H;
+                    + m::MEMORY_COMPOSITION_H
+                    + swap_block_height(&view);
                 let base_h = shifted.height().max(
                     GRAPH_TOP + stack_h + PANEL_GAP + stats_height(view.stats.len()) + PANEL_GAP,
                 );
@@ -1100,7 +1101,7 @@ fn page_ui(
         PANEL_GAP + 13. + m::MEMORY_COMPOSITION_H
     } else {
         0.
-    };
+    } + swap_block_height(&view);
     let available =
         graphs_bottom - first_top + 1. - (panels - 1.) * (PANEL_GAP + 13.) - composition_h;
     let panel_h = (available / panels).floor().max(20.);
@@ -1184,8 +1185,45 @@ fn page_ui(
             ),
             colors,
         );
+        graph_top += m::MEMORY_COMPOSITION_H + PANEL_GAP + 13.;
+    }
+    if let Some(block) = view.swap_compression.filter(|block| block.height() > 0.) {
+        paint::text(
+            &painter,
+            gx0,
+            graph_top - 13.,
+            &i18n("Swap usage"),
+            Font::Caption,
+            pal::LABEL,
+            Align::Min,
+        );
+        paint::text(
+            &painter,
+            gx1 + 1.,
+            graph_top - 13.,
+            block.caption(),
+            Font::Caption,
+            pal::LABEL,
+            Align::Max,
+        );
+        block.ui(
+            ui,
+            Rect::from_min_max(
+                pos2(gx0, graph_top),
+                pos2(gx1 + 1., graph_top + block.height()),
+            ),
+            colors,
+        );
     }
     slots_rect
+}
+
+/// Caption plus swap/compression block; zero when the system has no swap.
+fn swap_block_height(view: &PageView<'_>) -> f32 {
+    match view.swap_compression.map(|block| block.height()) {
+        Some(h) if h > 0. => PANEL_GAP + 13. + h,
+        _ => 0.,
+    }
 }
 
 fn stats_height(rows: usize) -> f32 {

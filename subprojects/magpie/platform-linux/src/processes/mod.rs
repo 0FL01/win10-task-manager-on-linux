@@ -26,6 +26,7 @@ use std::time::Instant;
 use arrayvec::ArrayString;
 
 use magpie_platform::processes::Process;
+use magpie_platform::profile::{self, Phase, ProcError, Span};
 
 use crate::processes::mem_hybrid::{hybrid_pss, MemoryMaps};
 pub use linux_process::ProcessStats;
@@ -50,11 +51,13 @@ fn open_cmdline(pid: u32) -> Option<std::fs::File> {
     let cmdline_file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::warn!(
-                "Failed to read `cmdline` file for process {}, skipping: {}",
-                pid,
-                e,
-            );
+            if !profile::proc_io_error(&e) {
+                log::warn!(
+                    "Failed to read `cmdline` file for process {}, skipping: {}",
+                    pid,
+                    e,
+                );
+            }
             return None;
         }
     };
@@ -118,9 +121,11 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
 
         let now = Instant::now();
 
+        let mut enumeration = Span::new(Phase::ProcessEnumeration);
         let proc = match std::fs::read_dir("/proc") {
             Ok(proc) => proc,
             Err(e) => {
+                profile::proc_error(ProcError::Root);
                 log::warn!("Failed to read /proc directory: {}", e);
                 return;
             }
@@ -130,8 +135,20 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
         // a typical Linux desktop should have around 500 running processes.
         let mut pids = Vec::with_capacity(old_processes.len().max(500));
         let proc_entries = proc
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false));
+            .filter_map(|e| {
+                e.inspect_err(|e| {
+                    profile::proc_io_error(e);
+                })
+                .ok()
+            })
+            .filter(|e| {
+                e.file_type()
+                    .inspect_err(|e| {
+                        profile::proc_io_error(e);
+                    })
+                    .map(|t| t.is_dir())
+                    .unwrap_or(false)
+            });
         for entry in proc_entries {
             let pid = match entry.file_name().to_string_lossy().parse::<u32>().ok() {
                 Some(pid) => pid,
@@ -139,11 +156,15 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
             };
             pids.push(pid);
         }
+        enumeration.items(pids.len());
+        drop(enumeration);
 
         let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
 
         self.memory_maps.refresh(&pids);
 
+        let mut scan = Span::new(Phase::ProcessScan);
+        scan.items(pids.len());
         for pid in pids.iter().copied() {
             let Some(mut stat_file) = stat::open(pid) else {
                 continue;
@@ -152,27 +173,33 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
             match stat_file.read_to_string(&mut stat_file_content) {
                 Ok(sfc) => {
                     if sfc == 0 {
-                        log::warn!(
-                            "Failed to read stat information for process {}, skipping",
-                            pid
-                        );
+                        if !profile::proc_error(ProcError::Empty) {
+                            log::warn!(
+                                "Failed to read stat information for process {}, skipping",
+                                pid
+                            );
+                        }
                         continue;
                     }
                 }
                 Err(e) => {
-                    log::warn!(
-                        "Failed to read stat information for process {}, skipping: {}",
-                        pid,
-                        e,
-                    );
+                    if !profile::proc_io_error(&e) {
+                        log::warn!(
+                            "Failed to read stat information for process {}, skipping: {}",
+                            pid,
+                            e,
+                        );
+                    }
                     continue;
                 }
             };
             let Some(stat_parsed) = stat::parse_stat_file(&stat_file_content) else {
-                log::warn!(
-                    "Failed to parse stat information for process {}, skipping",
-                    pid
-                );
+                if !profile::proc_error(ProcError::Invalid) {
+                    log::warn!(
+                        "Failed to parse stat information for process {}, skipping",
+                        pid
+                    );
+                }
                 continue;
             };
 
@@ -185,14 +212,25 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                     match io_file.read_to_string(&mut read_buffer) {
                         Ok(rb) => {
                             if rb == 0 {
-                                log::debug!("Failed to read io information for process {}", pid);
+                                if !profile::proc_error(ProcError::Empty) {
+                                    log::debug!(
+                                        "Failed to read io information for process {}",
+                                        pid
+                                    );
+                                }
                                 [0; 7]
                             } else {
                                 io::parse_io_file(&read_buffer)
                             }
                         }
                         Err(e) => {
-                            log::debug!("Failed to read io information for process {}: {}", pid, e);
+                            if !profile::proc_io_error(&e) {
+                                log::debug!(
+                                    "Failed to read io information for process {}: {}",
+                                    pid,
+                                    e
+                                );
+                            }
                             [0; 7]
                         }
                     }
@@ -236,29 +274,30 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
 
             read_buffer.clear();
             let cmd = open_cmdline(pid)
-                .and_then(|mut f| {
-                    match f
-                        .read_to_string(&mut read_buffer)
-                        .ok()
-                        .map(|_| &read_buffer)
-                    {
-                        Some(cmd) => Some(
+                .and_then(
+                    |mut f| match f.read_to_string(&mut read_buffer).map(|_| &read_buffer) {
+                        Ok(cmd) => Some(
                             cmd.split('\0')
                                 .map(|s| s.trim())
                                 .filter(|s| !s.is_empty())
                                 .map(|s| s.to_string())
                                 .collect::<Vec<_>>(),
                         ),
-                        None => {
-                            log::warn!("Failed to read `cmdline` for process {}", pid);
+                        Err(e) => {
+                            if !profile::proc_io_error(&e) {
+                                log::warn!("Failed to read `cmdline` for process {}", pid);
+                            }
                             None
                         }
-                    }
-                })
+                    },
+                )
                 .unwrap_or(vec![]);
 
             let exe = std::path::Path::new(exe_path(pid).as_str())
                 .read_link()
+                .inspect_err(|e| {
+                    profile::proc_io_error(e);
+                })
                 .map(|p| p.as_os_str().to_string_lossy().to_string())
                 .unwrap_or("".to_owned());
 
@@ -272,21 +311,25 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                             match statm_file.read_to_string(&mut read_buffer) {
                                 Ok(rb) => {
                                     if rb == 0 {
-                                        log::warn!(
-                                            "Failed to read 'statm' information for process {}",
-                                            pid
-                                        );
+                                        if !profile::proc_error(ProcError::Empty) {
+                                            log::warn!(
+                                                "Failed to read 'statm' information for process {}",
+                                                pid
+                                            );
+                                        }
                                         0
                                     } else {
                                         statm::parse_statm_file(&read_buffer)
                                     }
                                 }
                                 Err(e) => {
-                                    log::warn!(
-                                        "Failed to read 'statm' information for process {}: {}",
-                                        pid,
-                                        e
-                                    );
+                                    if !profile::proc_io_error(&e) {
+                                        log::warn!(
+                                            "Failed to read 'statm' information for process {}: {}",
+                                            pid,
+                                            e
+                                        );
+                                    }
                                     0
                                 }
                             }
@@ -296,22 +339,26 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
                 )
             };
 
-            let task_count = match std::fs::read_dir(task_path(pid).as_str()) {
-                Ok(tasks) => {
-                    let mut task_count = 0u64;
-                    for task in tasks.filter_map(|t| t.ok()) {
-                        if task.file_name().to_string_lossy().parse::<u32>().is_err() {
-                            continue;
+            let task_count = stat::num_threads(&stat_parsed).unwrap_or_else(|| {
+                match std::fs::read_dir(task_path(pid).as_str()) {
+                    Ok(tasks) => {
+                        let mut task_count = 0u64;
+                        for task in tasks.filter_map(|t| t.ok()) {
+                            if task.file_name().to_string_lossy().parse::<u32>().is_err() {
+                                continue;
+                            }
+                            task_count += 1;
                         }
-                        task_count += 1;
+                        task_count
                     }
-                    task_count
+                    Err(e) => {
+                        if !profile::proc_io_error(&e) {
+                            log::debug!("Failed to read task directory for process {pid}: {e}");
+                        }
+                        1
+                    }
                 }
-                Err(e) => {
-                    log::debug!("Failed to read task directory for process {pid}: {e}");
-                    1
-                }
-            };
+            });
 
             process.pid = pid;
             process.start_time_ticks = stat::start_time_ticks(&stat_parsed);
@@ -341,7 +388,10 @@ impl magpie_platform::processes::ProcessCache for ProcessCache {
             result.insert(pid, process);
             result_stats.insert(pid, stats);
         }
+        drop(scan);
 
+        let mut tree = Span::new(Phase::ProcessTree);
+        tree.items(result.len());
         // Prune processes that don't have a parent (init and kernel processes)
         children.remove(&0);
 

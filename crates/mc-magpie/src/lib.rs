@@ -48,6 +48,7 @@ mod fixture;
 mod gatherer;
 mod hardware_access;
 mod log_compat;
+pub mod profile;
 mod slot;
 pub mod sockets;
 mod spd;

@@ -18,6 +18,24 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#[cfg(all(feature = "production-logging", feature = "diagnostic-profile"))]
+compile_error!(
+    "production-logging and diagnostic-profile are mutually exclusive; use --no-default-features for diagnostic builds"
+);
+
+#[cfg(all(
+    not(debug_assertions),
+    not(feature = "production-logging"),
+    not(feature = "diagnostic-profile")
+))]
+compile_error!("release builds require production-logging or explicit diagnostic-profile");
+
+#[cfg(all(feature = "production-logging", not(debug_assertions)))]
+const _: () = assert!(
+    matches!(log::STATIC_MAX_LEVEL, log::LevelFilter::Warn),
+    "production releases must statically cap logging at Warn"
+);
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -243,6 +261,8 @@ impl Shell {
 
 fn main() -> eframe::Result {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
+    let _profile_reporter = mc_magpie::profile::Reporter::start();
+    let startup = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::Startup);
     let args = parse_args();
 
     if let Some((n, dir)) = args.dump {
@@ -348,10 +368,12 @@ fn main() -> eframe::Result {
     let quit_at = args
         .bench_seconds
         .map(|s| Instant::now() + Duration::from_secs_f64(s));
+    drop(startup);
     eframe::run_native(
         mc_ui::APP_NAME,
         native,
         Box::new(move |cc| {
+            let _profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::AppInit);
             let always_on_top_mode = match cc.display_handle().map(|handle| handle.as_raw()) {
                 Ok(RawDisplayHandle::Wayland(_)) => AlwaysOnTopMode::Unavailable,
                 Ok(_) => AlwaysOnTopMode::Viewport,

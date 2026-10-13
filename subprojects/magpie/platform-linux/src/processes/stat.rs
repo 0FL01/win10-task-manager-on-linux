@@ -30,6 +30,7 @@ const PROC_PID_STAT_STATE: usize = 2;
 const PROC_PID_STAT_PPID: usize = 3;
 const PROC_PID_STAT_UTIME: usize = 13;
 const PROC_PID_STAT_STIME: usize = 14;
+const PROC_PID_STAT_NUM_THREADS: usize = 19;
 const PROC_PID_STAT_STARTTIME: usize = 21;
 
 pub fn open(pid: u32) -> Option<std::fs::File> {
@@ -41,11 +42,13 @@ pub fn open(pid: u32) -> Option<std::fs::File> {
     let stat_file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::warn!(
-                "Failed to open `stat` file for process {}, skipping: {}",
-                pid,
-                e,
-            );
+            if !magpie_platform::profile::proc_io_error(&e) {
+                log::warn!(
+                    "Failed to open `stat` file for process {}, skipping: {}",
+                    pid,
+                    e,
+                );
+            }
             return None;
         }
     };
@@ -113,6 +116,11 @@ pub fn start_time_ticks(stat: &[&str; 52]) -> Option<u64> {
     stat[PROC_PID_STAT_STARTTIME].parse().ok()
 }
 
+/// Field 20 in proc_pid_stat(5). Missing or invalid values require the task scan.
+pub fn num_threads(stat: &[&str; 52]) -> Option<u64> {
+    stat[PROC_PID_STAT_NUM_THREADS].parse().ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,6 +144,7 @@ mod tests {
         assert_eq!(user_mode_jiffies(&parsed), 12);
         assert_eq!(kernel_mode_jiffies(&parsed), 34);
         assert_eq!(start_time_ticks(&parsed), Some(5678));
+        assert_eq!(num_threads(&parsed), Some(1));
     }
 
     #[test]
@@ -148,6 +157,7 @@ mod tests {
         assert_eq!(state(&parsed), ProcessState::Running);
         assert_eq!(user_mode_jiffies(&parsed), 99);
         assert_eq!(kernel_mode_jiffies(&parsed), 1);
+        assert_eq!(num_threads(&parsed), Some(1));
     }
 
     #[test]
@@ -162,6 +172,7 @@ mod tests {
         assert_eq!(parent_pid(&parsed), 1);
         assert_eq!(user_mode_jiffies(&parsed), 7);
         assert_eq!(kernel_mode_jiffies(&parsed), 8);
+        assert_eq!(num_threads(&parsed), Some(1));
     }
 
     #[test]
@@ -185,6 +196,32 @@ mod tests {
             parsed[2] = code;
             assert_eq!(state(&parsed), expected, "state code {code:?}");
         }
+    }
+
+    #[test]
+    fn thread_count_preserves_zero_and_rejects_missing_invalid_or_overflow() {
+        let mut parsed = parse_stat_file(TYPICAL).unwrap();
+        for (value, expected) in [
+            ("0", Some(0)),
+            ("42", Some(42)),
+            ("18446744073709551615", Some(u64::MAX)),
+            ("", None),
+            ("-1", None),
+            ("threads", None),
+            ("18446744073709551616", None),
+        ] {
+            parsed[PROC_PID_STAT_NUM_THREADS] = value;
+            assert_eq!(num_threads(&parsed), expected, "{value:?}");
+            let mut fallback_called = false;
+            let count = num_threads(&parsed).unwrap_or_else(|| {
+                fallback_called = true;
+                7
+            });
+            assert_eq!(count, expected.unwrap_or(7));
+            assert_eq!(fallback_called, expected.is_none());
+        }
+        let truncated = parse_stat_file("1 (comm (with) spaces) S 0").unwrap();
+        assert_eq!(num_threads(&truncated), None);
     }
 
     #[test]

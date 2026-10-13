@@ -36,7 +36,9 @@ pub fn open(pid: u32) -> Option<std::fs::File> {
     let io_file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::debug!("Failed to open `io` file for process {}: {}", pid, e,);
+            if !magpie_platform::profile::proc_io_error(&e) {
+                log::debug!("Failed to open `io` file for process {}: {}", pid, e,);
+            }
             return None;
         }
     };

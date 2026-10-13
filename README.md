@@ -116,12 +116,18 @@ build the relocatable private bundle and require the packaging tools and matchin
 Useful flags of the `taskmanager` binary:
 
 * `--renderer wgpu|glow` — select the renderer; glow (OpenGL) is the default, both are compiled in by default builds
-  (`cargo build -p taskmanager-app --no-default-features --features glow` produces an OpenGL-only build)
+  (`cargo build -p taskmanager-app --no-default-features --features glow,production-logging` produces an OpenGL-only build)
 * `--synthetic N` — run on generated data with `N` processes, without the daemon
 * `--perf-overlay` (or F12) — show frame and UI pass timings
 
 Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
 `RUST_LOG` (logging).
+
+Production release builds compile logging down to WARN/ERROR; DEBUG/TRACE cannot be enabled
+with `RUST_LOG`, and the aggregate profiler is compiled out. Local profiling requires the
+separate `cargo +1.96.1 xtask diagnostic` build (see [perf/README.md](perf/README.md)).
+Release builds with custom `--no-default-features` must select `production-logging`, unless
+they explicitly select the mutually exclusive `diagnostic-profile` mode.
 
 ### Always on top
 

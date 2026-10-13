@@ -132,3 +132,7 @@ pub const MEMORY_SLOT_DRAW_W: f32 = 28.;
 pub const MEMORY_SLOT_INFO_GAP: f32 = 16.;
 pub const MEMORY_MODULE_DIALOG_W: f32 = 500.;
 pub const SPD_SCROLL_MAX_H: f32 = 400.;
+/// Own design: swap usage bar and the zram/zswap rows below it (key/value row pitch).
+pub const MEMORY_SWAP_BAR_H: f32 = 20.;
+pub const MEMORY_SWAP_ROW_H: f32 = 18.;
+pub const MEMORY_SWAP_ROW_CAP: f32 = 6.;

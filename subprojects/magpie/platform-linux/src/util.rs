@@ -152,7 +152,10 @@ pub fn read_bytes_fixed<'a, const LEN: usize>(
     let mut file = match std::fs::OpenOptions::new().read(true).open(path) {
         Ok(f) => f,
         Err(e) => {
-            log::warn!("Failed to read {what}. Failed to open `{path}`: {e}");
+            if !magpie_platform::profile::metric_error(magpie_platform::profile::MetricError::Read)
+            {
+                log::warn!("Failed to read {what}. Failed to open `{path}`: {e}");
+            }
             return None;
         }
     };
@@ -160,7 +163,10 @@ pub fn read_bytes_fixed<'a, const LEN: usize>(
     let bytes_read = match file.read(&mut buffer[..LEN - 1]) {
         Ok(b) => b,
         Err(e) => {
-            log::warn!("Failed to read {what}. Failed to read from `{path}`: {e}");
+            if !magpie_platform::profile::metric_error(magpie_platform::profile::MetricError::Read)
+            {
+                log::warn!("Failed to read {what}. Failed to read from `{path}`: {e}");
+            }
             return None;
         }
     };
@@ -199,20 +205,41 @@ pub fn read_i64<'a>(path: impl Into<&'a str>, what: &str) -> Option<i64> {
 }
 
 pub fn parse_u64(bytes: &[u8], base: u8, what: &str) -> Option<u64> {
+    parse_u64_impl(bytes, base, what, false)
+}
+
+/// Same parsing/baselines as the general helper, but aggregate PID-local
+/// failures in opt-in diagnostics instead of logging individual input values.
+pub(crate) fn parse_proc_u64(bytes: &[u8], base: u8, what: &str) -> Option<u64> {
+    parse_u64_impl(bytes, base, what, true)
+}
+
+fn parse_u64_impl(bytes: &[u8], base: u8, what: &str, proc_value: bool) -> Option<u64> {
+    let aggregate = || {
+        if proc_value {
+            magpie_platform::profile::proc_error(magpie_platform::profile::ProcError::Invalid)
+        } else {
+            magpie_platform::profile::metric_error(magpie_platform::profile::MetricError::Value)
+        }
+    };
     let c_str = CStr::from_bytes_until_nul(bytes)
         .inspect_err(|e| {
-            log::warn!(
-                "Failed to read {what}. No NULL byte present in buffer: `{:?} (trimmed)`: {}",
-                &bytes[..20.min(bytes.len())],
-                e,
-            );
+            if !aggregate() {
+                log::warn!(
+                    "Failed to read {what}. No NULL byte present in buffer: `{:?} (trimmed)`: {}",
+                    &bytes[..20.min(bytes.len())],
+                    e,
+                );
+            }
         })
         .ok()?;
 
     // Check for negative values
     {
         if bytes.trim_ascii_start().starts_with(b"-") {
-            log::warn!("Failed to read {what}. Negative value: `{c_str:?}`",);
+            if !aggregate() {
+                log::warn!("Failed to read {what}. Negative value: `{c_str:?}`",);
+            }
             return None;
         }
     }
@@ -225,12 +252,16 @@ pub fn parse_u64(bytes: &[u8], base: u8, what: &str) -> Option<u64> {
     let errno = unsafe { *libc::__errno_location() };
 
     if errno == libc::ERANGE && result == c_ulonglong::MAX {
-        log::warn!("Failed to read {what}. Value out of range: `{c_str:?}`",);
+        if !aggregate() {
+            log::warn!("Failed to read {what}. Value out of range: `{c_str:?}`",);
+        }
         return None;
     }
 
     if result == 0 && errno != 0 {
-        log::warn!("Failed to read {what}. Invalid value: `{c_str:?}`",);
+        if !aggregate() {
+            log::warn!("Failed to read {what}. Invalid value: `{c_str:?}`",);
+        }
         return None;
     }
 

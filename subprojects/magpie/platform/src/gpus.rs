@@ -22,6 +22,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
@@ -75,6 +76,7 @@ where
     GC: GpuCache + Send,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Gpus));
         Self {
             gpus: Mutex::new(GC::new()),
             local_cache: Mutex::new(HashMap::new()),
@@ -84,8 +86,12 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Gpus));
         let mut gpus = self.gpus.lock();
         gpus.refresh();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Gpus));
+        publish.items(gpus.cached_entries().len());
         let mut cache = self.local_cache.lock();
         *cache = gpus.cached_entries().clone();
         *self.last_cache_update.lock() = Some(Instant::now());
@@ -111,10 +117,13 @@ where
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Gpus));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Gpus);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

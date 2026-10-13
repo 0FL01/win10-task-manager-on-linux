@@ -221,6 +221,7 @@ impl DevicePage for SystemPage {
             stats: vec![],
             info: self.rows.clone(),
             composition: None,
+            swap_compression: None,
         }
     }
 }

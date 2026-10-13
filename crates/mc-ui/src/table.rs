@@ -124,12 +124,19 @@ impl TableView {
     }
 
     pub fn update(&mut self, readings: &Readings, gpu: &mc_core::gpu::GpuSnapshot) {
+        use mc_magpie::profile::{Phase, Span};
+        let stage = Span::new(Phase::TableTree);
         self.tree = match self.kind {
             TableKind::Apps => Tree::apps(readings),
             TableKind::Services => Tree::services(readings),
         };
+        drop(stage);
+        let stage = Span::new(Phase::TableGpu);
         self.tree.apply_gpu(readings, gpu);
+        drop(stage);
+        let stage = Span::new(Phase::TableTotals);
         self.totals = ColumnTotals::from_readings(readings, gpu);
+        drop(stage);
         self.gpu_usage = gpu.usage.clone();
         self.gpu_summary = gpu.usage.text();
         self.hide_network = readings.network_unavailable;
@@ -147,6 +154,8 @@ impl TableView {
         self.gpu_mem_total = self
             .gpu_dedicated_total
             .and_then(|d| d.checked_add(self.gpu_shared_total?));
+        let mut stage = Span::new(Phase::TableFormat);
+        stage.items(self.tree.nodes.len());
         self.gpu_cells = self
             .tree
             .nodes
@@ -221,7 +230,10 @@ impl TableView {
 
     pub(crate) fn refresh_rows(&mut self) {
         if self.rows_dirty {
+            let mut profile =
+                mc_magpie::profile::Span::new(mc_magpie::profile::Phase::TableFlatten);
             self.rows = self.tree.flatten(&self.expanded, &self.options);
+            profile.items(self.rows.len());
             self.rows_dirty = false;
         }
     }

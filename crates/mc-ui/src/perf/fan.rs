@@ -225,6 +225,7 @@ impl DevicePage for FanPage {
             stats,
             info: vec![],
             composition: None,
+            swap_compression: None,
         }
     }
 

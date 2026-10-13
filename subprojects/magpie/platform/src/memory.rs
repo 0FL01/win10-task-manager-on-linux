@@ -20,11 +20,14 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::profile::{self, Domain, Phase, QueueTicket, Span};
 use parking_lot::Mutex;
 use rayon::ThreadPool;
 
 pub type Memory = types::memory::Memory;
 pub type MemoryDevice = types::memory::MemoryDevice;
+pub type SwapDevice = types::memory::SwapDevice;
+pub type ZramStats = types::memory::ZramStats;
 
 pub type MemoryInfo = types::memory::memory_response::MemoryInfo;
 pub type MemoryRequestKind = types::memory::memory_request::Kind;
@@ -69,6 +72,7 @@ where
     MC: MemoryCache + Send,
 {
     pub fn new() -> Self {
+        let _profile = Span::new(Phase::Init(Domain::Memory));
         Self {
             memory: Mutex::new(MC::new()),
             local_cache: Mutex::new(Memory::default()),
@@ -78,18 +82,25 @@ where
     }
 
     pub fn refresh(&self) {
+        let refresh = Span::new(Phase::Refresh(Domain::Memory));
         let mut memory = self.memory.lock();
         memory.refresh();
-        *self.local_cache.lock() = *memory.memory();
+        drop(refresh);
+        let mut publish = Span::new(Phase::Publish(Domain::Memory));
+        publish.items(1 + memory.devices().len());
+        self.local_cache.lock().clone_from(memory.memory());
         *self.local_device_cache.lock() = memory.devices().to_vec();
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
+            profile::coalesced(Phase::Refresh(Domain::Memory));
             return;
         }
 
+        let queued = QueueTicket::new(Domain::Memory);
         thread_pool.spawn(move || {
+            queued.arrived();
             let start = std::time::Instant::now();
 
             self.refresh();

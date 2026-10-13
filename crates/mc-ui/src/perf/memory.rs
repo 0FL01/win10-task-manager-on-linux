@@ -29,12 +29,10 @@ use mc_graph::{DatasetGroup, FillingSettings, Graph};
 use mc_magpie::Readings;
 
 use super::mem_composition::MemComposition;
+use super::swap_compression::{Layer, SwapCompression};
 use super::{DevicePage, SummaryGraph, UpdateEnv};
 use crate::cx::Cx;
 const COLOR: egui::Color32 = crate::win10::palette::MEMORY.line;
-const DISK: egui::Color32 = crate::win10::palette::DISK.line;
-
-const MIN_COMPRESSION_THRESHOLD: u64 = 1024 * 1024;
 
 #[derive(Default)]
 struct Labels {
@@ -42,10 +40,9 @@ struct Labels {
     available: String,
     committed: String,
     cached: String,
-    swap_available: Option<String>,
+    swap_total: Option<String>,
     swap_used: Option<String>,
-    compressed: Option<String>,
-    savings: Option<String>,
+    swap_free: Option<String>,
     usage_tooltip: String,
     hardware: Vec<(String, String)>,
 }
@@ -55,6 +52,7 @@ pub struct MemoryPage {
     usage: Graph,
     swap: Graph,
     composition: MemComposition,
+    swap_compression: SwapCompression,
     total_ram: String,
     max_graph_ram: String,
     total_swap: String,
@@ -102,7 +100,7 @@ impl MemoryPage {
         usage.set_all_datasets_max_scale(mem.mem_total as f32);
 
         let mut swap = Graph::new();
-        swap.set_base_color(DISK);
+        swap.set_base_color(COLOR);
         swap.add_dataset(DatasetGroup::new());
         swap.set_all_datasets_max_scale(mem.swap_total as f32);
 
@@ -144,6 +142,7 @@ impl MemoryPage {
             usage,
             swap,
             composition: MemComposition::default(),
+            swap_compression: SwapCompression::default(),
             total_ram: h(mem.mem_total),
             max_graph_ram: h(mem.mem_total),
             total_swap: h(mem.swap_total),
@@ -212,6 +211,7 @@ impl DevicePage for MemoryPage {
         self.swap.set_all_datasets_max_scale(mem.swap_total as f32);
         self.swap.add_data_point(vec![vec![swap_used as f32]]);
         self.composition.update(mem);
+        self.swap_compression.update(mem);
 
         let l = &mut self.labels;
         l.hardware.clear();
@@ -291,20 +291,13 @@ impl DevicePage for MemoryPage {
         l.cached = h(mem.cached);
         self.has_swap = mem.swap_total != 0;
         if self.has_swap {
-            l.swap_available = Some(h(mem.swap_total));
+            l.swap_total = Some(h(mem.swap_total));
             l.swap_used = Some(h(swap_used));
+            l.swap_free = Some(h(mem.swap_free));
         } else {
-            l.swap_available = None;
+            l.swap_total = None;
             l.swap_used = None;
-        }
-        let total_original = mem.zswapped + mem.zram_orig_size;
-        let total_compressed = mem.zswap + mem.zram_compr_size;
-        if total_original >= MIN_COMPRESSION_THRESHOLD {
-            l.compressed = Some(h(total_compressed));
-            l.savings = Some(h(total_original.saturating_sub(total_compressed)));
-        } else {
-            l.compressed = None;
-            l.savings = None;
+            l.swap_free = None;
         }
         l.usage_tooltip = i18n_f(
             n_(
@@ -350,7 +343,7 @@ impl DevicePage for MemoryPage {
 
     fn win10_view(&mut self, config: &Config) -> PageView<'_> {
         let l = &self.labels;
-        let mut stats = vec![
+        let stats = vec![
             vec![
                 (i18n("In use"), l.in_use.clone()),
                 (i18n("Available"), l.available.clone()),
@@ -360,18 +353,6 @@ impl DevicePage for MemoryPage {
                 (i18n("Cached"), l.cached.clone()),
             ],
         ];
-        if let (Some(used), Some(avail)) = (&l.swap_used, &l.swap_available) {
-            stats.push(vec![
-                (i18n("Swap used"), used.clone()),
-                (i18n("Swap available"), avail.clone()),
-            ]);
-        }
-        if let (Some(c), Some(s)) = (&l.compressed, &l.savings) {
-            stats.push(vec![
-                (i18n("Compressed"), c.clone()),
-                (i18n("Savings"), s.clone()),
-            ]);
-        }
         let mut info = vec![
             (i18n("Speed:"), self.speed.clone()),
             (i18n("Slots used:"), self.slots_used.clone()),
@@ -406,6 +387,7 @@ impl DevicePage for MemoryPage {
             stats,
             info,
             composition: Some(&self.composition),
+            swap_compression: Some(&self.swap_compression),
         }
     }
 
@@ -436,10 +418,11 @@ impl DevicePage for MemoryPage {
     Available:      {}
     Committed:      {}
     Cached:         {}
-    Swap available: {}
+    Swap total:     {}
     Swap used:      {}
-    Compressed:     {}
-    Savings:        {}
+    Swap free:      {}
+    zram:           {}
+    zswap:          {}
 
     Speed:       {}
     Slots used:  {}
@@ -450,10 +433,11 @@ impl DevicePage for MemoryPage {
             l.available,
             l.committed,
             l.cached,
-            l.swap_available.clone().unwrap_or_default(),
-            l.swap_used.clone().unwrap_or_default(),
-            o(&l.compressed),
-            o(&l.savings),
+            o(&l.swap_total),
+            o(&l.swap_used),
+            o(&l.swap_free),
+            o(&self.swap_compression.summary(Layer::Zram)),
+            o(&self.swap_compression.summary(Layer::Zswap)),
             self.speed,
             self.slots_used,
             self.form_factor,

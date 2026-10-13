@@ -171,6 +171,8 @@ impl GpuIndices {
 struct Client {
     gpu_index: usize,
     sample: ClientTelemetry,
+    // Retain validated membership only for the independent full-scan oracle.
+    #[cfg(test)]
     owners: HashSet<u32>,
 }
 
@@ -180,6 +182,7 @@ pub struct GpuSnapshot {
     pub processes: HashMap<u32, GpuStats>,
     pub usage: GpuUsage,
     clients: Vec<Client>,
+    clients_by_pid: HashMap<u32, Vec<usize>>,
     observations: HashMap<(usize, u32), TelemetryState>,
 }
 
@@ -268,9 +271,18 @@ impl GpuSnapshot {
                         sample.usage_state = device.usage.state as i32;
                         sample.memory_state = device.usage.state as i32;
                     }
+                    let client_index = snapshot.clients.len();
+                    for &pid in &owners {
+                        snapshot
+                            .clients_by_pid
+                            .entry(pid)
+                            .or_default()
+                            .push(client_index);
+                    }
                     snapshot.clients.push(Client {
                         gpu_index: index,
                         sample,
+                        #[cfg(test)]
                         owners,
                     });
                 }
@@ -345,11 +357,27 @@ impl GpuSnapshot {
 
     pub fn aggregate(&self, pids: impl IntoIterator<Item = u32>) -> GpuStats {
         let pids: HashSet<_> = pids.into_iter().collect();
-        let clients: Vec<_> = self
-            .clients
-            .iter()
-            .filter(|c| !c.owners.is_disjoint(&pids))
-            .collect();
+        let clients = self.clients_for_pids(&pids);
+        self.aggregate_clients(pids, clients)
+    }
+
+    fn clients_for_pids(&self, pids: &HashSet<u32>) -> Vec<&Client> {
+        let mut indices = Vec::new();
+        for pid in pids {
+            if let Some(client_indices) = self.clients_by_pid.get(pid) {
+                indices.extend_from_slice(client_indices);
+            }
+        }
+        // Preserve the full scan's client order for sums and state precedence.
+        indices.sort_unstable();
+        indices.dedup();
+        indices
+            .into_iter()
+            .map(|index| &self.clients[index])
+            .collect()
+    }
+
+    fn aggregate_clients(&self, pids: HashSet<u32>, clients: Vec<&Client>) -> GpuStats {
         let mut loads: BTreeMap<(usize, String), (f32, Option<GpuEngine>, bool)> = BTreeMap::new();
         let mut incomplete = false;
         for client in &clients {
@@ -653,9 +681,72 @@ mod tests {
         r
     }
 
+    fn assert_stats_eq(actual: &GpuStats, expected: &GpuStats) {
+        let fields = |stats: &GpuStats| {
+            (
+                stats.usage.percent.map(f32::to_bits),
+                stats.usage.engine.clone(),
+                stats.usage.state,
+                stats.dedicated,
+                stats.shared,
+                stats.memory,
+                stats.dedicated_state,
+                stats.shared_state,
+                stats.memory_state,
+                stats.memory_is_resident,
+            )
+        };
+        assert_eq!(fields(actual), fields(expected));
+    }
+
+    fn assert_full_scan_parity(snapshot: &GpuSnapshot, pids: impl IntoIterator<Item = u32>) {
+        let pids: HashSet<_> = pids.into_iter().collect();
+        let indexed = snapshot.clients_for_pids(&pids);
+        // Original selection rule, independent of the candidate index.
+        let full_scan: Vec<_> = snapshot
+            .clients
+            .iter()
+            .filter(|client| !client.owners.is_disjoint(&pids))
+            .collect();
+        let membership = |clients: &[&Client]| {
+            clients
+                .iter()
+                .map(|client| (client.gpu_index, client.sample.id.clone()))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(membership(&indexed), membership(&full_scan));
+        // Keep PID iteration order equal, including missing-state precedence.
+        let actual = snapshot.aggregate_clients(pids.clone(), indexed);
+        let expected = snapshot.aggregate_clients(pids, full_scan);
+        assert_stats_eq(&actual, &expected);
+    }
+
+    fn checked_snapshot(readings: &Readings, indices: &mut GpuIndices) -> GpuSnapshot {
+        let snapshot = GpuSnapshot::from_readings(readings, indices, 1000);
+        for &pid in readings.running_processes.keys() {
+            let clients = snapshot
+                .clients
+                .iter()
+                .filter(|client| client.owners.contains(&pid))
+                .collect();
+            let expected = snapshot.aggregate_clients(HashSet::from([pid]), clients);
+            assert_stats_eq(&snapshot.processes[&pid], &expected);
+            assert_stats_eq(&snapshot.aggregate([pid, pid]), &expected);
+            assert_full_scan_parity(&snapshot, [pid, pid]);
+        }
+        assert_full_scan_parity(&snapshot, []);
+        assert_full_scan_parity(&snapshot, [10, 20, 10]);
+        assert_full_scan_parity(&snapshot, [20, 10, 20]);
+        assert_full_scan_parity(&snapshot, [u32::MAX]);
+        let mut pids: Vec<_> = readings.running_processes.keys().copied().collect();
+        pids.extend([10, 20, 10, u32::MAX]);
+        assert_full_scan_parity(&snapshot, pids);
+        snapshot
+    }
+
     #[test]
     fn groups_deduplicate_shared_clients_before_max_engine() {
-        let snapshot = GpuSnapshot::from_readings(&readings(), &mut GpuIndices::default(), 1000);
+        let snapshot = checked_snapshot(&readings(), &mut GpuIndices::default());
         let group = snapshot.aggregate([10, 20, 10]);
         assert_eq!(group.usage.percent, Some(55.));
         assert_eq!(group.usage.engine.unwrap().id, "render");
@@ -668,7 +759,7 @@ mod tests {
     fn stale_and_recycled_processes_never_receive_old_values() {
         let mut r = readings();
         r.running_processes.get_mut(&10).unwrap().start_time_ticks = Some(999);
-        let snapshot = GpuSnapshot::from_readings(&r, &mut GpuIndices::default(), 1000);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.processes[&10].usage.percent, None);
         r.gpus
             .get_mut("a")
@@ -677,15 +768,15 @@ mod tests {
             .as_mut()
             .unwrap()
             .sample_age_ms = 2001;
-        let snapshot = GpuSnapshot::from_readings(&r, &mut GpuIndices::default(), 1000);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.usage.percent, None);
         assert_eq!(snapshot.devices["a"].usage.state, TelemetryState::Stale);
         assert_eq!(snapshot.processes[&20].usage.percent, None);
         assert_eq!(snapshot.processes[&20].memory, None);
         let r = readings();
         let mut indices = GpuIndices::default();
-        GpuSnapshot::from_readings(&r, &mut indices, 1000);
-        let repeated = GpuSnapshot::from_readings(&r, &mut indices, 1000);
+        checked_snapshot(&r, &mut indices);
+        let repeated = checked_snapshot(&r, &mut indices);
         assert_eq!(repeated.processes[&20].usage.state, TelemetryState::Stale);
         assert_eq!(repeated.devices["a"].usage.percent, None);
     }
@@ -702,15 +793,12 @@ mod tests {
             },
         );
         let mut indices = GpuIndices::default();
-        let snapshot = GpuSnapshot::from_readings(&r, &mut indices, 1000);
+        let snapshot = checked_snapshot(&r, &mut indices);
         assert_eq!(snapshot.devices["a"].index, 0);
         assert_eq!(snapshot.devices["b"].index, 1);
         assert_eq!(snapshot.usage.percent, Some(90.));
         r.gpus.remove("a");
-        assert_eq!(
-            GpuSnapshot::from_readings(&r, &mut indices, 1000).devices["b"].index,
-            1
-        );
+        assert_eq!(checked_snapshot(&r, &mut indices).devices["b"].index, 1);
     }
 
     #[test]
@@ -722,9 +810,32 @@ mod tests {
             .telemetry
             .as_mut()
             .unwrap()
+            .observations
+            .clear();
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        assert_eq!(snapshot.processes[&20].usage.state, TelemetryState::Partial);
+        assert_eq!(
+            snapshot.processes[&20].dedicated_state,
+            TelemetryState::Partial
+        );
+        assert_eq!(
+            snapshot.processes[&20].shared_state,
+            TelemetryState::Partial
+        );
+        assert_eq!(
+            snapshot.processes[&20].memory_state,
+            TelemetryState::Partial
+        );
+        let mut r = readings();
+        r.gpus
+            .get_mut("a")
+            .unwrap()
+            .telemetry
+            .as_mut()
+            .unwrap()
             .clients
             .clear();
-        let snapshot = GpuSnapshot::from_readings(&r, &mut GpuIndices::default(), 1000);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.processes[&10].usage.percent, Some(0.));
         assert_eq!(snapshot.processes[&10].memory, Some(0));
         r.gpus
@@ -735,8 +846,195 @@ mod tests {
             .unwrap()
             .observations
             .clear();
-        let snapshot = GpuSnapshot::from_readings(&r, &mut GpuIndices::default(), 1000);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.processes[&10].usage.percent, None);
         assert_eq!(snapshot.processes[&10].memory, None);
+    }
+
+    #[test]
+    fn indexed_aggregation_keeps_shared_clients_and_device_local_ids() {
+        let mut r = readings();
+        {
+            let telemetry = r.gpus.get_mut("a").unwrap().telemetry.as_mut().unwrap();
+            let repeated_owner = telemetry.clients[0].owners[0];
+            telemetry.clients[0].owners.extend([
+                repeated_owner,
+                ProcessIdentity {
+                    pid: 10,
+                    start_time_ticks: 999,
+                },
+                ProcessIdentity {
+                    pid: 30,
+                    start_time_ticks: 130,
+                },
+            ]);
+            let mut duplicate = telemetry.clients[0].clone();
+            duplicate.dedicated_memory_bytes = Some(u64::MAX);
+            telemetry.clients.push(duplicate);
+        }
+        let mut second_gpu = r.gpus["a"].clone();
+        second_gpu.id = "b".into();
+        second_gpu.telemetry.as_mut().unwrap().clients.truncate(1);
+        r.gpus.insert("b".into(), second_gpu);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        assert_eq!(snapshot.clients.len(), 3);
+        let group = snapshot.aggregate([10, 20, 10, 20]);
+        assert_eq!(group.usage.percent, Some(55.));
+        assert_eq!(group.usage.engine.as_ref().unwrap().gpu_index, 0);
+        assert_eq!(group.dedicated, Some(3072));
+        assert_eq!(group.shared, Some(6144));
+        assert_eq!(group.memory, Some(9216));
+        assert_eq!(snapshot.processes[&10].memory, Some(6144));
+    }
+
+    #[test]
+    fn indexed_aggregation_does_not_keep_missing_or_unidentified_owners() {
+        let mut r = readings();
+        let mut indices = GpuIndices::default();
+        let first = checked_snapshot(&r, &mut indices);
+        assert!(!first.clients_by_pid.is_empty());
+        r.running_processes.get_mut(&10).unwrap().start_time_ticks = None;
+        r.running_processes.remove(&20);
+        r.gpus
+            .get_mut("a")
+            .unwrap()
+            .telemetry
+            .as_mut()
+            .unwrap()
+            .sequence += 1;
+        let snapshot = checked_snapshot(&r, &mut indices);
+        assert!(snapshot.clients.is_empty());
+        assert!(snapshot.clients_by_pid.is_empty());
+        assert_eq!(snapshot.processes[&10].usage.state, TelemetryState::Unknown);
+        assert_eq!(snapshot.processes[&10].memory, None);
+        assert_eq!(
+            snapshot.aggregate([20]).usage.state,
+            TelemetryState::Unknown
+        );
+        assert_eq!(first.processes[&20].usage.percent, Some(55.));
+    }
+
+    #[test]
+    fn indexed_aggregation_preserves_rounding_and_client_state_precedence() {
+        let mut r = readings();
+        {
+            let telemetry = r.gpus.get_mut("a").unwrap().telemetry.as_mut().unwrap();
+            telemetry.clients[0].engines[0].usage_percent = Some(64.);
+            let mut small_engine = telemetry.clients[0].engines[0].clone();
+            // Half an ULP at 64: summing these first would change the result.
+            small_engine.usage_percent = Some(f32::EPSILON * 32.);
+            telemetry.clients[1].engines = vec![small_engine];
+            let mut third = telemetry.clients[1].clone();
+            third.id = "third".into();
+            telemetry.clients.push(third);
+        }
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        assert_eq!(
+            snapshot
+                .aggregate([20, 10, 20])
+                .usage
+                .percent
+                .map(f32::to_bits),
+            Some(64_f32.to_bits())
+        );
+        {
+            let telemetry = r.gpus.get_mut("a").unwrap().telemetry.as_mut().unwrap();
+            for (client, state) in telemetry.clients.iter_mut().zip([
+                TelemetryState::Warmup,
+                TelemetryState::PermissionDenied,
+                TelemetryState::Unsupported,
+            ]) {
+                client.usage_state = state as i32;
+                client.memory_state = state as i32;
+            }
+            telemetry.clients[1].memory_is_resident = Some(false);
+        }
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        let group = snapshot.aggregate([10, 20]);
+        assert_eq!(group.usage.percent, None);
+        assert_eq!(group.usage.state, TelemetryState::Warmup);
+        assert_eq!(group.dedicated_state, TelemetryState::Warmup);
+        assert_eq!(group.shared_state, TelemetryState::Warmup);
+        assert_eq!(group.memory_state, TelemetryState::Warmup);
+        assert!(!group.memory_is_resident);
+        r.gpus
+            .get_mut("a")
+            .unwrap()
+            .telemetry
+            .as_mut()
+            .unwrap()
+            .clients
+            .swap(0, 1);
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        let group = snapshot.aggregate([10, 20]);
+        assert_eq!(group.usage.state, TelemetryState::PermissionDenied);
+        assert_eq!(group.dedicated_state, TelemetryState::PermissionDenied);
+        assert_eq!(group.shared_state, TelemetryState::PermissionDenied);
+        assert_eq!(group.memory_state, TelemetryState::PermissionDenied);
+    }
+
+    #[test]
+    fn indexed_aggregation_matches_partial_and_overflow_memory() {
+        let mut r = readings();
+        {
+            let telemetry = r.gpus.get_mut("a").unwrap().telemetry.as_mut().unwrap();
+            telemetry.clients[0].usage_state = TelemetryState::Partial as i32;
+            telemetry.clients[0].memory_state = TelemetryState::Partial as i32;
+            telemetry.clients[1].dedicated_memory_bytes = None;
+            telemetry.clients[1].allocated_memory_bytes = None;
+            telemetry.clients[1].memory_is_resident = None;
+        }
+        let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+        let group = snapshot.aggregate([10, 20, 10]);
+        assert_eq!(
+            (group.dedicated, group.shared, group.memory),
+            (Some(1024), Some(4096), Some(3072))
+        );
+        assert_eq!(group.usage.state, TelemetryState::Partial);
+        assert_eq!(group.dedicated_state, TelemetryState::Partial);
+        assert_eq!(group.shared_state, TelemetryState::Partial);
+        assert_eq!(group.memory_state, TelemetryState::Partial);
+        assert!(!group.memory_is_resident);
+
+        let mut r = readings();
+        for allocated in [true, false] {
+            {
+                let telemetry = r.gpus.get_mut("a").unwrap().telemetry.as_mut().unwrap();
+                for (index, client) in telemetry.clients.iter_mut().enumerate() {
+                    let dedicated = if index == 0 { u64::MAX } else { 1 };
+                    client.dedicated_memory_bytes = Some(dedicated);
+                    client.shared_memory_bytes = Some(if index == 0 { 1 } else { 2 });
+                    client.allocated_memory_bytes = allocated.then_some(dedicated);
+                }
+            }
+            let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
+            let group = snapshot.aggregate([10, 20]);
+            assert_eq!(group.dedicated, None);
+            assert_eq!(group.dedicated_state, TelemetryState::Unknown);
+            assert_eq!(group.shared, Some(3));
+            assert_eq!(group.shared_state, TelemetryState::Available);
+            if allocated {
+                assert_eq!(group.memory, None);
+                assert_eq!(group.memory_state, TelemetryState::Unknown);
+            } else {
+                assert_eq!(group.memory, Some(3));
+                assert_eq!(group.memory_state, TelemetryState::Partial);
+            }
+            assert!(group.memory_is_resident);
+        }
+    }
+
+    #[test]
+    fn indexed_aggregation_matches_synthetic_series_and_empty_devices() {
+        let mut indices = GpuIndices::default();
+        for r in mc_magpie::synthetic_series(4, 32) {
+            checked_snapshot(&r, &mut indices);
+        }
+        let snapshot = checked_snapshot(&Readings::new(), &mut indices);
+        assert_eq!(
+            snapshot.aggregate([u32::MAX]).usage.state,
+            TelemetryState::Unsupported
+        );
+        assert!(snapshot.clients_by_pid.is_empty());
     }
 }

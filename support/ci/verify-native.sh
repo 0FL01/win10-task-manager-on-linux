@@ -121,7 +121,7 @@ run_gui() {
         xvfb-run -a -s '-screen 0 1280x1024x24' dbus-run-session -- env \
             HOME="$tmp" XDG_CONFIG_HOME="$tmp/config" XDG_CACHE_HOME="$tmp/cache" \
             XDG_DATA_HOME="$tmp/data" MC_MAGPIE_HW_DB=/usr/share/missioncenter/hw.db \
-            LIBGL_ALWAYS_SOFTWARE=1 RUST_LOG=debug \
+            LIBGL_ALWAYS_SOFTWARE=1 RUST_LOG=trace RUST_LOG_STYLE=never \
             /usr/bin/taskmanager "${args[@]}" >"$tmp/$label.log" 2>&1; then
         printf 'GUI smoke failed: %s\n' "$label" >&2
         cat "$tmp/$label.log" >&2
@@ -132,9 +132,15 @@ run_gui() {
         cat "$tmp/$label.log" >&2
         return 1
     }
+    # Release packages must keep debug/trace compiled out even with a hostile
+    # runtime filter. Applied live readings above prove the normal IPC path;
+    # do not depend on the old DEBUG PERF markers to verify production builds.
+    if grep -Eq ' (DEBUG|TRACE) |ui profile (10s|final)|daemon profile (10s|final)' "$tmp/$label.log"; then
+        printf 'Diagnostic/debug logging leaked into production package: %s\n' "$label" >&2
+        cat "$tmp/$label.log" >&2
+        return 1
+    fi
     if [[ $mode == real ]]; then
-        grep -Fq 'PERF: CPU information loaded and serialized' "$tmp/$label.log"
-        grep -Fq 'PERF: ProcessMap (processes) loaded and serialized' "$tmp/$label.log"
         if grep -Eq 'Error while decoding response|Failed to send request:|Failed to read response:' "$tmp/$label.log"; then
             printf 'Installed app/daemon IPC error in %s\n' "$label" >&2
             cat "$tmp/$label.log" >&2

@@ -50,6 +50,7 @@ pub mod ipc;
 pub mod memory;
 pub mod network;
 pub mod processes;
+pub mod profile;
 pub mod services;
 
 pub trait DataCacheTypes {
@@ -102,6 +103,7 @@ where
     CT: DataCacheTypes,
 {
     pub fn new() -> Self {
+        let _profile = profile::Span::new(profile::Phase::Startup);
         Self {
             about: AboutHandler::new(),
             apps: AppsHandler::new(),
@@ -280,7 +282,7 @@ where
     }
 
     pub fn memory(&self) -> Memory {
-        *self.memory.local_cache.lock()
+        self.memory.local_cache.lock().clone()
     }
 
     pub fn memory_devices(&self) -> Vec<MemoryDevice> {
