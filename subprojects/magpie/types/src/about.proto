@@ -33,6 +33,12 @@ message About {
     optional string hostname = 1;
     optional string vendor = 2;
     optional string model = 3;
+    optional string board_vendor = 4;
+    optional string board_name = 5;
+    optional string board_version = 6;
+    optional string bios_vendor = 7;
+    optional string bios_version = 8;
+    optional string bios_date = 9;
   }
 
   message DeInfo {

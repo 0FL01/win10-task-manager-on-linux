@@ -32,6 +32,7 @@ mod cpufreq;
 mod power_draw;
 mod system;
 mod ticks;
+mod topology;
 mod virt;
 
 pub struct CpuCache {
@@ -72,11 +73,6 @@ impl CpuCache {
     fn refresh(&mut self) {
         let info = &mut self.info;
 
-        let cpu_count = cpu_count();
-        let per_core_usage = &mut info.core_usage_percent[..cpu_count];
-        let per_core_kernel_usage = &mut info.core_kernel_usage_percent[..cpu_count];
-        let per_core_save = &mut self.core_ticks_prev[..cpu_count];
-
         let proc_stat = std::fs::read_to_string("/proc/stat").unwrap_or_else(|e| {
             log::error!("Failed to read /proc/stat: {e}");
             String::new()
@@ -90,21 +86,47 @@ impl CpuCache {
             (info.total_usage_percent, info.kernel_usage_percent) =
                 self.ticks_prev.update(cpu_overall_line);
 
-            for (i, line) in line_iter.enumerate() {
-                if i >= cpu_count || !line.starts_with("cpu") {
-                    break;
-                }
-
-                (per_core_usage[i], per_core_kernel_usage[i]) = per_core_save[i].update(line);
+            let lines: Vec<_> = line_iter
+                .take_while(|l| l.starts_with("cpu"))
+                .filter_map(|line| {
+                    let id = line
+                        .split_whitespace()
+                        .next()?
+                        .strip_prefix("cpu")?
+                        .parse::<u32>()
+                        .ok()?;
+                    Some((id, line))
+                })
+                .collect();
+            let ids: Vec<_> = lines.iter().map(|(id, _)| *id).collect();
+            if !topology::matches(info, &ids) {
+                info.logical_cpus = ids.iter().map(|id| topology::read(*id)).collect();
+                self.core_ticks_prev = vec![Ticks::default(); ids.len()];
+                info.core_usage_percent.resize(ids.len(), 0.);
+                info.core_kernel_usage_percent.resize(ids.len(), 0.);
+            }
+            for (i, (_, line)) in lines.iter().enumerate() {
+                (
+                    info.core_usage_percent[i],
+                    info.core_kernel_usage_percent[i],
+                ) = self.core_ticks_prev[i].update(line);
             }
         } else {
             info.total_usage_percent = 0.;
             info.kernel_usage_percent = 0.;
-            per_core_usage.fill(0.);
-            per_core_kernel_usage.fill(0.);
+            info.core_usage_percent.fill(0.);
+            info.core_kernel_usage_percent.fill(0.);
         }
 
         info.current_frequency_mhz = cpufreq::current();
+        info.bclk_mhz = crate::hardware::clock_mhz(
+            std::path::Path::new("/sys/class/hwmon"),
+            &["BCLK", "Bus Clock"],
+        );
+        info.voltage_v = crate::hardware::voltage(
+            std::path::Path::new("/sys/class/hwmon"),
+            &["Vcore", "CPU Vcore", "SVI2_Core", "CPU Core Voltage"],
+        );
         info.temperature_celsius = cpu::temperature();
         info.total_process_count = system::process_count();
         info.total_thread_count = system::thread_count();

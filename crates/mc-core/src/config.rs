@@ -35,6 +35,15 @@ pub enum SortOrder {
     None,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Theme {
+    #[default]
+    Light,
+    Dark,
+    System,
+}
+
 fn config_home() -> PathBuf {
     std::env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
@@ -76,6 +85,8 @@ pub struct GpuGraphSettings {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Config {
+    pub theme: Theme,
+    pub extended_hardware_monitoring: bool,
     pub window_width: i32,
     pub window_height: i32,
     pub is_maximized: bool,
@@ -106,6 +117,9 @@ pub struct Config {
 
     /// Options → Always on top
     pub window_always_on_top: bool,
+    /// Desktop launch shortcuts (native KDE); changes are persisted after acknowledgement.
+    pub launch_ctrl_shift_escape: bool,
+    pub launch_ctrl_alt_delete: bool,
     /// "Fewer details" (compact) view
     pub window_fewer_details: bool,
     /// View → Update speed → Paused
@@ -143,6 +157,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            theme: Theme::Light,
+            extended_hardware_monitoring: false,
             window_width: 1030,
             window_height: 705,
             is_maximized: false,
@@ -162,6 +178,8 @@ impl Default for Config {
             details_page_visible_columns: "name;pid;status;user;cpu;memory".into(),
             services_page_column_widths: String::new(),
             window_always_on_top: false,
+            launch_ctrl_shift_escape: true,
+            launch_ctrl_alt_delete: false,
             window_fewer_details: false,
             app_update_paused: false,
             services_page_sorting_column_name: String::new(),

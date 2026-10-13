@@ -43,8 +43,10 @@ pub mod disk;
 pub mod fan;
 pub mod gpu;
 pub mod mem_composition;
+pub mod mem_slots;
 pub mod memory;
 pub mod network;
+pub mod system;
 
 pub const MK_TO_0_C: i32 = -273150;
 
@@ -81,6 +83,15 @@ pub trait DevicePage {
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool;
     /// Normalized GPU telemetry, delivered before the ordinary device update.
     fn update_gpu(&mut self, _snapshot: &GpuSnapshot) {}
+    fn update_about(&mut self, _about: &mc_magpie::About) {}
+    fn update_spd(
+        &mut self,
+        _privileged: bool,
+        _result: &Result<Vec<mc_magpie::SpdEeprom>, String>,
+    ) {
+    }
+    fn clear_privileged_spd(&mut self) {}
+    fn extra_ui(&mut self, _ui: &mut Ui, _rect: egui::Rect, _module_height: f32, _cx: &mut Cx) {}
     /// Returns `true` if a repaint is needed for the animation.
     fn set_grid_offset(&mut self, offset: u32) -> bool;
     fn data_summary(&self) -> String;
@@ -232,7 +243,7 @@ impl PerformancePage {
     }
 
     fn create_missing_devices(&mut self, readings: &Readings, config: &Config) {
-        let mut present: Vec<String> = vec!["cpu".into(), "memory".into()];
+        let mut present: Vec<String> = vec!["cpu".into(), "memory".into(), "system".into()];
         present.extend(
             readings
                 .disks_info
@@ -259,6 +270,7 @@ impl PerformancePage {
             let device: Option<Box<dyn DevicePage>> = match name.as_str() {
                 "cpu" => Some(Box::new(cpu::CpuPage::new(readings, config))),
                 "memory" => Some(Box::new(memory::MemoryPage::new(readings, config))),
+                "system" => Some(Box::new(system::SystemPage::new())),
                 n if n.starts_with("disk-") => readings
                     .disks_info
                     .iter()
@@ -347,6 +359,27 @@ impl PerformancePage {
             repaint |= d.summary_mut().graph.set_grid_offset(offset);
         }
         repaint
+    }
+
+    pub fn update_about(&mut self, about: &mc_magpie::About) {
+        for device in &mut self.devices {
+            device.update_about(about);
+        }
+    }
+
+    pub fn update_spd(
+        &mut self,
+        privileged: bool,
+        result: &Result<Vec<mc_magpie::SpdEeprom>, String>,
+    ) {
+        for device in &mut self.devices {
+            device.update_spd(privileged, result);
+        }
+    }
+    pub fn clear_privileged_spd(&mut self) {
+        for device in &mut self.devices {
+            device.clear_privileged_spd();
+        }
     }
 
     fn refresh_overrides(&mut self, config: &Config) {

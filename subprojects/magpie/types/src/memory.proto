@@ -85,6 +85,12 @@ message Memory {
   required uint64 zram_orig_size = 58;   // Original uncompressed data size
   required uint64 zram_compr_size = 59;  // Compressed data size
   required uint64 zram_mem_used = 60;    // Total memory allocated by zram
+  optional uint64 corrected_errors = 61;
+  optional uint64 uncorrected_errors = 62;
+  optional float voltage_v = 63;
+  optional float fclk_mhz = 64;
+  optional float mclk_mhz = 65;
+  optional float uclk_mhz = 66;
 }
 
 message MemoryDevice {
@@ -95,6 +101,11 @@ message MemoryDevice {
   required string ram_type = 5;
   required uint64 speed = 6;
   required uint32 rank = 7;
+  optional uint32 slot_index = 8;
+  optional string manufacturer = 9;
+  optional string serial_number = 10;
+  optional string part_number = 11;
+  optional float configured_voltage_v = 12;
 }
 
 message MemoryRequest {

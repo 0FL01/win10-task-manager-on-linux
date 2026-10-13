@@ -61,6 +61,7 @@ struct CacheKey {
     generation: u64,
     size: Vec2,
     pixels_per_point: f32,
+    dark: bool,
 }
 
 /// A time-series graph with the same API surface as the GTK `GraphWidget`.
@@ -314,11 +315,39 @@ impl Graph {
             generation: self.generation,
             size,
             pixels_per_point: ui.ctx().pixels_per_point(),
+            dark: ui.visuals().dark_mode,
         };
 
         let rebuild = !matches!(&self.cache, Some((k, ..)) if *k == key);
         if rebuild {
-            let (under, grid, data) = self.build_shapes(size);
+            let (mut under, mut grid, mut data) = self.build_shapes(size);
+            if key.dark {
+                // Own dark adaptation: preserve device hue and geometry, replace white mixes.
+                let adapt = |shapes: &mut Vec<Shape>, ratio: f32| {
+                    for shape in shapes {
+                        if let Shape::Mesh(mesh) = shape {
+                            for vertex in std::sync::Arc::make_mut(mesh).vertices.iter_mut() {
+                                let base = self.base_color;
+                                let c = |v: u8| (32. + (v as f32 - 32.) * ratio).round() as u8;
+                                vertex.color =
+                                    Color32::from_rgb(c(base.r()), c(base.g()), c(base.b()));
+                            }
+                        }
+                    }
+                };
+                adapt(&mut under, 0.12);
+                adapt(&mut grid, 0.30);
+                let color = mix_white(self.base_color, 0.75);
+                for shape in &mut data {
+                    match shape {
+                        Shape::Path(path) => {
+                            path.stroke.color = egui::epaint::ColorMode::Solid(color)
+                        }
+                        Shape::LineSegment { stroke, .. } => stroke.color = color,
+                        _ => {}
+                    }
+                }
+            }
             self.cache = Some((key, under, grid, data));
         }
 
@@ -337,8 +366,24 @@ impl Graph {
 
         let outer = ui.painter_at(rect);
         let mut frame = vec![];
-        pixel_rect(&mut frame, rect, self.base_color);
-        pixel_rect(&mut frame, area, Color32::WHITE);
+        pixel_rect(
+            &mut frame,
+            rect,
+            if ui.visuals().dark_mode {
+                mix_white(self.base_color, 0.75)
+            } else {
+                self.base_color
+            },
+        );
+        pixel_rect(
+            &mut frame,
+            area,
+            if ui.visuals().dark_mode {
+                Color32::from_gray(32)
+            } else {
+                Color32::WHITE
+            },
+        );
         outer.extend(frame);
         let painter = ui.painter_at(area);
         add(&painter, under, origin);

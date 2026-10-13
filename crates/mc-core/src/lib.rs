@@ -25,6 +25,7 @@ pub mod format;
 pub mod gpu;
 pub mod i18n;
 pub mod sidebar;
+pub mod spd;
 pub mod table;
 
 pub use mc_magpie::Readings;

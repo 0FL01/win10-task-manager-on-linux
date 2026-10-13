@@ -30,6 +30,7 @@ fn help() {
          mo [DIR]            compile po/*.po into DIR/<lang>/LC_MESSAGES/taskmanager.mo\n\
          pot                 regenerate po/taskmanager.pot from Rust sources\n\
          install [--prefix P] [--destdir D] [--data-only]   install binaries, data, icons, translations\n\
+         install-hardware [--prefix P] [--destdir D]   install only the optional hardware helper\n\
          rpm                build a Fedora RPM from a fresh staged install"
     );
 }
@@ -44,7 +45,7 @@ fn run_dev(args: &[String]) -> Result<(), String> {
     if !status.success() {
         return Err("build failed".into());
     }
-    let magpie = dist::magpie_binary(&root)?;
+    let magpie = dist::magpie_dev_binary(&root)?;
     let hwdb = match std::env::var_os("MC_MAGPIE_HW_DB") {
         Some(path) => PathBuf::from(path),
         None => dist::hwdb(&root, &root.join("target/hwdb"))?,
@@ -90,6 +91,7 @@ fn main() {
         }
         "pot" => dist::update_pot(&root()),
         "install" => dist::install(rest),
+        "install-hardware" => dist::install_hardware(rest),
         "rpm" => dist::rpm(rest),
         _ => {
             help();

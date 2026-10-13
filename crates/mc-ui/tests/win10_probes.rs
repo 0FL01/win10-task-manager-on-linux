@@ -566,6 +566,93 @@ fn click(harness: &mut Harness<'static, Option<App>>, pos: egui::Pos2) {
     button(harness, pos, false);
 }
 
+#[test]
+fn dark_theme_and_system_page_render_without_changing_light_geometry() {
+    let dark = render_with("performance-page", "dark-cpu", (1030., 705.), 0, |app| {
+        app.configure_for_test(|config| config.theme = mc_core::config::Theme::Dark);
+    });
+    assert_eq!(&dark.get_pixel(900, 40).0[..3], &[32, 32, 32]);
+    let system = render_with("performance-page", "dark-system", (760., 540.), 0, |app| {
+        app.configure_for_test(|config| {
+            config.theme = mc_core::config::Theme::Dark;
+            config.performance_selected_page = "system".into();
+        });
+    });
+    assert_eq!(&system.get_pixel(730, 100).0[..3], &[32, 32, 32]);
+    let processes = render_with("apps-page", "dark-processes", (1030., 705.), 0, |app| {
+        app.configure_for_test(|config| config.theme = mc_core::config::Theme::Dark);
+    });
+    assert_eq!(&processes.get_pixel(900, 40).0[..3], &[32, 32, 32]);
+}
+
+#[test]
+fn system_metadata_copies_full_values_and_system_theme_follows_desktop() {
+    let mut reading = mc_magpie::synthetic_series(1, 1).remove(0);
+    reading.cpu.name = Some(format!(
+        "Synthetic CPU {}",
+        "full metadata value ".repeat(12)
+    ));
+    let expected = reading.cpu.name.as_ref().unwrap().trim().to_owned();
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "system".into(),
+            theme: mc_core::config::Theme::System,
+            window_width: 760,
+            window_height: 540,
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "system"
+    );
+    let metadata = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text)
+                if text.pos.x > 230. && text.galley.job.text.starts_with("Synthetic CPU") =>
+            {
+                assert!(
+                    text.galley.job.text.ends_with('…'),
+                    "long metadata is elided on screen"
+                );
+                Some(text.pos)
+            }
+            _ => None,
+        })
+        .expect("System renders the CPU model as a metadata row");
+    let pos = metadata + egui::vec2(8., 5.);
+    h.event(egui::Event::PointerMoved(pos));
+    h.run_steps(1);
+    button(&mut h, pos, true);
+    button(&mut h, pos, false);
+    assert!(
+        h.output().platform_output.commands.iter().any(|command| {
+            matches!(command, egui::OutputCommand::CopyText(value) if value == &expected)
+        }),
+        "clipboard at {pos:?}: {:?}",
+        h.output().platform_output.commands
+    );
+    h.input_mut().system_theme = Some(egui::Theme::Dark);
+    h.run_steps(2);
+    let dark = h.render().unwrap();
+    assert_eq!(hex(&dark, 730, 100), "#202020");
+    h.input_mut().system_theme = Some(egui::Theme::Light);
+    h.run_steps(2);
+    let light = h.render().unwrap();
+    assert_eq!(hex(&light, 730, 100), "#ffffff");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    light.save(dir.join("win10-system-light.png")).unwrap();
+}
+
 /// Column widths, column order, sorting and collapsed groups survive closing and reopening.
 #[test]
 fn ui_state_survives_restart() {
@@ -1121,7 +1208,7 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     assert!(h.query_by_label_contains("Used (").is_some());
     h.event(egui::Event::MouseWheel {
         unit: egui::MouseWheelUnit::Point,
-        delta: egui::vec2(0., -1000.),
+        delta: egui::vec2(0., -132.),
         phase: egui::TouchPhase::Move,
         modifiers: egui::Modifiers::NONE,
     });
@@ -1140,7 +1227,7 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     scrolled
         .save(out.join("win10-performance-memory-minimum-scrolled.png"))
         .unwrap();
-    // Virtual 545 - viewport 413 = 132 points of reachable overflow.
+    // The original 132-point metadata extent remains accessible; slots extend below it.
     assert_eq!(
         hex(&scrolled, 300, 329 - 132),
         "#8b12ae",
@@ -1281,4 +1368,181 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         "#8b12ae",
         "summary transition resets scroll"
     );
+}
+
+#[test]
+fn memory_slot_diagrams_distinguish_empty_and_populated_modules() {
+    let mut reading = mc_magpie::synthetic_readings(0, 1);
+    reading.mem_devices[0].locator = "DIMMA1".into();
+    reading.mem_devices[0].manufacturer = Some("Test memory manufacturer".into());
+    reading.mem_devices[1].locator = "DIMMA2".into();
+    reading.mem_devices[1].size = 0;
+    reading.mem_devices[1].form_factor = "DIMM".into();
+    reading.mem_info.max_devices = 2;
+    let mut h = performance_harness(
+        Config {
+            window_width: 760,
+            window_height: 540,
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    h.hover_at(egui::pos2(300., 350.));
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::vec2(0., -2000.),
+        phase: egui::TouchPhase::Move,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(3);
+    for label in ["A1", "A2", "Empty", "Memory slots"] {
+        assert!(h.output().shapes.iter().any(|shape| matches!(&shape.shape,egui::Shape::Text(text) if text.galley.job.text == label && shape.clip_rect.contains(text.pos))), "{label} visible");
+    }
+    h.render()
+        .unwrap()
+        .save(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../target/ui-snapshots/win10-memory-slots-compact.png"),
+        )
+        .unwrap();
+    let slot = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "A1" => Some(text.pos),
+            _ => None,
+        })
+        .unwrap();
+    click(&mut h, slot + egui::vec2(8., 5.));
+    h.run_steps(2);
+    assert!(h.query_by_label("Test memory manufacturer").is_some());
+    assert!(h.query_by_label("Read SPD").is_none());
+    h.run_steps(3);
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    h.run_steps(3);
+    assert!(
+        h.query_by_label("SPD is unavailable for recorded or synthetic data.")
+            .is_some()
+    );
+}
+
+#[test]
+fn memory_slots_use_free_space_right_of_metadata_at_default_width() {
+    let mut reading = mc_magpie::synthetic_readings(0, 1);
+    reading.mem_devices = (0..4)
+        .map(|index| mc_magpie::MemoryDevice {
+            locator: format!("DIMMA{}", index + 1),
+            form_factor: "DIMM".into(),
+            size: 8 * 1024 * 1024 * 1024,
+            ..Default::default()
+        })
+        .collect();
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    let text_position = |label: &str| {
+        h.output()
+            .shapes
+            .iter()
+            .find_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) if text.galley.job.text == label => Some(text.pos),
+                _ => None,
+            })
+            .unwrap()
+    };
+    let heading = text_position("Memory slots");
+    let speed = text_position("Speed:");
+    assert!(
+        heading.x > speed.x + 160.,
+        "slots are beside metadata, not below the page"
+    );
+    assert!((heading.y + mc_ui::win10::metrics::MEMORY_SLOT_HEADER_H - speed.y).abs() <= 3.);
+    assert!(h.query_by_label("Read SPD").is_none());
+    let capacities: Vec<_> = h
+        .output()
+        .shapes
+        .iter()
+        .filter_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "8 GiB" => Some((
+                shape.clip_rect,
+                egui::Rect::from_min_size(text.pos, text.galley.size()),
+            )),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(capacities.len(), 4);
+    for (clip, text) in capacities {
+        assert!(
+            text.height() >= 14.,
+            "slot capacity uses the larger body font"
+        );
+        assert!(
+            clip.contains_rect(text),
+            "capacity label must be fully visible: {text:?} clipped by {clip:?}"
+        );
+    }
+    h.render()
+        .unwrap()
+        .save(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../target/ui-snapshots/win10-memory-slots-tall.png"),
+        )
+        .unwrap();
+}
+
+#[test]
+fn memory_module_height_follows_compressed_row_and_empty_slots_are_grey() {
+    let mut reading = mc_magpie::synthetic_readings(0, 1);
+    reading.mem_info.zram_orig_size = 512 * 1024 * 1024;
+    reading.mem_info.zram_compr_size = 128 * 1024 * 1024;
+    reading.mem_devices[0].form_factor = "DIMM".into();
+    reading.mem_devices[1].form_factor = "DIMM".into();
+    reading.mem_devices[1].size = 0;
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    let at = |label: &str| {
+        h.output()
+            .shapes
+            .iter()
+            .find_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) if text.galley.job.text == label => Some(text.pos),
+                _ => None,
+            })
+            .unwrap()
+    };
+    let top = at("In use").y + 3.;
+    let bottom =
+        at("Compressed").y + 3. + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
+    let start = at("Memory slots").x;
+    let image = h.render().unwrap();
+    let m = &mc_ui::win10::metrics::MEMORY_SLOT_DRAW_W;
+    let x = start + (mc_ui::win10::metrics::MEMORY_SLOT_W - *m) / 2.;
+    assert_eq!(hex(&image, x as u32, top as u32), "#8b12ae");
+    assert_eq!(hex(&image, x as u32, bottom as u32), "#8b12ae");
+    let empty_x = x + mc_ui::win10::metrics::MEMORY_SLOT_W + mc_ui::win10::metrics::MEMORY_SLOT_GAP;
+    assert_eq!(hex(&image, empty_x as u32, top as u32), "#707070");
+    assert_eq!(
+        hex(&image, (empty_x + 2.) as u32, (top + 2.) as u32),
+        "#e1e1e1"
+    );
+    image
+        .save(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../target/ui-snapshots/win10-memory-slots-compressed-tall.png"),
+        )
+        .unwrap();
 }

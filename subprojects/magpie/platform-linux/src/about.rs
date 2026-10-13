@@ -37,6 +37,20 @@ fn refresh_about(about: &mut About) {
 }
 
 fn extract_device_info(info: &mut AboutDeviceInfo) {
+    let dmi = |name: &str| {
+        std::fs::read_to_string(format!("/sys/class/dmi/id/{name}"))
+            .ok()
+            .map(|v| v.trim().to_owned())
+            .filter(|v| !v.is_empty())
+    };
+    info.vendor = dmi("sys_vendor");
+    info.model = dmi("product_name");
+    info.board_vendor = dmi("board_vendor");
+    info.board_name = dmi("board_name");
+    info.board_version = dmi("board_version");
+    info.bios_vendor = dmi("bios_vendor");
+    info.bios_version = dmi("bios_version");
+    info.bios_date = dmi("bios_date");
     info.hostname = match std::fs::read_to_string("/etc/hostname") {
         Ok(host) => Some(host.trim().to_string()),
         Err(e) => {
@@ -209,7 +223,7 @@ fn extract_os_info(info: &mut AboutOsInfo) {
             "PRETTY_NAME" => info.pretty_name = Some(value),
             "ID" => info.id = Some(value),
             "ID_LIKE" => info.id_like = Some(value),
-            "BUILD_ID" => info.version_id = Some(value),
+            "VERSION_ID" => info.version_id = Some(value),
 
             "HOME_URL" => info.home_url = Some(value),
             "SUPPORT_URL" => info.support_url = Some(value),
@@ -227,7 +241,7 @@ fn extract_os_info(info: &mut AboutOsInfo) {
     info.os_type = get_file("/proc/sys/kernel/ostype");
     info.kernel_release = get_file("/proc/sys/kernel/osrelease");
     info.kernel_version = get_file("/proc/sys/kernel/version");
-    info.os_architecture = get_file("/proc/sys/kernel/arch");
+    info.os_architecture = Some(std::env::consts::ARCH.into());
 
     fn get_package_manager(id: &str) -> (Option<String>, Option<String>) {
         match id {

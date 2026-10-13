@@ -46,9 +46,11 @@ macro_rules! cmd_flatpak_host {
 mod client;
 mod fixture;
 mod gatherer;
+mod hardware_access;
 mod log_compat;
 mod slot;
 pub mod sockets;
+mod spd;
 mod synthetic;
 pub mod users;
 
@@ -58,10 +60,12 @@ pub use client::{
 };
 pub use fixture::{load_fixture_dir, write_fixture_dir};
 pub use gatherer::{Event, MagpieClient, Readings, Request, Waker};
+pub use hardware_access::HardwareTelemetry;
 pub use magpie_types;
 pub use magpie_types::about::About;
 pub use magpie_types::apps::icon::Icon;
 pub use slot::LatestSlot;
+pub use spd::SpdEeprom;
 pub use synthetic::{synthetic_readings, synthetic_series};
 
 pub type Pid = u32;

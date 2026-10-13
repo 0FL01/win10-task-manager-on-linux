@@ -73,7 +73,31 @@ pub fn install(ctx: &egui::Context) {
     w.active.bg_fill = pal::BUTTON_PRESSED_FILL;
     w.active.bg_stroke = Stroke::new(1., pal::BUTTON_PRESSED_BORDER);
     w.open = w.hovered;
-    ctx.set_visuals_of(egui::Theme::Light, visuals);
+    ctx.set_visuals_of(egui::Theme::Light, visuals.clone());
+    let mut dark = visuals;
+    dark.dark_mode = true;
+    dark.override_text_color = Some(pal::dark(pal::TEXT));
+    dark.panel_fill = pal::dark(dark.panel_fill);
+    dark.window_fill = pal::dark(dark.window_fill);
+    dark.extreme_bg_color = pal::dark(dark.extreme_bg_color);
+    dark.faint_bg_color = pal::dark(dark.faint_bg_color);
+    dark.window_stroke.color = pal::dark(dark.window_stroke.color);
+    dark.hyperlink_color = pal::dark(dark.hyperlink_color);
+    dark.selection.bg_fill = pal::dark(dark.selection.bg_fill);
+    dark.selection.stroke.color = pal::dark(pal::TEXT);
+    for state in [
+        &mut dark.widgets.noninteractive,
+        &mut dark.widgets.inactive,
+        &mut dark.widgets.hovered,
+        &mut dark.widgets.active,
+        &mut dark.widgets.open,
+    ] {
+        state.bg_fill = pal::dark(state.bg_fill);
+        state.weak_bg_fill = pal::dark(state.weak_bg_fill);
+        state.bg_stroke.color = pal::dark(state.bg_stroke.color);
+        state.fg_stroke.color = pal::dark(state.fg_stroke.color);
+    }
+    ctx.set_visuals_of(egui::Theme::Dark, dark);
 
     ctx.all_styles_mut(|style| {
         style.text_styles = [

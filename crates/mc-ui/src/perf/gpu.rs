@@ -601,6 +601,10 @@ impl DevicePage for GpuPage {
             (i18n("Shared memory status:"), state_name(shared_state)),
             (i18n("Sample age:"), format!("{} ms", device.age_ms)),
         ];
+        if let Some(voltage) = gpu.voltage_v {
+            self.info
+                .push((i18n("GPU voltage:"), format!("{voltage:.3} V")));
+        }
         if let Some(engine) = &device.usage.engine {
             self.info
                 .push((i18n("Busiest engine:"), engine.name.clone()));

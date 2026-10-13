@@ -82,6 +82,7 @@ message Gpu {
   required bool encode_decode_shared = 32;
   map<uint32, Process> processes = 33;
   optional GpuTelemetry telemetry = 34;
+  optional float voltage_v = 35;
 }
 
 // Unknown is deliberately not equivalent to an observed idle value.

@@ -70,6 +70,7 @@ jobs:
         run: |
           python3 -m py_compile support/bundle-gpu-libs.py support/ci/*.py
           python3 -m unittest discover -s support/ci/tests -v
+          python3 -B support/test-hardware-helper.py
           bash -n support/ci/*.sh
       - name: Clippy
         run: cargo clippy --locked --workspace --all-targets -- -D warnings

@@ -90,6 +90,9 @@ pub enum Command {
     OpenDialog(Dialog),
     SetPage(MainPage),
     SetAlwaysOnTop(bool),
+    SetLaunchShortcuts([bool; 2]),
+    SetHardwareAccess(bool),
+    InstallHardwareService,
     ToggleSummaryMode,
     /// Select the first visible device of a category ("cpu", "memory", "disk", ...)
     SelectDeviceCategory(&'static str),

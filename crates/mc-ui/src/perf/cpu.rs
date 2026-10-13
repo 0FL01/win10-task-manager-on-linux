@@ -62,6 +62,7 @@ struct Labels {
     cpufreq_driver: Option<String>,
     cpufreq_governor: Option<String>,
     power_preference: Option<String>,
+    hardware: Vec<(String, String)>,
 }
 
 pub struct CpuPage {
@@ -71,6 +72,7 @@ pub struct CpuPage {
     thread_wise: Graph,
     per_core: Vec<Graph>,
     core_tooltips: Vec<String>,
+    topology: Vec<mc_magpie::magpie_types::cpu::LogicalCpu>,
     bottom: Graph,
     is_bogomips: bool,
     has_power: bool,
@@ -130,6 +132,7 @@ impl CpuPage {
             thread_wise: Graph::new(),
             per_core: vec![],
             core_tooltips: vec![],
+            topology: vec![],
             bottom,
             is_bogomips: false,
             has_power: false,
@@ -311,7 +314,8 @@ impl DevicePage for CpuPage {
         let cpu = &readings.cpu;
         self.max_duration = env.max_duration.clone();
 
-        if self.per_core.len() != cpu.core_usage_percent.len() {
+        let topology_changed = self.topology != cpu.logical_cpus;
+        if self.per_core.len() != cpu.core_usage_percent.len() || topology_changed {
             self.set_static_information(readings, env.config);
         }
 
@@ -332,6 +336,91 @@ impl DevicePage for CpuPage {
         }
 
         let l = &mut self.labels;
+        l.hardware.clear();
+        if let Some(bclk) = cpu
+            .bclk_mhz
+            .or_else(|| readings.hardware.as_ref().and_then(|data| data.bclk_mhz))
+        {
+            l.hardware.push((i18n("BCLK:"), format!("{bclk:.2} MHz")));
+        }
+        if let Some(ratio) = readings
+            .hardware
+            .as_ref()
+            .and_then(|data| data.cpu_multiplier)
+        {
+            l.hardware
+                .push((i18n("CPU multiplier:"), format!("×{ratio:.1}")));
+        }
+        if let Some(voltage) = cpu.voltage_v.or_else(|| {
+            readings
+                .hardware
+                .as_ref()
+                .and_then(|data| data.cpu_voltage_v)
+        }) {
+            l.hardware
+                .push((i18n("CPU voltage:"), format!("{voltage:.3} V")));
+        }
+        if let Some(data) = &readings.hardware {
+            for (label, value) in [
+                (n_("Multiplier source:"), &data.multiplier_source),
+                (n_("BCLK source:"), &data.bclk_source),
+                (n_("Voltage source:"), &data.voltage_source),
+            ] {
+                if let Some(value) = value {
+                    l.hardware.push((i18n(label), value.clone()));
+                }
+            }
+        }
+        if !cpu.logical_cpus.is_empty() {
+            let cores: std::collections::HashSet<_> = cpu
+                .logical_cpus
+                .iter()
+                .filter_map(|c| Some((c.package_id?, c.core_id?)))
+                .collect();
+            if !cores.is_empty() {
+                l.hardware.push((i18n("Cores:"), cores.len().to_string()));
+            }
+            let mut kinds = std::collections::BTreeMap::<&str, std::collections::HashSet<_>>::new();
+            for c in &cpu.logical_cpus {
+                if let (Some(kind), Some(package), Some(core)) = (&c.kind, c.package_id, c.core_id)
+                {
+                    kinds.entry(kind).or_default().insert((package, core));
+                }
+            }
+            if !kinds.is_empty() {
+                l.hardware.push((
+                    i18n("Core types:"),
+                    kinds
+                        .iter()
+                        .map(|(kind, cores)| format!("{} {kind}", cores.len()))
+                        .collect::<Vec<_>>()
+                        .join(" + "),
+                ));
+            }
+            if topology_changed {
+                self.core_tooltips = cpu
+                    .logical_cpus
+                    .iter()
+                    .map(|c| {
+                        let mut label = format!("CPU {}", c.id);
+                        if let Some(kind) = &c.kind {
+                            label.push_str(&format!(" · {kind}"));
+                        }
+                        if let (Some(package), Some(core)) = (c.package_id, c.core_id) {
+                            label.push_str(&format!(
+                                " · {} {package} · {} {core}",
+                                i18n("Socket"),
+                                i18n("Core")
+                            ));
+                        }
+                        label
+                    })
+                    .collect();
+            }
+        }
+        if topology_changed {
+            self.topology.clone_from(&cpu.logical_cpus);
+        }
         l.utilization = format!("{}%", cpu.total_usage_percent.round());
         let freq_text = if self.is_bogomips {
             self.bottom
@@ -438,6 +527,7 @@ impl DevicePage for CpuPage {
                 info.push((i18n(label), v.clone()));
             }
         }
+        info.extend(l.hardware.clone());
 
         let caption = over(n_("Utilization over "), &self.max_duration);
         let (graphs, columns): (Vec<&mut Graph>, usize) = match selection {
@@ -644,5 +734,30 @@ mod tests {
         let view = page.win10_view(&config);
         assert_eq!(view.panels[0].graphs.len(), 2);
         assert_eq!(view.panels[0].tooltips, ["CPU 0", "CPU 1"]);
+    }
+
+    #[test]
+    fn topology_uses_kernel_ids_and_hotplug_relabels_same_size_graphs() {
+        let mut readings = mc_magpie::synthetic_readings(0, 0);
+        readings.cpu.core_usage_percent = vec![10.; 2];
+        readings.cpu.core_kernel_usage_percent = vec![1.; 2];
+        readings.cpu.logical_cpus = [2, 7]
+            .map(|id| mc_magpie::magpie_types::cpu::LogicalCpu {
+                id,
+                package_id: Some(0),
+                core_id: Some(id),
+                kind: Some("E".into()),
+            })
+            .to_vec();
+        let config = Config::default();
+        let mut page = CpuPage::new(&readings, &config);
+        page.update(&readings, &UpdateEnv::new(&config));
+        assert!(page.core_tooltips[0].starts_with("CPU 2 · E"));
+        assert!(page.core_tooltips[1].starts_with("CPU 7 · E"));
+        readings.cpu.logical_cpus[1].id = 9;
+        readings.cpu.logical_cpus[1].kind = Some("LP-E".into());
+        page.update(&readings, &UpdateEnv::new(&config));
+        assert!(page.core_tooltips[1].starts_with("CPU 9 · LP-E"));
+        assert_eq!(page.per_core.len(), 2);
     }
 }

@@ -112,6 +112,8 @@ pub const MEMORY: DeviceColors = DeviceColors {
     line: rgb(0x8b12ae),
     fill: rgb(0xf4f2f4),
 };
+/// Own: unpopulated slots have a neutral grey fill in both themes.
+pub const MEMORY_EMPTY_FILL: Color32 = rgb(0xe1e1e1);
 pub const DISK: DeviceColors = DeviceColors {
     line: rgb(0x4da60c),
     fill: rgb(0xeff7e9),
@@ -129,3 +131,65 @@ pub const BATTERY: DeviceColors = DeviceColors {
     line: rgb(0x3b8f4e),
     fill: rgb(0xf0f7f1),
 };
+
+/// Own dark adaptation. Light constants remain the measured reference palette. Resolution is
+/// per egui context (including offscreen renders), never process-global.
+pub fn resolve(ctx: &egui::Context, color: Color32) -> Color32 {
+    if ctx.theme() == egui::Theme::Dark {
+        dark(color)
+    } else {
+        color
+    }
+}
+
+pub fn dark(color: Color32) -> Color32 {
+    match color {
+        WHITE => rgb(0x202020),
+        TEXT => rgb(0xf0f0f0),
+        LABEL | DISABLED_TEXT => rgb(0xaaaaaa),
+        SELECTION | BUTTON_PRESSED_FILL => rgb(0x284c66),
+        HOVER | BUTTON_HOVER_FILL => rgb(0x293e4c),
+        POPUP_HOVER => rgb(0x325b78),
+        LINK | BUTTON_HOVER_BORDER => rgb(0x65b6ef),
+        HEADER_NAME | GROUP_TEXT => rgb(0xa9c8ef),
+        HEAT_ZERO => rgb(0x403921),
+        HEAT_LOW => rgb(0x504424),
+        HEAT_SEPARATOR => rgb(0x6e5830),
+        SUMMARY_ALERT => rgb(0xff8172),
+        c if c == CPU.fill => rgb(0x24313a),
+        c if c == MEMORY.fill => rgb(0x332839),
+        c if c == DISK.fill => rgb(0x293423),
+        c if c == NETWORK.fill => rgb(0x392d24),
+        c if c == FAN.fill => rgb(0x322938),
+        c if c == BATTERY.fill => rgb(0x25352a),
+        c if c == CPU.line => rgb(0x49a8dc),
+        c if c == MEMORY.line => rgb(0xba65d3),
+        c if c == DISK.line => rgb(0x88c651),
+        c if c == NETWORK.line => rgb(0xd2935d),
+        c if c == FAN.line => rgb(0xb67bcc),
+        c if c == BATTERY.line => rgb(0x74bd86),
+        _ if HEAT_LEVELS.contains(&color) => {
+            let index = HEAT_LEVELS
+                .iter()
+                .position(|value| *value == color)
+                .unwrap_or(0);
+            [rgb(0x655223), rgb(0x806025), rgb(0x996829), rgb(0xae6c30)][index]
+        }
+        // Neutral surfaces/borders keep their relative contrast, with no geometry changes.
+        _ if color.r() == color.g() && color.g() == color.b() && color.a() == 255 => {
+            let value = color.r();
+            rgb(if value >= 240 {
+                0x292929
+            } else if value >= 210 {
+                0x3d3d3d
+            } else if value >= 170 {
+                0x555555
+            } else if value >= 120 {
+                0x858585
+            } else {
+                0xb0b0b0
+            })
+        }
+        _ => color,
+    }
+}

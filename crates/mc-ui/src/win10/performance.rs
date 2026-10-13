@@ -55,7 +55,7 @@ const INFO_PITCH: f32 = 18.;
 
 pub fn device_colors(kind: DeviceType) -> pal::DeviceColors {
     match kind {
-        DeviceType::Cpu | DeviceType::Unspecified => pal::CPU,
+        DeviceType::Cpu | DeviceType::System | DeviceType::Unspecified => pal::CPU,
         DeviceType::Memory => pal::MEMORY,
         DeviceType::Disk => pal::DISK,
         DeviceType::Network { .. } => pal::NETWORK,
@@ -79,6 +79,7 @@ pub struct PerformanceView {
     scroll_device: String,
     memory_scroll: listview::ListState,
     memory_active: bool,
+    memory_size: egui::Vec2,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
 }
@@ -127,9 +128,10 @@ impl PerformanceView {
         let mut toggle_summary = response.double_clicked();
         let kind = perf.devices[index].device_type();
         let memory_active = kind == DeviceType::Memory && !perf.summary_mode;
-        if memory_active && !self.memory_active {
+        if memory_active && (!self.memory_active || self.memory_size != page.size()) {
             self.memory_scroll = listview::ListState::default();
         }
+        self.memory_size = page.size();
         self.memory_active = memory_active;
         let colors = device_colors(kind);
         let tiles = perf.devices[index].win10_graph_tiles(cx.config);
@@ -139,7 +141,14 @@ impl PerformanceView {
             pos2(content.left() + list_w - LIST_W, content.top()),
             content.max,
         );
-        let graph_response = if perf.summary_mode {
+        let graph_response = if kind == DeviceType::System {
+            if self.scroll_device != perf.selected {
+                self.gpu_scroll.offset = 0.;
+                self.scroll_device.clone_from(&perf.selected);
+            }
+            system_page_ui(ui, page, view, &mut self.gpu_scroll);
+            GraphResponse::default()
+        } else if perf.summary_mode {
             summary_ui(ui, page, view, &tiles, colors, &perf.selected)
         } else if kind == DeviceType::Gpu {
             if self.scroll_device != perf.selected {
@@ -153,9 +162,10 @@ impl PerformanceView {
                 let stack_h = count * m::MEMORY_GRAPH_MIN_H
                     + count * (PANEL_GAP + 13.)
                     + m::MEMORY_COMPOSITION_H;
-                let total_h = shifted.height().max(
+                let base_h = shifted.height().max(
                     GRAPH_TOP + stack_h + PANEL_GAP + stats_height(view.stats.len()) + PANEL_GAP,
                 );
+                let total_h = base_h;
                 if ui.rect_contains_pointer(page) {
                     self.memory_scroll.offset -= wheel_delta(ui);
                 }
@@ -183,9 +193,15 @@ impl PerformanceView {
                 let top = shifted.top() - self.memory_scroll.offset;
                 let virtual_page = Rect::from_min_max(
                     pos2(shifted.left(), top),
-                    pos2(shifted.right(), top + total_h),
+                    pos2(shifted.right(), top + base_h),
                 );
-                page_ui(&mut child, virtual_page, view, colors, kind, &perf.selected);
+                let module_height =
+                    stats_height(view.stats.len()) - 5. - m::MEMORY_SLOT_FOOTER_RESERVE;
+                if let Some(slots) =
+                    page_ui(&mut child, virtual_page, view, colors, kind, &perf.selected)
+                {
+                    perf.devices[index].extra_ui(&mut child, slots, module_height, cx);
+                }
             } else {
                 page_ui(ui, shifted, view, colors, kind, &perf.selected);
             }
@@ -336,14 +352,40 @@ impl PerformanceView {
             }
 
             let device = &mut perf.devices[index];
-            let colors = device_colors(device.device_type());
+            let kind = device.device_type();
+            let colors = device_colors(kind);
             let summary = device.summary_mut();
             style_graph(&mut summary.graph, colors);
             let graph = Rect::from_min_size(
                 pos2(list.left() + 14., item.top() + 10.),
                 vec2(60., h - 20.),
             );
-            summary.graph.paint(&child, graph);
+            if kind == DeviceType::System {
+                paint::outline(
+                    &painter,
+                    graph.left() + 8.,
+                    graph.top() + 6.,
+                    graph.right() - 8.,
+                    graph.bottom() - 10.,
+                    pal::LABEL,
+                );
+                paint::hline(
+                    &painter,
+                    graph.left() + 20.,
+                    graph.right() - 20.,
+                    graph.bottom() - 4.,
+                    pal::LABEL,
+                );
+                paint::vline(
+                    &painter,
+                    graph.center().x,
+                    graph.bottom() - 10.,
+                    graph.bottom() - 4.,
+                    pal::LABEL,
+                );
+            } else {
+                summary.graph.paint(&child, graph);
+            }
 
             let text = painter.with_clip_rect(Rect::from_min_max(
                 pos2(list.left() + 85., item.top()),
@@ -495,6 +537,17 @@ fn gpu_page_ui(
         pal::TEXT,
         Align::Max,
     );
+    paint::copy_value(
+        &mut child,
+        Rect::from_min_max(
+            pos2(
+                gx1 + 1. - paint::text_width(&painter, &model, Font::Model),
+                top + MODEL_CAP - 3.,
+            ),
+            pos2(gx1 + 1., top + MODEL_CAP + 15.),
+        ),
+        &view.model,
+    );
     let response = graph_panels_ui(
         &mut child,
         gx0,
@@ -552,13 +605,11 @@ fn gpu_page_ui(
             pal::TEXT,
             Align::Min,
         );
-        child
-            .interact(
-                Rect::from_min_max(pos2(gx0, cap - 3.), pos2(gx1 + 1., cap + 12.)),
-                Id::new(("gpu-info", row)),
-                Sense::hover(),
-            )
-            .on_hover_text(format!("{label} {value}"));
+        paint::copy_value(
+            &mut child,
+            Rect::from_min_max(pos2(value_x, cap - 3.), pos2(gx1 + 1., cap + 12.)),
+            value,
+        );
     }
     response
 }
@@ -578,6 +629,94 @@ fn wheel_delta(ui: &Ui) -> f32 {
             })
             .sum()
     })
+}
+
+/// System has metadata only; reuse the measured title/typography and standard scrollbar.
+fn system_page_ui(ui: &mut Ui, page: Rect, view: PageView<'_>, scroll: &mut listview::ListState) {
+    let total_h = GRAPH_TOP + view.info.len() as f32 * INFO_PITCH + PANEL_GAP;
+    if ui.rect_contains_pointer(page) {
+        scroll.offset -= wheel_delta(ui);
+    }
+    scroll.offset = scroll
+        .offset
+        .clamp(0., (total_h - page.height()).max(0.))
+        .round();
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .id_salt("system-performance-page")
+            .max_rect(page),
+    );
+    child.set_clip_rect(page.intersect(ui.clip_rect()));
+    let track = Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
+    listview::scrollbar(
+        &mut child,
+        track,
+        scroll,
+        INFO_PITCH,
+        total_h,
+        page.height(),
+    );
+    let painter = child.painter().clone();
+    let x = page.left() + TITLE_X - LIST_W - 1.;
+    let right = page.right() - RIGHT_INSET;
+    let top = page.top() - scroll.offset;
+    paint::text(
+        &painter,
+        x,
+        top + TITLE_CAP,
+        &view.title,
+        Font::Title,
+        pal::TEXT,
+        Align::Min,
+    );
+    let label_w = view
+        .info
+        .iter()
+        .filter(|(_, v)| !v.is_empty())
+        .map(|(k, _)| paint::text_width(&painter, k, Font::Body))
+        .fold(INFO_VALUE_DX, f32::max)
+        .min((right - x) * 0.5);
+    let value_x = x + label_w + m::METADATA_VALUE_GAP;
+    for (row, (label, value)) in view.info.iter().enumerate() {
+        let cap = top + GRAPH_TOP + row as f32 * INFO_PITCH;
+        let rect = Rect::from_min_max(pos2(x, cap - 3.), pos2(right, cap + 12.));
+        if !child.is_rect_visible(rect) {
+            continue;
+        }
+        let heading = value.is_empty();
+        let label = paint::elide(
+            &painter,
+            label,
+            Font::Body,
+            if heading { right - x } else { label_w },
+        );
+        paint::text(
+            &painter,
+            x,
+            cap,
+            &label,
+            Font::Body,
+            if heading { pal::GROUP_TEXT } else { pal::LABEL },
+            Align::Min,
+        );
+        if !heading {
+            let short = paint::elide(&painter, value, Font::Body, right - value_x);
+            paint::text(
+                &painter,
+                value_x,
+                cap,
+                &short,
+                Font::Body,
+                pal::TEXT,
+                Align::Min,
+            );
+            paint::copy_value(
+                &mut child,
+                Rect::from_min_max(pos2(value_x, cap - 3.), pos2(right, cap + 12.)),
+                value,
+            );
+        }
+    }
 }
 
 /// Graph-only summary; the caller also omits the sidebar, and App omits its shell chrome.
@@ -758,7 +897,7 @@ fn page_ui(
     colors: pal::DeviceColors,
     kind: DeviceType,
     device: &str,
-) {
+) -> Option<Rect> {
     let painter = ui.painter().clone();
     let left = content.left();
     let top = content.top();
@@ -785,6 +924,17 @@ fn page_ui(
         Font::Model,
         pal::TEXT,
         Align::Max,
+    );
+    paint::copy_value(
+        ui,
+        Rect::from_min_max(
+            pos2(
+                gx1 + 1. - paint::text_width(&painter, &model, Font::Model),
+                top + MODEL_CAP - 3.,
+            ),
+            pos2(gx1 + 1., top + MODEL_CAP + 15.),
+        ),
+        &view.model,
     );
 
     // Statistics and key/value rows at the bottom
@@ -817,10 +967,16 @@ fn page_ui(
     let mut label_x = (left + INFO_X).max((stats_right + 24.).round());
     let bottom_limit = content.bottom() - 12.;
     let mut i = 0;
-    // A further column only when a label and a short value fit; otherwise the rest is hidden
+    let mut slots_rect = None;
+    // Keep measured columns; overflow is accessible in the metadata popup below.
     while i < view.info.len() && label_x + 160. <= gx1 {
         let fit = (((bottom_limit - (stats_top + 5.)) / INFO_PITCH).floor() as usize).max(1);
-        let column = &view.info[i..(i + fit).min(view.info.len())];
+        let column = &view.info[i..(i + if kind == DeviceType::Memory {
+            4.min(fit)
+        } else {
+            fit
+        })
+        .min(view.info.len())];
         let label_w = column
             .iter()
             .map(|(l, _)| paint::text_width(&painter, l, Font::Body))
@@ -853,6 +1009,7 @@ fn page_ui(
                 pos2(value_x, top),
                 pos2(gx1 + 1., content.bottom()),
             ));
+            let full_value = value;
             let value = paint::elide(&painter, value, Font::Body, gx1 + 1. - value_x);
             paint::text(
                 &clip,
@@ -864,9 +1021,75 @@ fn page_ui(
                 Align::Min,
             );
             value_w = value_w.max(paint::text_width(&painter, &value, Font::Body));
+            paint::copy_value(
+                ui,
+                Rect::from_min_max(
+                    pos2(value_x, cap - 3.),
+                    pos2(
+                        (value_x + paint::text_width(&painter, &value, Font::Body)).min(gx1 + 1.),
+                        cap + 12.,
+                    ),
+                ),
+                full_value,
+            );
         }
         i += column.len();
         label_x = (value_x + value_w + 24.).round();
+        if kind == DeviceType::Memory {
+            let right_start = label_x;
+            let slot_top = stats_top + 5. - m::MEMORY_SLOT_HEADER_H;
+            let slot_bottom = content.bottom();
+            slots_rect = Some(if gx1 - right_start >= m::MEMORY_SLOT_W {
+                Rect::from_min_max(pos2(right_start, slot_top), pos2(gx1, slot_bottom))
+            } else {
+                Rect::from_min_max(
+                    pos2(
+                        (left + INFO_X).max(stats_right + 24.),
+                        slot_top + 4. * INFO_PITCH + m::MEMORY_SLOT_INFO_GAP,
+                    ),
+                    pos2(gx1, slot_bottom),
+                )
+            });
+            break;
+        }
+    }
+    if i < view.info.len() {
+        let at = Rect::from_min_size(
+            pos2(
+                gx1 - m::METADATA_MORE_W,
+                content.bottom() - m::METADATA_MORE_H - 1.,
+            ),
+            vec2(m::METADATA_MORE_W, m::METADATA_MORE_H),
+        );
+        let response = ui.interact(
+            at,
+            ui.id().with(("more-hardware-info", device)),
+            Sense::click(),
+        );
+        paint::text(
+            &painter,
+            at.right(),
+            at.top() + 3.,
+            &i18n("More details…"),
+            Font::Body,
+            pal::LINK,
+            Align::Max,
+        );
+        egui::Popup::menu(&response)
+            .frame(menu::themed_frame(ui.ctx()))
+            .show(|ui| {
+                egui::ScrollArea::vertical()
+                    .max_height(m::METADATA_POPUP_MAX_H)
+                    .show(ui, |ui| {
+                        for (label, value) in &view.info {
+                            ui.horizontal(|ui| {
+                                ui.label(label);
+                                let response = ui.label(value);
+                                paint::copy_value(ui, response.rect, value);
+                            });
+                        }
+                    });
+            });
     }
 
     // Graph panels share the space between the caption and the statistics
@@ -962,6 +1185,7 @@ fn page_ui(
             colors,
         );
     }
+    slots_rect
 }
 
 fn stats_height(rows: usize) -> f32 {

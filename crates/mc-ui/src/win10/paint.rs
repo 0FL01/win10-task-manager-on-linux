@@ -28,6 +28,7 @@ use super::fonts;
 /// Fills the inclusive pixel rectangle `x0..=x1` × `y0..=y1`. Painted as a plain mesh: egui's
 /// rect tessellation feathers thin rectangles into line segments, which loses single pixels.
 pub fn fill(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color32) {
+    let color = super::palette::resolve(painter.ctx(), color);
     if x1 < x0 || y1 < y0 {
         return;
     }
@@ -75,6 +76,7 @@ pub fn vgradient(painter: &Painter, x: f32, y0: f32, y1: f32, top: Color32, bott
 
 /// Anti-aliased 1 px line between pixel centres.
 pub fn line(painter: &Painter, from: (f32, f32), to: (f32, f32), color: Color32) {
+    let color = super::palette::resolve(painter.ctx(), color);
     painter.line_segment(
         [
             pos2(from.0 + 0.5, from.1 + 0.5),
@@ -145,6 +147,7 @@ pub fn text(
     color: Color32,
     align: Align,
 ) -> Rect {
+    let color = super::palette::resolve(painter.ctx(), color);
     let galley = painter.layout_no_wrap(text.to_owned(), font.id(), color);
     let width = galley.size().x;
     let left = match align {
@@ -186,4 +189,52 @@ pub fn elide(painter: &Painter, text: &str, font: Font, max_width: f32) -> Strin
         return String::new();
     }
     chars[..lo].iter().collect::<String>().trim_end().to_owned() + "…"
+}
+
+/// Shared metadata interaction: copy the full value, even when its painted form is elided.
+/// Only the current highlight is retained; it expires with one scheduled repaint.
+pub fn copy_value(ui: &mut egui::Ui, rect: Rect, value: &str) {
+    if value.is_empty() || !ui.is_rect_visible(rect) {
+        return;
+    }
+    let id = ui
+        .id()
+        .with(("copy-value", rect.min.x.to_bits(), rect.min.y.to_bits()));
+    let response = ui.interact(rect.intersect(ui.clip_rect()), id, egui::Sense::click());
+    let state_id = egui::Id::new("metadata-copy-highlight");
+    let now = ui.input(|input| input.time);
+    if response.clicked() {
+        ui.ctx().copy_text(value.to_owned());
+        ui.ctx().data_mut(|data| {
+            data.insert_temp(
+                state_id,
+                (id, now + super::metrics::METADATA_COPY_MS as f64 / 1000.),
+            )
+        });
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_millis(
+                super::metrics::METADATA_COPY_MS,
+            ));
+    }
+    let highlighted = ui
+        .ctx()
+        .data(|data| data.get_temp::<(egui::Id, f64)>(state_id))
+        .is_some_and(|(active, until)| active == id && now < until);
+    if highlighted {
+        outline(
+            ui.painter(),
+            rect.left(),
+            rect.top(),
+            rect.right() - 1.,
+            rect.bottom() - 1.,
+            super::palette::BUTTON_HOVER_BORDER,
+        );
+    }
+    response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(if highlighted {
+            mc_core::i18n::i18n("Copied")
+        } else {
+            format!("{}\n{}", value, mc_core::i18n::i18n("Click to copy"))
+        });
 }

@@ -60,6 +60,8 @@ Requires:       mesa-vulkan-drivers
 Requires:       mesa-libEGL
 %endif
 Requires:       hicolor-icon-theme
+Requires:       python3
+Recommends:     polkit
 
 %description
 Task Manager shows processes, performance, details and services: per-process CPU, memory, disk
@@ -87,6 +89,10 @@ cp -a %{stagedir}/. %{buildroot}/
 %license COPYING Selawik-OFL.txt
 %{_bindir}/taskmanager
 %{_bindir}/missioncenter-magpie
+%{_prefix}/libexec/taskmanager-hardware
+%{_prefix}/lib/systemd/system/taskmanager-hardware.service
+%{_prefix}/lib/systemd/system/taskmanager-hardware.socket
+%{_datadir}/polkit-1/actions/io.github.taskmanager.hardware.policy
 %dir %{_prefix}/lib/taskmanager
 %dir %{_prefix}/lib/taskmanager/gpu
 %{_prefix}/lib/taskmanager/gpu/*.so.*

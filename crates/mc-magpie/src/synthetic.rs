@@ -96,6 +96,7 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
             ram_type: "DDR5".into(),
             speed: 5600,
             rank: 1,
+            ..Default::default()
         };
         2
     ];

@@ -1,0 +1,429 @@
+#!/usr/bin/python3 -I
+# Copyright 2026 Mission Center Developers
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Fixed read-only telemetry API. No caller-selected paths, commands or registers."""
+import glob
+import json
+import math
+import fcntl
+import os
+from pathlib import Path
+import socket
+import struct
+import subprocess
+import select
+import sys
+
+GRANTS = "/var/lib/taskmanager-hardware"
+SOCKET = "/run/taskmanager-hardware.sock"
+SESSION_DIRECTORY = "/run"
+INSTALL_ROOT = "/"
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8") as stream:
+            return stream.read(4096).strip()
+    except (OSError, UnicodeError):
+        return None
+
+
+def voltage(labels):
+    values = []
+    for path in glob.glob("/sys/class/hwmon/hwmon*/in*_label"):
+        label = read(path)
+        if label and label.casefold() in labels:
+            try:
+                value = float(read(path[:-6] + "_input"))
+                if 0 < value <= 5000:
+                    values.append(value / 1000)
+            except (TypeError, ValueError):
+                pass
+    return values[0] if len(values) == 1 else None
+
+
+def intel_multiplier():
+    # IA32_PERF_STATUS[15:8]: current ratio on these documented family-6 models.
+    # Hybrid CPUs and unknown generations are deliberately excluded.
+    info = (read("/proc/cpuinfo") or "").split("\n\n", 1)[0]
+    fields = dict(line.split(":", 1) for line in info.splitlines() if ":" in line)
+    fields = {key.strip(): value.strip() for key, value in fields.items()}
+    if fields.get("vendor_id") != "GenuineIntel" or fields.get("cpu family") != "6":
+        return None
+    if "hypervisor" in fields.get("flags", "").split():
+        return None
+    if fields.get("model") not in {"42", "45", "58", "62", "60", "63", "69", "70", "61", "71", "79", "86", "78", "94", "142", "158", "165", "166"}:
+        return None
+    for path in sorted(glob.glob("/dev/cpu/[0-9]*/msr")):
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC)
+            try:
+                value = struct.unpack("<Q", os.pread(fd, 8, 0x198))[0]
+            finally:
+                os.close(fd)
+            ratio = (value >> 8) & 255
+            return ratio if ratio else None
+        except (OSError, struct.error):
+            continue
+    return None
+
+
+def cpu_identity():
+    # All adapters reject virtual CPUs and unknown models before privileged reads.
+    info = (read("/proc/cpuinfo") or "").split("\n\n", 1)[0]
+    fields = {k.strip(): v.strip() for k, v in (line.split(":", 1) for line in info.splitlines() if ":" in line)}
+    if "hypervisor" in fields.get("flags", "").split():
+        return None
+    try:
+        return fields.get("vendor_id"), int(fields["cpu family"]), int(fields["model"])
+    except (KeyError, ValueError):
+        return None
+
+
+def binary(path, size):
+    try:
+        with open(path, "rb") as stream:
+            data = stream.read(size + 1)
+        return data if len(data) == size else None
+    except OSError:
+        return None
+
+
+def amd_multiplier(identity):
+    # Family 17h/Zen 3 HW_PSTATE_STATUS: programmed FID/DFSID, not effective clock.
+    supported = {(0x17, model) for model in (0x01, 0x08, 0x11, 0x18, 0x20, 0x31, 0x60, 0x68, 0x71, 0x90)}
+    supported |= {(0x19, model) for model in (0x01, 0x08, 0x21, 0x50)}
+    if not identity or identity[0] != "AuthenticAMD" or identity[1:] not in supported:
+        return {}
+    for path in sorted(glob.glob("/dev/cpu/[0-9]*/msr")):
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC)
+            try:
+                value = struct.unpack("<Q", os.pread(fd, 8, 0xC0010293))[0]
+            finally:
+                os.close(fd)
+            fid, dfsid = value & 255, (value >> 8) & 63
+            if fid and dfsid and 1 <= 2 * fid / dfsid <= 100:
+                return {"cpu_multiplier": 2 * fid / dfsid, "multiplier_source": f"HW_PSTATE_STATUS · CPU {Path(path).parent.name} · programmed ratio"}
+        except (OSError, struct.error):
+            continue
+    return {}
+
+
+def ryzen_pm(identity):
+    # Known version+codename+CPU+exact size. No guessed layouts or SMU writes.
+    layouts = {
+        (4, 0x240803): (0x17, 0x71, 0x7E4, (48, 50, 51), 41),
+        (4, 0x240903): (0x17, 0x71, 0x518, (48, 50, 51), 40),
+        (12, 0x380804): (0x19, 0x21, 0x8A4, (48, 50, 51), 41),
+        (12, 0x380805): (0x19, 0x21, 0x8F0, (48, 50, 51), 40),
+        (12, 0x380904): (0x19, 0x21, 0x5A4, (48, 50, 51), 41),
+        (14, 0x400005): (0x19, 0x50, 0x944, (409, 410, 411), 99),
+    }
+    if not identity or identity[0] != "AuthenticAMD" or identity[1:] not in {(0x17, 0x71), (0x19, 0x21), (0x19, 0x50)}:
+        return {}
+    root = "/sys/kernel/ryzen_smu_drv"
+    try:
+        codename = int(read(root + "/codename"))
+        version = struct.unpack("<I", binary(root + "/pm_table_version", 4))[0]
+        family, model, size, indices, voltage_index = layouts[(codename, version)]
+        if identity[1:] != (family, model) or struct.unpack("<Q", binary(root + "/pm_table_size", 8))[0] != size:
+            return {}
+        data = binary(root + "/pm_table", size)
+        if data is None:
+            return {}
+        clocks = [struct.unpack_from("<f", data, index * 4)[0] for index in indices]
+        if any(not math.isfinite(v) or not 100 <= v <= 10000 for v in clocks):
+            return {}
+        result = dict(zip(("fclk_mhz", "uclk_mhz", "mclk_mhz"), clocks))
+        result["clock_source"] = f"ryzen_smu PM table 0x{version:06x} (version-specific)"
+        voltage = struct.unpack_from("<f", data, voltage_index * 4)[0]
+        if math.isfinite(voltage) and 0.1 <= voltage <= 2:
+            result["cpu_voltage_v"] = voltage
+            result["voltage_source"] = f"ryzen_smu PM table 0x{version:06x} · CPU telemetry voltage"
+        return result
+    except (OSError, TypeError, ValueError, KeyError, struct.error):
+        return {}
+
+
+def amd_hsmp(identity):
+    # Linux HSMP read-only GET_FCLK_MCLK. Multi-socket aggregation is not guessed.
+    if not identity or identity[0] != "AuthenticAMD":
+        return {}
+    packages = {read(p) for p in glob.glob("/sys/devices/system/cpu/cpu[0-9]*/topology/physical_package_id")}
+    if packages != {"0"}:
+        return {}
+    try:
+        fd = os.open("/dev/hsmp", os.O_RDONLY | os.O_CLOEXEC)
+        try:
+            message = bytearray(struct.pack("<IHH8IH2x", 0x0F, 0, 2, *([0] * 8), 0))
+            fcntl.ioctl(fd, 0xC02CF800, message, True)
+        finally:
+            os.close(fd)
+        fclk, mclk = struct.unpack_from("<II", message, 8)
+        if 100 <= fclk <= 10000 and 100 <= mclk <= 10000:
+            return {"fclk_mhz": fclk, "mclk_mhz": mclk, "clock_source": "Linux HSMP GET_FCLK_MCLK"}
+    except (OSError, ValueError, struct.error):
+        pass
+    return {}
+
+
+def intel_memory(identity):
+    # Fixed MCHBAR reads only. Base comes from the allowlisted CPU's host bridge, never a client.
+    if not identity or identity[0:2] != ("GenuineIntel", 6):
+        return {}
+    model = identity[2]
+    if model not in {0x8C, 0x8D, 0xA7, 0x97, 0x9A, 0xB7, 0xBA, 0xC6}:
+        return {}
+    root = "/sys/bus/pci/devices/0000:00:00.0"
+    if read(root + "/vendor") != "0x8086" or read(root + "/class") != "0x060000":
+        return {}
+    try:
+        config = os.open(root + "/config", os.O_RDONLY | os.O_CLOEXEC)
+        try:
+            register = struct.unpack("<Q", os.pread(config, 8, 0x48))[0]
+        finally:
+            os.close(config)
+        if not register & 1:
+            return {}
+        top = 38 if model in {0x8C, 0x8D} else 41
+        alignment = 15 if model == 0xA7 else 17
+        base = register & (((1 << (top + 1)) - 1) & ~((1 << alignment) - 1))
+        if not base:
+            return {}
+        fd = os.open("/dev/mem", os.O_RDONLY | os.O_CLOEXEC)
+        try:
+            def word(offset):
+                value = struct.unpack("<I", os.pread(fd, 4, base + offset))[0]
+                if value == 0xFFFFFFFF:
+                    raise ValueError("Unavailable MCHBAR")
+                return value
+            if model == 0xC6:
+                khz = word(0x5F60)
+                if 40000 <= khz <= 500000:
+                    return {"bclk_mhz": khz / 1000, "bclk_source": "MCHBAR BCLK_FREQ · firmware-reported SoC clock"}
+                return {}
+            older = model in {0x8C, 0x8D, 0xA7}
+            gears = []
+            for controller in range(1 if model == 0xA7 else 2):
+                offset = controller * 0x10000
+                memory_type = word(offset + (0x5000 if older else 0xD800)) & 7
+                for channel in range(2):
+                    dimm = word(offset + (0x500C if older else 0xD80C) + channel * 4)
+                    if dimm & 0x7F == 0 and (dimm >> 16) & 0x7F == 0:
+                        continue
+                    if memory_type not in ({0} if older else {0, 1}):
+                        return {}  # LPDDR scheduler semantics differ.
+                    cfg = word(offset + (0x4088 + channel * 0x400 if older else 0xE088 + channel * 0x800))
+                    if not older and cfg & (1 << 15) and cfg & (1 << 31):
+                        return {}  # Conflicting mode bits are not a trustworthy gear.
+                    if not older and cfg & (1 << 15):
+                        gear = 4
+                    else:
+                        gear = 2 if cfg & (1 << 31) else 1
+                    if not older and memory_type == 1 and gear == 1:
+                        return {}
+                    gears.append(gear)
+            if gears and len(set(gears)) == 1:
+                return {"intel_gear": gears[0], "gear_source": "MCHBAR SC_GS_CFG · active DDR channels"}
+        finally:
+            os.close(fd)
+    except (OSError, ValueError, struct.error):
+        pass
+    return {}
+
+
+def clock(labels):
+    values = []
+    for path in glob.glob("/sys/class/hwmon/hwmon*/freq*_label"):
+        label = read(path)
+        if label and label.casefold() in labels:
+            try:
+                value = float(read(path[:-6] + "_input"))
+                if 0 < value < 20_000_000_000:
+                    values.append(value / 1_000_000)
+            except (TypeError, ValueError):
+                pass
+    return values[0] if len(values) == 1 else None
+
+
+def snapshot():
+    result = {
+        "cpu_voltage_v": voltage({"vcore", "cpu vcore", "svi2_core", "cpu core voltage"}),
+        "ram_voltage_v": voltage({"dram", "vdimm", "vddram", "ddr", "dram voltage"}),
+        "cpu_multiplier": intel_multiplier(),
+        "bclk_mhz": clock({"bclk", "bus clock"}),
+        "fclk_mhz": clock({"fclk", "fabric clock"}),
+        "mclk_mhz": clock({"mclk", "memory clock"}),
+        "uclk_mhz": clock({"uclk", "memory controller clock"}),
+        "product_serial": read("/sys/class/dmi/id/product_serial"),
+        "board_serial": read("/sys/class/dmi/id/board_serial"),
+        "product_uuid": read("/sys/class/dmi/id/product_uuid"),
+    }
+    identity = cpu_identity()
+    if result["cpu_multiplier"] is not None:
+        result["multiplier_source"] = "IA32_PERF_STATUS · first readable CPU"
+    adapters = (amd_multiplier(identity), ryzen_pm(identity) or amd_hsmp(identity), intel_memory(identity))
+    for adapter in adapters:
+        if result["cpu_voltage_v"] is not None:
+            adapter.pop("voltage_source", None)
+        for key, value in adapter.items():
+            if key in {"fclk_mhz", "mclk_mhz", "uclk_mhz"} or result.get(key) is None:
+                result[key] = value
+    return result
+
+
+def authorized(uid):
+    return uid != 0 and os.path.isfile(f"{GRANTS}/{uid}")
+
+
+def spd_eeproms():
+    result = []
+    for path in sorted(Path("/sys/bus/i2c/devices").glob("*-005[0-7]"))[:32]:
+        try:
+            driver = (path / "driver").resolve(strict=True).name
+            if driver not in {"eeprom", "ee1004", "spd5118"}:
+                continue
+            with (path / "eeprom").open("rb") as stream:
+                data = stream.read(1024)
+            if len(data) >= 128:
+                result.append({"source": path.name, "driver": driver, "hex": data.hex()})
+        except OSError:
+            continue
+    return result
+
+
+def serve():
+    # Socket activation owns creation/permissions. Never unlink an arbitrary path.
+    if os.environ.get("LISTEN_PID") != str(os.getpid()) or os.environ.get("LISTEN_FDS") != "1":
+        raise RuntimeError("systemd socket activation is required")
+    listener = socket.socket(fileno=3)
+    while True:
+        connection, _ = listener.accept()
+        with connection:
+            handle_connection(connection)
+
+
+def handle_connection(connection, session_uid=None):
+    connection.settimeout(2)
+    _, uid, _ = struct.unpack("3i", connection.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
+    try:
+        request = connection.recv(64).strip()
+        allowed = uid == session_uid if session_uid is not None else authorized(uid)
+        if request == b"disable":
+            if session_uid is None:
+                try:
+                    os.unlink(f"{GRANTS}/{uid}")
+                except FileNotFoundError:
+                    pass
+            result = {"enabled": False}
+        elif request == b"read" and allowed:
+            result = {"enabled": True, "data": snapshot()}
+        elif request == b"spd" and allowed:
+            result = {"enabled": True, "spd": spd_eeproms()}
+        else:
+            result = {"enabled": False, "error": "Hardware access is not authorized."}
+        connection.sendall(json.dumps(result, allow_nan=False).encode() + b"\n")
+        return session_uid is not None and allowed and request == b"disable"
+    except (OSError, ValueError):
+        pass
+
+
+def authenticated_uid():
+    uid = int(os.environ["PKEXEC_UID"])
+    if uid <= 0:
+        raise RuntimeError("A non-root authenticated user is required")
+    return uid
+
+
+def session(pid, token, lifetime_fd=0):
+    uid = authenticated_uid()
+    if not token or len(token) != 32 or any(c not in "0123456789abcdef" for c in token):
+        raise RuntimeError("Invalid session token")
+    parent = os.pidfd_open(pid)
+    try:
+        if Path(f"/proc/{pid}").stat().st_uid != uid:
+            raise RuntimeError("The parent process does not belong to the authenticated user")
+        path = f"{SESSION_DIRECTORY}/taskmanager-hardware-{pid}-{token}.sock"
+        with socket.socket(socket.AF_UNIX) as listener:
+            listener.bind(path)
+            try:
+                # Only the authenticated account can connect; SO_PEERCRED is checked too.
+                os.chown(path, uid, -1)
+                os.chmod(path, 0o600)
+                listener.listen(4)
+                while True:
+                    ready, _, _ = select.select([listener, parent, lifetime_fd], [], [], 1)
+                    # Parent death or closing the launch pipe also covers crashes/auth races.
+                    if parent in ready or (lifetime_fd in ready and not os.read(lifetime_fd, 1)):
+                        break
+                    if listener in ready:
+                        connection, _ = listener.accept()
+                        with connection:
+                            if handle_connection(connection, uid):
+                                break
+            finally:
+                os.unlink(path)
+    finally:
+        os.close(parent)
+
+
+def install_service():
+    uid = authenticated_uid()
+    # These payloads are compiled into Task Manager, not taken from caller paths.
+    for path, text, mode in [
+        ("/usr/libexec/taskmanager-hardware", INSTALL_SOURCE, 0o755),
+        ("/usr/lib/systemd/system/taskmanager-hardware.service", SERVICE_TEXT, 0o644),
+        ("/usr/lib/systemd/system/taskmanager-hardware.socket", SOCKET_TEXT, 0o644),
+        ("/usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy", POLICY_TEXT, 0o644),
+    ]:
+        path = str(Path(INSTALL_ROOT) / path.lstrip("/"))
+        directory = Path(path).parent
+        directory.mkdir(parents=True, exist_ok=True)
+        # Root-owned directory; atomic replacement does not follow a destination symlink.
+        temporary = directory / f".taskmanager-install-{os.getpid()}"
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
+        try:
+            os.fchmod(fd, mode)
+            with os.fdopen(fd, "w") as stream:
+                stream.write(text)
+            os.replace(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
+    subprocess.run(["/usr/bin/systemctl", "daemon-reload"], check=True)
+    enable(uid)
+
+
+def enable(uid):
+    subprocess.run(["/usr/bin/systemctl", "enable", "--now", "taskmanager-hardware.socket"], check=True)
+    os.makedirs(GRANTS, mode=0o700, exist_ok=True)
+    fd = os.open(f"{GRANTS}/{uid}", os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    os.close(fd)
+
+
+def main():
+    if os.geteuid() != 0:
+        raise RuntimeError("This helper requires administrator authorization")
+    if sys.argv[1:] == ["enable"]:
+        # pkexec provides the authenticated caller. A command-line UID is never accepted.
+        uid = authenticated_uid()
+        # One explicit authorization also enables socket activation across logins/reboots.
+        # No caller-controlled unit name, executable or arguments.
+        enable(uid)
+    elif len(sys.argv) == 3 and sys.argv[1] == "install":
+        pid = int(sys.argv[2])
+        if Path(f"/proc/{pid}").stat().st_uid != authenticated_uid():
+            raise RuntimeError("The requesting application has closed")
+        if select.select([0], [], [], 0)[0] and not os.read(0, 1):
+            raise RuntimeError("The installation request was cancelled")
+        install_service()
+    elif len(sys.argv) == 4 and sys.argv[1] == "session":
+        session(int(sys.argv[2]), sys.argv[3])
+    elif sys.argv[1:] == ["serve"]:
+        serve()
+    else:
+        raise RuntimeError("Expected enable or serve")
+
+
+if __name__ == "__main__":
+    main()

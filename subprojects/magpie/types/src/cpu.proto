@@ -47,6 +47,16 @@ message Cpu {
   optional string frequency_governor = 21;
   optional string power_preference = 22;
   optional float power_draw_w = 23;
+  repeated LogicalCpu logical_cpus = 24;
+  optional float voltage_v = 25;
+  optional float bclk_mhz = 26;
+}
+
+message LogicalCpu {
+  required uint32 id = 1;
+  optional uint32 package_id = 2;
+  optional uint32 core_id = 3;
+  optional string kind = 4;
 }
 
 message CpuRequest {}

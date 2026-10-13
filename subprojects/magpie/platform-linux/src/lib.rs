@@ -28,6 +28,7 @@ mod cpu;
 mod disks;
 mod fan;
 mod gpus;
+mod hardware;
 mod memory;
 mod network;
 mod processes;

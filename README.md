@@ -26,6 +26,11 @@ Developers. The user interface is written from scratch with egui; see [Based on 
 * Use hardware accelerated rendering for all the graphs in an effort to reduce CPU and overall resource usage
 * Pure-Rust user interface ([egui](https://github.com/emilk/egui)/eframe); repaints only when new data arrives
 * Written in Rust
+* Light, Dark and System themes in View → Theme, preserving the Win10 layout
+* Performance → System groups software, motherboard, BIOS and hardware information
+* Click metadata values to copy the full value, with a brief highlight
+* Hardware-reported core types, supported voltage sensors, EDAC memory counters and SSD remaining endurance
+* DIMM/SO-DIMM slot diagrams, module metadata and on-demand SPD JEDEC timings (DDR2–DDR5)
 
 ## Limitations
 
@@ -38,8 +43,10 @@ Please note there is ongoing work to overcome all of these.
 * When using Linux Mint/Cinnamon, launched applications may not show up in the "Applications" section. (Upstream
   issue: https://github.com/linuxmint/cinnamon/issues/12015)
 
-Please also note that Task Manager draws its own widgets (egui) and its own window decorations in a fixed light style;
-it does not follow the system light/dark preference or system-defined stylesheets (themes).
+Task Manager draws its own widgets and window decorations. View → Theme chooses Light, Dark or
+System (follows desktop light/dark changes); desktop stylesheets do not change its Win10 geometry.
+Hardware telemetry availability depends on the processor, board, driver and permissions, rather
+than just the device's release year. See [hardware monitoring](docs/hardware-monitoring.md).
 
 ## Installing
 
@@ -102,6 +109,10 @@ To run the application from the source tree (builds the magpie daemon and the tr
 cargo xtask run-dev
 ```
 
+`run-dev` uses the host's installed GPU libraries; it does not redistribute them or require
+`patchelf` or extra library license-notice files. `cargo xtask install`, `rpm` and `magpie`
+build the relocatable private bundle and require the packaging tools and matching notices.
+
 Useful flags of the `taskmanager` binary:
 
 * `--renderer wgpu|glow` — select the renderer; glow (OpenGL) is the default, both are compiled in by default builds
@@ -123,6 +134,22 @@ own window menu. Pending operations and failures have explanatory tooltips.
 
 Other Wayland desktops and Flatpak/Snap Wayland launches currently show the option as
 unavailable. The existing window-level request is unchanged on X11 and other platforms.
+
+### Launch shortcuts and extended hardware monitoring
+
+On native KDE, Options → Keyboard Shortcuts configures Ctrl+Shift+Esc and optional
+Ctrl+Alt+Delete. KDE launches the application even when it is closed; a subsequent launch
+restores the existing instance. Assignments persist in KDE across login/reboot. Conflicts are
+reported in the option's tooltip without replacing another application's shortcut. On other
+desktops, assign `taskmanager` in the desktop's keyboard settings.
+
+Options → Extended hardware monitoring starts an embedded temporary helper after polkit
+authorization, without terminal commands or manual installation. It exits and removes its socket
+when Task Manager closes. Options → Install hardware monitoring service… instead installs and
+authorizes a permanent systemd service from the GUI, for persistent access across restarts.
+Disabling monitoring revokes a permanent grant or ends the temporary helper. Startup and background
+sampling never ask for a password. The GUI and magpie stay unprivileged.
+Available sources and installation details are in [hardware monitoring](docs/hardware-monitoring.md).
 
 ### GPU monitoring
 

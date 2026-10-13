@@ -45,10 +45,15 @@ const REQUEST_CAPACITY: usize = 64;
 /// One complete snapshot of the system state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Readings {
+    #[serde(default)]
+    pub hardware: Option<crate::HardwareTelemetry>,
     pub cpu: Cpu,
     pub mem_info: Memory,
     pub mem_devices: Vec<MemoryDevice>,
     pub disks_info: Vec<Disk>,
+    /// Cached, noninteractive SMART snapshots. At most one drive is refreshed per cycle.
+    #[serde(default)]
+    pub smart_data: HashMap<String, SmartData>,
     pub network_connections: HashMap<String, Connection>,
     pub gpus: HashMap<String, Gpu>,
     pub fans: Vec<Fan>,
@@ -78,10 +83,12 @@ impl Default for Readings {
 impl Readings {
     pub fn new() -> Self {
         Self {
+            hardware: None,
             cpu: Default::default(),
             mem_info: Memory::default(),
             mem_devices: vec![],
             disks_info: vec![],
+            smart_data: HashMap::new(),
             network_connections: Default::default(),
             gpus: HashMap::new(),
             fans: vec![],
@@ -113,6 +120,12 @@ pub enum Request {
     EjectDisk(String),
     SmartData(String),
     AboutSystem,
+    ReadSpd,
+    InstallHardwareService,
+    SetHardwareAccess {
+        enabled: bool,
+        interactive: bool,
+    },
     /// Ends the current wait: the next snapshot is gathered immediately
     RefreshNow,
 }
@@ -135,6 +148,11 @@ pub enum Event {
         data: Option<SmartData>,
     },
     About(About),
+    HardwareAccess(Result<bool, String>),
+    Spd {
+        privileged: bool,
+        result: Result<Vec<crate::SpdEeprom>, String>,
+    },
     /// The gatherer hit an unrecoverable error; the application should show it and exit.
     Fatal(String),
 }
@@ -372,6 +390,8 @@ fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
         Request::AboutSystem => {
             let _ = outbox.send(Event::About(magpie.about()));
         }
+        Request::SetHardwareAccess { .. } | Request::InstallHardwareService => {}
+        Request::ReadSpd => {}
     }
 }
 
@@ -397,6 +417,10 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut known_icons = HashSet::<String>::new();
     let mut users = crate::users::UserResolver::default();
     let mut sockets = crate::sockets::SocketTraffic::default();
+    let mut smart_cache = HashMap::<String, SmartData>::new();
+    let mut smart_checked = HashMap::<String, Instant>::new();
+    let mut hardware_enabled = false;
+    let mut hardware_access = crate::hardware_access::Access::new(ctx.running.clone());
 
     while ctx.running() {
         let cycle_start = Instant::now();
@@ -419,9 +443,36 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         }
 
         readings.disks_info = timed!("Disks info", magpie.disks_info());
+        smart_checked.retain(|id, _| readings.disks_info.iter().any(|disk| &disk.id == id));
+        smart_cache.retain(|id, _| readings.disks_info.iter().any(|disk| &disk.id == id));
+        if !reduced {
+            if let Some(disk) = readings.disks_info.iter().find(|disk| {
+                disk.smart_interface.is_some()
+                    && smart_checked
+                        .get(&disk.id)
+                        .is_none_or(|time| time.elapsed() >= Duration::from_secs(300))
+            }) {
+                smart_checked.insert(disk.id.clone(), Instant::now());
+                if let Some(data) = magpie.smart_data(disk.id.clone()) {
+                    smart_cache.insert(disk.id.clone(), data);
+                } else {
+                    smart_cache.remove(&disk.id);
+                }
+            }
+        }
+        readings.smart_data.clone_from(&smart_cache);
         readings.gpus = timed!("GPU info", magpie.gpus());
         readings.cpu = timed!("CPU info", magpie.cpu());
         readings.mem_info = timed!("Memory info", magpie.memory());
+        if hardware_enabled {
+            match hardware_access.read() {
+                Ok(data) => readings.hardware = Some(data),
+                Err(error) => {
+                    hardware_enabled = false;
+                    let _ = ctx.outbox.send(Event::HardwareAccess(Err(error)));
+                }
+            }
+        }
         readings.network_connections = timed!("Network devices info", magpie.network_connections());
         readings.fans = timed!("Fans info", magpie.fans_info());
         readings.batteries = timed!("Batteries info", magpie.batteries_info());
@@ -471,7 +522,31 @@ fn gather_from_magpie(ctx: ThreadCtx) {
 
         let deadline = cycle_start + ctx.interval();
         if !ctx.serve_until(deadline, |request| {
-            handle_request(&magpie, &ctx.outbox, request)
+            if let Request::SetHardwareAccess {
+                enabled,
+                interactive,
+            } = request
+            {
+                let result = hardware_access.set_enabled(enabled, interactive);
+                hardware_enabled = result.as_ref().copied().unwrap_or(false);
+                let _ = ctx.outbox.send(Event::HardwareAccess(result));
+            } else if request == Request::InstallHardwareService {
+                let result = hardware_access.install();
+                hardware_enabled = result.as_ref().copied().unwrap_or(false);
+                let _ = ctx.outbox.send(Event::HardwareAccess(result));
+            } else if request == Request::ReadSpd {
+                let result = if hardware_enabled {
+                    hardware_access.read_spd()
+                } else {
+                    crate::spd::read()
+                };
+                let _ = ctx.outbox.send(Event::Spd {
+                    privileged: hardware_enabled,
+                    result,
+                });
+            } else {
+                handle_request(&magpie, &ctx.outbox, request)
+            }
         }) {
             break;
         }
@@ -525,6 +600,15 @@ fn replay_fixtures(ctx: ThreadCtx, readings: Vec<Readings>, icons: HashMap<Strin
                     data: None,
                 }),
                 Request::AboutSystem => outbox.send(Event::About(About::default())),
+                Request::ReadSpd => outbox.send(Event::Spd {
+                    privileged: false,
+                    result: Err("SPD is unavailable for recorded or synthetic data.".into()),
+                }),
+                Request::SetHardwareAccess { .. } | Request::InstallHardwareService => {
+                    outbox.send(Event::HardwareAccess(Err(
+                        "Hardware access is unavailable for recorded or synthetic data.".into(),
+                    )))
+                }
                 _ => Ok(()),
             };
         }) {

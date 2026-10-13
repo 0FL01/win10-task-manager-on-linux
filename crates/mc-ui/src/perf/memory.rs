@@ -47,6 +47,7 @@ struct Labels {
     compressed: Option<String>,
     savings: Option<String>,
     usage_tooltip: String,
+    hardware: Vec<(String, String)>,
 }
 
 pub struct MemoryPage {
@@ -65,6 +66,7 @@ pub struct MemoryPage {
     devices_failed: bool,
     labels: Labels,
     max_duration: String,
+    slots: super::mem_slots::MemorySlots,
 }
 
 impl MemoryPage {
@@ -104,7 +106,8 @@ impl MemoryPage {
         swap.add_dataset(DatasetGroup::new());
         swap.set_all_datasets_max_scale(mem.swap_total as f32);
 
-        let devices = &readings.mem_devices;
+        let occupied: Vec<_> = readings.mem_devices.iter().filter(|d| d.size > 0).collect();
+        let devices = &occupied;
         let unknown = i18n("Unknown");
         let (speed, slots_used, form_factor, ram_type) = if let Some(first) = devices.first() {
             let speed = if first.speed != 0 {
@@ -152,8 +155,17 @@ impl MemoryPage {
             devices_failed: devices.is_empty(),
             labels: Labels::default(),
             max_duration: super::max_duration(config),
+            slots: super::mem_slots::MemorySlots::new(readings),
         }
     }
+}
+
+fn memory_divider(uclk: f32, mclk: f32) -> Option<u32> {
+    if !uclk.is_finite() || !mclk.is_finite() || uclk <= 0. || mclk <= 0. {
+        return None;
+    }
+    let ratio = mclk / uclk;
+    (1..=3).find(|divider| (ratio - *divider as f32).abs() < 0.03)
 }
 
 impl DevicePage for MemoryPage {
@@ -174,6 +186,7 @@ impl DevicePage for MemoryPage {
     }
 
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
+        self.slots.update(readings);
         let mem = &readings.mem_info;
         self.max_duration = env.max_duration.clone();
         let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
@@ -201,6 +214,77 @@ impl DevicePage for MemoryPage {
         self.composition.update(mem);
 
         let l = &mut self.labels;
+        l.hardware.clear();
+        let clocks = readings
+            .hardware
+            .as_ref()
+            .filter(|data| data.clock_source.is_some());
+        let (fclk, mclk, uclk) = if let Some(data) = clocks {
+            // Keep a register/table sample coherent instead of mixing independently sampled drivers.
+            (data.fclk_mhz, data.mclk_mhz, data.uclk_mhz)
+        } else {
+            (mem.fclk_mhz, mem.mclk_mhz, mem.uclk_mhz)
+        };
+        for (label, clock) in [
+            (n_("FCLK:"), fclk),
+            (n_("MCLK:"), mclk),
+            (n_("UCLK:"), uclk),
+        ] {
+            if let Some(clock) = clock {
+                l.hardware.push((i18n(label), format!("{clock:.0} MHz")));
+            }
+        }
+        if let (Some(uclk), Some(mclk)) = (uclk, mclk)
+            && let Some(divider) = memory_divider(uclk, mclk)
+        {
+            l.hardware
+                .push((i18n("UCLK:MCLK:"), format!("1:{divider}")));
+        }
+        if let Some(data) = &readings.hardware {
+            if let Some(gear) = data.intel_gear {
+                l.hardware.push((i18n("Intel Gear:"), gear.to_string()));
+            }
+            for (label, value) in [
+                (n_("Clock source:"), &data.clock_source),
+                (n_("Gear source:"), &data.gear_source),
+            ] {
+                if let Some(value) = value {
+                    l.hardware.push((i18n(label), value.clone()));
+                }
+            }
+        }
+        if let Some(voltage) = mem.voltage_v.or_else(|| {
+            readings
+                .hardware
+                .as_ref()
+                .and_then(|data| data.ram_voltage_v)
+        }) {
+            l.hardware
+                .push((i18n("RAM voltage:"), format!("{voltage:.3} V")));
+        }
+        for (label, count) in [
+            (
+                n_("Corrected errors (EDAC):"),
+                readings.mem_info.corrected_errors,
+            ),
+            (
+                n_("Uncorrected errors (EDAC):"),
+                readings.mem_info.uncorrected_errors,
+            ),
+        ] {
+            if let Some(count) = count {
+                l.hardware.push((i18n(label), count.to_string()));
+            }
+        }
+        if readings.mem_info.hardware_corrupted > 0 {
+            l.hardware.push((
+                i18n("Hardware-corrupted memory:"),
+                to_human_readable_nice(
+                    readings.mem_info.hardware_corrupted as f32,
+                    &DataType::MemoryBytes,
+                ),
+            ));
+        }
         l.in_use = h(used);
         l.available = h(mem.mem_available);
         l.committed = h(mem.committed);
@@ -254,6 +338,16 @@ impl DevicePage for MemoryPage {
         self.usage.set_grid_offset(offset) | self.swap.set_grid_offset(offset)
     }
 
+    fn update_spd(&mut self, privileged: bool, result: &Result<Vec<mc_magpie::SpdEeprom>, String>) {
+        self.slots.update_spd(privileged, result);
+    }
+    fn clear_privileged_spd(&mut self) {
+        self.slots.clear_privileged_spd();
+    }
+    fn extra_ui(&mut self, ui: &mut Ui, rect: egui::Rect, module_height: f32, cx: &mut Cx) {
+        self.slots.ui(ui, rect, module_height, cx);
+    }
+
     fn win10_view(&mut self, config: &Config) -> PageView<'_> {
         let l = &self.labels;
         let mut stats = vec![
@@ -290,6 +384,7 @@ impl DevicePage for MemoryPage {
                 String::new(),
             ));
         }
+        info.extend(l.hardware.clone());
         let show_swap = config.performance_page_memory_swap_visible && self.has_swap;
         let mut panels = vec![GraphPanel::single(
             over(n_("Memory usage over "), &self.max_duration),
@@ -364,5 +459,50 @@ impl DevicePage for MemoryPage {
             self.form_factor,
             self.ram_type,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn divider_requires_two_valid_clocks_and_known_ratio() {
+        assert_eq!(memory_divider(3000., 3000.), Some(1));
+        assert_eq!(memory_divider(1500., 3000.), Some(2));
+        assert_eq!(memory_divider(1000., 3000.), Some(3));
+        assert_eq!(memory_divider(2000., 3000.), None);
+        assert_eq!(memory_divider(0., 3000.), None);
+        assert_eq!(memory_divider(f32::NAN, 3000.), None);
+    }
+
+    #[test]
+    fn clock_metadata_keeps_table_sample_coherent_and_reports_gear_source() {
+        let mut readings = mc_magpie::synthetic_readings(0, 1);
+        readings.mem_info.uclk_mhz = Some(1900.);
+        readings.mem_info.mclk_mhz = Some(1900.);
+        readings.hardware = Some(mc_magpie::HardwareTelemetry {
+            fclk_mhz: Some(1800.),
+            mclk_mhz: Some(1600.),
+            uclk_mhz: None,
+            clock_source: Some("Linux HSMP GET_FCLK_MCLK".into()),
+            intel_gear: Some(2),
+            gear_source: Some("MCHBAR SC_GS_CFG".into()),
+            ..Default::default()
+        });
+        let config = Config::default();
+        let mut page = MemoryPage::new(&readings, &config);
+        page.update(&readings, &UpdateEnv::new(&config));
+        let info = page.win10_view(&config).info;
+        assert!(info.iter().any(|(k, v)| k == "MCLK:" && v == "1600 MHz"));
+        assert!(!info.iter().any(|(k, _)| k == "UCLK:" || k == "UCLK:MCLK:"));
+        assert!(info.iter().any(|(k, v)| k == "Intel Gear:" && v == "2"));
+        readings.hardware.as_mut().unwrap().uclk_mhz = Some(800.);
+        page.update(&readings, &UpdateEnv::new(&config));
+        assert!(
+            page.win10_view(&config)
+                .info
+                .iter()
+                .any(|(k, v)| k == "UCLK:MCLK:" && v == "1:2")
+        );
     }
 }

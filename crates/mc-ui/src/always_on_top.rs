@@ -71,7 +71,6 @@ impl AlwaysOnTopState {
     pub fn enabled(&self) -> bool {
         self.mode == AlwaysOnTopMode::External
             && !self.pending()
-            && self.actual.is_some()
             && !matches!(
                 self.error,
                 Some(AlwaysOnTopError::Unavailable | AlwaysOnTopError::Cleanup)
@@ -183,13 +182,7 @@ mod tests {
         );
         assert_eq!(state.actual, None);
         assert_eq!(state.error, Some(AlwaysOnTopError::TimedOut));
-        assert!(!state.enabled());
-        state.request(false);
-        assert_eq!(state.take_request(), None);
-
-        let mut state = AlwaysOnTopState::new(AlwaysOnTopMode::External, preference);
-        let initial = state.take_request().unwrap();
-        state.finish(result(initial, Some(true), None));
+        assert!(state.enabled());
         state.request(false);
         let request = state.take_request().unwrap();
         preference = state
@@ -197,7 +190,7 @@ mod tests {
             .unwrap_or(preference);
         assert!(preference);
         assert_eq!(state.actual, None);
-        assert!(!state.enabled());
+        assert!(state.enabled());
     }
 
     #[test]

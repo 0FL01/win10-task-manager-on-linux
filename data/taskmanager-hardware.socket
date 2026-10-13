@@ -1,0 +1,10 @@
+[Unit]
+Description=Task Manager read-only hardware telemetry
+
+[Socket]
+ListenStream=/run/taskmanager-hardware.sock
+SocketMode=0666
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

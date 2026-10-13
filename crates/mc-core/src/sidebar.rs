@@ -50,6 +50,7 @@ pub enum DeviceType {
     Gpu,
     Fan,
     Battery,
+    System,
     Unspecified,
 }
 
@@ -166,7 +167,9 @@ pub fn prune_sidebar_order(order: &mut Vec<String>, present: &HashSet<String>, m
 }
 
 pub fn canonical_key(name: &str) -> (u8, &str) {
-    const CATEGORIES: [&str; 7] = ["cpu", "memory", "disk", "net", "gpu", "fan", "battery"];
+    const CATEGORIES: [&str; 8] = [
+        "cpu", "memory", "disk", "net", "gpu", "fan", "battery", "system",
+    ];
 
     let category = CATEGORIES
         .iter()
@@ -185,6 +188,7 @@ pub fn view_action_name(page_name: &str) -> Option<&'static str> {
         "gpu" => "gpu",
         "fan" => "fan",
         "battery" => "battery",
+        "system" => "system",
         _ => return None,
     })
 }
@@ -448,8 +452,8 @@ mod tests {
     #[test]
     fn canonical_key_puts_unknown_names_last() {
         let unknown = canonical_key("something-else");
-        assert_eq!(unknown.0, 7);
-        assert!(canonical_key("battery-BAT0") < unknown);
+        assert_eq!(unknown.0, 8);
+        assert!(canonical_key("system") < unknown);
     }
 
     #[test]

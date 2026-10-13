@@ -55,6 +55,24 @@ fn disk_kind(disk: &Disk) -> Option<DiskKind> {
     disk.kind.and_then(|k| DiskKind::try_from(k).ok())
 }
 
+fn remaining_endurance(data: &mc_magpie::SmartData) -> Option<u32> {
+    use mc_magpie::magpie_types::disks::smart_data::Data;
+    match data.data.as_ref()? {
+        Data::Nvme(nvme) => nvme.percent_used.map(|used| 100_u32.saturating_sub(used)),
+        Data::Ata(ata) => ata
+            .attributes
+            .iter()
+            .find(|attribute| {
+                // Interpreted names identify semantics; raw IDs vary by manufacturer.
+                matches!(
+                    attribute.name.as_str(),
+                    "ssd-life-left" | "percent-lifetime-remain"
+                ) && (0..=100).contains(&attribute.value)
+            })
+            .map(|attribute| attribute.value as u32),
+    }
+}
+
 #[derive(Default)]
 struct Labels {
     read_speed: String,
@@ -93,6 +111,7 @@ pub struct DiskPage {
     wwn: Option<String>,
     serial: Option<String>,
     has_smart: bool,
+    endurance: Option<u32>,
     ejectable: bool,
     partitions: Vec<Partition>,
     labels: Labels,
@@ -152,6 +171,7 @@ impl DiskPage {
             wwn: trimmed(&disk.world_wide_name),
             serial: trimmed(&disk.serial_number),
             has_smart: disk.smart_interface.is_some(),
+            endurance: None,
             ejectable: disk.ejectable,
             partitions: vec![],
             labels: Labels::default(),
@@ -232,6 +252,10 @@ impl DevicePage for DiskPage {
     }
 
     fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
+        self.endurance = readings
+            .smart_data
+            .get(&self.disk_id)
+            .and_then(remaining_endurance);
         let Some(disk) = readings
             .disks_info
             .iter()
@@ -316,6 +340,9 @@ impl DevicePage for DiskPage {
         if let Some(serial) = &self.serial {
             info.push((i18n("Serial:"), serial.clone()));
         }
+        if let Some(endurance) = self.endurance {
+            info.push((i18n("SSD endurance remaining:"), format!("{endurance}%")));
+        }
         if let Some(rotation) = &l.rotation {
             info.push((i18n("Rotation Rate"), rotation.clone()));
         }
@@ -395,5 +422,47 @@ impl DevicePage for DiskPage {
             l.active_time,
             l.avg_response_time,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mc_magpie::magpie_types::disks::smart_data::{Ata, Data, Nvme, ata::Attribute};
+
+    #[test]
+    fn endurance_uses_lifetime_semantics_not_spare_or_raw_attribute_id() {
+        let mut data = mc_magpie::SmartData {
+            data: Some(Data::Nvme(Nvme {
+                percent_used: Some(12),
+                avail_spare: Some(100),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        assert_eq!(remaining_endurance(&data), Some(88));
+        data.data = Some(Data::Nvme(Nvme {
+            percent_used: Some(125),
+            ..Default::default()
+        }));
+        assert_eq!(remaining_endurance(&data), Some(0));
+        data.data = Some(Data::Nvme(Nvme {
+            avail_spare: Some(100),
+            ..Default::default()
+        }));
+        assert_eq!(remaining_endurance(&data), None);
+        data.data = Some(Data::Ata(Ata {
+            attributes: vec![Attribute {
+                id: 231,
+                name: "unknown".into(),
+                value: 95,
+                ..Default::default()
+            }],
+        }));
+        assert_eq!(remaining_endurance(&data), None);
+        if let Some(Data::Ata(ata)) = &mut data.data {
+            ata.attributes[0].name = "ssd-life-left".into();
+        }
+        assert_eq!(remaining_endurance(&data), Some(95));
     }
 }

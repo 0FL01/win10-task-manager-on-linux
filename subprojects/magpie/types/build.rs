@@ -3,6 +3,7 @@ extern crate prost_build;
 fn main() {
     prost_build::Config::new()
         .enum_attribute(".", "#[derive(strum::EnumIter)]")
+        .field_attribute("magpie.cpu.Cpu.logical_cpus", "#[serde(default)]")
         .type_attribute(
             ".",
             "#[derive(serde::Serialize, serde::Deserialize)] #[serde(rename_all = \"snake_case\")]",

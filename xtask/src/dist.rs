@@ -25,15 +25,45 @@ fn run(cmd: &mut Command) -> Result<(), String> {
     }
 }
 
-/// Builds a completed relocatable daemon tree (bin + private GPU libraries).
-pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
+fn build_magpie(root: &Path) -> Result<PathBuf, String> {
     let target = root.join("target/magpie");
     run(Command::new("cargo")
         .args(["build", "--locked", "--release", "--manifest-path"])
         .arg(root.join("subprojects/magpie/Cargo.toml"))
         .arg("--target-dir")
         .arg(&target))?;
-    let built = target.join("release/magpie");
+    Ok(target.join("release/magpie"))
+}
+
+/// Local development uses the host ABI, with no redistributed libraries or packaging metadata.
+pub fn magpie_dev_binary(root: &Path) -> Result<PathBuf, String> {
+    let built = build_magpie(root)?;
+    let directory = root.join("target/magpie/dev/bin");
+    fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
+    let named = directory.join("missioncenter-magpie");
+    #[cfg(unix)]
+    {
+        // The launcher needs the installed name, while current_exe resolves to the original
+        // Cargo binary, whose --test intentionally does not require a private GPU bundle.
+        match fs::read_link(&named) {
+            Ok(target) if target == built => {}
+            Ok(_) => return Err(format!("Unexpected daemon link: {}", named.display())),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                std::os::unix::fs::symlink(&built, &named).map_err(|e| e.to_string())?;
+            }
+            Err(error) => return Err(format!("{}: {error}", named.display())),
+        }
+    }
+    #[cfg(not(unix))]
+    fs::copy(&built, &named).map_err(|e| e.to_string())?;
+    run(Command::new(&named).arg("--test"))?;
+    Ok(named)
+}
+
+/// Builds a completed relocatable daemon tree (bin + private GPU libraries).
+pub fn magpie_binary(root: &Path) -> Result<PathBuf, String> {
+    let built = build_magpie(root)?;
+    let target = root.join("target/magpie");
     fs::create_dir_all(target.join("bin")).map_err(|e| e.to_string())?;
     let named = target.join("bin/missioncenter-magpie");
     fs::copy(&built, &named).map_err(|e| e.to_string())?;
@@ -191,6 +221,7 @@ pub fn install(args: &[String]) -> Result<(), String> {
             &root.join("target/release/taskmanager"),
             &base.join("bin/taskmanager"),
         )?;
+        install_hardware_files(&root, &prefix, &base)?;
         // The Mission Center statistics backend keeps its own names
         copy(
             &magpie_binary(&root)?,
@@ -253,6 +284,72 @@ pub fn install(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+/// Install just the optional host component, without rebuilding/bundling the application.
+pub fn install_hardware(args: &[String]) -> Result<(), String> {
+    let mut prefix = PathBuf::from("/usr");
+    let mut destdir = None;
+    let mut it = args.iter();
+    while let Some(arg) = it.next() {
+        match arg.as_str() {
+            "--prefix" => prefix = PathBuf::from(it.next().ok_or("Missing --prefix value")?),
+            "--destdir" => {
+                destdir = Some(PathBuf::from(it.next().ok_or("Missing --destdir value")?))
+            }
+            _ => return Err(format!("Unknown install-hardware argument: {arg}")),
+        }
+    }
+    if prefix != Path::new("/usr") && prefix != Path::new("/usr/local") {
+        return Err("Hardware helper prefix must be /usr or /usr/local.".into());
+    }
+    let base = destdir.map_or_else(
+        || prefix.clone(),
+        |dir| dir.join(prefix.strip_prefix("/").unwrap()),
+    );
+    install_hardware_files(&crate::root(), &prefix, &base)
+}
+
+fn install_hardware_files(root: &Path, prefix: &Path, base: &Path) -> Result<(), String> {
+    let helper = base.join("libexec/taskmanager-hardware");
+    fs::create_dir_all(helper.parent().unwrap()).map_err(|e| e.to_string())?;
+    fs::copy(root.join("support/taskmanager-hardware"), &helper).map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&helper, fs::Permissions::from_mode(0o755))
+            .map_err(|e| e.to_string())?;
+    }
+    for (source, destination) in [
+        (
+            "taskmanager-hardware.service",
+            "lib/systemd/system/taskmanager-hardware.service",
+        ),
+        (
+            "taskmanager-hardware.socket",
+            "lib/systemd/system/taskmanager-hardware.socket",
+        ),
+        (
+            "io.github.taskmanager.hardware.policy",
+            "share/polkit-1/actions/io.github.taskmanager.hardware.policy",
+        ),
+    ] {
+        let target = base.join(destination);
+        fs::create_dir_all(target.parent().unwrap()).map_err(|e| e.to_string())?;
+        let content =
+            fs::read_to_string(root.join("data").join(source)).map_err(|e| e.to_string())?;
+        fs::write(
+            target,
+            content.replace(
+                "/usr/libexec/taskmanager-hardware",
+                &prefix
+                    .join("libexec/taskmanager-hardware")
+                    .to_string_lossy(),
+            ),
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// Builds a Fedora RPM from a fresh staged install (`packaging/rpm/taskmanager.spec`).
 pub fn rpm(_args: &[String]) -> Result<(), String> {
     let root = crate::root();
@@ -286,4 +383,46 @@ pub fn rpm(_args: &[String]) -> Result<(), String> {
         .arg(format!("mc_release {release}")))?;
     println!("RPMs in {}", topdir.join("RPMS").display());
     Ok(())
+}
+
+#[cfg(test)]
+mod hardware_tests {
+    use super::*;
+
+    #[test]
+    fn staged_helper_install_has_matching_exec_policy_and_units() {
+        let directory = std::env::temp_dir().join(format!(
+            "taskmanager-helper-install-test-{}",
+            std::process::id()
+        ));
+        fs::create_dir(&directory).unwrap();
+        let base = directory.join("usr/local");
+        install_hardware_files(&crate::root(), Path::new("/usr/local"), &base).unwrap();
+        let helper = base.join("libexec/taskmanager-hardware");
+        assert!(helper.is_file());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(&helper).unwrap().permissions().mode() & 0o777,
+                0o755
+            );
+        }
+        let service =
+            fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.service"))
+                .unwrap();
+        let policy = fs::read_to_string(
+            base.join("share/polkit-1/actions/io.github.taskmanager.hardware.policy"),
+        )
+        .unwrap();
+        assert!(service.contains("ExecStart=/usr/local/libexec/taskmanager-hardware serve"));
+        assert!(policy.contains(">/usr/local/libexec/taskmanager-hardware</annotate>"));
+        assert!(policy.contains(">enable</annotate>"));
+        let socket =
+            fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.socket"))
+                .unwrap();
+        assert!(socket.contains("ListenStream=/run/taskmanager-hardware.sock"));
+        assert!(!directory.join("var/lib/taskmanager-hardware").exists());
+        fs::remove_dir_all(directory).unwrap();
+    }
 }

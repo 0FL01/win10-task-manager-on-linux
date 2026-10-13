@@ -20,9 +20,49 @@ this document, never the screenshots.
   column stays first; drop marker 3 px `#0078d7`), sorting of all three lists, collapsed groups
   and expanded apps, Always on top, Fewer details, Paused, device list width, selected tab and
   device. "Remember sorting" / "Remember column order" are on by default (settings migration v2).
-- Texts that do not fit are shortened with "…" (own); key/value columns that do not fit are hidden.
+- Texts that do not fit are shortened with "…" (own); overflowing Performance key/value rows
+  remain available through a scrolling "More details…" popup.
 - Scaling: all values are logical points; at other DPI multiply by `pixels_per_point` and snap
   1 px lines to physical pixels.
+
+## Themes and additional metadata (own design, not measured)
+
+- View → Theme: Light (default), Dark, System; System follows live desktop changes. Light keeps
+  every measured colour. Dark keeps geometry/fonts, uses `#202020` surfaces, `#f0f0f0` text,
+  `#aaaaaa` labels, `#293e4c` hover, `#284c66` selection, `#65b6ef` links and `#a9c8ef` headings.
+  Neutral borders/surfaces map to `#292929`, `#3d3d3d`, `#555555`, `#858585`, `#b0b0b0` by original
+  brightness. Heat cells use brown/gold shades (`palette.rs`); device hues are preserved.
+  Dark graphs use a `#202020` background, 12% device-hue fill and 30% grid against that background,
+  with line/border colour 75% original hue and 25% white.
+- System is last by default in Performance. Its sidebar mini-graph slot contains an own-drawn
+  monitor outline, without invented history. The main page reuses title origin, 12 px label/value
+  text, 18 px row pitch, graph-top origin and standard scrollbar; group headings use heading colour.
+  Label widths are capped at half the available width; values start 12 px after the label column.
+  The monitor uses the existing 60 px sidebar graph slot: screen inset 8 px horizontally,
+  top inset 6 px, bottom inset 10 px; the base is inset 20 px, 4 px above the slot bottom.
+- Left-click a metadata value copies the full value. A 1 px hover-border-colour outline lasts
+  650 ms; the tooltip says "Copied". Hover otherwise shows full text and "Click to copy".
+- The Performance overflow link is 100×17 px, 1 px above the page bottom. Its metadata popup
+  scrolls at a maximum height of 360 px and uses the existing menu frame/typography.
+- Options contains Keyboard Shortcuts (Ctrl+Shift+Esc; optional Ctrl+Alt+Delete) and Extended
+  hardware monitoring. Pending items are disabled. Hardware access opens a status modal with
+  progress/result; errors remain visible. "Install hardware monitoring service…" invokes permanent
+  installation through authorization; the status modal also offers "Install service…". It explains
+  temporary versus persistent access, without terminal setup instructions.
+- Memory places compact vertical slot outlines beside Speed/Slots used/Form factor/Type,
+  or directly below that metadata column when horizontal room is limited, without moving graphs.
+  Own geometry: 52 px cells, 10 px gap, 18 px section heading above the stats label line.
+  Module outlines are 28 px wide; their height spans from In use through the bottom stat value
+  (including Compressed when present). DIMM/SO-DIMM use eight/four schematic chips at this shared
+  display height, not physical scale. Labels use 12 px body text and occupy 38 px below each drawing,
+  with name/volume cap tops at +7/+23 px. Drawings reserve 14 px of their previous height for the
+  larger labels, preserving graph/statistics geometry and avoiding clipping. The area scrolls for large
+  inventories. Short slot suffixes (A1, B2) are shown; hover retains full firmware names.
+  Drawings resemble parallel physical slots but do not claim measured motherboard placement.
+  Empty slots use label-colour outlines and neutral `#e1e1e1` fill; installed modules use Memory colours. Clicking an
+  occupied slot automatically reads SPD and opens the module metadata modal (500 px wide),
+  including unmatched EEPROM choices. There is no separate Read SPD button. Modal metadata
+  scrolls at a maximum height of 400 px.
 
 ## Typography (Segoe UI metrics; we ship Selawik, prefer Segoe UI if installed)
 | role | size px | weight | colour |
@@ -214,7 +254,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   Retain the three Unix statistic rows and existing metadata. At the default/minimum/tall
   (1030×785) sizes the upper graph is respectively 211/46/291 points high.
 - Ordinary graph cells are hover-only, preserving page context menu and double-click ownership.
-  Logical CPU labels are array ordinals (CPU 0, CPU 1, ...), not kernel or physical core IDs.
+  Logical CPU labels use kernel CPU IDs and reported core type/package/core topology when
+  available; historical fixtures without topology use array ordinals (CPU 0, CPU 1, ...).
   RAM/Disk graphs explain their metrics; graph summary retains these tooltips.
   These graph tooltips and composition tooltips anchor at the pointer, not the graph/bar corner,
   using egui's pointer-tooltip gap and edge fitting (own adaptation). Delay and click ownership

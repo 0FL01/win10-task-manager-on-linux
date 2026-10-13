@@ -46,7 +46,11 @@ pub fn smart_data(rt: &Handle, drive: &Object, disk_id: &str) -> Option<DiskSmar
 }
 
 fn ata_smart_data(rt: &Handle, ata: AtaProxy, disk_id: &str) -> Option<DiskSmartData> {
-    let attributes = match sync!(rt, ata.smart_get_attributes(HashMap::new())) {
+    let options = HashMap::from([(
+        "auth.no_user_interaction",
+        zbus::zvariant::Value::from(true),
+    )]);
+    let attributes = match sync!(rt, ata.smart_get_attributes(options)) {
         Ok(res) => res,
         Err(e) => {
             log::error!("Failed to find ata interface {disk_id}: {e}",);
@@ -90,7 +94,11 @@ fn nvme_smart_data<'a>(
     controller: ControllerProxy<'a>,
     disk_id: &str,
 ) -> Option<DiskSmartData> {
-    let attributes = match sync!(rt, controller.smart_get_attributes(HashMap::new())) {
+    let options = HashMap::from([(
+        "auth.no_user_interaction",
+        zbus::zvariant::Value::from(true),
+    )]);
+    let attributes = match sync!(rt, controller.smart_get_attributes(options)) {
         Ok(res) => res,
         Err(e) => {
             log::error!("Failed to get attributes for {disk_id}: {e}",);

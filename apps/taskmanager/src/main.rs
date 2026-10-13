@@ -28,6 +28,8 @@ use mc_ui::{AlwaysOnTopError, AlwaysOnTopMode, AlwaysOnTopResult, App, AppOption
 use raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
 
 #[cfg(target_os = "linux")]
+mod desktop;
+#[cfg(target_os = "linux")]
 mod kwin_always_on_top;
 
 const APP_ID: &str = "io.github.taskmanager.TaskManager";
@@ -131,12 +133,33 @@ struct Shell {
     app: App,
     #[cfg(target_os = "linux")]
     always_on_top: Option<kwin_always_on_top::Worker>,
+    #[cfg(target_os = "linux")]
+    instance: Option<desktop::Instance>,
+    #[cfg(target_os = "linux")]
+    shortcuts: Option<desktop::Shortcuts>,
     stats_file: Option<PathBuf>,
     quit_at: Option<Instant>,
 }
 
 impl eframe::App for Shell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        #[cfg(target_os = "linux")]
+        {
+            if self
+                .instance
+                .as_ref()
+                .is_some_and(desktop::Instance::take_activation)
+            {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
+                ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            }
+            if let Some(worker) = &self.shortcuts {
+                while let Some(result) = worker.try_result() {
+                    self.app.finish_launch_shortcuts(result);
+                }
+            }
+        }
         #[cfg(target_os = "linux")]
         if let Some(worker) = &mut self.always_on_top {
             while let Some(result) = worker.try_result() {
@@ -170,6 +193,20 @@ impl eframe::App for Shell {
 
 impl Shell {
     fn submit_always_on_top(&mut self) {
+        if let Some(settings) = self.app.take_launch_request() {
+            #[cfg(target_os = "linux")]
+            let submitted = self
+                .shortcuts
+                .as_ref()
+                .is_some_and(|worker| worker.submit(settings));
+            #[cfg(not(target_os = "linux"))]
+            let submitted = false;
+            if !submitted {
+                self.app.finish_launch_shortcuts(Err(
+                    "Desktop launch integration is unavailable in this session.".into(),
+                ));
+            }
+        }
         if let Some(request) = self.app.take_always_on_top_request() {
             #[cfg(target_os = "linux")]
             if self
@@ -212,6 +249,20 @@ fn main() -> eframe::Result {
         dump_readings(n, dir);
         return Ok(());
     }
+
+    #[cfg(target_os = "linux")]
+    let mut instance = if !args.no_config && args.synthetic.is_none() && args.fixture.is_none() {
+        match desktop::Instance::claim() {
+            Ok(Some(instance)) => Some(instance),
+            Ok(None) => return Ok(()),
+            Err(error) => {
+                log::warn!("Desktop activation unavailable: {error}");
+                None
+            }
+        }
+    } else {
+        None
+    };
 
     mc_core::i18n::init(&locale_dir());
 
@@ -339,10 +390,25 @@ fn main() -> eframe::Result {
                     always_on_top_mode,
                 },
             );
+            #[cfg(target_os = "linux")]
+            let shortcuts = instance.as_mut().map(|instance| {
+                instance.attach(cc.egui_ctx.clone());
+                desktop::Shortcuts::new(
+                    cc.egui_ctx.clone(),
+                    [
+                        app.config().launch_ctrl_shift_escape,
+                        app.config().launch_ctrl_alt_delete,
+                    ],
+                )
+            });
             Ok(Box::new(Shell {
                 app,
                 #[cfg(target_os = "linux")]
                 always_on_top,
+                #[cfg(target_os = "linux")]
+                instance,
+                #[cfg(target_os = "linux")]
+                shortcuts,
                 stats_file,
                 quit_at,
             }))

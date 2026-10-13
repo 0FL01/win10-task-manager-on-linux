@@ -44,12 +44,26 @@ pub fn frame() -> Frame {
         })
 }
 
+pub fn themed_frame(ctx: &egui::Context) -> Frame {
+    let mut frame = frame();
+    frame.fill = pal::resolve(ctx, frame.fill);
+    frame.stroke.color = pal::resolve(ctx, frame.stroke.color);
+    frame
+}
+
 pub fn style(style: &mut Style) {
     style.spacing.item_spacing = vec2(0., 0.);
     style.spacing.menu_margin = Margin::same(2);
     style.visuals.menu_corner_radius = 0.into();
-    style.visuals.window_fill = pal::POPUP_BG;
-    style.visuals.window_stroke = Stroke::new(1., pal::POPUP_BORDER);
+    let color = |color| {
+        if style.visuals.dark_mode {
+            pal::dark(color)
+        } else {
+            color
+        }
+    };
+    style.visuals.window_fill = color(pal::POPUP_BG);
+    style.visuals.window_stroke = Stroke::new(1., color(pal::POPUP_BORDER));
     style.visuals.popup_shadow = frame().shadow;
 }
 
@@ -98,7 +112,7 @@ fn row(
     let painter = ui.painter();
     let highlighted = enabled && (response.hovered() || response.has_focus());
     if highlighted {
-        painter.rect_filled(rect, 0., pal::POPUP_HOVER);
+        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), pal::POPUP_HOVER));
     }
     let ink = if enabled {
         pal::TEXT
@@ -127,6 +141,7 @@ fn row(
         );
     }
     let cx = rect.left() + 13.;
+    let ink = pal::resolve(ui.ctx(), ink);
     let cy = rect.center().y;
     match mark {
         Mark::None => {}
@@ -222,7 +237,7 @@ pub fn context(ui: &Ui, id: Id, pos: Pos2, open: &mut bool, content: impl FnOnce
     .layout(egui::Layout::top_down_justified(Align::Min))
     .open_bool(open)
     .close_behavior(PopupCloseBehavior::CloseOnClick)
-    .frame(frame())
+    .frame(themed_frame(ui.ctx()))
     .style(style)
     .info(
         UiStackInfo::new(UiKind::Menu)

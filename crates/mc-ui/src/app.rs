@@ -99,6 +99,12 @@ pub struct App {
     saved_config: Config,
     writer: Option<ConfigWriter>,
     always_on_top: AlwaysOnTopState,
+    launch_request: Option<[bool; 2]>,
+    launch_pending: bool,
+    launch_status: String,
+    hardware_pending: bool,
+    hardware_status: String,
+    hardware_notice: bool,
     magpie: MagpieClient,
     icons: IconCache,
 
@@ -158,6 +164,12 @@ impl App {
             }
         };
         magpie.set_update_speed(config.app_update_interval);
+        if config.extended_hardware_monitoring {
+            magpie.send(mc_magpie::Request::SetHardwareAccess {
+                enabled: true,
+                interactive: false,
+            });
+        }
 
         ctx.set_fonts(options.fonts.definitions());
         crate::win10::style::install(ctx);
@@ -185,6 +197,12 @@ impl App {
             saved_config: if migrated { loaded } else { config.clone() },
             writer: options.config_path.map(ConfigWriter::new),
             always_on_top,
+            launch_request: None,
+            launch_pending: false,
+            launch_status: String::new(),
+            hardware_pending: false,
+            hardware_status: String::new(),
+            hardware_notice: false,
             config,
             magpie,
             icons: IconCache::new(waker),
@@ -217,6 +235,23 @@ impl App {
         &self.config
     }
 
+    pub fn take_launch_request(&mut self) -> Option<[bool; 2]> {
+        self.launch_request.take()
+    }
+
+    pub fn finish_launch_shortcuts(&mut self, result: Result<[bool; 2], String>) {
+        self.launch_pending = false;
+        match result {
+            Ok(settings) => {
+                self.config.launch_ctrl_shift_escape = settings[0];
+                self.config.launch_ctrl_alt_delete = settings[1];
+                self.launch_status = i18n("Launch shortcuts saved in the desktop settings.");
+                self.persist_config();
+            }
+            Err(error) => self.launch_status = error,
+        }
+    }
+
     /// Takes the next native-shell request once, retaining its pending state until acknowledgement.
     pub fn take_always_on_top_request(&mut self) -> Option<AlwaysOnTopRequest> {
         self.always_on_top.take_request()
@@ -234,6 +269,7 @@ impl App {
     pub fn configure_for_test(&mut self, f: impl FnOnce(&mut Config)) {
         f(&mut self.config);
         self.page = MainPage::from_settings_name(&self.config.window_selected_page);
+        self.perf.selected = self.config.performance_selected_page.clone();
     }
 
     /// Opens a dialog (tests); `None` opens File → Run new task.
@@ -257,11 +293,17 @@ impl App {
         Duration::from_secs_f64(self.config.app_update_interval as f64 * INTERVAL_STEP)
     }
 
-    fn apply_readings(&mut self, readings: Readings) {
+    fn apply_readings(&mut self, mut readings: Readings) {
+        if !self.config.extended_hardware_monitoring {
+            readings.hardware = None;
+        }
         let interval_ms = self.refresh_interval().as_millis() as u64;
         let gpu =
             mc_core::gpu::GpuSnapshot::from_readings(&readings, &mut self.gpu_indices, interval_ms);
         self.perf.update(&readings, &gpu, &mut self.config);
+        if !self.have_readings {
+            self.magpie.send(mc_magpie::Request::AboutSystem);
+        }
         if readings.includes_app_data {
             self.apps.update(&readings, &gpu);
             self.services.update(&readings, &gpu);
@@ -278,12 +320,52 @@ impl App {
         match event {
             Event::IconsReady(icons) => self.icons.merge_app_icons(icons),
             Event::Fatal(message) => self.fatal = Some(message),
+            Event::Spd { privileged, result } => {
+                if !privileged || self.config.extended_hardware_monitoring {
+                    self.perf.update_spd(privileged, &result);
+                } else {
+                    self.perf.clear_privileged_spd();
+                }
+            }
+            Event::HardwareAccess(result) => {
+                self.hardware_pending = false;
+                match result {
+                    Ok(enabled) => {
+                        self.config.extended_hardware_monitoring = enabled;
+                        self.hardware_status = if enabled {
+                            i18n("Hardware access enabled.")
+                        } else {
+                            i18n("Hardware access disabled.")
+                        };
+                    }
+                    Err(error) => {
+                        self.config.extended_hardware_monitoring = false;
+                        self.hardware_status = error;
+                        self.hardware_notice = true;
+                    }
+                }
+                self.apply_next = true;
+                if !self.config.extended_hardware_monitoring {
+                    self.perf.clear_privileged_spd();
+                }
+                self.magpie.send(mc_magpie::Request::RefreshNow);
+            }
+            Event::About(about) => {
+                self.perf.update_about(&about);
+                self.dialogs
+                    .handle_event(Event::About(about), &self.apps, &self.magpie);
+            }
             other => self.dialogs.handle_event(other, &self.apps, &self.magpie),
         }
     }
 
     /// Non-visual per-frame work; runs even when the window is hidden.
     pub fn logic(&mut self, ctx: &Context) {
+        ctx.set_theme(match self.config.theme {
+            mc_core::config::Theme::Light => egui::ThemePreference::Light,
+            mc_core::config::Theme::Dark => egui::ThemePreference::Dark,
+            mc_core::config::Theme::System => egui::ThemePreference::System,
+        });
         while let Some(event) = self.magpie.try_event() {
             self.handle_event(event);
         }
@@ -383,6 +465,42 @@ impl App {
                 AlwaysOnTopMode::External => self.always_on_top.request(enabled),
                 AlwaysOnTopMode::Unavailable => {}
             },
+            Command::SetLaunchShortcuts(settings) => {
+                if !self.launch_pending {
+                    self.launch_pending = true;
+                    self.launch_request = Some(settings);
+                }
+            }
+            Command::SetHardwareAccess(enabled) => {
+                if !self.hardware_pending {
+                    self.hardware_notice = true;
+                    self.hardware_status = if enabled {
+                        i18n("Waiting for hardware authorization…")
+                    } else {
+                        i18n("Disabling hardware access…")
+                    };
+                    self.hardware_pending =
+                        self.magpie.send(mc_magpie::Request::SetHardwareAccess {
+                            enabled,
+                            interactive: true,
+                        });
+                    if !self.hardware_pending {
+                        self.hardware_status =
+                            i18n("The hardware request could not be queued. Try again.");
+                    }
+                }
+            }
+            Command::InstallHardwareService => {
+                if !self.hardware_pending {
+                    self.hardware_notice = true;
+                    self.hardware_status = i18n("Waiting for service installation authorization…");
+                    self.hardware_pending = self.magpie.send(Request::InstallHardwareService);
+                    if !self.hardware_pending {
+                        self.hardware_status =
+                            i18n("The hardware request could not be queued. Try again.");
+                    }
+                }
+            }
             Command::ToggleSummaryMode => {
                 self.perf.summary_mode = !self.perf.summary_mode;
                 let size = if self.perf.summary_mode {
@@ -589,6 +707,49 @@ impl App {
                     commands.push(Command::SetAlwaysOnTop(!checked));
                 }
                 menu::separator(ui);
+                menu::submenu(ui, &i18n("Keyboard Shortcuts"), |ui| {
+                    let current = [
+                        self.config.launch_ctrl_shift_escape,
+                        self.config.launch_ctrl_alt_delete,
+                    ];
+                    for (index, label) in ["Ctrl+Shift+Esc", "Ctrl+Alt+Delete"].iter().enumerate() {
+                        if menu::check_enabled(
+                            ui,
+                            label,
+                            current[index],
+                            !self.launch_pending,
+                            Some(&self.launch_status),
+                        ) {
+                            let mut next = current;
+                            next[index] = !next[index];
+                            commands.push(Command::SetLaunchShortcuts(next));
+                        }
+                    }
+                    menu::separator(ui);
+                    if menu::item(ui, &i18n("Show Keyboard Shortcuts"), "Ctrl+?", true) {
+                        commands.push(Command::OpenDialog(Dialog::KeyboardShortcuts));
+                    }
+                });
+                if menu::check_enabled(
+                    ui,
+                    &i18n("Extended hardware monitoring"),
+                    self.config.extended_hardware_monitoring,
+                    !self.hardware_pending,
+                    Some(&self.hardware_status),
+                ) {
+                    commands.push(Command::SetHardwareAccess(
+                        !self.config.extended_hardware_monitoring,
+                    ));
+                }
+                if menu::item(
+                    ui,
+                    &i18n("Install hardware monitoring service…"),
+                    "",
+                    !self.hardware_pending,
+                ) {
+                    commands.push(Command::InstallHardwareService);
+                }
+                menu::separator(ui);
                 if menu::item(
                     ui,
                     &mc_core::i18n::i18n_f("About {}", &[crate::APP_NAME]),
@@ -599,6 +760,19 @@ impl App {
                 }
             }
             _ => {
+                menu::submenu(ui, &i18n("Theme"), |ui| {
+                    use mc_core::config::Theme;
+                    for (label, theme) in [
+                        (n_("Light"), Theme::Light),
+                        (n_("Dark"), Theme::Dark),
+                        (n_("System"), Theme::System),
+                    ] {
+                        if menu::radio(ui, &i18n(label), self.config.theme == theme) {
+                            self.config.theme = theme;
+                        }
+                    }
+                });
+                menu::separator(ui);
                 if menu::item(ui, &i18n("Refresh now"), "F5", true) {
                     commands.push(Command::RefreshNow);
                 }
@@ -841,6 +1015,22 @@ impl App {
         }
 
         self.run_task_dialog(&ctx, &mut commands);
+        if self.hardware_notice {
+            let response = egui::Modal::new(egui::Id::new("hardware-monitoring-status")).show(&ctx, |ui| {
+                ui.set_width(430.);
+                ui.heading(i18n("Extended hardware monitoring"));
+                if self.hardware_pending { ui.spinner(); }
+                ui.label(&self.hardware_status);
+                ui.label(i18n("Without an installed service, the helper runs only until Task Manager closes. Install the service for persistent access across restarts."));
+                if ui.add_enabled(!self.hardware_pending, egui::Button::new(i18n("Install service…"))).clicked() {
+                    commands.push(Command::InstallHardwareService);
+                }
+                if ui.button(i18n("Close")).clicked() { self.hardware_notice = false; }
+            });
+            if response.should_close() {
+                self.hardware_notice = false;
+            }
+        }
 
         if let Some(message) = self.fatal.clone() {
             crate::dialogs::fatal_dialog(&ctx, &message, &mut commands);
@@ -937,6 +1127,52 @@ mod tests {
     use egui::{Event, PointerButton, Pos2, RawInput, Rect, vec2};
 
     use super::*;
+
+    #[test]
+    fn hardware_access_click_reports_pending_and_failed_authorization() {
+        let ctx = Context::default();
+        let mut app = App::new(
+            &ctx,
+            AppOptions {
+                source: DataSource::Fixture(mc_magpie::synthetic_series(1, 1), HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config::default()),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        );
+        app.execute(&ctx, Command::SetHardwareAccess(true));
+        assert!(app.hardware_notice);
+        assert!(app.hardware_pending);
+        assert!(app.hardware_status.contains("Waiting"));
+        app.handle_event(mc_magpie::Event::HardwareAccess(Err(
+            "The host hardware helper is not installed.".into(),
+        )));
+        assert!(!app.hardware_pending);
+        assert!(!app.config.extended_hardware_monitoring);
+        let mut output = ctx.run_ui(
+            RawInput {
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1030., 705.))),
+                ..Default::default()
+            },
+            |ui| app.ui(ui),
+        );
+        output.textures_delta.clear();
+        output = ctx.run_ui(
+            RawInput {
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1030., 705.))),
+                ..Default::default()
+            },
+            |ui| app.ui(ui),
+        );
+        output.textures_delta.clear();
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text.contains("not installed"))));
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text.contains("Install service"))));
+        app.execute(&ctx, Command::InstallHardwareService);
+        assert!(app.hardware_pending);
+        assert!(app.hardware_status.contains("service installation"));
+    }
 
     #[test]
     fn options_always_on_top_click_waits_for_acknowledgement() {

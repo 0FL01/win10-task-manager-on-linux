@@ -30,6 +30,31 @@ The nested `platform-linux/crates/app-rummage` dependency remains a submodule at
 
 ## GPU libraries
 
+System information grouping and placeholder filtering were informed by the Mission Center fork
+[mission-mge-center](https://github.com/DurkaEbanaya/mission-mge-center/blob/863dfbfb19fe0a5f6be56a4fad48196fdb8e7bd2/src/about_system_dialog.rs)
+at `863dfbfb19fe0a5f6be56a4fad48196fdb8e7bd2`. The egui System page is a local implementation
+using the existing Win10 metadata layout. Mission Center attribution remains intact.
+CPU identification uses documented Intel CPUID 1A and AMD extended topology 80000026 layouts;
+Linux sysfs hwmon/EDAC interfaces provide sensor units and counter semantics. The optional Intel
+ratio reader uses Intel's model-specific-register documentation for IA32_PERF_STATUS.
+
+The local SPD decoder implements EEPROM byte layouts described by JEDEC SPD specifications
+and checked against i2c-tools `eeprom/decode-dimms` (DDR2–4) and illumos libjedec
+`common/spd_ddr5.h` (DDR5). Only field offsets, units and checksum facts were used; no source
+code from those implementations is included. Linux's eeprom/ee1004/spd5118 sysfs interfaces
+provide the registered EEPROM reads.
+
+The helper's version-gated Ryzen PM-table field layouts were checked against
+[ryzen_monitor](https://github.com/hattedsquirrel/ryzen_monitor/tree/7529c7cfc2688d9781912c84adfc0343d83dc78c)
+(`src/pm_tables.c`, Florian Huehn and contributors, GPL-3.0) and the ryzen_smu driver ABI.
+AMD FID/DFSID facts were checked against AMD PPR/OSRR and
+[zenmonitor](https://github.com/ocerman/zenmonitor/tree/fa17e94b30611513c7b863422a1215fcea74f369).
+Intel scheduler gear bits follow Intel's 12th-generation datasheet volume 2,
+SC_GS_CFG (E088); fixed BCLK_FREQ fields follow Core Ultra 200S/200HX register layouts.
+Linux igen6_edac and HSMP UAPI confirm MCHBAR masks/DIMM occupancy and the read-only HSMP ABI.
+CoreFreq was consulted for register facts; its source code is not included. The adapters are
+local implementations with fixed reads and explicit unsupported-model handling.
+
 NVTOP is built into magpie from revision `3d4a953da02bc18886734613bb9f60ff80669de7`;
 the archive checksum and existing patches remain in `platform-linux/3rdparty/nvtop/`.
 The new Rust collector reads formal DRM fdinfo counters and dynamically calls the installed

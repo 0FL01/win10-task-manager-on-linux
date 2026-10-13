@@ -389,6 +389,7 @@ impl FlatList {
 
 /// Own service glyph: a small gear.
 pub fn gear(painter: &egui::Painter, rect: Rect, color: egui::Color32) {
+    let color = pal::resolve(painter.ctx(), color);
     let c = rect.center();
     for k in 0..8 {
         let a = k as f32 * std::f32::consts::TAU / 8.;

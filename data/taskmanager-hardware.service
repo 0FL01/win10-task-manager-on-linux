@@ -1,0 +1,18 @@
+[Unit]
+Description=Task Manager read-only hardware telemetry
+
+[Service]
+ExecStart=/usr/libexec/taskmanager-hardware serve
+User=root
+StateDirectory=taskmanager-hardware
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=64M
+TasksMax=4

@@ -33,7 +33,7 @@ use super::{menu, metrics as m, palette as pal};
 /// Paints the window background and its 1 px outline (no outline while maximized).
 pub fn window_background(ui: &Ui, window: Rect, outlined: bool) {
     let painter = ui.painter();
-    painter.rect_filled(window, 0., pal::WHITE);
+    painter.rect_filled(window, 0., pal::resolve(ui.ctx(), pal::WHITE));
     if outlined {
         paint::outline(
             painter,
@@ -266,7 +266,7 @@ pub fn menu_bar(
         );
         Popup::menu(&response)
             .close_behavior(PopupCloseBehavior::CloseOnClick)
-            .frame(menu::frame())
+            .frame(menu::themed_frame(ui.ctx()))
             .style(menu::style)
             .info(
                 UiStackInfo::new(UiKind::Menu)
@@ -419,6 +419,7 @@ pub fn details_toggle(
         pal::FOOTER_ICON
     };
     // own glyph: circle with a chevron (up = fewer details)
+    let ink = pal::resolve(ui.ctx(), ink);
     let s = m::FOOTER_ICON_SIZE;
     let c = pos2(x + s / 2., y + s / 2.);
     painter.circle_stroke(c, s / 2. - 0.5, egui::Stroke::new(1., ink));

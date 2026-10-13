@@ -164,4 +164,33 @@ mod tests {
             .values()
             .all(|p| p.start_time_ticks.is_none()));
     }
+
+    #[test]
+    fn legacy_fixture_without_hardware_extensions_loads() {
+        let mut json = serde_json::to_value(crate::synthetic_readings(1, 1)).unwrap();
+        let root = json.as_object_mut().unwrap();
+        root.remove("hardware");
+        root.remove("smart_data");
+        for key in ["logical_cpus", "voltage_v", "bclk_mhz"] {
+            root["cpu"].as_object_mut().unwrap().remove(key);
+        }
+        for key in [
+            "voltage_v",
+            "corrected_errors",
+            "uncorrected_errors",
+            "fclk_mhz",
+            "mclk_mhz",
+            "uclk_mhz",
+        ] {
+            root["mem_info"].as_object_mut().unwrap().remove(key);
+        }
+        for gpu in root["gpus"].as_object_mut().unwrap().values_mut() {
+            gpu.as_object_mut().unwrap().remove("voltage_v");
+        }
+        let reading: Readings = serde_json::from_value(json).unwrap();
+        assert!(reading.hardware.is_none());
+        assert!(reading.smart_data.is_empty());
+        assert!(reading.cpu.logical_cpus.is_empty());
+        assert!(reading.mem_info.corrected_errors.is_none());
+    }
 }

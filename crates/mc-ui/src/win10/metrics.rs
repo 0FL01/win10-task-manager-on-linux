@@ -112,3 +112,23 @@ pub const GPU_COMPACT_INSET: f32 = 12.;
 pub const DISK_TRANSFER_H: f32 = 66.;
 pub const MEMORY_COMPOSITION_H: f32 = 52.;
 pub const MEMORY_GRAPH_MIN_H: f32 = 52.;
+
+/// Own metadata adaptation, shared by System and the overflow popup.
+pub const METADATA_VALUE_GAP: f32 = 12.;
+pub const METADATA_MORE_W: f32 = 100.;
+pub const METADATA_MORE_H: f32 = 17.;
+pub const METADATA_POPUP_MAX_H: f32 = 360.;
+pub const METADATA_COPY_MS: u64 = 650;
+
+/// Own DIMM/SO-DIMM diagram alongside the Memory statistics.
+pub const MEMORY_SLOT_W: f32 = 52.;
+pub const MEMORY_SLOT_LABEL_H: f32 = 38.;
+pub const MEMORY_SLOT_NAME_DY: f32 = 7.;
+pub const MEMORY_SLOT_CAPACITY_DY: f32 = 23.;
+pub const MEMORY_SLOT_FOOTER_RESERVE: f32 = 14.;
+pub const MEMORY_SLOT_GAP: f32 = 10.;
+pub const MEMORY_SLOT_HEADER_H: f32 = 18.;
+pub const MEMORY_SLOT_DRAW_W: f32 = 28.;
+pub const MEMORY_SLOT_INFO_GAP: f32 = 16.;
+pub const MEMORY_MODULE_DIALOG_W: f32 = 500.;
+pub const SPD_SCROLL_MAX_H: f32 = 400.;

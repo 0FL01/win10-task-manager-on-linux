@@ -26,7 +26,10 @@ use super::palette as pal;
 
 /// Secondary (grey) text.
 pub fn caption(ui: &mut Ui, text: impl Into<String>) -> Response {
-    ui.add(egui::Label::new(RichText::new(text.into()).color(pal::LABEL)).selectable(false))
+    ui.add(
+        egui::Label::new(RichText::new(text.into()).color(pal::resolve(ui.ctx(), pal::LABEL)))
+            .selectable(false),
+    )
 }
 
 /// Win32 check box without a label; returns a response marked changed on toggle.
@@ -66,7 +69,7 @@ pub fn switch(ui: &mut Ui, on: &mut bool) -> Response {
                 pos2(r.left() + 5.5, r.bottom() - 3.5),
                 pos2(r.right() - 3., r.top() + 3.5),
             ],
-            Stroke::new(1.5, pal::TEXT),
+            Stroke::new(1.5, pal::resolve(ui.ctx(), pal::TEXT)),
         );
     }
     response

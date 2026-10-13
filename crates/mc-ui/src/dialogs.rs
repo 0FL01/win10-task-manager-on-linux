@@ -83,7 +83,10 @@ impl Dialogs {
                 Ok(()) => self.eject = None,
                 Err(e) => self.eject = Some((disk_id, e)),
             },
-            Event::IconsReady(_) | Event::Fatal(_) => {}
+            Event::IconsReady(_)
+            | Event::Fatal(_)
+            | Event::HardwareAccess(_)
+            | Event::Spd { .. } => {}
         }
         let _ = magpie;
     }
@@ -206,19 +209,29 @@ impl Dialogs {
                 .spacing([20., 8.])
                 .show(ui, |ui| {
                     ui.label(i18n("Name"));
-                    ui.add(
-                        egui::Label::new(RichText::new(&node.name).color(palette::LABEL))
-                            .truncate(),
+                    let response = ui.add(
+                        egui::Label::new(
+                            RichText::new(&node.name)
+                                .color(palette::resolve(ui.ctx(), palette::LABEL)),
+                        )
+                        .truncate(),
                     );
+                    crate::win10::paint::copy_value(ui, response.rect, &node.name);
                     ui.end_row();
                     ui.label(i18n("Description"));
-                    ui.add(
-                        egui::Label::new(RichText::new(&info.description).color(palette::LABEL))
-                            .truncate(),
+                    let response = ui.add(
+                        egui::Label::new(
+                            RichText::new(&info.description)
+                                .color(palette::resolve(ui.ctx(), palette::LABEL)),
+                        )
+                        .truncate(),
                     );
+                    crate::win10::paint::copy_value(ui, response.rect, &info.description);
                     ui.end_row();
                     ui.label(i18n("Status"));
-                    ui.label(RichText::new(status).color(palette::LABEL));
+                    ui.label(
+                        RichText::new(status).color(palette::resolve(ui.ctx(), palette::LABEL)),
+                    );
                     ui.end_row();
                     ui.label(i18n("Enabled"));
                     let mut enabled = info.enabled;
@@ -283,9 +296,14 @@ impl Dialogs {
                     .show(ui, |ui| {
                         for (l, v) in rows {
                             ui.label(l);
-                            ui.add(
-                                egui::Label::new(RichText::new(v).color(palette::LABEL)).truncate(),
+                            let response = ui.add(
+                                egui::Label::new(
+                                    RichText::new(&v)
+                                        .color(palette::resolve(ui.ctx(), palette::LABEL)),
+                                )
+                                .truncate(),
                             );
+                            crate::win10::paint::copy_value(ui, response.rect, &v);
                             ui.end_row();
                         }
                     });
@@ -358,7 +376,8 @@ fn process_details(ctx: &Context, cx: &mut Cx, node: Option<&mc_core::table::Nod
         ui.set_width(380.);
         ui.horizontal(|ui| {
             row_icon(ui, cx, &node.icon, 48.);
-            ui.heading(&node.name);
+            let response = ui.heading(&node.name);
+            crate::win10::paint::copy_value(ui, response.rect, &node.name);
         });
         ui.add_space(8.);
         let kind = match node.kind {
@@ -381,17 +400,24 @@ fn process_details(ctx: &Context, cx: &mut Cx, node: Option<&mc_core::table::Nod
             .spacing([20., 8.])
             .show(ui, |ui| {
                 ui.label(id_label);
-                ui.label(RichText::new(id_value).color(palette::LABEL));
+                let response = ui.label(
+                    RichText::new(&id_value).color(palette::resolve(ui.ctx(), palette::LABEL)),
+                );
+                crate::win10::paint::copy_value(ui, response.rect, &id_value);
                 ui.end_row();
                 ui.label(i18n("Type"));
-                ui.label(RichText::new(kind).color(palette::LABEL));
+                ui.label(RichText::new(kind).color(palette::resolve(ui.ctx(), palette::LABEL)));
                 ui.end_row();
                 if !node.command_line.is_empty() {
                     ui.label(i18n("Command Line"));
-                    ui.add(
-                        egui::Label::new(RichText::new(&node.command_line).color(palette::LABEL))
-                            .wrap(),
+                    let response = ui.add(
+                        egui::Label::new(
+                            RichText::new(&node.command_line)
+                                .color(palette::resolve(ui.ctx(), palette::LABEL)),
+                        )
+                        .wrap(),
                     );
+                    crate::win10::paint::copy_value(ui, response.rect, &node.command_line);
                     ui.end_row();
                 }
             });
@@ -427,7 +453,9 @@ fn process_details(ctx: &Context, cx: &mut Cx, node: Option<&mc_core::table::Nod
                     ),
                 ] {
                     ui.label(label);
-                    ui.label(RichText::new(value).color(palette::LABEL));
+                    ui.label(
+                        RichText::new(value).color(palette::resolve(ui.ctx(), palette::LABEL)),
+                    );
                     ui.end_row();
                 }
             });
@@ -519,7 +547,7 @@ fn about_app(ctx: &Context, cx: &mut Cx) -> bool {
                 ui.add(egui::Image::new((t.id(), egui::Vec2::splat(96.))));
             }
             ui.label(RichText::new(crate::APP_NAME).text_style(style::title1()));
-            ui.label(RichText::new(crate::VERSION).color(palette::BUTTON_HOVER_BORDER));
+            ui.label(RichText::new(crate::VERSION).color(palette::resolve(ui.ctx(), palette::BUTTON_HOVER_BORDER)));
             dialog::caption(ui, "GNU General Public License v3.0");
             let credits = i18n("translator-credits");
             if credits != n_("translator-credits") {
@@ -578,22 +606,19 @@ fn about_system(ctx: &Context, cx: &mut Cx, about: Option<&About>) -> bool {
             ui.label(RichText::new(title).strong());
             for (label, value) in rows {
                 let Some(value) = value else { continue };
-                let response = ui
-                    .horizontal(|ui| {
-                        ui.label(label);
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.add(
-                                egui::Label::new(RichText::new(value).color(palette::LABEL))
-                                    .truncate(),
-                            );
-                        });
-                    })
-                    .response
-                    .interact(egui::Sense::click())
-                    .on_hover_text("copy");
-                if response.clicked() {
-                    cx.send(Command::CopyText(format!("{label}: {value}")));
-                }
+                ui.horizontal(|ui| {
+                    ui.label(label);
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let response = ui.add(
+                            egui::Label::new(
+                                RichText::new(value)
+                                    .color(palette::resolve(ui.ctx(), palette::LABEL)),
+                            )
+                            .truncate(),
+                        );
+                        crate::win10::paint::copy_value(ui, response.rect, value);
+                    });
+                });
             }
         }
     });

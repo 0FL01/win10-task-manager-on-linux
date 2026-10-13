@@ -1193,6 +1193,10 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
         let mut retry_nvml = false;
         for device in inventory.values() {
             let gpu = self.gpus.get_mut(&device.id).unwrap();
+            gpu.voltage_v = device
+                .sysfs_device
+                .as_deref()
+                .and_then(crate::hardware::gpu_voltage);
             let native = self.devices.values().any(|native| native.id == device.id);
             let mut driver = self.metadata.get(&device.id).cloned().unwrap_or_default();
             let mut memory = memory_info(device, gpu, &driver);

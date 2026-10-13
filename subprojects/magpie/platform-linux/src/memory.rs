@@ -135,6 +135,16 @@ pub struct MemoryCache {
 }
 
 fn refresh_memory(memory: &mut Memory) {
+    (memory.corrected_errors, memory.uncorrected_errors) =
+        crate::hardware::memory_errors(std::path::Path::new("/sys/devices/system/edac/mc"));
+    let hwmon = std::path::Path::new("/sys/class/hwmon");
+    memory.fclk_mhz = crate::hardware::clock_mhz(hwmon, &["FCLK", "Fabric Clock"]);
+    memory.mclk_mhz = crate::hardware::clock_mhz(hwmon, &["MCLK", "Memory Clock"]);
+    memory.uclk_mhz = crate::hardware::clock_mhz(hwmon, &["UCLK", "Memory Controller Clock"]);
+    memory.voltage_v = crate::hardware::voltage(
+        std::path::Path::new("/sys/class/hwmon"),
+        &["DRAM", "VDIMM", "VDDRAM", "DDR", "DRAM Voltage"],
+    );
     let meminfo = match std::fs::read_to_string("/proc/meminfo") {
         Ok(meminfo) => meminfo,
         Err(e) => {
@@ -258,93 +268,65 @@ pub fn read_memory_device_info(devices: &mut Vec<MemoryDevice>) -> u64 {
         }
     };
 
-    let mut cmd_output_str = cmd_output.as_str();
-    let mut cmd_output_str_index = 0; // Index for what character we are at in the string
-    let mut module_index = 0; // Index for what RAM module we are working with
-    let mut speed_fallback = 0; // If CONFIGURED_SPEED_MTS is not available, use SPEED_MTS
-    let mut max_devices: u64 = 0;
+    parse_memory_devices(&cmd_output, devices)
+}
 
-    while cmd_output_str_index < cmd_output_str.len() {
-        let to_parse = cmd_output_str.trim();
-        let mem_dev_string = format!("MEMORY_DEVICE_{}_", module_index);
-        let mem_dev_str = mem_dev_string.as_str();
-        cmd_output_str_index = match to_parse.find(mem_dev_str) {
-            None => {
-                // prolly overkill
-                for line in to_parse[cmd_output_str_index.saturating_sub(mem_dev_string.len())..]
-                    .trim()
-                    .lines()
-                {
-                    let mut split = line.trim().split("=");
-                    let key = split.next().map_or("", |s| s).trim();
-                    let value = split.next().map_or("", |s| s).trim();
-
-                    match key {
-                        "MEMORY_ARRAY_NUM_DEVICES" => {
-                            max_devices = value.parse::<u64>().map_or(0, |s| s)
-                        }
-                        other => log::debug!("{}", other),
-                    }
-                }
-                break;
-            }
-            Some(cmd_output_str_index) => cmd_output_str_index,
+fn parse_memory_devices(properties: &str, devices: &mut Vec<MemoryDevice>) -> u64 {
+    use std::collections::BTreeMap;
+    let mut slots = BTreeMap::<u32, MemoryDevice>::new();
+    let mut max_devices = 0;
+    for line in properties.lines() {
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
         };
-        cmd_output_str_index += mem_dev_str.len();
-        module_index += 1;
-        if cmd_output_str_index < cmd_output_str.len() {
-            cmd_output_str = cmd_output_str[cmd_output_str_index..].trim();
+        if key == "MEMORY_ARRAY_NUM_DEVICES" {
+            max_devices = value.parse().unwrap_or(0);
         }
-
-        let mut mem_dev = Some(MemoryDevice::default());
-
-        for line in to_parse[cmd_output_str_index..].trim().lines() {
-            let mut split = line.trim().split("=");
-            let mut key = split.next().map_or("", |s| s).trim();
-            let value = split.next().map_or("", |s| s).trim();
-
-            key = key.strip_prefix(mem_dev_str).unwrap_or(key);
-
-            let md = match mem_dev.as_mut() {
-                Some(mem_dev) => mem_dev,
-                None => {
-                    break;
-                }
-            };
-
-            match key {
-                "PRESENT" => {
-                    if value == "0" {
-                        // Module does not actually exist; drop the module so it is not counted
-                        // towards the installed module count and is not used to get values to
-                        // display.
-                        #[allow(dropping_references)]
-                        drop(md);
-                        mem_dev = None;
-                        break;
+        let Some((index, field)) = key
+            .strip_prefix("MEMORY_DEVICE_")
+            .and_then(|s| s.split_once('_'))
+        else {
+            continue;
+        };
+        let Ok(index) = index.parse::<u32>() else {
+            continue;
+        };
+        // Bound malformed firmware data before allocating a diagram.
+        if index >= 256 {
+            continue;
+        }
+        let module = slots.entry(index).or_insert_with(|| MemoryDevice {
+            slot_index: Some(index),
+            ..Default::default()
+        });
+        match field {
+            "SIZE" => module.size = value.parse().unwrap_or(0),
+            "FORM_FACTOR" => module.form_factor = value.into(),
+            "LOCATOR" => module.locator = value.into(),
+            "BANK_LOCATOR" => module.bank_locator = value.into(),
+            "TYPE" => module.ram_type = value.into(),
+            "SPEED_MTS" if module.speed == 0 => module.speed = value.parse().unwrap_or(0),
+            "CONFIGURED_SPEED_MTS" => {
+                if let Ok(speed) = value.parse::<u64>() {
+                    if speed > 0 {
+                        module.speed = speed;
                     }
                 }
-                "SIZE" => md.size = value.parse::<u64>().map_or(0, |s| s),
-                "FORM_FACTOR" => md.form_factor = value.to_owned(),
-                "LOCATOR" => md.locator = value.to_owned(),
-                "BANK_LOCATOR" => md.bank_locator = value.to_owned(),
-                "TYPE" => md.ram_type = value.to_owned(),
-                "SPEED_MTS" => speed_fallback = value.parse::<u64>().map_or(0, |s| s),
-                "CONFIGURED_SPEED_MTS" => md.speed = value.parse::<u64>().map_or(0, |s| s),
-                "RANK" => md.rank = value.parse::<u32>().map_or(0, |s| s),
-                _ => (), // Ignore unused values and other RAM modules we are not currently parsing
             }
-        }
-
-        if let Some(mut mem_dev) = mem_dev {
-            if mem_dev.speed == 0 {
-                // If CONFIGURED_SPEED_MTS is not available,
-                mem_dev.speed = speed_fallback; // then use SPEED_MTS instead
+            "RANK" => module.rank = value.parse().unwrap_or(0),
+            "MANUFACTURER" => module.manufacturer = Some(value.into()),
+            "SERIAL_NUMBER" => module.serial_number = Some(value.into()),
+            "PART_NUMBER" => module.part_number = Some(value.trim().into()),
+            "CONFIGURED_VOLTAGE" => {
+                module.configured_voltage_v = value
+                    .parse::<f32>()
+                    .ok()
+                    .filter(|v| v.is_finite() && *v > 0. && *v < 5.)
             }
-            devices.push(mem_dev);
+            _ => {}
         }
     }
-
+    devices.extend(slots.into_values());
     max_devices
 }
 
@@ -372,5 +354,22 @@ impl magpie_platform::memory::MemoryCache for MemoryCache {
 
     fn devices(&self) -> &[MemoryDevice] {
         &self.devices
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn slots_keep_empty_locations_and_do_not_leak_speed_between_modules() {
+        let properties="MEMORY_ARRAY_NUM_DEVICES=4\nMEMORY_DEVICE_2_PRESENT=0\nMEMORY_DEVICE_2_LOCATOR=DIMMB1\nMEMORY_DEVICE_0_SIZE=8589934592\nMEMORY_DEVICE_0_SPEED_MTS=3200\nMEMORY_DEVICE_0_CONFIGURED_SPEED_MTS=3600\nMEMORY_DEVICE_0_LOCATOR=DIMMA1\nMEMORY_DEVICE_1_SIZE=8589934592\nMEMORY_DEVICE_1_PART_NUMBER=TEST\n";
+        let mut devices = vec![];
+        assert_eq!(parse_memory_devices(properties, &mut devices), 4);
+        assert_eq!(devices.len(), 3);
+        assert_eq!(devices[0].speed, 3600);
+        assert_eq!(devices[1].speed, 0);
+        assert_eq!(devices[2].size, 0);
+        assert_eq!(devices[2].locator, "DIMMB1");
+        assert_eq!(devices[2].slot_index, Some(2));
     }
 }
