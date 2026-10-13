@@ -48,6 +48,9 @@ const SERVICE_INTERFACE: &str = "org.freedesktop.systemd1.Service";
 /// Signals queued between polls of the subscription; the watcher drains it continuously and
 /// coalesces per unit, so this only absorbs bursts (zbus applies back-pressure when full).
 const SIGNAL_QUEUE: usize = 256;
+/// Initial reads in flight; enough to keep the bus busy without buffering every reply of a
+/// full unit list at once.
+const CONCURRENT_READS: usize = 32;
 
 pub fn service_id(bus_id: &str, unit_path: &str) -> u64 {
     let mut hasher = AHasher::default();
@@ -247,16 +250,21 @@ pub async fn read(
     reads: Vec<(u64, OwnedObjectPath, Tracked)>,
     pending: PendingMap,
 ) {
-    futures::future::join_all(reads.iter().map(|(id, path, property)| {
-        let pending = &pending;
-        async move {
-            if let Some((stamp, value)) = fetch(bus, path, *property).await {
-                if let Some(entry) = pending.lock().get_mut(id) {
-                    entry.record(*property, stamp, Some(value));
+    // `futures_lite::StreamExt` is imported for `next`; this combinator is from `futures`.
+    futures::StreamExt::for_each_concurrent(
+        futures::stream::iter(reads),
+        CONCURRENT_READS,
+        |(id, path, property)| {
+            let pending = &pending;
+            async move {
+                if let Some((stamp, value)) = fetch(bus, &path, property).await {
+                    if let Some(entry) = pending.lock().get_mut(&id) {
+                        entry.record(property, stamp, Some(value));
+                    }
                 }
             }
-        }
-    }))
+        },
+    )
     .await;
 }
 

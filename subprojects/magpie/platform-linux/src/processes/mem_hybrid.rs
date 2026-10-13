@@ -18,10 +18,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::Write;
 use std::io::{BufRead, BufReader};
-use std::sync::Arc;
 use std::time::Instant;
 
 use arrayvec::{ArrayString, ArrayVec};
@@ -32,16 +31,11 @@ use crate::util::parse_proc_u64 as parse_u64;
 
 const MAPS_REFRESH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
 
-#[derive(Clone, Debug)]
-pub struct FileMapping {
-    path: Arc<str>,
-    size: u64,
-}
-
 #[derive(Debug, Default)]
 pub struct MemoryMaps {
-    share_count: HashMap<Arc<str>, u32>,
-    file_mappings: HashMap<u32, Vec<FileMapping>>,
+    /// Per PID, the size-weighted harmonic mean of how many processes map each of its files,
+    /// from the last maps walk. Only this factor is kept; mappings are dropped after the walk.
+    share: HashMap<u32, f64>,
     last_maps_walk: Option<Instant>,
 }
 
@@ -52,29 +46,13 @@ impl MemoryMaps {
         let mut do_refresh = || {
             let mut profile = Span::new(Phase::ProcessMaps);
             profile.items(pids.len());
-            let mut share_count: HashMap<Arc<str>, u32> = HashMap::new();
-            let mut file_mappings: HashMap<u32, Vec<FileMapping>> = HashMap::new();
-
+            let mut walk = MapsWalk::default();
             for &pid in pids {
-                let mappings = match read_file_mappings(pid) {
-                    Some(m) => m,
-                    None => continue,
-                };
-                // Each unique path in this process counts once toward "this
-                // PID maps this file" — collapse duplicate mappings of the
-                // same file (common for executables: separate text/rodata/
-                // data segments all backed by the same path).
-                let mut seen: HashSet<*const str> = HashSet::new();
-                for m in &mappings {
-                    if seen.insert(Arc::as_ptr(&m.path)) {
-                        *share_count.entry(Arc::clone(&m.path)).or_insert(0) += 1;
-                    }
+                if let Some(mappings) = read_file_mappings(pid, &mut walk) {
+                    walk.add(pid, mappings);
                 }
-                file_mappings.insert(pid, mappings);
             }
-
-            self.share_count = share_count;
-            self.file_mappings = file_mappings;
+            self.share = walk.finish();
         };
 
         match self.last_maps_walk {
@@ -94,12 +72,62 @@ impl MemoryMaps {
     }
 }
 
+/// File mappings of all processes during one maps walk: paths are interned across processes
+/// and each mapping keeps only its path id and size.
+#[derive(Default)]
+struct MapsWalk {
+    paths: HashMap<Box<str>, u32>,
+    /// Number of processes mapping each path id.
+    share_count: Vec<u32>,
+    /// Index of the last process counted for each path id, to count a path once per process.
+    counted_by: Vec<u32>,
+    processes: Vec<(u32, Vec<FileMapping>)>,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct FileMapping {
+    path: u32,
+    size: u64,
+}
+
+impl MapsWalk {
+    fn intern(&mut self, path: &str) -> u32 {
+        if let Some(&id) = self.paths.get(path) {
+            return id;
+        }
+        let id = self.share_count.len() as u32;
+        self.paths.insert(path.into(), id);
+        self.share_count.push(0);
+        self.counted_by.push(u32::MAX);
+        id
+    }
+
+    fn add(&mut self, pid: u32, mappings: Vec<FileMapping>) {
+        // Each unique path in this process counts once toward "this PID maps this file" —
+        // collapse duplicate mappings of the same file (common for executables: separate
+        // text/rodata/data segments all backed by the same path).
+        let index = self.processes.len() as u32;
+        for mapping in &mappings {
+            let path = mapping.path as usize;
+            if self.counted_by[path] != index {
+                self.counted_by[path] = index;
+                self.share_count[path] += 1;
+            }
+        }
+        self.processes.push((pid, mappings));
+    }
+
+    fn finish(self) -> HashMap<u32, f64> {
+        self.processes
+            .into_iter()
+            .map(|(pid, mappings)| (pid, harmonic_avg_share(&mappings, &self.share_count)))
+            .collect()
+    }
+}
+
 pub fn hybrid_pss(pid: u32, maps: &MemoryMaps) -> Option<(u64, u64)> {
     let status = read_status(pid)?;
-    let share = match maps.file_mappings.get(&pid) {
-        Some(file_mappings) => harmonic_avg_share(file_mappings, &maps.share_count),
-        None => 1.0,
-    };
+    let share = maps.share.get(&pid).copied().unwrap_or(1.0);
     let amortized_file = (status.rss_file as f64 / share.max(1.0)) as u64;
 
     Some((
@@ -155,8 +183,7 @@ fn read_status(pid: u32) -> Option<ProcStatus> {
     Some(result)
 }
 
-fn read_file_mappings(pid: u32) -> Option<Vec<FileMapping>> {
-    let mut interned: HashSet<Arc<str>> = HashSet::new();
+fn read_file_mappings(pid: u32, walk: &mut MapsWalk) -> Option<Vec<FileMapping>> {
     let mut maps_file = BufReader::new(open_maps(pid)?);
     let mut buffer = Vec::with_capacity(256);
 
@@ -209,15 +236,7 @@ fn read_file_mappings(pid: u32) -> Option<Vec<FileMapping>> {
             continue;
         }
 
-        let path = String::from_utf8_lossy(path);
-        let path = match interned.get(path.as_ref()) {
-            Some(k) => Arc::clone(k),
-            None => {
-                let arc = Arc::from(path.as_ref());
-                interned.insert(Arc::clone(&arc));
-                arc
-            }
-        };
+        let path = walk.intern(&String::from_utf8_lossy(path));
 
         let dash = match range.iter().position(|byte| *byte == b'-') {
             Some(i) => i,
@@ -250,11 +269,11 @@ fn read_file_mappings(pid: u32) -> Option<Vec<FileMapping>> {
 }
 
 /// Size-weighted harmonic mean of per-file share counts
-fn harmonic_avg_share(maps: &[FileMapping], share_count: &HashMap<Arc<str>, u32>) -> f64 {
+fn harmonic_avg_share(maps: &[FileMapping], share_count: &[u32]) -> f64 {
     let mut total_size: f64 = 0.0;
     let mut weighted_inv: f64 = 0.0;
     for m in maps {
-        let share = (*share_count.get(&m.path).unwrap_or(&1)).max(1) as f64;
+        let share = share_count[m.path as usize].max(1) as f64;
         let sz = m.size as f64;
         weighted_inv += sz / share;
         total_size += sz;
@@ -309,4 +328,105 @@ fn to_c_buf(s: &[u8]) -> ArrayVec<u8, 65> {
     out.extend(s.trim_ascii_start().iter().cloned().take(64));
     out.push(0);
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+    use std::sync::Arc;
+
+    use super::*;
+
+    /// The previous representation: per-PID mappings with paths interned per process.
+    fn reference(processes: &[(u32, Vec<(&str, u64)>)]) -> HashMap<u32, f64> {
+        let mut share_count: HashMap<Arc<str>, u32> = HashMap::new();
+        let mut file_mappings: HashMap<u32, Vec<(Arc<str>, u64)>> = HashMap::new();
+        for (pid, mappings) in processes {
+            let mut interned: HashSet<Arc<str>> = HashSet::new();
+            let mappings: Vec<(Arc<str>, u64)> = mappings
+                .iter()
+                .map(|&(path, size)| {
+                    let path = match interned.get(path) {
+                        Some(k) => Arc::clone(k),
+                        None => {
+                            let arc: Arc<str> = Arc::from(path);
+                            interned.insert(Arc::clone(&arc));
+                            arc
+                        }
+                    };
+                    (path, size)
+                })
+                .collect();
+            let mut seen: HashSet<*const str> = HashSet::new();
+            for (path, _) in &mappings {
+                if seen.insert(Arc::as_ptr(path)) {
+                    *share_count.entry(Arc::clone(path)).or_insert(0) += 1;
+                }
+            }
+            file_mappings.insert(*pid, mappings);
+        }
+        file_mappings
+            .iter()
+            .map(|(pid, maps)| {
+                let mut total_size: f64 = 0.0;
+                let mut weighted_inv: f64 = 0.0;
+                for (path, size) in maps {
+                    let share = (*share_count.get(path).unwrap_or(&1)).max(1) as f64;
+                    weighted_inv += *size as f64 / share;
+                    total_size += *size as f64;
+                }
+                let share = if weighted_inv == 0.0 {
+                    1.0
+                } else {
+                    total_size / weighted_inv
+                };
+                (*pid, share)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn share_factors_match_per_process_mappings_exactly() {
+        let processes = vec![
+            (
+                1,
+                vec![
+                    ("/usr/bin/a", 4096),
+                    ("/usr/lib/libc.so.6", 1_900_544),
+                    ("/usr/bin/a", 8192),
+                    ("/usr/lib/libm.so.6", 905_216),
+                ],
+            ),
+            (
+                2,
+                vec![
+                    ("/usr/lib/libc.so.6", 1_900_544),
+                    ("/usr/lib/libLLVM.so.22.1", 123_456_789),
+                ],
+            ),
+            (3, vec![("/usr/lib/libc.so.6", 3), ("/usr/bin/c", 7)]),
+            (4, vec![]),
+        ];
+
+        let mut walk = MapsWalk::default();
+        for (pid, mappings) in &processes {
+            let mappings = mappings
+                .iter()
+                .map(|&(path, size)| FileMapping {
+                    path: walk.intern(path),
+                    size,
+                })
+                .collect();
+            walk.add(*pid, mappings);
+        }
+        let share = walk.finish();
+
+        let expected = reference(&processes);
+        assert_eq!(share.len(), expected.len());
+        for (pid, factor) in &expected {
+            assert_eq!(share[pid].to_bits(), factor.to_bits(), "pid {pid}");
+        }
+        assert_eq!(share[&4], 1.0);
+        assert!(share[&2] > 1.0);
+    }
 }
