@@ -48,11 +48,14 @@ const REQUEST_CAPACITY: usize = 64;
 pub struct Readings {
     #[serde(default)]
     pub hardware: Option<crate::HardwareTelemetry>,
+    /// Access validity generation; zero preserves legacy recorded fixtures.
+    #[serde(default)]
+    pub hardware_epoch: u64,
     pub cpu: Cpu,
     pub mem_info: Memory,
     pub mem_devices: Vec<MemoryDevice>,
     pub disks_info: Vec<Disk>,
-    /// Cached, noninteractive SMART snapshots. At most one drive is refreshed per cycle.
+    /// Cached, noninteractive SMART snapshots supplied by the host daemon.
     #[serde(default)]
     pub smart_data: HashMap<String, SmartData>,
     pub network_connections: HashMap<String, Connection>,
@@ -85,6 +88,7 @@ impl Readings {
     pub fn new() -> Self {
         Self {
             hardware: None,
+            hardware_epoch: 0,
             cpu: Default::default(),
             mem_info: Memory::default(),
             mem_devices: vec![],
@@ -121,11 +125,19 @@ pub enum Request {
     EjectDisk(String),
     SmartData(String),
     AboutSystem,
-    ReadSpd,
-    InstallHardwareService,
+    ReadSpd {
+        id: u64,
+    },
+    InstallHardwareService {
+        id: u64,
+    },
     SetHardwareAccess {
+        id: u64,
         enabled: bool,
         interactive: bool,
+    },
+    CancelHardware {
+        id: u64,
     },
     /// Ends the current wait: the next snapshot is gathered immediately
     RefreshNow,
@@ -149,8 +161,15 @@ pub enum Event {
         data: Option<SmartData>,
     },
     About(About),
-    HardwareAccess(Result<bool, String>),
+    HardwareAccess {
+        /// None is an unsolicited sampling/status notification, not an acknowledgement.
+        id: Option<u64>,
+        status: crate::HardwareStatus,
+        result: Result<(), String>,
+    },
     Spd {
+        id: u64,
+        epoch: u64,
         privileged: bool,
         result: Result<Vec<crate::SpdEeprom>, String>,
     },
@@ -208,6 +227,7 @@ pub struct MagpieClient {
     requests: SyncSender<Request>,
     events: Receiver<Event>,
     readings: Arc<crate::LatestSlot<Readings>>,
+    hardware: crate::hardware_worker::Handle,
 }
 
 impl Drop for MagpieClient {
@@ -223,7 +243,7 @@ impl Drop for MagpieClient {
 impl MagpieClient {
     /// Starts the Magpie daemon and the gatherer thread.
     pub fn new(waker: Waker) -> Self {
-        Self::spawn(waker, gather_from_magpie)
+        Self::spawn(waker, true, gather_from_magpie)
     }
 
     /// Replays recorded readings instead of talking to Magpie; useful for tests and benchmarks.
@@ -232,10 +252,16 @@ impl MagpieClient {
         icons: HashMap<String, Icon>,
         waker: Waker,
     ) -> Self {
-        Self::spawn(waker, move |ctx| replay_fixtures(ctx, readings, icons))
+        Self::spawn(waker, false, move |ctx| {
+            replay_fixtures(ctx, readings, icons)
+        })
     }
 
-    fn spawn(waker: Waker, body: impl FnOnce(ThreadCtx) + Send + 'static) -> Self {
+    fn spawn(
+        waker: Waker,
+        hardware_available: bool,
+        body: impl FnOnce(ThreadCtx) + Send + 'static,
+    ) -> Self {
         let speed = Arc::new(AtomicU64::new(
             (BASE_INTERVAL / INTERVAL_STEP).round() as u64
         ));
@@ -245,6 +271,13 @@ impl MagpieClient {
 
         let (req_tx, req_rx) = mpsc::sync_channel(REQUEST_CAPACITY);
         let (ev_tx, ev_rx) = mpsc::sync_channel(EVENT_CAPACITY);
+        let hardware = crate::hardware_worker::Handle::spawn(
+            hardware_available,
+            running.clone(),
+            speed.clone(),
+            ev_tx.clone(),
+            waker.clone(),
+        );
 
         {
             let ev_tx = ev_tx.clone();
@@ -265,6 +298,8 @@ impl MagpieClient {
             running: running.clone(),
             speed: speed.clone(),
             reduced_activity: reduced_activity.clone(),
+            hardware_control: hardware.control.clone(),
+            hardware_samples: hardware.samples.clone(),
         };
 
         let thread = std::thread::Builder::new()
@@ -280,6 +315,7 @@ impl MagpieClient {
             requests: req_tx,
             events: ev_rx,
             readings,
+            hardware,
         }
     }
 
@@ -296,6 +332,27 @@ impl MagpieClient {
 
     /// Queues a request without blocking. Returns `false` if it had to be dropped.
     pub fn send(&self, request: Request) -> bool {
+        use crate::HardwareOperation as Op;
+        match request {
+            Request::ReadSpd { id } => return self.hardware.submit(id, Op::Spd),
+            Request::InstallHardwareService { id } => return self.hardware.submit(id, Op::Install),
+            Request::SetHardwareAccess {
+                id,
+                enabled,
+                interactive,
+            } => {
+                return self.hardware.submit(
+                    id,
+                    if enabled {
+                        Op::Enable { interactive }
+                    } else {
+                        Op::Disable
+                    },
+                )
+            }
+            Request::CancelHardware { id } => return self.hardware.cancel(id),
+            _ => {}
+        }
         match self.requests.try_send(request) {
             Ok(()) => true,
             Err(TrySendError::Full(request)) => {
@@ -328,6 +385,11 @@ impl MagpieClient {
         self.events.try_recv().ok()
     }
 
+    /// Nonblocking invalidation even when critical events are waiting behind UI backpressure.
+    pub fn hardware_epoch(&self) -> u64 {
+        self.hardware.control.epoch.load(atomic::Ordering::Acquire)
+    }
+
     /// `(published, overwritten before being consumed)` snapshot counters.
     pub fn readings_stats(&self) -> (u64, u64) {
         (self.readings.published(), self.readings.dropped())
@@ -340,6 +402,8 @@ struct ThreadCtx {
     running: Arc<AtomicBool>,
     speed: Arc<AtomicU64>,
     reduced_activity: Arc<AtomicBool>,
+    hardware_control: Arc<crate::hardware_access::Control>,
+    hardware_samples: Arc<crate::LatestSlot<crate::hardware_worker::Sample>>,
 }
 
 impl ThreadCtx {
@@ -405,8 +469,10 @@ fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
         Request::AboutSystem => {
             let _ = outbox.send(Event::About(magpie.about()));
         }
-        Request::SetHardwareAccess { .. } | Request::InstallHardwareService => {}
-        Request::ReadSpd => {}
+        Request::SetHardwareAccess { .. }
+        | Request::InstallHardwareService { .. }
+        | Request::ReadSpd { .. }
+        | Request::CancelHardware { .. } => {}
     }
 }
 
@@ -434,10 +500,7 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut known_icons = HashSet::<String>::new();
     let mut users = crate::users::UserResolver::default();
     let mut sockets = crate::sockets::SocketTraffic::default();
-    let mut smart_cache = HashMap::<String, SmartData>::new();
-    let mut smart_checked = HashMap::<String, Instant>::new();
-    let mut hardware_enabled = false;
-    let mut hardware_access = crate::hardware_access::Access::new(ctx.running.clone());
+    let mut hardware_sample: Option<crate::hardware_worker::Sample> = None;
     drop(startup);
 
     while ctx.running() {
@@ -465,34 +528,26 @@ fn gather_from_magpie(ctx: ThreadCtx) {
             readings.running_apps = timed!("Running apps", Apps, magpie.apps());
         }
 
-        readings.disks_info = timed!("Disks info", Disks, magpie.disks_info());
-        smart_checked.retain(|id, _| readings.disks_info.iter().any(|disk| &disk.id == id));
-        smart_cache.retain(|id, _| readings.disks_info.iter().any(|disk| &disk.id == id));
-        if !reduced {
-            if let Some(disk) = readings.disks_info.iter().find(|disk| {
-                disk.smart_interface.is_some()
-                    && smart_checked
-                        .get(&disk.id)
-                        .is_none_or(|time| time.elapsed() >= Duration::from_secs(300))
-            }) {
-                smart_checked.insert(disk.id.clone(), Instant::now());
-                if let Some(data) = magpie.smart_data(disk.id.clone()) {
-                    smart_cache.insert(disk.id.clone(), data);
-                } else {
-                    smart_cache.remove(&disk.id);
-                }
-            }
-        }
-        readings.smart_data.clone_from(&smart_cache);
+        let disks = timed!("Disks info", Disks, magpie.disks_snapshot());
+        readings.disks_info = disks.disks;
+        readings.smart_data = disks.smart_data;
         readings.gpus = timed!("GPU info", Gpus, magpie.gpus());
         readings.cpu = timed!("CPU info", Cpu, magpie.cpu());
         readings.mem_info = timed!("Memory info", Memory, magpie.memory());
-        if hardware_enabled {
-            match hardware_access.read() {
-                Ok(data) => readings.hardware = Some(data),
-                Err(error) => {
-                    hardware_enabled = false;
-                    let _ = ctx.outbox.send(Event::HardwareAccess(Err(error)));
+        if let Some(sample) = ctx.hardware_samples.take() {
+            hardware_sample = Some(sample);
+        }
+        readings.hardware_epoch = ctx.hardware_control.epoch.load(atomic::Ordering::Acquire);
+        if ctx
+            .hardware_control
+            .sampling
+            .load(atomic::Ordering::Acquire)
+        {
+            if let Some(sample) = &hardware_sample {
+                if sample.epoch == readings.hardware_epoch
+                    && sample.at.elapsed() <= ctx.interval() * 3
+                {
+                    readings.hardware.clone_from(&sample.data);
                 }
             }
         }
@@ -558,31 +613,7 @@ fn gather_from_magpie(ctx: ThreadCtx) {
             profile::count(Counter::Overrun);
         }
         if !ctx.serve_until(deadline, |request| {
-            if let Request::SetHardwareAccess {
-                enabled,
-                interactive,
-            } = request
-            {
-                let result = hardware_access.set_enabled(enabled, interactive);
-                hardware_enabled = result.as_ref().copied().unwrap_or(false);
-                let _ = ctx.outbox.send(Event::HardwareAccess(result));
-            } else if request == Request::InstallHardwareService {
-                let result = hardware_access.install();
-                hardware_enabled = result.as_ref().copied().unwrap_or(false);
-                let _ = ctx.outbox.send(Event::HardwareAccess(result));
-            } else if request == Request::ReadSpd {
-                let result = if hardware_enabled {
-                    hardware_access.read_spd()
-                } else {
-                    crate::spd::read()
-                };
-                let _ = ctx.outbox.send(Event::Spd {
-                    privileged: hardware_enabled,
-                    result,
-                });
-            } else {
-                handle_request(&magpie, &ctx.outbox, request)
-            }
+            handle_request(&magpie, &ctx.outbox, request)
         }) {
             break;
         }
@@ -636,15 +667,11 @@ fn replay_fixtures(ctx: ThreadCtx, readings: Vec<Readings>, icons: HashMap<Strin
                     data: None,
                 }),
                 Request::AboutSystem => outbox.send(Event::About(About::default())),
-                Request::ReadSpd => outbox.send(Event::Spd {
-                    privileged: false,
-                    result: Err("SPD is unavailable for recorded or synthetic data.".into()),
-                }),
-                Request::SetHardwareAccess { .. } | Request::InstallHardwareService => {
-                    outbox.send(Event::HardwareAccess(Err(
-                        "Hardware access is unavailable for recorded or synthetic data.".into(),
-                    )))
-                }
+                // Hardware admission/completion is independent of gatherer request queues.
+                Request::ReadSpd { .. }
+                | Request::SetHardwareAccess { .. }
+                | Request::InstallHardwareService { .. }
+                | Request::CancelHardware { .. } => Ok(()),
                 _ => Ok(()),
             };
         }) {
@@ -656,6 +683,82 @@ fn replay_fixtures(ctx: ThreadCtx, readings: Vec<Readings>, icons: HashMap<Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn ordinary_snapshots_and_refresh_continue_during_held_authorization() {
+        let speed = Arc::new(AtomicU64::new(1));
+        let reduced_activity = Arc::new(AtomicBool::new(false));
+        let running = Arc::new(AtomicBool::new(true));
+        let readings = Arc::new(crate::LatestSlot::new());
+        let (requests, receiver) = mpsc::sync_channel(REQUEST_CAPACITY);
+        let (events, event_receiver) = mpsc::sync_channel(EVENT_CAPACITY);
+        let hardware = crate::hardware_worker::Handle::pending_authorization_for_test(
+            running.clone(),
+            speed.clone(),
+            events.clone(),
+            Arc::new(|| {}),
+        );
+        let ctx = ThreadCtx {
+            requests: receiver,
+            outbox: Outbox {
+                readings: readings.clone(),
+                events,
+                waker: Arc::new(|| {}),
+            },
+            running: running.clone(),
+            speed: speed.clone(),
+            reduced_activity: reduced_activity.clone(),
+            hardware_control: hardware.control.clone(),
+            hardware_samples: hardware.samples.clone(),
+        };
+        let thread = std::thread::spawn(move || {
+            replay_fixtures(ctx, crate::synthetic_series(2, 1), HashMap::new())
+        });
+        let client = MagpieClient {
+            speed,
+            reduced_activity,
+            running,
+            thread: Some(thread),
+            requests,
+            events: event_receiver,
+            readings,
+            hardware,
+        };
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while client.readings_stats().0 < 2 {
+            assert!(Instant::now() < deadline);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(
+            client
+                .hardware
+                .control
+                .active
+                .load(atomic::Ordering::Acquire),
+            1
+        );
+        let before = client.readings_stats().0;
+        assert!(client.send(Request::RefreshNow));
+        while client.readings_stats().0 == before {
+            assert!(Instant::now() < deadline);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(client.send(Request::CancelHardware { id: 1 }));
+        loop {
+            if let Some(Event::HardwareAccess {
+                id: Some(1),
+                result: Err(_),
+                ..
+            }) = client.try_event()
+            {
+                break;
+            }
+            assert!(Instant::now() < deadline);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let started = Instant::now();
+        drop(client);
+        assert!(started.elapsed() < Duration::from_secs(1));
+    }
     use std::sync::atomic::AtomicUsize;
 
     fn counting_waker() -> (Waker, Arc<AtomicUsize>) {

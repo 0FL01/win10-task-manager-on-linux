@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -69,6 +70,48 @@ class VerifyNativeTests(unittest.TestCase):
         self.assertIn("dbus-1-daemon", result["args"])
         self.assertIn("xvfb-run", result["args"])
         self.assertNotIn("--allow-unsigned-rpm", result["args"])
+
+    def test_optional_hardware_prerequisites_are_checked_before_smoke_dependencies(self):
+        script = (ROOT / "support/ci/verify-native.sh").read_text()
+        probes = script[script.index("test -x /usr/bin/taskmanager"):script.index("test -s /usr/share/missioncenter/hw.db")]
+        with tempfile.TemporaryDirectory() as temporary:
+            result = subprocess.run(
+                ["bash", "-c", """
+set -e
+test() { printf '%s\n' "$*" >> "$VERIFY_TEST_PROBES"; }
+grep() { return 0; }
+rpm() { printf '%s\n' "$*" >> "$VERIFY_TEST_PROBES"; }
+distro=opensuse-tumbleweed
+""" + probes],
+                env={**os.environ, "VERIFY_TEST_PROBES": f"{temporary}/probes"},
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            checked = (Path(temporary) / "probes").read_text().splitlines()
+            for binary in ("python3", "pkexec", "pkaction"):
+                self.assertIn(f"-x /usr/bin/{binary}", checked)
+            self.assertIn("-x /usr/libexec/taskmanager-hardware", checked)
+            self.assertIn("-q pkexec", checked)
+            self.assertIn("-s /usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy", checked)
+
+    @unittest.skipUnless(shutil.which("rpmspec"), "RPM metadata parser unavailable")
+    def test_rpm_metadata_recommends_opensuse_split_pkexec_package(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            # The GPU closure is unrelated to this dependency query; provide an empty filter.
+            filter_directory = Path(temporary) / "usr/lib/taskmanager/gpu"
+            filter_directory.mkdir(parents=True)
+            (filter_directory / "rpm-requires-filter.txt").touch()
+            for suse, expected in ((0, False), (1600, True)):
+                result = subprocess.run(
+                    ["rpmspec", "--parse", "--define", f"stagedir {temporary}",
+                     "--define", f"suse_version {suse}", str(ROOT / "packaging/rpm/taskmanager.spec")],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                recommends = [line.split(":", 1)[1].strip() for line in result.stdout.splitlines() if line.startswith("Recommends:")]
+                self.assertIn("polkit", recommends)
+                self.assertEqual("pkexec" in recommends, expected)
+                self.assertIn("Requires:       python3", result.stdout)
 
     def test_gui_smoke_uses_truecolor_screen_instead_of_distribution_default(self):
         script = (ROOT / "support/ci/verify-native.sh").read_text()

@@ -85,7 +85,7 @@ impl Dialogs {
             },
             Event::IconsReady(_)
             | Event::Fatal(_)
-            | Event::HardwareAccess(_)
+            | Event::HardwareAccess { .. }
             | Event::Spd { .. } => {}
         }
         let _ = magpie;

@@ -38,6 +38,8 @@ case $distro in
         ;;
     arch)
         pacman -Syu --noconfirm
+        # optdepends are intentionally optional to users; exercise them in this verifier.
+        pacman -S --needed --noconfirm polkit
         # Keep the image's repositories/signature policy, but extract translations.
         pacman --config <(printf '%s\n' '[options]' 'Include = /etc/pacman.conf' \
             '[options]' 'NoExtract = !usr/share/locale/*') -U --noconfirm "$package"
@@ -53,6 +55,21 @@ fi
 
 test -x /usr/bin/taskmanager
 test -x /usr/bin/missioncenter-magpie
+test -x /usr/bin/python3
+test -x /usr/bin/pkexec
+test -x /usr/bin/pkaction
+test -x /usr/libexec/taskmanager-hardware
+test -s /usr/lib/systemd/system/taskmanager-hardware.service
+test -s /usr/lib/systemd/system/taskmanager-hardware.socket
+test -s /usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy
+grep -Fq 'ExecStart=/usr/libexec/taskmanager-hardware serve' \
+    /usr/lib/systemd/system/taskmanager-hardware.service
+grep -Fq '>/usr/libexec/taskmanager-hardware</annotate>' \
+    /usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy
+if [[ $distro == opensuse-tumbleweed ]]; then
+    # Python alone does not prove the split pkexec prerequisite was installed.
+    rpm -q pkexec >/dev/null
+fi
 test -s /usr/share/missioncenter/hw.db
 test -s /usr/share/applications/io.github.taskmanager.TaskManager.desktop
 grep -Fq "<release version=\"$version\"" \

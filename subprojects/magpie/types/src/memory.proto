@@ -124,6 +124,11 @@ message MemoryDevice {
   optional string serial_number = 10;
   optional string part_number = 11;
   optional float configured_voltage_v = 12;
+  // Explicit SMBIOS/udev presence; unset means unknown, including old fixtures.
+  // A zero/missing size alone does not establish that the slot is empty.
+  optional bool present = 13;
+  // Provenance of speed: true = configured, false = rated fallback, unset = unknown.
+  optional bool speed_configured = 14;
 }
 
 message MemoryRequest {

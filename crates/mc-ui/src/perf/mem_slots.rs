@@ -18,6 +18,39 @@ use mc_core::{
 };
 use mc_magpie::{MemoryDevice, Readings, SpdEeprom};
 
+pub(super) fn slot_is_empty(slot: &MemoryDevice) -> bool {
+    slot.present == Some(false)
+}
+
+/// Old fixtures have no presence flag: their positive capacities remain usable,
+/// but their zero capacities cannot distinguish empty slots from unknown sizes.
+pub(super) fn known_capacity(slot: &MemoryDevice) -> Option<u64> {
+    if slot_is_empty(slot) {
+        Some(0)
+    } else {
+        (slot.size > 0).then_some(slot.size)
+    }
+}
+
+pub(super) fn capacity_label(slot: &MemoryDevice) -> String {
+    match known_capacity(slot) {
+        Some(0) => i18n("Empty"),
+        Some(size) if size.is_multiple_of(1024 * 1024 * 1024) => {
+            format!("{} GiB", size / (1024 * 1024 * 1024))
+        }
+        Some(size) => to_human_readable_nice(size as f32, &DataType::MemoryBytes),
+        None => i18n("Unknown"),
+    }
+}
+
+fn speed_label(slot: &MemoryDevice) -> &'static str {
+    if slot.speed_configured == Some(true) {
+        n_("Configured speed (SMBIOS)")
+    } else {
+        n_("Speed (SMBIOS)")
+    }
+}
+
 pub struct MemorySlots {
     slots: Vec<MemoryDevice>,
     total: u64,
@@ -55,8 +88,10 @@ impl MemorySlots {
             self.rejected.clear();
             self.status.clear();
         }
-        self.pending = false;
         self.privileged = false;
+    }
+    pub fn set_pending(&mut self, pending: bool) {
+        self.pending = pending;
     }
     pub fn update_spd(&mut self, privileged: bool, result: &Result<Vec<SpdEeprom>, String>) {
         self.privileged = privileged;
@@ -139,7 +174,8 @@ impl MemorySlots {
                     } else {
                         slot.locator.clone()
                     };
-                    let occupied = slot.size > 0;
+                    let occupied =
+                        !slot_is_empty(slot) && (slot.size > 0 || slot.present == Some(true));
                     let so = slot
                         .form_factor
                         .to_ascii_uppercase()
@@ -224,17 +260,7 @@ impl MemorySlots {
                         pal::TEXT,
                         Align::Center,
                     );
-                    let value = if occupied {
-                        if slot.size >= 1024 * 1024 * 1024
-                            && slot.size.is_multiple_of(1024 * 1024 * 1024)
-                        {
-                            format!("{} GiB", slot.size / (1024 * 1024 * 1024))
-                        } else {
-                            to_human_readable_nice(slot.size as f32, &DataType::MemoryBytes)
-                        }
-                    } else {
-                        i18n("Empty")
-                    };
+                    let value = capacity_label(slot);
                     paint::text(
                         p,
                         cell.center().x,
@@ -258,9 +284,8 @@ impl MemorySlots {
                         .on_hover_text(tooltip);
                     if response.clicked() {
                         self.selected = Some(index);
-                        if occupied && !self.pending {
-                            cx.send(Command::Magpie(mc_magpie::Request::ReadSpd));
-                            self.pending = true;
+                        if !slot_is_empty(slot) && !self.pending {
+                            cx.send(Command::ReadSpd);
                             self.status.clear();
                         }
                     }
@@ -284,12 +309,12 @@ impl MemorySlots {
             egui::ScrollArea::vertical().max_height(m::SPD_SCROLL_MAX_H).show(ui, |ui| {
                 let Some(slot) = self.slots.get(index) else { return; };
                 ui.heading(if slot.locator.is_empty() {i18n("Memory module")} else {slot.locator.clone()});
-                if slot.size == 0 { ui.label(i18n("Empty")); return; }
-                metadata(ui, n_("Capacity"), &to_human_readable_nice(slot.size as f32, &DataType::MemoryBytes));
+                if slot_is_empty(slot) { ui.label(i18n("Empty")); return; }
+                metadata(ui, n_("Capacity"), &capacity_label(slot));
                 for (label,value) in [(n_("Form factor"),Some(&slot.form_factor)),(n_("Type"),Some(&slot.ram_type)),(n_("Manufacturer"),slot.manufacturer.as_ref()),(n_("Part number"),slot.part_number.as_ref()),(n_("Serial number"),slot.serial_number.as_ref())] {
                     if let Some(value) = value.filter(|s| !s.is_empty()) {metadata(ui,label,value);}
                 }
-                if slot.speed > 0 { metadata(ui,n_("Configured speed (SMBIOS)"),&format!("{} MT/s",slot.speed)); }
+                if slot.speed > 0 { metadata(ui,speed_label(slot),&format!("{} MT/s",slot.speed)); }
                 if let Some(v) = slot.configured_voltage_v {metadata(ui,n_("Configured voltage (SMBIOS)"),&format!("{v:.3} V"));}
                 if slot.rank > 0 {metadata(ui,n_("Ranks (SMBIOS)"),&slot.rank.to_string());}
                 ui.separator();
@@ -336,6 +361,27 @@ fn spd_ui(ui: &mut Ui, module: &SpdModule) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn old_fixture_defaults_preserve_capacity_without_claiming_empty_or_configured() {
+        let slot: MemoryDevice = serde_json::from_str(
+            r#"{"size":8589934592,"form_factor":"DIMM","locator":"A1","bank_locator":"","ram_type":"DDR4","speed":3200,"rank":1}"#,
+        )
+        .unwrap();
+        assert_eq!(slot.present, None);
+        assert_eq!(slot.speed_configured, None);
+        assert_eq!(known_capacity(&slot), Some(8589934592));
+        assert_eq!(speed_label(&slot), "Speed (SMBIOS)");
+        let unknown = MemoryDevice { size: 0, ..slot };
+        assert!(!slot_is_empty(&unknown));
+        assert_eq!(capacity_label(&unknown), "Unknown");
+        let empty = MemoryDevice {
+            present: Some(false),
+            ..unknown
+        };
+        assert!(slot_is_empty(&empty));
+        assert_eq!(capacity_label(&empty), "Empty");
+    }
+
     #[test]
     fn revocation_clears_privileged_spd_even_when_page_is_hidden() {
         let mut slots = MemorySlots::new(&Readings::new());

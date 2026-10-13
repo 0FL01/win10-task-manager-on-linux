@@ -77,6 +77,11 @@ pub fn vgradient(painter: &Painter, x: f32, y0: f32, y1: f32, top: Color32, bott
 /// Anti-aliased 1 px line between pixel centres.
 pub fn line(painter: &Painter, from: (f32, f32), to: (f32, f32), color: Color32) {
     let color = super::palette::resolve(painter.ctx(), color);
+    line_ink(painter, from, to, color);
+}
+
+/// The same 1 px geometry, with ink already chosen for its surface (no palette resolution).
+pub(super) fn line_ink(painter: &Painter, from: (f32, f32), to: (f32, f32), color: Color32) {
     painter.line_segment(
         [
             pos2(from.0 + 0.5, from.1 + 0.5),

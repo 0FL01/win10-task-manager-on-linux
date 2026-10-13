@@ -64,7 +64,10 @@ pub fn gpu_voltage(device: &Path) -> Option<f32> {
 pub fn clock_mhz(root: &Path, labels: &[&str]) -> Option<f32> {
     let mut values = Vec::new();
     for sensor in std::fs::read_dir(root).ok()?.flatten() {
-        for entry in std::fs::read_dir(sensor.path()).ok()?.flatten() {
+        let Ok(entries) = std::fs::read_dir(sensor.path()) else {
+            continue;
+        };
+        for entry in entries.flatten() {
             let name = entry.file_name();
             let name = name.to_string_lossy();
             let Some(channel) = name.strip_suffix("_input").filter(|s| {
@@ -92,31 +95,44 @@ pub fn clock_mhz(root: &Path, labels: &[&str]) -> Option<f32> {
 }
 
 pub fn memory_errors(root: &Path) -> (Option<u64>, Option<u64>) {
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return (None, None);
+    };
+    memory_errors_from(entries.map(|entry| entry.map(|entry| entry.path())))
+}
+
+fn memory_errors_from(
+    entries: impl IntoIterator<Item = std::io::Result<PathBuf>>,
+) -> (Option<u64>, Option<u64>) {
     let mut corrected = None::<u64>;
     let mut uncorrected = None::<u64>;
     let mut corrected_complete = true;
     let mut uncorrected_complete = true;
-    if let Ok(entries) = std::fs::read_dir(root) {
-        for entry in entries.flatten() {
-            let name = entry.file_name();
-            let name = name.to_string_lossy();
-            if !name
-                .strip_prefix("mc")
-                .is_some_and(|s| !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit()))
-            {
-                continue;
-            }
-            // Only controller totals, never DIMM totals as well (which would double-count).
-            if let Some(v) = number::<u64>(entry.path().join("ce_count")) {
-                corrected = Some(corrected.unwrap_or(0).saturating_add(v));
-            } else {
-                corrected_complete = false;
-            }
-            if let Some(v) = number::<u64>(entry.path().join("ue_count")) {
-                uncorrected = Some(uncorrected.unwrap_or(0).saturating_add(v));
-            } else {
-                uncorrected_complete = false;
-            }
+    for entry in entries {
+        // An enumeration failure may hide a controller, so neither sum is complete.
+        let Ok(path) = entry else {
+            return (None, None);
+        };
+        let Some(name) = path.file_name() else {
+            continue;
+        };
+        let name = name.to_string_lossy();
+        if !name
+            .strip_prefix("mc")
+            .is_some_and(|s| !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit()))
+        {
+            continue;
+        }
+        // Only controller totals, never DIMM totals as well (which would double-count).
+        if let Some(v) = number::<u64>(path.join("ce_count")) {
+            corrected = Some(corrected.unwrap_or(0).saturating_add(v));
+        } else {
+            corrected_complete = false;
+        }
+        if let Some(v) = number::<u64>(path.join("ue_count")) {
+            uncorrected = Some(uncorrected.unwrap_or(0).saturating_add(v));
+        } else {
+            uncorrected_complete = false;
         }
     }
     (
@@ -179,5 +195,32 @@ mod tests {
         std::fs::create_dir(dir.path().join("mc1")).unwrap();
         std::fs::write(dir.path().join("mc1/ce_count"), "3").unwrap();
         assert_eq!(memory_errors(dir.path()), (Some(10), None));
+    }
+
+    #[test]
+    fn disappearing_hwmon_directory_does_not_hide_a_readable_clock() {
+        let dir = TempDir::new();
+        std::os::unix::fs::symlink(dir.path().join("removed"), dir.path().join("hwmon0")).unwrap();
+        let sensor = dir.path().join("hwmon1");
+        std::fs::create_dir(&sensor).unwrap();
+        std::fs::write(sensor.join("freq1_label"), "MCLK").unwrap();
+        std::fs::write(sensor.join("freq1_input"), "1600000000").unwrap();
+        assert_eq!(clock_mhz(dir.path(), &["MCLK"]), Some(1600.));
+    }
+
+    #[test]
+    fn edac_iterator_error_invalidates_both_partial_sums() {
+        let dir = TempDir::new();
+        let controller = dir.path().join("mc0");
+        std::fs::create_dir(&controller).unwrap();
+        std::fs::write(controller.join("ce_count"), "7").unwrap();
+        std::fs::write(controller.join("ue_count"), "2").unwrap();
+        assert_eq!(
+            memory_errors_from([
+                Ok(controller),
+                Err(std::io::Error::other("controller enumeration failed")),
+            ]),
+            (None, None)
+        );
     }
 }

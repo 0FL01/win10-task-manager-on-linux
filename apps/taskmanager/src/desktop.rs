@@ -35,13 +35,20 @@ pub struct Instance {
     wake: Option<Receiver<()>>,
 }
 
+#[derive(Debug)]
+pub enum ClaimError {
+    BusUnavailable(zbus::Error),
+    Failed(zbus::Error),
+}
+
 impl Instance {
-    /// A name race is resolved by activating the winner. Failure of the session bus permits
-    /// a normal launch rather than making the task manager inaccessible.
-    pub fn claim() -> Result<Option<Self>, zbus::Error> {
+    /// A name race is resolved by activating the winner. Only an unavailable session bus permits
+    /// an unregistered launch; a failed handoff must not open a duplicate window.
+    pub fn claim() -> Result<Option<Self>, ClaimError> {
         let requested = Arc::new(AtomicBool::new(false));
         let (wake, receiver) = mpsc::sync_channel(1);
-        let connection = Builder::session()?
+        let connection = Builder::session()
+            .map_err(ClaimError::BusUnavailable)?
             .method_timeout(Duration::from_secs(2))
             .serve_at(
                 "/TaskManager",
@@ -49,36 +56,44 @@ impl Instance {
                     requested: requested.clone(),
                     wake,
                 },
-            )?
+            )
+            .map_err(ClaimError::Failed)?
             .build()
-            .and_then(|connection| {
-                connection.request_name_with_flags(
-                    super::APP_ID,
-                    zbus::fdo::RequestNameFlags::DoNotQueue.into(),
-                )?;
-                Ok(connection)
-            });
-        match connection {
-            Ok(connection) => Ok(Some(Self {
-                _connection: connection,
-                requested,
-                wake: Some(receiver),
-            })),
+            .map_err(ClaimError::BusUnavailable)?;
+        let request_name = || {
+            connection.request_name_with_flags(
+                super::APP_ID,
+                zbus::fdo::RequestNameFlags::DoNotQueue.into(),
+            )
+        };
+        match request_name() {
+            Ok(_) => {}
             Err(zbus::Error::NameTaken) => {
-                let connection = Builder::session()?
-                    .method_timeout(Duration::from_secs(2))
-                    .build()?;
-                connection.call_method(
+                if let Err(error) = connection.call_method(
                     Some(super::APP_ID),
                     "/TaskManager",
                     Some(super::APP_ID),
                     "Activate",
                     &(),
-                )?;
-                Ok(None)
+                ) {
+                    // The owner may have disappeared during activation. One atomic request can
+                    // reclaim the free name, but never replace or queue behind a racing owner.
+                    match request_name() {
+                        Ok(_) => {}
+                        Err(zbus::Error::NameTaken) => return Err(ClaimError::Failed(error)),
+                        Err(error) => return Err(ClaimError::Failed(error)),
+                    }
+                } else {
+                    return Ok(None);
+                }
             }
-            Err(error) => Err(error),
+            Err(error) => return Err(ClaimError::Failed(error)),
         }
+        Ok(Some(Self {
+            _connection: connection,
+            requested,
+            wake: Some(receiver),
+        }))
     }
 
     pub fn attach(&mut self, ctx: egui::Context) {
@@ -260,7 +275,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires an isolated session bus; run with dbus-run-session"]
+    #[ignore = "requires an isolated session bus; run with dbus-run-session and --test-threads=1"]
     fn second_instance_activates_the_existing_owner() {
         let owner = Instance::claim().unwrap().unwrap();
         assert!(Instance::claim().unwrap().is_none());
@@ -269,6 +284,95 @@ mod tests {
             assert!(std::time::Instant::now() < deadline);
             std::thread::sleep(Duration::from_millis(10));
         }
+    }
+
+    struct FailedActivation {
+        release_name: bool,
+        replacement: Option<zbus::Connection>,
+    }
+
+    #[zbus::interface(name = "io.github.taskmanager.TaskManager")]
+    impl FailedActivation {
+        async fn activate(
+            &self,
+            #[zbus(connection)] connection: &zbus::Connection,
+        ) -> zbus::fdo::Result<()> {
+            if self.release_name {
+                connection
+                    .release_name(super::super::APP_ID)
+                    .await
+                    .map_err(|error| zbus::fdo::Error::Failed(error.to_string()))?;
+            }
+            if let Some(replacement) = &self.replacement {
+                replacement
+                    .request_name_with_flags(
+                        super::super::APP_ID,
+                        zbus::fdo::RequestNameFlags::DoNotQueue.into(),
+                    )
+                    .await
+                    .map_err(|error| zbus::fdo::Error::Failed(error.to_string()))?;
+            }
+            Err(zbus::fdo::Error::Failed("Activation rejected".into()))
+        }
+    }
+
+    fn failed_owner(release_name: bool, replacement: Option<&Connection>) -> Connection {
+        let connection = Builder::session()
+            .unwrap()
+            .serve_at(
+                "/TaskManager",
+                FailedActivation {
+                    release_name,
+                    replacement: replacement.map(|connection| connection.inner().clone()),
+                },
+            )
+            .unwrap()
+            .build()
+            .unwrap();
+        connection
+            .request_name_with_flags(
+                super::super::APP_ID,
+                zbus::fdo::RequestNameFlags::DoNotQueue.into(),
+            )
+            .unwrap();
+        connection
+    }
+
+    #[test]
+    #[ignore = "requires an isolated session bus; run with dbus-run-session and --test-threads=1"]
+    fn failed_handoff_to_existing_owner_aborts() {
+        let _owner = failed_owner(false, None);
+        assert!(matches!(
+            Instance::claim(),
+            Err(ClaimError::Failed(zbus::Error::MethodError(_, message, _)))
+                if message.as_deref() == Some("Activation rejected")
+        ));
+    }
+
+    #[test]
+    #[ignore = "requires an isolated session bus; run with dbus-run-session and --test-threads=1"]
+    fn disappearing_owner_allows_one_reclaim() {
+        let _owner = failed_owner(true, None);
+        let reclaimed = Instance::claim().unwrap().unwrap();
+        assert!(Instance::claim().unwrap().is_none());
+        assert!(reclaimed.take_activation());
+    }
+
+    #[test]
+    #[ignore = "requires an isolated session bus; run with dbus-run-session and --test-threads=1"]
+    fn losing_reclaim_race_aborts() {
+        let replacement = Builder::session().unwrap().build().unwrap();
+        let _owner = failed_owner(true, Some(&replacement));
+        assert!(matches!(Instance::claim(), Err(ClaimError::Failed(_))));
+        assert_eq!(
+            replacement
+                .request_name_with_flags(
+                    super::super::APP_ID,
+                    zbus::fdo::RequestNameFlags::DoNotQueue.into(),
+                )
+                .unwrap(),
+            zbus::fdo::RequestNameReply::AlreadyOwner
+        );
     }
 
     #[test]

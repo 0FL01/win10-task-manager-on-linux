@@ -34,6 +34,8 @@ this document, never the screenshots.
   brightness. Heat cells use brown/gold shades (`palette.rs`); device hues are preserved.
   Dark graphs use a `#202020` background, 12% device-hue fill and 30% grid against that background,
   with line/border colour 75% original hue and 25% white.
+  Close hover/pressed keeps its red surface and `#ffffff` glyph in both themes: the glyph is ink,
+  not the white surface role that becomes `#202020` in Dark.
 - System is last by default in Performance. Its sidebar mini-graph slot contains an own-drawn
   monitor outline, without invented history. The main page reuses title origin, 12 px label/value
   text, 18 px row pitch, graph-top origin and standard scrollbar; group headings use heading colour.

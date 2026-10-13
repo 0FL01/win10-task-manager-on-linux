@@ -93,6 +93,8 @@ pub enum Command {
     SetLaunchShortcuts([bool; 2]),
     SetHardwareAccess(bool),
     InstallHardwareService,
+    ReadSpd,
+    CancelHardware,
     ToggleSummaryMode,
     /// Select the first visible device of a category ("cpu", "memory", "disk", ...)
     SelectDeviceCategory(&'static str),

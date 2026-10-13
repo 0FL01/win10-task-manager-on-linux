@@ -63,6 +63,7 @@ struct Labels {
     cpufreq_governor: Option<String>,
     power_preference: Option<String>,
     hardware: Vec<(String, String)>,
+    unprivileged_hardware: Vec<(String, String)>,
 }
 
 pub struct CpuPage {
@@ -337,6 +338,15 @@ impl DevicePage for CpuPage {
 
         let l = &mut self.labels;
         l.hardware.clear();
+        l.unprivileged_hardware.clear();
+        if let Some(bclk) = cpu.bclk_mhz {
+            l.unprivileged_hardware
+                .push((i18n("BCLK:"), format!("{bclk:.2} MHz")));
+        }
+        if let Some(voltage) = cpu.voltage_v {
+            l.unprivileged_hardware
+                .push((i18n("CPU voltage:"), format!("{voltage:.3} V")));
+        }
         if let Some(bclk) = cpu
             .bclk_mhz
             .or_else(|| readings.hardware.as_ref().and_then(|data| data.bclk_mhz))
@@ -378,7 +388,9 @@ impl DevicePage for CpuPage {
                 .filter_map(|c| Some((c.package_id?, c.core_id?)))
                 .collect();
             if !cores.is_empty() {
-                l.hardware.push((i18n("Cores:"), cores.len().to_string()));
+                let row = (i18n("Cores:"), cores.len().to_string());
+                l.unprivileged_hardware.push(row.clone());
+                l.hardware.push(row);
             }
             let mut kinds = std::collections::BTreeMap::<&str, std::collections::HashSet<_>>::new();
             for c in &cpu.logical_cpus {
@@ -388,14 +400,16 @@ impl DevicePage for CpuPage {
                 }
             }
             if !kinds.is_empty() {
-                l.hardware.push((
+                let row = (
                     i18n("Core types:"),
                     kinds
                         .iter()
                         .map(|(kind, cores)| format!("{} {kind}", cores.len()))
                         .collect::<Vec<_>>()
                         .join(" + "),
-                ));
+                );
+                l.unprivileged_hardware.push(row.clone());
+                l.hardware.push(row);
             }
             if topology_changed {
                 self.core_tooltips = cpu
@@ -476,6 +490,11 @@ impl DevicePage for CpuPage {
         repaint
     }
 
+    fn clear_privileged_hardware(&mut self) {
+        self.labels
+            .hardware
+            .clone_from(&self.labels.unprivileged_hardware);
+    }
     fn win10_view(&mut self, config: &Config) -> PageView<'_> {
         let selection = config.performance_page_cpu_graph;
         let bottom = self.bottom_selection(config);

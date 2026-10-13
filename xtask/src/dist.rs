@@ -340,7 +340,7 @@ pub fn install(args: &[String]) -> Result<(), String> {
             &root.join("target/release/taskmanager"),
             &base.join("bin/taskmanager"),
         )?;
-        install_hardware_files(&root, &prefix, &base)?;
+        install_optional_hardware_files(&root, &prefix, destdir.as_deref())?;
         // The Mission Center statistics backend keeps its own names
         copy(
             &magpie_binary(&root)?,
@@ -417,17 +417,42 @@ pub fn install_hardware(args: &[String]) -> Result<(), String> {
             _ => return Err(format!("Unknown install-hardware argument: {arg}")),
         }
     }
-    if prefix != Path::new("/usr") && prefix != Path::new("/usr/local") {
-        return Err("Hardware helper prefix must be /usr or /usr/local.".into());
-    }
-    let base = destdir.map_or_else(
-        || prefix.clone(),
-        |dir| dir.join(prefix.strip_prefix("/").unwrap()),
-    );
-    install_hardware_files(&crate::root(), &prefix, &base)
+    install_hardware_files(&crate::root(), &prefix, destdir.as_deref())
 }
 
-fn install_hardware_files(root: &Path, prefix: &Path, base: &Path) -> Result<(), String> {
+fn hardware_prefix_supported(prefix: &Path) -> bool {
+    // Exact spellings: no relative prefixes or paths containing `..` in a staging root.
+    matches!(prefix.as_os_str().to_str(), Some("/usr" | "/usr/local"))
+}
+
+fn install_optional_hardware_files(
+    root: &Path,
+    prefix: &Path,
+    destdir: Option<&Path>,
+) -> Result<(), String> {
+    if !hardware_prefix_supported(prefix) {
+        println!(
+            "Skipping optional hardware helper: prefix {} is unsupported (use /usr or /usr/local).",
+            prefix.display()
+        );
+        return Ok(());
+    }
+    install_hardware_files(root, prefix, destdir)
+}
+
+fn install_hardware_files(
+    root: &Path,
+    prefix: &Path,
+    destdir: Option<&Path>,
+) -> Result<(), String> {
+    if !hardware_prefix_supported(prefix) {
+        return Err("Hardware helper prefix must be /usr or /usr/local.".into());
+    }
+    let staged = |path: &Path| match destdir {
+        Some(directory) => directory.join(path.strip_prefix("/").unwrap()),
+        None => path.to_path_buf(),
+    };
+    let base = staged(prefix);
     let helper = base.join("libexec/taskmanager-hardware");
     fs::create_dir_all(helper.parent().unwrap()).map_err(|e| e.to_string())?;
     fs::copy(root.join("support/taskmanager-hardware"), &helper).map_err(|e| e.to_string())?;
@@ -440,18 +465,19 @@ fn install_hardware_files(root: &Path, prefix: &Path, base: &Path) -> Result<(),
     for (source, destination) in [
         (
             "taskmanager-hardware.service",
-            "lib/systemd/system/taskmanager-hardware.service",
+            prefix.join("lib/systemd/system/taskmanager-hardware.service"),
         ),
         (
             "taskmanager-hardware.socket",
-            "lib/systemd/system/taskmanager-hardware.socket",
+            prefix.join("lib/systemd/system/taskmanager-hardware.socket"),
         ),
         (
             "io.github.taskmanager.hardware.policy",
-            "share/polkit-1/actions/io.github.taskmanager.hardware.policy",
+            PathBuf::from("/usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy"),
         ),
     ] {
-        let target = base.join(destination);
+        // Polkit actions are discovered under /usr/share even for a /usr/local helper.
+        let target = staged(&destination);
         fs::create_dir_all(target.parent().unwrap()).map_err(|e| e.to_string())?;
         let content =
             fs::read_to_string(root.join("data").join(source)).map_err(|e| e.to_string())?;
@@ -515,34 +541,66 @@ mod hardware_tests {
             std::process::id()
         ));
         fs::create_dir(&directory).unwrap();
-        let base = directory.join("usr/local");
-        install_hardware_files(&crate::root(), Path::new("/usr/local"), &base).unwrap();
-        let helper = base.join("libexec/taskmanager-hardware");
-        assert!(helper.is_file());
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            assert_eq!(
-                fs::metadata(&helper).unwrap().permissions().mode() & 0o777,
-                0o755
+        for (index, prefix) in ["/usr", "/usr/local"].into_iter().enumerate() {
+            let stage = directory.join(index.to_string());
+            let base = stage.join(prefix.strip_prefix('/').unwrap());
+            install_hardware(&[
+                "--prefix".into(),
+                prefix.into(),
+                "--destdir".into(),
+                stage.display().to_string(),
+            ])
+            .unwrap();
+            let helper = base.join("libexec/taskmanager-hardware");
+            assert!(helper.is_file());
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                assert_eq!(
+                    fs::metadata(&helper).unwrap().permissions().mode() & 0o777,
+                    0o755
+                );
+            }
+            let service =
+                fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.service"))
+                    .unwrap();
+            let policy = fs::read_to_string(
+                stage.join("usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy"),
+            )
+            .unwrap();
+            assert!(service.contains(&format!(
+                "ExecStart={prefix}/libexec/taskmanager-hardware serve"
+            )));
+            assert!(policy.contains(&format!(
+                ">{prefix}/libexec/taskmanager-hardware</annotate>"
+            )));
+            assert!(policy.contains(">enable</annotate>"));
+            let socket =
+                fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.socket"))
+                    .unwrap();
+            assert!(socket.contains("ListenStream=/run/taskmanager-hardware.sock"));
+            assert!(!stage.join("var/lib/taskmanager-hardware").exists());
+            if prefix == "/usr/local" {
+                assert!(!base.join("share/polkit-1/actions").exists());
+            }
+        }
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn arbitrary_app_prefix_skips_optional_helper_but_explicit_install_rejects_it() {
+        // Invalid roots prove skipping happens before any helper I/O.
+        let root = Path::new("/missing-taskmanager-source");
+        for prefix in ["/opt/taskmanager", "relative", "/usr/../usr", "/usr/local/"] {
+            assert!(install_optional_hardware_files(root, Path::new(prefix), None).is_ok());
+            assert!(
+                install_hardware_files(root, Path::new(prefix), None)
+                    .unwrap_err()
+                    .contains("/usr or /usr/local")
             );
         }
-        let service =
-            fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.service"))
-                .unwrap();
-        let policy = fs::read_to_string(
-            base.join("share/polkit-1/actions/io.github.taskmanager.hardware.policy"),
-        )
-        .unwrap();
-        assert!(service.contains("ExecStart=/usr/local/libexec/taskmanager-hardware serve"));
-        assert!(policy.contains(">/usr/local/libexec/taskmanager-hardware</annotate>"));
-        assert!(policy.contains(">enable</annotate>"));
-        let socket =
-            fs::read_to_string(base.join("lib/systemd/system/taskmanager-hardware.socket"))
-                .unwrap();
-        assert!(socket.contains("ListenStream=/run/taskmanager-hardware.sock"));
-        assert!(!directory.join("var/lib/taskmanager-hardware").exists());
-        fs::remove_dir_all(directory).unwrap();
+        assert!(hardware_prefix_supported(Path::new("/usr")));
+        assert!(hardware_prefix_supported(Path::new("/usr/local")));
     }
 }
 

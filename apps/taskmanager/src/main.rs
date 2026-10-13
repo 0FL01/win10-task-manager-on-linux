@@ -275,9 +275,13 @@ fn main() -> eframe::Result {
         match desktop::Instance::claim() {
             Ok(Some(instance)) => Some(instance),
             Ok(None) => return Ok(()),
-            Err(error) => {
+            Err(desktop::ClaimError::BusUnavailable(error)) => {
                 log::warn!("Desktop activation unavailable: {error}");
                 None
+            }
+            Err(desktop::ClaimError::Failed(error)) => {
+                eprintln!("Could not activate Task Manager: {error}");
+                std::process::exit(1);
             }
         }
     } else {

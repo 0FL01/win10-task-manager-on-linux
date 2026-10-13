@@ -764,7 +764,9 @@ impl Client {
         )
     }
 
-    pub fn disks_info(&self) -> Vec<Disk> {
+    /// Disk inventory and fresh backend SMART cache from the same response.
+    /// Older daemons leave the cache empty; no legacy SMART request is made.
+    pub fn disks_snapshot(&self) -> DiskList {
         let mut socket = self.socket.borrow_mut();
 
         let response = make_request(ipc::req_get_disks(), &mut socket, self.socket_addr.as_ref())
@@ -775,7 +777,7 @@ impl Client {
             ResponseBody::Disks,
             DisksResponse::Disks,
             DisksResponse::Error,
-            |mut disks: DiskList| { std::mem::take(&mut disks.disks) }
+            |disks: DiskList| disks
         )
     }
 
@@ -1170,5 +1172,45 @@ impl Client {
             ServicesResponse::Error,
             |_| {}
         )
+    }
+}
+
+#[cfg(test)]
+mod disk_snapshot_tests {
+    use super::*;
+
+    #[test]
+    fn old_disk_fixture_defaults_to_an_empty_smart_cache() {
+        let disk = Disk {
+            id: "legacy".into(),
+            ..Default::default()
+        };
+        let fixture = serde_json::json!({ "disks": [disk] });
+        let snapshot: DiskList = serde_json::from_value(fixture).unwrap();
+        assert_eq!(snapshot.disks[0].id, "legacy");
+        assert!(snapshot.smart_data.is_empty());
+    }
+
+    #[test]
+    fn legacy_protocol_snapshot_is_accepted_and_errors_default_to_empty() {
+        let legacy = magpie_types::disks::DisksResponse::decode(&[0x12, 0x00][..]).unwrap();
+        let response = Some(ResponseBody::Disks(legacy));
+        let snapshot: DiskList = parse_response!(
+            response,
+            ResponseBody::Disks,
+            DisksResponse::Disks,
+            DisksResponse::Error,
+            |disks: DiskList| disks
+        );
+        assert!(snapshot.smart_data.is_empty());
+        let response = None;
+        let empty: DiskList = parse_response!(
+            response,
+            ResponseBody::Disks,
+            DisksResponse::Disks,
+            DisksResponse::Error,
+            |disks: DiskList| disks
+        );
+        assert_eq!(empty, DiskList::default());
     }
 }

@@ -13,10 +13,12 @@ pub struct SpdEeprom {
 }
 
 #[cfg(target_os = "linux")]
-pub(crate) fn read() -> Result<Vec<SpdEeprom>, String> {
+pub(crate) fn read(check: impl Fn() -> Result<(), String>) -> Result<Vec<SpdEeprom>, String> {
+    check()?;
     let mut devices = vec![];
     let entries = std::fs::read_dir("/sys/bus/i2c/devices").map_err(|e| e.to_string())?;
     for entry in entries.flatten() {
+        check()?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
         let Some((bus, address)) = name.split_once('-') else {
@@ -46,8 +48,10 @@ pub(crate) fn read() -> Result<Vec<SpdEeprom>, String> {
             .and_then(|f| f.take(1024).read_to_end(&mut bytes))
             .is_err()
         {
+            check()?;
             continue;
         }
+        check()?;
         if bytes.len() < 128 {
             continue;
         }
@@ -63,6 +67,6 @@ pub(crate) fn read() -> Result<Vec<SpdEeprom>, String> {
 }
 
 #[cfg(not(target_os = "linux"))]
-pub(crate) fn read() -> Result<Vec<SpdEeprom>, String> {
+pub(crate) fn read(_: impl Fn() -> Result<(), String>) -> Result<Vec<SpdEeprom>, String> {
     Err("SPD reading is available on Linux.".into())
 }

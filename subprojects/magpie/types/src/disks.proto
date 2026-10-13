@@ -168,6 +168,8 @@ message DisksRequest {
 message DisksResponse {
   message DiskList {
     repeated Disk disks = 1;
+    // Only fresh, automatically collected data; missing means unavailable.
+    map<string, SmartData> smart_data = 2;
   }
 
   message OptionalSmartData {

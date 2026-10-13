@@ -11,6 +11,10 @@ fn main() {
         // Fields added after recorded fixtures existed
         .field_attribute(".magpie.memory.Memory.swap_devices", "#[serde(default)]")
         .field_attribute(".magpie.memory.Memory.zswap_enabled", "#[serde(default)]")
+        .field_attribute(
+            ".magpie.disks.DisksResponse.DiskList.smart_data",
+            "#[serde(default)]",
+        )
         .compile_fds(
             protox::compile(
                 [

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Fixed read-only telemetry API. No caller-selected paths, commands or registers."""
 import glob
+from contextlib import contextmanager
 import json
 import math
 import fcntl
@@ -12,12 +13,143 @@ import socket
 import struct
 import subprocess
 import select
+import stat
 import sys
+import time
+import xml.etree.ElementTree as ET
 
 GRANTS = "/var/lib/taskmanager-hardware"
 SOCKET = "/run/taskmanager-hardware.sock"
 SESSION_DIRECTORY = "/run"
 INSTALL_ROOT = "/"
+OWNER_UID = 0
+LOCAL_HELPER = "/usr/local/libexec/taskmanager-hardware"
+LOCAL_UNITS = "/usr/local/lib/systemd/system"
+POLICY = "/usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy"
+COMMAND_TIMEOUT = 15
+LOCK_TIMEOUT = 45
+REPLY_LIMIT = 131072
+
+
+class Busy(RuntimeError):
+    pass
+
+
+def rooted(path):
+    # A module constant overridden only by disposable-root tests, never caller input.
+    return Path(INSTALL_ROOT) / path.lstrip("/")
+
+
+def secure_directory(path, create=False):
+    path = Path(path)
+    if path == Path(INSTALL_ROOT) or path == path.parent:
+        info = path.lstat()
+    else:
+        secure_directory(path.parent, create)
+        if create:
+            try:
+                path.mkdir(mode=0o700 if path == Path(GRANTS) else 0o755)
+            except FileExistsError:
+                pass
+        info = path.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != OWNER_UID or info.st_mode & 0o022:
+        raise RuntimeError(f"Untrusted directory: {path}")
+
+
+def secure_regular(path):
+    info = Path(path).lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != OWNER_UID or info.st_mode & 0o022 or info.st_nlink != 1:
+        raise RuntimeError(f"Untrusted file: {path}")
+    return info
+
+
+@contextmanager
+def operation_lock(lifetime=None, wait=True):
+    secure_directory(GRANTS, create=True)
+    fd = os.open(f"{GRANTS}/.operation.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != OWNER_UID or info.st_mode & 0o077 or info.st_nlink != 1:
+            raise RuntimeError("Untrusted hardware operation lock")
+        deadline = time.monotonic() + LOCK_TIMEOUT
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if not wait or time.monotonic() >= deadline:
+                    raise Busy("A hardware grant operation is still running.")
+                if lifetime is not None:
+                    lifetime.check()
+                time.sleep(0.05)
+        # A cancelled installer waiting behind revoke cannot issue a later grant.
+        if lifetime is not None:
+            lifetime.check()
+        yield
+    finally:
+        os.close(fd)
+
+
+class Lifetime:
+    def __init__(self, pid, uid, fd=0):
+        self.fd = fd
+        self.deadline = time.monotonic() + 75
+        self.parent = os.pidfd_open(pid)
+        try:
+            if Path(f"/proc/{pid}").stat().st_uid != uid or not stat.S_ISFIFO(os.fstat(fd).st_mode):
+                raise RuntimeError("The requesting application's identity or lifetime pipe is invalid")
+            self.check()
+        except BaseException:
+            self.close()
+            raise
+
+    def check(self):
+        ready, _, _ = select.select([self.parent, self.fd], [], [], 0)
+        if time.monotonic() >= self.deadline or self.parent in ready or (self.fd in ready and not os.read(self.fd, 1)):
+            raise RuntimeError("The hardware request was cancelled or the application closed")
+
+    def close(self):
+        os.close(self.parent)
+
+
+def run_fixed(arguments, lifetime=None):
+    # This root child owns and reaps its system tools; the unprivileged GUI cannot do so.
+    child = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    deadline = time.monotonic() + COMMAND_TIMEOUT
+    output = bytearray()
+    try:
+        while True:
+            if lifetime is not None:
+                lifetime.check()
+            if time.monotonic() >= deadline:
+                raise RuntimeError("The hardware system command timed out")
+            ready, _, _ = select.select([child.stdout], [], [], 0.05)
+            if ready:
+                chunk = os.read(child.stdout.fileno(), 4096)
+                output.extend(chunk)
+                if len(output) > 65536:
+                    raise RuntimeError("The hardware system command returned too much data")
+                if not chunk and child.poll() is not None:
+                    break
+        if child.returncode != 0:
+            raise RuntimeError("The hardware system command failed")
+        return output.decode("utf-8")
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait(timeout=1)
+        child.stdout.close()
+
+
+def encoded_reply(result):
+    data = json.dumps(result, allow_nan=False).encode() + b"\n"
+    if len(data) > REPLY_LIMIT:
+        raise RuntimeError("Hardware reply exceeds its fixed limit")
+    return data
 
 
 def read(path):
@@ -274,7 +406,39 @@ def snapshot():
 
 
 def authorized(uid):
-    return uid != 0 and os.path.isfile(f"{GRANTS}/{uid}")
+    if uid <= 0:
+        return False
+    try:
+        secure_regular(f"{GRANTS}/{uid}")
+        return True
+    except (OSError, RuntimeError):
+        return False
+
+
+def denial(uid):
+    try:
+        with operation_lock(wait=False):
+            # Absence is meaningful only while no install/enable can still commit.
+            absent = not authorized(uid)
+        return {"enabled": False, "revoked": absent, "error": "Hardware access is not authorized."}
+    except Busy as error:
+        return {"enabled": False, "busy": True, "revoked": False, "error": str(error)}
+    except (OSError, RuntimeError) as error:
+        return {"enabled": False, "revoked": False, "error": str(error)[:1024]}
+
+
+def revoke(uid):
+    try:
+        with operation_lock(wait=False):
+            try:
+                os.unlink(f"{GRANTS}/{uid}")
+            except FileNotFoundError:
+                pass
+        return {"enabled": False, "revoked": True}
+    except Busy as error:
+        return {"enabled": False, "busy": True, "revoked": False, "error": str(error)}
+    except (OSError, RuntimeError) as error:
+        return {"enabled": False, "revoked": False, "error": str(error)[:1024]}
 
 
 def spd_eeproms():
@@ -306,24 +470,34 @@ def serve():
 
 def handle_connection(connection, session_uid=None):
     connection.settimeout(2)
-    _, uid, _ = struct.unpack("3i", connection.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
     try:
-        request = connection.recv(64).strip()
+        _, uid, _ = struct.unpack("3i", connection.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
         allowed = uid == session_uid if session_uid is not None else authorized(uid)
-        if request == b"disable":
-            if session_uid is None:
-                try:
-                    os.unlink(f"{GRANTS}/{uid}")
-                except FileNotFoundError:
-                    pass
-            result = {"enabled": False}
-        elif request == b"read" and allowed:
+        if not allowed:
+            # Do not wait for bytes from an ungranted client on this serial server.
+            result = denial(uid) if session_uid is None else {"enabled": False, "error": "Hardware access is not authorized."}
+            connection.sendall(encoded_reply(result))
+            # Discard only bytes already queued, without waiting on a denied client.
+            # Otherwise a known client's unread frame can reset the reply on close.
+            connection.setblocking(False)
+            try:
+                connection.recv(64, socket.MSG_DONTWAIT)
+            except BlockingIOError:
+                pass
+            connection.shutdown(socket.SHUT_WR)
+            return False
+        request = connection.recv(64).strip()
+        if session_uid is None and not authorized(uid):
+            result = denial(uid)
+        elif request == b"disable":
+            result = revoke(uid) if session_uid is None else {"enabled": False}
+        elif request == b"read":
             result = {"enabled": True, "data": snapshot()}
-        elif request == b"spd" and allowed:
+        elif request == b"spd":
             result = {"enabled": True, "spd": spd_eeproms()}
         else:
-            result = {"enabled": False, "error": "Hardware access is not authorized."}
-        connection.sendall(json.dumps(result, allow_nan=False).encode() + b"\n")
+            result = {"enabled": False, "error": "Unknown hardware request."}
+        connection.sendall(encoded_reply(result))
         return session_uid is not None and allowed and request == b"disable"
     except (OSError, ValueError):
         pass
@@ -368,37 +542,122 @@ def session(pid, token, lifetime_fd=0):
         os.close(parent)
 
 
-def install_service():
-    uid = authenticated_uid()
-    # These payloads are compiled into Task Manager, not taken from caller paths.
-    for path, text, mode in [
-        ("/usr/libexec/taskmanager-hardware", INSTALL_SOURCE, 0o755),
-        ("/usr/lib/systemd/system/taskmanager-hardware.service", SERVICE_TEXT, 0o644),
-        ("/usr/lib/systemd/system/taskmanager-hardware.socket", SOCKET_TEXT, 0o644),
-        ("/usr/share/polkit-1/actions/io.github.taskmanager.hardware.policy", POLICY_TEXT, 0o644),
-    ]:
-        path = str(Path(INSTALL_ROOT) / path.lstrip("/"))
-        directory = Path(path).parent
-        directory.mkdir(parents=True, exist_ok=True)
-        # Root-owned directory; atomic replacement does not follow a destination symlink.
-        temporary = directory / f".taskmanager-install-{os.getpid()}"
-        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
-        try:
-            os.fchmod(fd, mode)
-            with os.fdopen(fd, "w") as stream:
-                stream.write(text)
-            os.replace(temporary, path)
-        finally:
-            temporary.unlink(missing_ok=True)
-    subprocess.run(["/usr/bin/systemctl", "daemon-reload"], check=True)
-    enable(uid)
+def unit_directories(lifetime):
+    paths = run_fixed(["/usr/bin/systemd-analyze", "unit-paths"], lifetime).splitlines()
+    if LOCAL_UNITS not in paths or any(not path.startswith("/") or ".." in Path(path).parts for path in paths):
+        raise RuntimeError("The fixed local systemd unit directory is not supported")
+    return paths
 
 
-def enable(uid):
-    subprocess.run(["/usr/bin/systemctl", "enable", "--now", "taskmanager-hardware.socket"], check=True)
-    os.makedirs(GRANTS, mode=0o700, exist_ok=True)
-    fd = os.open(f"{GRANTS}/{uid}", os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600)
-    os.close(fd)
+def bootstrap_payloads():
+    if "INSTALL_SOURCE" not in globals():
+        raise RuntimeError("Bootstrap payloads are available only in the embedded application helper")
+    return [
+        (LOCAL_HELPER, INSTALL_SOURCE, 0o755),
+        (f"{LOCAL_UNITS}/taskmanager-hardware.service", SERVICE_TEXT.replace("/usr/libexec/taskmanager-hardware", LOCAL_HELPER), 0o644),
+        (f"{LOCAL_UNITS}/taskmanager-hardware.socket", SOCKET_TEXT, 0o644),
+        (POLICY, POLICY_TEXT.replace("/usr/libexec/taskmanager-hardware", LOCAL_HELPER), 0o644),
+    ]
+
+
+def check_bootstrap_layout(payloads, lifetime):
+    paths = unit_directories(lifetime)
+    # Any existing unit, mask, link or per-unit override can shadow the local assets.
+    for directory in paths:
+        for unit in ("taskmanager-hardware.service", "taskmanager-hardware.socket"):
+            kind = unit.rsplit(".", 1)[1]
+            for name in (unit, unit + ".d", f"taskmanager-.{kind}.d"):
+                candidate = rooted(directory) / name
+                if os.path.lexists(candidate):
+                    raise RuntimeError(f"Existing hardware unit conflicts with bootstrap: {candidate}")
+    for path, _, _ in payloads:
+        if os.path.lexists(rooted(path)):
+            raise RuntimeError(f"Existing hardware asset conflicts with bootstrap: {path}")
+        secure_directory(rooted(path).parent, create=True)
+    # A packaged helper must be enabled through its installed policy, never updated here.
+    if os.path.lexists(rooted("/usr/libexec/taskmanager-hardware")):
+        raise RuntimeError("A packaged hardware helper is already installed")
+
+
+def publish_new(path, text, mode):
+    directory = rooted(path).parent
+    temporary = directory / f".taskmanager-install-{os.getpid()}"
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, mode)
+    try:
+        os.fchmod(fd, mode)
+        with os.fdopen(fd, "w") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        # link is atomic and fails for ANY existing destination (including symlinks).
+        os.link(temporary, rooted(path), follow_symlinks=False)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def verify_installed_layout(helper, lifetime):
+    if helper not in ("/usr/libexec/taskmanager-hardware", LOCAL_HELPER):
+        raise RuntimeError("Unsupported installed helper path")
+    secure_directory(rooted(helper).parent)
+    if not secure_regular(rooted(helper)).st_mode & 0o111:
+        raise RuntimeError("The installed hardware helper is not executable")
+    prefix = str(Path(helper).parent.parent)
+    for name in ("taskmanager-hardware.service", "taskmanager-hardware.socket"):
+        actual = run_fixed(["/usr/bin/systemctl", "show", "--property=FragmentPath", "--value", name], lifetime).strip()
+        expected = f"{prefix}/lib/systemd/system/{name}"
+        if actual != expected:
+            raise RuntimeError("The hardware unit is shadowed or not discoverable")
+        secure_directory(rooted(actual).parent)
+        secure_regular(rooted(actual))
+        if name.endswith(".service") and f"ExecStart={helper} serve" not in rooted(actual).read_text():
+            raise RuntimeError("The hardware service does not use its installed helper")
+    secure_directory(rooted(POLICY).parent)
+    secure_regular(rooted(POLICY))
+    action = ET.fromstring(rooted(POLICY).read_text()).find("action[@id='io.github.taskmanager.hardware.enable']")
+    annotations = {} if action is None else {item.get("key"): item.text for item in action.findall("annotate")}
+    if annotations.get("org.freedesktop.policykit.exec.path") != helper or annotations.get("org.freedesktop.policykit.exec.argv1") != "enable":
+        raise RuntimeError("The hardware polkit action does not match the installed helper")
+    actions = run_fixed(["/usr/bin/pkaction"], lifetime).splitlines()
+    if "io.github.taskmanager.hardware.enable" not in actions:
+        raise RuntimeError("The hardware polkit action is not discoverable")
+
+
+def grant(uid, lifetime):
+    run_fixed(["/usr/bin/systemctl", "enable", "--now", "taskmanager-hardware.socket"], lifetime)
+    if lifetime is not None:
+        lifetime.check()
+    created = False
+    try:
+        fd = os.open(f"{GRANTS}/{uid}", os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+        os.close(fd)
+        created = True
+    except FileExistsError:
+        secure_regular(f"{GRANTS}/{uid}")
+    try:
+        if lifetime is not None:
+            lifetime.check()
+    except BaseException:
+        if created:
+            os.unlink(f"{GRANTS}/{uid}")
+        raise
+
+
+def install_service(uid, lifetime):
+    with operation_lock(lifetime):
+        payloads = bootstrap_payloads()
+        check_bootstrap_layout(payloads, lifetime)
+        for path, text, mode in payloads:
+            lifetime.check()
+            publish_new(path, text, mode)
+        run_fixed(["/usr/bin/systemctl", "daemon-reload"], lifetime)
+        verify_installed_layout(LOCAL_HELPER, lifetime)
+        grant(uid, lifetime)
+
+
+def enable(uid, lifetime=None):
+    with operation_lock(lifetime):
+        verify_installed_layout(sys.argv[0], lifetime)
+        grant(uid, lifetime)
 
 
 def main():
@@ -410,20 +669,30 @@ def main():
         # One explicit authorization also enables socket activation across logins/reboots.
         # No caller-controlled unit name, executable or arguments.
         enable(uid)
-    elif len(sys.argv) == 3 and sys.argv[1] == "install":
-        pid = int(sys.argv[2])
-        if Path(f"/proc/{pid}").stat().st_uid != authenticated_uid():
-            raise RuntimeError("The requesting application has closed")
-        if select.select([0], [], [], 0)[0] and not os.read(0, 1):
-            raise RuntimeError("The installation request was cancelled")
-        install_service()
+        sys.stdout.buffer.write(encoded_reply({"enabled": True}))
+    elif len(sys.argv) == 3 and sys.argv[1] in ("install", "enable"):
+        uid = authenticated_uid()
+        lifetime = Lifetime(int(sys.argv[2]), uid)
+        try:
+            if sys.argv[1] == "install":
+                install_service(uid, lifetime)
+            else:
+                enable(uid, lifetime)
+            sys.stdout.buffer.write(encoded_reply({"enabled": True}))
+        finally:
+            lifetime.close()
     elif len(sys.argv) == 4 and sys.argv[1] == "session":
         session(int(sys.argv[2]), sys.argv[3])
     elif sys.argv[1:] == ["serve"]:
         serve()
     else:
-        raise RuntimeError("Expected enable or serve")
+        raise RuntimeError("Expected enable, install, session or serve")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (OSError, RuntimeError, ValueError, KeyError, ET.ParseError) as error:
+        # Failure never claims that a possibly preexisting persistent grant vanished.
+        sys.stdout.buffer.write(encoded_reply({"enabled": False, "error": str(error)[:1024], **({"busy": True} if isinstance(error, Busy) else {})}))
+        sys.exit(1)

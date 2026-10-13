@@ -27,6 +27,8 @@
 *.i*86
 *.x86_64
 *.hex
+# Public SPD reference bytes (see the README beside them).
+!crates/mc-core/tests/fixtures/spd/*.hex
 
 # Debug files
 *.dSYM/

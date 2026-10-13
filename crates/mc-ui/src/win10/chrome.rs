@@ -23,8 +23,8 @@
 
 use egui::containers::menu::MenuConfig;
 use egui::{
-    Align, Color32, CursorIcon, Id, Popup, PopupCloseBehavior, Rect, ResizeDirection, Response,
-    Sense, Ui, UiKind, UiStackInfo, ViewportCommand, pos2,
+    Align, CursorIcon, Id, Popup, PopupCloseBehavior, Rect, ResizeDirection, Response, Sense, Ui,
+    UiKind, UiStackInfo, ViewportCommand, pos2,
 };
 
 use super::paint::{self, Font};
@@ -91,12 +91,14 @@ pub fn title_bar(ui: &mut Ui, window: Rect, title: &str, maximized: bool) {
         if let Some(bg) = bg {
             paint::fill(&painter, x0, top, x1, bottom, bg);
         }
-        let ink = if close && (hovered || pressed) {
-            pal::WHITE
-        } else {
-            pal::TEXT
-        };
-        caption_glyph(&painter, caption, x0, window.top(), maximized, ink);
+        caption_glyph(
+            &painter,
+            caption,
+            x0,
+            window.top(),
+            maximized,
+            hovered || pressed,
+        );
         if response.clicked() {
             ui.ctx().send_viewport_cmd(match caption {
                 Caption::Minimize => ViewportCommand::Minimized(true),
@@ -127,10 +129,11 @@ fn caption_glyph(
     x0: f32,
     top: f32,
     maximized: bool,
-    ink: Color32,
+    highlighted: bool,
 ) {
     let gx = x0 + 20.;
     let gy = top + 11.;
+    let ink = pal::TEXT;
     match caption {
         Caption::Minimize => paint::hline(painter, gx + 1., gx + 10., top + 16., ink),
         Caption::Maximize if maximized => {
@@ -143,8 +146,15 @@ fn caption_glyph(
         }
         Caption::Maximize => paint::outline(painter, gx, gy, gx + 9., gy + 9., ink),
         Caption::Close => {
-            paint::line(painter, (gx, gy), (gx + 9., gy + 9.), ink);
-            paint::line(painter, (gx + 9., gy), (gx, gy + 9.), ink);
+            // Own ink role: white on the red hover/pressed surface in either theme. WHITE is
+            // otherwise a surface token, so sending it through palette resolution darkens it.
+            let ink = if highlighted {
+                egui::Color32::WHITE
+            } else {
+                pal::resolve(painter.ctx(), pal::TEXT)
+            };
+            paint::line_ink(painter, (gx, gy), (gx + 9., gy + 9.), ink);
+            paint::line_ink(painter, (gx + 9., gy), (gx, gy + 9.), ink);
         }
     }
 }

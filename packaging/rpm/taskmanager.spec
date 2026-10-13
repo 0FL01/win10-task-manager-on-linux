@@ -62,6 +62,10 @@ Requires:       mesa-libEGL
 Requires:       hicolor-icon-theme
 Requires:       python3
 Recommends:     polkit
+%if 0%{?suse_version}
+# Tumbleweed ships the setuid binary separately from the polkit daemon.
+Recommends:     pkexec
+%endif
 
 %description
 Task Manager shows processes, performance, details and services: per-process CPU, memory, disk

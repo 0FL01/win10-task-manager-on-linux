@@ -3,6 +3,7 @@
  */
 
 //! Donor-inspired information grouping in the existing Win10 label/value presentation.
+use super::mem_slots::{capacity_label, known_capacity, slot_is_empty};
 use super::{DevicePage, PageView, SummaryGraph, UpdateEnv};
 use mc_core::{
     config::Config,
@@ -16,6 +17,8 @@ pub struct SystemPage {
     summary: SummaryGraph,
     about: Option<About>,
     hardware: Vec<(String, String)>,
+    identity: Vec<(String, String)>,
+    identity_position: usize,
     rows: Vec<(String, String)>,
 }
 
@@ -51,6 +54,8 @@ impl SystemPage {
             summary: SummaryGraph::new(crate::win10::palette::CPU.line, i18n("System")),
             about: None,
             hardware: vec![],
+            identity: vec![],
+            identity_position: 0,
             rows: vec![],
         }
     }
@@ -99,7 +104,9 @@ impl SystemPage {
                 }
             }
         }
-        rows.extend(self.hardware.clone());
+        rows.extend_from_slice(&self.hardware[..self.identity_position]);
+        rows.extend(self.identity.clone());
+        rows.extend_from_slice(&self.hardware[self.identity_position..]);
         rows
     }
 }
@@ -134,37 +141,65 @@ impl DevicePage for SystemPage {
             i18n("Logical processors"),
             readings.cpu.core_usage_percent.len().to_string(),
         ));
+        self.identity_position = rows.len();
+        let mut identity = vec![];
         if let Some(data) = &readings.hardware {
-            rows.push((i18n("System identity"), String::new()));
+            identity.push((i18n("System identity"), String::new()));
             for (label, value) in [
                 (n_("System serial number"), &data.product_serial),
                 (n_("Motherboard serial number"), &data.board_serial),
                 (n_("System UUID"), &data.product_uuid),
             ] {
                 if let Some(value) = value.as_deref().and_then(clean) {
-                    rows.push((i18n(label), value));
+                    identity.push((i18n(label), value));
                 }
             }
         }
         rows.push((i18n("Memory"), String::new()));
-        let installed: u64 = readings.mem_devices.iter().map(|module| module.size).sum();
+        let installed = readings
+            .mem_devices
+            .iter()
+            .try_fold(0_u64, |total, module| {
+                total.checked_add(known_capacity(module).unwrap_or(0))
+            });
+        let complete = readings.mem_info.max_devices > 0
+            && readings.mem_devices.len() as u64 >= readings.mem_info.max_devices
+            && readings
+                .mem_devices
+                .iter()
+                .all(|module| known_capacity(module).is_some());
+        let installed = installed.unwrap_or(0);
         rows.push(if installed > 0 {
-            (i18n("Installed memory"), h(installed))
+            (
+                i18n(if complete {
+                    "Installed memory"
+                } else {
+                    "Known module capacity (partial)"
+                }),
+                h(installed),
+            )
         } else {
             (i18n("Usable memory"), h(readings.mem_info.mem_total))
         });
-        for module in readings.mem_devices.iter().filter(|m| m.size > 0) {
+        if installed > 0 && !complete {
+            rows.push((i18n("Usable memory"), h(readings.mem_info.mem_total)));
+        }
+        for module in readings.mem_devices.iter().filter(|m| !slot_is_empty(m)) {
+            let mut values = vec![capacity_label(module)];
+            if !module.ram_type.is_empty() {
+                values.push(module.ram_type.clone());
+            }
+            if module.speed > 0 {
+                values.push(format!("{} MT/s", module.speed));
+            }
+            if !module.form_factor.is_empty() {
+                values.push(module.form_factor.clone());
+            }
             rows.push((
                 format!("{} {}", module.locator, module.bank_locator)
                     .trim()
                     .to_owned(),
-                format!(
-                    "{} · {} · {} MT/s · {}",
-                    h(module.size),
-                    module.ram_type,
-                    module.speed,
-                    module.form_factor
-                ),
+                values.join(" · "),
             ));
         }
         let mut gpus: Vec<_> = readings.gpus.values().collect();
@@ -197,14 +232,21 @@ impl DevicePage for SystemPage {
                 ),
             ));
         }
-        if self.hardware != rows {
+        if self.hardware != rows || self.identity != identity {
             self.hardware = rows;
+            self.identity = identity;
             self.rows = self.build_rows();
         }
         true
     }
     fn set_grid_offset(&mut self, _: u32) -> bool {
         false
+    }
+    fn clear_privileged_hardware(&mut self) {
+        if !self.identity.is_empty() {
+            self.identity.clear();
+            self.rows = self.build_rows();
+        }
     }
     fn data_summary(&self) -> String {
         self.rows
@@ -223,5 +265,60 @@ impl DevicePage for SystemPage {
             composition: None,
             swap_compression: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mc_magpie::MemoryDevice;
+
+    #[test]
+    fn installed_total_requires_every_slot_capacity_and_preserves_unknown_metadata() {
+        let mut readings = Readings::new();
+        readings.mem_info.max_devices = 2;
+        readings.mem_info.mem_total = 7 * 1024 * 1024 * 1024;
+        readings.mem_devices = vec![
+            MemoryDevice {
+                size: 8 * 1024 * 1024 * 1024,
+                locator: "A1".into(),
+                ..Default::default()
+            },
+            MemoryDevice {
+                locator: "A2".into(),
+                ram_type: "DDR4".into(),
+                ..Default::default()
+            },
+        ];
+        let mut page = SystemPage::new();
+        page.update(&readings, &UpdateEnv::new(&Config::default()));
+        assert!(
+            page.rows
+                .iter()
+                .any(|(key, _)| key == "Known module capacity (partial)")
+        );
+        assert!(!page.rows.iter().any(|(key, _)| key == "Installed memory"));
+        assert!(
+            page.rows
+                .iter()
+                .any(|(key, value)| key == "A2" && value == "Unknown · DDR4")
+        );
+        assert!(!page.data_summary().contains("0 MT/s"));
+
+        readings.mem_devices[1].present = Some(false);
+        page.update(&readings, &UpdateEnv::new(&Config::default()));
+        assert!(
+            page.rows
+                .iter()
+                .any(|(key, value)| key == "Installed memory" && value == "8.00 GiB")
+        );
+        assert!(!page.rows.iter().any(|(key, _)| key == "A2"));
+
+        readings.mem_info.max_devices = 3;
+        page.update(&readings, &UpdateEnv::new(&Config::default()));
+        assert!(!page.rows.iter().any(|(key, _)| key == "Installed memory"));
+        readings.mem_info.max_devices = 0;
+        page.update(&readings, &UpdateEnv::new(&Config::default()));
+        assert!(!page.rows.iter().any(|(key, _)| key == "Installed memory"));
     }
 }

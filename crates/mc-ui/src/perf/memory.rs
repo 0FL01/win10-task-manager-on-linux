@@ -45,6 +45,7 @@ struct Labels {
     swap_free: Option<String>,
     usage_tooltip: String,
     hardware: Vec<(String, String)>,
+    unprivileged_hardware: Vec<(String, String)>,
 }
 
 pub struct MemoryPage {
@@ -104,7 +105,13 @@ impl MemoryPage {
         swap.add_dataset(DatasetGroup::new());
         swap.set_all_datasets_max_scale(mem.swap_total as f32);
 
-        let occupied: Vec<_> = readings.mem_devices.iter().filter(|d| d.size > 0).collect();
+        let occupied: Vec<_> = readings
+            .mem_devices
+            .iter()
+            .filter(|d| {
+                !super::mem_slots::slot_is_empty(d) && (d.size > 0 || d.present == Some(true))
+            })
+            .collect();
         let devices = &occupied;
         let unknown = i18n("Unknown");
         let (speed, slots_used, form_factor, ram_type) = if let Some(first) = devices.first() {
@@ -215,6 +222,27 @@ impl DevicePage for MemoryPage {
 
         let l = &mut self.labels;
         l.hardware.clear();
+        l.unprivileged_hardware.clear();
+        for (label, clock) in [
+            (n_("FCLK:"), mem.fclk_mhz),
+            (n_("MCLK:"), mem.mclk_mhz),
+            (n_("UCLK:"), mem.uclk_mhz),
+        ] {
+            if let Some(clock) = clock {
+                l.unprivileged_hardware
+                    .push((i18n(label), format!("{clock:.0} MHz")));
+            }
+        }
+        if let (Some(uclk), Some(mclk)) = (mem.uclk_mhz, mem.mclk_mhz)
+            && let Some(divider) = memory_divider(uclk, mclk)
+        {
+            l.unprivileged_hardware
+                .push((i18n("UCLK:MCLK:"), format!("1:{divider}")));
+        }
+        if let Some(voltage) = mem.voltage_v {
+            l.unprivileged_hardware
+                .push((i18n("RAM voltage:"), format!("{voltage:.3} V")));
+        }
         let clocks = readings
             .hardware
             .as_ref()
@@ -273,17 +301,21 @@ impl DevicePage for MemoryPage {
             ),
         ] {
             if let Some(count) = count {
-                l.hardware.push((i18n(label), count.to_string()));
+                let row = (i18n(label), count.to_string());
+                l.unprivileged_hardware.push(row.clone());
+                l.hardware.push(row);
             }
         }
         if readings.mem_info.hardware_corrupted > 0 {
-            l.hardware.push((
+            let row = (
                 i18n("Hardware-corrupted memory:"),
                 to_human_readable_nice(
                     readings.mem_info.hardware_corrupted as f32,
                     &DataType::MemoryBytes,
                 ),
-            ));
+            );
+            l.unprivileged_hardware.push(row.clone());
+            l.hardware.push(row);
         }
         l.in_use = h(used);
         l.available = h(mem.mem_available);
@@ -336,6 +368,14 @@ impl DevicePage for MemoryPage {
     }
     fn clear_privileged_spd(&mut self) {
         self.slots.clear_privileged_spd();
+    }
+    fn set_spd_pending(&mut self, pending: bool) {
+        self.slots.set_pending(pending);
+    }
+    fn clear_privileged_hardware(&mut self) {
+        self.labels
+            .hardware
+            .clone_from(&self.labels.unprivileged_hardware);
     }
     fn extra_ui(&mut self, ui: &mut Ui, rect: egui::Rect, module_height: f32, cx: &mut Cx) {
         self.slots.ui(ui, rect, module_height, cx);

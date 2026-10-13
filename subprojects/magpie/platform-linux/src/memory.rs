@@ -388,16 +388,31 @@ fn parse_memory_devices(properties: &str, devices: &mut Vec<MemoryDevice>) -> u6
             ..Default::default()
         });
         match field {
+            "PRESENT" => {
+                module.present = match value {
+                    "0" => Some(false),
+                    "1" => Some(true),
+                    _ => None,
+                }
+            }
             "SIZE" => module.size = value.parse().unwrap_or(0),
             "FORM_FACTOR" => module.form_factor = value.into(),
             "LOCATOR" => module.locator = value.into(),
             "BANK_LOCATOR" => module.bank_locator = value.into(),
             "TYPE" => module.ram_type = value.into(),
-            "SPEED_MTS" if module.speed == 0 => module.speed = value.parse().unwrap_or(0),
+            "SPEED_MTS" if module.speed_configured != Some(true) => {
+                if let Ok(speed) = value.parse::<u64>() {
+                    if speed > 0 {
+                        module.speed = speed;
+                        module.speed_configured = Some(false);
+                    }
+                }
+            }
             "CONFIGURED_SPEED_MTS" => {
                 if let Ok(speed) = value.parse::<u64>() {
                     if speed > 0 {
                         module.speed = speed;
+                        module.speed_configured = Some(true);
                     }
                 }
             }
@@ -455,10 +470,47 @@ mod tests {
         assert_eq!(parse_memory_devices(properties, &mut devices), 4);
         assert_eq!(devices.len(), 3);
         assert_eq!(devices[0].speed, 3600);
+        assert_eq!(devices[0].speed_configured, Some(true));
+        assert_eq!(devices[0].present, None);
         assert_eq!(devices[1].speed, 0);
+        assert_eq!(devices[1].speed_configured, None);
         assert_eq!(devices[2].size, 0);
+        assert_eq!(devices[2].present, Some(false));
         assert_eq!(devices[2].locator, "DIMMB1");
         assert_eq!(devices[2].slot_index, Some(2));
+    }
+
+    #[test]
+    fn missing_invalid_and_present_unknown_capacities_are_not_empty() {
+        let properties = "MEMORY_DEVICE_0_LOCATOR=A\n\
+            MEMORY_DEVICE_1_SIZE=invalid\nMEMORY_DEVICE_1_PRESENT=invalid\n\
+            MEMORY_DEVICE_2_PRESENT=1\nMEMORY_DEVICE_2_SIZE=0\n\
+            MEMORY_DEVICE_2_MANUFACTURER=Example\nMEMORY_DEVICE_2_SERIAL_NUMBER=01020304\n";
+        let mut devices = vec![];
+        parse_memory_devices(properties, &mut devices);
+        assert_eq!(devices.len(), 3);
+        assert!(devices.iter().all(|module| module.size == 0));
+        assert_eq!(devices[0].present, None);
+        assert_eq!(devices[1].present, None);
+        assert_eq!(devices[2].present, Some(true));
+        assert_eq!(devices[2].manufacturer.as_deref(), Some("Example"));
+        assert_eq!(devices[2].serial_number.as_deref(), Some("01020304"));
+    }
+
+    #[test]
+    fn speed_provenance_is_order_independent_and_rejects_unknown_values() {
+        let properties = "MEMORY_DEVICE_0_CONFIGURED_SPEED_MTS=3600\n\
+            MEMORY_DEVICE_0_SPEED_MTS=3200\nMEMORY_DEVICE_1_SPEED_MTS=3200\n\
+            MEMORY_DEVICE_1_CONFIGURED_SPEED_MTS=0\nMEMORY_DEVICE_2_SPEED_MTS=invalid\n\
+            MEMORY_DEVICE_2_CONFIGURED_SPEED_MTS=invalid\n";
+        let mut devices = vec![];
+        parse_memory_devices(properties, &mut devices);
+        assert_eq!(devices[0].speed, 3600);
+        assert_eq!(devices[0].speed_configured, Some(true));
+        assert_eq!(devices[1].speed, 3200);
+        assert_eq!(devices[1].speed_configured, Some(false));
+        assert_eq!(devices[2].speed, 0);
+        assert_eq!(devices[2].speed_configured, None);
     }
 
     #[test]

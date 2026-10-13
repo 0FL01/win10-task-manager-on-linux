@@ -289,6 +289,51 @@ pub fn match_slot<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn independent_coreboot_base_blocks_keep_original_crcs_and_timings() {
+        for (fixture, kind, tck, rate, timings) in [
+            (
+                include_str!("../tests/fixtures/spd/coreboot-ddr3-base.hex"),
+                "DDR3",
+                "1.250 ns",
+                "1600 MT/s",
+                "11-11-11-28",
+            ),
+            (
+                include_str!("../tests/fixtures/spd/coreboot-ddr4-base.hex"),
+                "DDR4",
+                "0.938 ns",
+                "2132 MT/s",
+                "15-15-15-36",
+            ),
+        ] {
+            // Do not use eeprom(): the checksum must remain independent of our CRC code.
+            let mut image = SpdEeprom {
+                source: format!("public-coreboot-{kind}"),
+                driver: "reference".into(),
+                hex: fixture.split_whitespace().collect(),
+            };
+            let module = decode(&image).unwrap();
+            assert_eq!(module.kind, kind);
+            assert_eq!(module.serial, None);
+            assert_eq!(module.part_number, None);
+            for (label, value) in [
+                ("Base checksum", "Valid"),
+                ("tCK minimum", tck),
+                ("Maximum JEDEC data rate", rate),
+                ("JEDEC CL-tRCD-tRP-tRAS", timings),
+            ] {
+                assert!(
+                    module.rows.iter().any(|(k, v)| k == label && v == value),
+                    "{kind}: {label}={value}, got {:?}",
+                    module.rows
+                );
+            }
+            image.hex.replace_range(24..26, "ff");
+            assert_eq!(decode(&image).unwrap_err(), "SPD checksum mismatch");
+        }
+    }
+
     fn eeprom(mut bytes: Vec<u8>) -> SpdEeprom {
         let at = if bytes[2] == 18 { 510 } else { 126 };
         let value = crc(&bytes[..at]).to_le_bytes();

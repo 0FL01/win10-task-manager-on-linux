@@ -47,6 +47,7 @@ mod client;
 mod fixture;
 mod gatherer;
 mod hardware_access;
+mod hardware_worker;
 mod log_compat;
 pub mod profile;
 mod slot;
@@ -61,7 +62,9 @@ pub use client::{
 };
 pub use fixture::{load_fixture_dir, write_fixture_dir};
 pub use gatherer::{Event, MagpieClient, Readings, Request, Waker};
-pub use hardware_access::HardwareTelemetry;
+pub use hardware_access::{
+    HardwareGrant, HardwareMode, HardwareOperation, HardwareStatus, HardwareTelemetry,
+};
 pub use magpie_types;
 pub use magpie_types::about::About;
 pub use magpie_types::apps::icon::Icon;

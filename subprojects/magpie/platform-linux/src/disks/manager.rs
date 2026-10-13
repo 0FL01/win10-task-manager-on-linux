@@ -20,7 +20,9 @@
 
 use std::collections::HashMap;
 use std::fmt::Write;
+use std::future::Future;
 use std::path::Path;
+use std::time::Duration;
 
 use arrayvec::ArrayString;
 use glob::glob;
@@ -166,11 +168,39 @@ impl magpie_platform::disks::DisksManager for DisksManager {
 
         let rt = async_runtime();
 
-        let drive_obj = util::object(udisks2, id).and_then(|obj| {
-            sync!(rt, util::block(&obj, id)).and_then(|bp| sync!(rt, util::drive(udisks2, &bp, id)))
-        })?;
-        smart_data(rt, &drive_obj, id)
+        rt.block_on(read_smart_data(udisks2, id, false))
     }
+
+    fn automatic_smart_data(&self, id: &str) -> Option<DiskSmartData> {
+        let udisks2 = self.udisks2.as_ref()?;
+        async_runtime().block_on(automatic_deadline(
+            Duration::from_secs(10),
+            read_smart_data(udisks2, id, true),
+        ))
+    }
+}
+
+async fn read_smart_data(
+    udisks2: &udisks2::Client,
+    id: &str,
+    automatic: bool,
+) -> Option<DiskSmartData> {
+    let object = util::object(udisks2, id)?;
+    let block = util::block(&object, id).await?;
+    let drive = util::drive(udisks2, &block, id).await?;
+    smart_data(&drive, id, automatic).await
+}
+
+async fn automatic_deadline(
+    deadline: Duration,
+    workflow: impl Future<Output = Option<DiskSmartData>>,
+) -> Option<DiskSmartData> {
+    // One deadline covers lookup, interface creation, SMART and every property
+    // await. Timing an outer synchronous block_on would not bound its work.
+    tokio::time::timeout(deadline, workflow)
+        .await
+        .ok()
+        .flatten()
 }
 
 fn unmount(
@@ -274,4 +304,49 @@ fn unmount(
     }
 
     Err(blockers)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::Cell;
+
+    #[test]
+    fn automatic_deadline_bounds_lookup_attributes_and_properties() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+            .unwrap();
+        for stalled_stage in 0..3 {
+            let reached = Cell::new(0);
+            let dropped = Cell::new(false);
+            struct Dropped<'a>(&'a Cell<bool>);
+            impl Drop for Dropped<'_> {
+                fn drop(&mut self) {
+                    self.0.set(true);
+                }
+            }
+            let workflow = async {
+                let _drop = Dropped(&dropped);
+                // Model the reader's ordered awaits, stalling each one in turn.
+                for stage in 0..3 {
+                    reached.set(stage);
+                    if stage == stalled_stage {
+                        std::future::pending::<()>().await;
+                    }
+                }
+                Some(DiskSmartData::default())
+            };
+            assert!(runtime
+                .block_on(automatic_deadline(Duration::ZERO, workflow))
+                .is_none());
+            assert_eq!(reached.get(), stalled_stage);
+            assert!(dropped.get(), "the in-progress workflow must be dropped");
+        }
+        assert!(runtime
+            .block_on(automatic_deadline(Duration::ZERO, async {
+                Some(DiskSmartData::default())
+            }))
+            .is_some());
+    }
 }

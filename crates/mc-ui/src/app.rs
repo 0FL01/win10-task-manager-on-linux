@@ -30,7 +30,9 @@ use mc_core::config::{Config, ConfigWriter};
 use mc_core::i18n::i18n;
 use mc_core::i18n::n_;
 use mc_magpie::profile::{self, Counter, Phase, Span};
-use mc_magpie::{Event, INTERVAL_STEP, Icon, MagpieClient, Readings, Request};
+use mc_magpie::{
+    Event, HardwareOperation, HardwareStatus, INTERVAL_STEP, Icon, MagpieClient, Readings, Request,
+};
 
 use crate::always_on_top::AlwaysOnTopState;
 use crate::cx::{Command, Cx, Dialog, MainPage};
@@ -103,7 +105,10 @@ pub struct App {
     launch_request: Option<[bool; 2]>,
     launch_pending: bool,
     launch_status: String,
-    hardware_pending: bool,
+    hardware_pending: Option<(u64, HardwareOperation)>,
+    hardware_state: HardwareStatus,
+    next_hardware_id: u64,
+    disable_requested: bool,
     hardware_status: String,
     hardware_notice: bool,
     magpie: MagpieClient,
@@ -165,12 +170,16 @@ impl App {
             }
         };
         magpie.set_update_speed(config.app_update_interval);
-        if config.extended_hardware_monitoring {
-            magpie.send(mc_magpie::Request::SetHardwareAccess {
+        let hardware_pending = if config.extended_hardware_monitoring
+            && magpie.send(mc_magpie::Request::SetHardwareAccess {
+                id: 1,
                 enabled: true,
                 interactive: false,
-            });
-        }
+            }) {
+            Some((1, HardwareOperation::Enable { interactive: false }))
+        } else {
+            None
+        };
 
         ctx.set_fonts(options.fonts.definitions());
         crate::win10::style::install(ctx);
@@ -201,7 +210,10 @@ impl App {
             launch_request: None,
             launch_pending: false,
             launch_status: String::new(),
-            hardware_pending: false,
+            hardware_pending,
+            hardware_state: HardwareStatus::default(),
+            next_hardware_id: 2,
+            disable_requested: false,
             hardware_status: String::new(),
             hardware_notice: false,
             config,
@@ -294,10 +306,24 @@ impl App {
         Duration::from_secs_f64(self.config.app_update_interval as f64 * INTERVAL_STEP)
     }
 
-    fn apply_readings(&mut self, mut readings: Readings) {
-        if !self.config.extended_hardware_monitoring {
+    fn sanitize_hardware(&self, readings: &mut Readings) {
+        if !self.config.extended_hardware_monitoring
+            || readings.hardware_epoch != self.hardware_state.epoch
+        {
             readings.hardware = None;
         }
+    }
+
+    fn clear_hardware(&mut self) {
+        self.hardware_state.sampling = false;
+        self.perf.clear_privileged_hardware();
+        if let Some(readings) = &mut self.stashed {
+            readings.hardware = None;
+        }
+    }
+
+    fn apply_readings(&mut self, mut readings: Readings) {
+        self.sanitize_hardware(&mut readings);
         let mut apply = Span::new(Phase::Apply);
         apply.items(readings.running_processes.len());
         let interval_ms = self.refresh_interval().as_millis() as u64;
@@ -335,35 +361,68 @@ impl App {
         match event {
             Event::IconsReady(icons) => self.icons.merge_app_icons(icons),
             Event::Fatal(message) => self.fatal = Some(message),
-            Event::Spd { privileged, result } => {
-                if !privileged || self.config.extended_hardware_monitoring {
+            Event::Spd {
+                id,
+                epoch,
+                privileged,
+                result,
+            } => {
+                if self.hardware_pending != Some((id, HardwareOperation::Spd)) {
+                    return;
+                }
+                self.hardware_pending = None;
+                self.perf.set_spd_pending(false);
+                if epoch == self.hardware_state.epoch
+                    && (!privileged || self.config.extended_hardware_monitoring)
+                {
                     self.perf.update_spd(privileged, &result);
                 } else {
                     self.perf.clear_privileged_spd();
                 }
+                self.finish_deferred_disable();
             }
-            Event::HardwareAccess(result) => {
-                self.hardware_pending = false;
-                match result {
-                    Ok(enabled) => {
-                        self.config.extended_hardware_monitoring = enabled;
-                        self.hardware_status = if enabled {
-                            i18n("Hardware access enabled.")
-                        } else {
-                            i18n("Hardware access disabled.")
-                        };
+            Event::HardwareAccess { id, status, result } => {
+                let operation = if let Some(id) = id {
+                    if self
+                        .hardware_pending
+                        .is_none_or(|(pending, _)| pending != id)
+                    {
+                        return;
                     }
-                    Err(error) => {
-                        self.config.extended_hardware_monitoring = false;
-                        self.hardware_status = error;
-                        self.hardware_notice = true;
+                    self.hardware_pending.take().map(|(_, op)| op)
+                } else {
+                    None
+                };
+                if status.epoch >= self.hardware_state.epoch {
+                    if status.epoch != self.hardware_state.epoch || !status.sampling {
+                        self.clear_hardware();
+                    }
+                    self.hardware_state = status;
+                    self.hardware_status = match &result {
+                        Ok(()) if status.sampling => i18n("Hardware access enabled."),
+                        Ok(()) => i18n("Local monitoring stopped; permanent access revoked."),
+                        Err(error) => {
+                            self.hardware_notice = true;
+                            error.clone()
+                        }
+                    };
+                }
+                if result.is_ok() && !self.disable_requested {
+                    match operation {
+                        Some(HardwareOperation::Enable { .. } | HardwareOperation::Install) => {
+                            self.config.extended_hardware_monitoring = true
+                        }
+                        Some(HardwareOperation::Disable) => {
+                            self.config.extended_hardware_monitoring = false
+                        }
+                        _ => {}
                     }
                 }
                 self.apply_next = true;
-                if !self.config.extended_hardware_monitoring {
-                    self.perf.clear_privileged_spd();
-                }
                 self.magpie.send(mc_magpie::Request::RefreshNow);
+                if operation.is_some() {
+                    self.finish_deferred_disable();
+                }
             }
             Event::About(about) => {
                 self.perf.update_about(&about);
@@ -382,6 +441,11 @@ impl App {
             mc_core::config::Theme::System => egui::ThemePreference::System,
         });
         let _profile = Span::new(Phase::Logic);
+        let epoch = self.magpie.hardware_epoch();
+        if epoch > self.hardware_state.epoch {
+            self.clear_hardware();
+            self.hardware_state.epoch = epoch;
+        }
         while let Some(event) = self.magpie.try_event() {
             self.handle_event(event);
         }
@@ -389,7 +453,8 @@ impl App {
         let held = ctx.input(|i| i.modifiers.command_only() && i.keys_down.is_empty())
             && ctx.input(|i| i.viewport().focused.unwrap_or(false));
         let paused = held || (self.config.app_update_paused && !self.apply_next);
-        if let Some(readings) = self.magpie.take_readings() {
+        if let Some(mut readings) = self.magpie.take_readings() {
+            self.sanitize_hardware(&mut readings);
             if paused {
                 self.stashed = Some(readings);
             } else {
@@ -488,33 +553,37 @@ impl App {
                 }
             }
             Command::SetHardwareAccess(enabled) => {
-                if !self.hardware_pending {
-                    self.hardware_notice = true;
-                    self.hardware_status = if enabled {
-                        i18n("Waiting for hardware authorization…")
-                    } else {
-                        i18n("Disabling hardware access…")
-                    };
-                    self.hardware_pending =
-                        self.magpie.send(mc_magpie::Request::SetHardwareAccess {
-                            enabled,
-                            interactive: true,
-                        });
-                    if !self.hardware_pending {
+                self.hardware_notice = true;
+                if !enabled {
+                    self.config.extended_hardware_monitoring = false;
+                    self.clear_hardware();
+                    if let Some((id, _)) = self.hardware_pending {
+                        self.disable_requested = true;
+                        self.magpie.send(Request::CancelHardware { id });
                         self.hardware_status =
-                            i18n("The hardware request could not be queued. Try again.");
+                            i18n("Cancelling the pending operation before revoking access…");
+                        return;
                     }
                 }
+                self.start_hardware(if enabled {
+                    HardwareOperation::Enable { interactive: true }
+                } else {
+                    HardwareOperation::Disable
+                });
             }
             Command::InstallHardwareService => {
-                if !self.hardware_pending {
-                    self.hardware_notice = true;
-                    self.hardware_status = i18n("Waiting for service installation authorization…");
-                    self.hardware_pending = self.magpie.send(Request::InstallHardwareService);
-                    if !self.hardware_pending {
-                        self.hardware_status =
-                            i18n("The hardware request could not be queued. Try again.");
-                    }
+                self.hardware_notice = true;
+                self.start_hardware(HardwareOperation::Install);
+            }
+            Command::ReadSpd => {
+                self.start_hardware(HardwareOperation::Spd);
+            }
+            Command::CancelHardware => {
+                if let Some((id, _)) = self.hardware_pending {
+                    self.magpie.send(Request::CancelHardware { id });
+                    self.hardware_status = i18n(
+                        "Cancellation requested; waiting for the authorized operation to finish.",
+                    );
                 }
             }
             Command::ToggleSummaryMode => {
@@ -548,6 +617,57 @@ impl App {
                 self.magpie.send(Request::RefreshNow);
             }
             Command::Quit => self.quit = true,
+        }
+    }
+
+    fn start_hardware(&mut self, operation: HardwareOperation) {
+        if operation == HardwareOperation::Disable {
+            self.clear_hardware();
+        }
+        let id = self.next_hardware_id;
+        self.next_hardware_id += 1;
+        let request = match operation {
+            HardwareOperation::Enable { interactive } => Request::SetHardwareAccess {
+                id,
+                enabled: true,
+                interactive,
+            },
+            HardwareOperation::Disable => Request::SetHardwareAccess {
+                id,
+                enabled: false,
+                interactive: false,
+            },
+            HardwareOperation::Install => Request::InstallHardwareService { id },
+            HardwareOperation::Spd => Request::ReadSpd { id },
+        };
+        if self.hardware_pending.is_some() || !self.magpie.send(request) {
+            let error = i18n("The hardware request could not be queued. Try again.");
+            if operation == HardwareOperation::Spd {
+                self.perf.update_spd(false, &Err(error));
+                self.perf.set_spd_pending(
+                    self.hardware_pending
+                        .is_some_and(|(_, pending)| pending == HardwareOperation::Spd),
+                );
+            } else {
+                self.hardware_status = error;
+            }
+            return;
+        }
+        self.hardware_pending = Some((id, operation));
+        self.perf
+            .set_spd_pending(operation == HardwareOperation::Spd);
+        self.hardware_status = match operation {
+            HardwareOperation::Enable { .. } => i18n("Waiting for hardware authorization…"),
+            HardwareOperation::Disable => i18n("Disabling hardware access…"),
+            HardwareOperation::Install => i18n("Waiting for service installation authorization…"),
+            HardwareOperation::Spd => i18n("Reading SPD…"),
+        };
+    }
+
+    fn finish_deferred_disable(&mut self) {
+        if self.disable_requested {
+            self.disable_requested = false;
+            self.start_hardware(HardwareOperation::Disable);
         }
     }
 
@@ -750,7 +870,7 @@ impl App {
                     ui,
                     &i18n("Extended hardware monitoring"),
                     self.config.extended_hardware_monitoring,
-                    !self.hardware_pending,
+                    self.hardware_pending.is_none(),
                     Some(&self.hardware_status),
                 ) {
                     commands.push(Command::SetHardwareAccess(
@@ -761,7 +881,7 @@ impl App {
                     ui,
                     &i18n("Install hardware monitoring service…"),
                     "",
-                    !self.hardware_pending,
+                    self.hardware_pending.is_none(),
                 ) {
                     commands.push(Command::InstallHardwareService);
                 }
@@ -1042,10 +1162,30 @@ impl App {
             let response = egui::Modal::new(egui::Id::new("hardware-monitoring-status")).show(&ctx, |ui| {
                 ui.set_width(430.);
                 ui.heading(i18n("Extended hardware monitoring"));
-                if self.hardware_pending { ui.spinner(); }
+                if self.hardware_pending.is_some() { ui.spinner(); }
                 ui.label(&self.hardware_status);
                 ui.label(i18n("Without an installed service, the helper runs only until Task Manager closes. Install the service for persistent access across restarts."));
-                if ui.add_enabled(!self.hardware_pending, egui::Button::new(i18n("Install service…"))).clicked() {
+                let mode = match self.hardware_state.mode {
+                    mc_magpie::HardwareMode::Off => i18n("Off"),
+                    mc_magpie::HardwareMode::Temporary => i18n("Temporary"),
+                    mc_magpie::HardwareMode::Persistent => i18n("Persistent"),
+                };
+                let grant = match self.hardware_state.grant {
+                    mc_magpie::HardwareGrant::Absent => i18n("Revoked"),
+                    mc_magpie::HardwareGrant::Present => i18n("Granted"),
+                    mc_magpie::HardwareGrant::Unconfirmed => i18n("Unconfirmed"),
+                };
+                ui.label(format!("{}: {mode} · {}: {grant}", i18n("Access"), i18n("Permanent grant")));
+                ui.label(i18n(if self.hardware_state.sampling { "Sampling active" } else { "Sampling unavailable or locally stopped" }));
+                ui.label(i18n("Without an installed helper, authorization runs administrator code embedded in this build. Installed-helper authorization does not fall back after denial."));
+                if self.hardware_pending.is_none() && !self.hardware_state.sampling && ui.button(i18n("Retry hardware access…")).clicked() {
+                    commands.push(Command::SetHardwareAccess(true));
+                }
+                if self.hardware_pending.is_none() && self.hardware_state.grant != mc_magpie::HardwareGrant::Absent && ui.button(i18n("Revoke permanent access")).clicked() {
+                    commands.push(Command::SetHardwareAccess(false));
+                }
+                if self.hardware_pending.is_some() && ui.button(i18n("Cancel operation")).clicked() { commands.push(Command::CancelHardware); }
+                if ui.add_enabled(self.hardware_pending.is_none(), egui::Button::new(i18n("Install service…"))).clicked() {
                     commands.push(Command::InstallHardwareService);
                 }
                 if ui.button(i18n("Close")).clicked() { self.hardware_notice = false; }
@@ -1167,12 +1307,18 @@ mod tests {
         );
         app.execute(&ctx, Command::SetHardwareAccess(true));
         assert!(app.hardware_notice);
-        assert!(app.hardware_pending);
+        assert!(app.hardware_pending.is_some());
         assert!(app.hardware_status.contains("Waiting"));
-        app.handle_event(mc_magpie::Event::HardwareAccess(Err(
-            "The host hardware helper is not installed.".into(),
-        )));
-        assert!(!app.hardware_pending);
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while app.hardware_pending.is_some() {
+            if let Some(event) = app.magpie.try_event() {
+                app.handle_event(event);
+            } else {
+                assert!(Instant::now() < deadline);
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        }
+        assert!(app.hardware_pending.is_none());
         assert!(!app.config.extended_hardware_monitoring);
         let mut output = ctx.run_ui(
             RawInput {
@@ -1190,11 +1336,126 @@ mod tests {
             |ui| app.ui(ui),
         );
         output.textures_delta.clear();
-        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text.contains("not installed"))));
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text.contains("recorded or synthetic"))));
         assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text.contains("Install service"))));
         app.execute(&ctx, Command::InstallHardwareService);
-        assert!(app.hardware_pending);
+        assert!(app.hardware_pending.is_some());
         assert!(app.hardware_status.contains("service installation"));
+    }
+
+    #[test]
+    fn access_loss_clears_paused_metadata_and_stash_without_acknowledging_install() {
+        let ctx = Context::default();
+        let mut app = App::new(
+            &ctx,
+            AppOptions {
+                source: DataSource::Fixture(mc_magpie::synthetic_series(1, 1), HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config::default()),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        );
+        app.config.extended_hardware_monitoring = true;
+        app.hardware_state = HardwareStatus {
+            epoch: 7,
+            mode: mc_magpie::HardwareMode::Temporary,
+            sampling: true,
+            grant: mc_magpie::HardwareGrant::Present,
+        };
+        let mut readings = mc_magpie::synthetic_readings(1, 0);
+        readings.hardware_epoch = 7;
+        readings.cpu.voltage_v = Some(1.125);
+        readings.hardware = Some(mc_magpie::HardwareTelemetry {
+            cpu_multiplier: Some(42.0),
+            product_serial: Some("PRIVATE-TEST-SERIAL".into()),
+            intel_gear: Some(4),
+            ..Default::default()
+        });
+        app.apply_readings(readings.clone());
+        let info = |app: &mut App| {
+            app.perf
+                .devices
+                .iter_mut()
+                .flat_map(|device| device.win10_view(&app.config).info)
+                .collect::<Vec<_>>()
+        };
+        assert!(
+            info(&mut app)
+                .iter()
+                .any(|(_, value)| value == "PRIVATE-TEST-SERIAL")
+        );
+        app.stashed = Some(readings);
+        app.config.app_update_paused = true;
+        app.hardware_pending = Some((55, HardwareOperation::Install));
+        let count = app.stats.readings_applied;
+        app.handle_event(mc_magpie::Event::HardwareAccess {
+            id: None,
+            status: HardwareStatus {
+                epoch: 8,
+                mode: mc_magpie::HardwareMode::Off,
+                sampling: false,
+                grant: mc_magpie::HardwareGrant::Present,
+            },
+            result: Err("sampling unavailable".into()),
+        });
+        assert_eq!(app.hardware_pending, Some((55, HardwareOperation::Install)));
+        assert!(app.config.extended_hardware_monitoring);
+        assert_eq!(app.hardware_state.grant, mc_magpie::HardwareGrant::Present);
+        assert!(app.stashed.as_ref().unwrap().hardware.is_none());
+        let rows = info(&mut app);
+        assert!(
+            !rows
+                .iter()
+                .any(|(_, value)| value == "PRIVATE-TEST-SERIAL" || value == "×42.0")
+        );
+        assert!(rows.iter().any(|(_, value)| value == "1.125 V"));
+        assert_eq!(app.stats.readings_applied, count);
+        let mut stale = app.stashed.take().unwrap();
+        stale.hardware = Some(mc_magpie::HardwareTelemetry {
+            product_serial: Some("PRIVATE-TEST-SERIAL".into()),
+            ..Default::default()
+        });
+        app.apply_readings(stale);
+        assert!(
+            !info(&mut app)
+                .iter()
+                .any(|(_, value)| value == "PRIVATE-TEST-SERIAL")
+        );
+    }
+
+    #[test]
+    fn stale_spd_completes_only_its_own_pending_request() {
+        let ctx = Context::default();
+        let mut app = App::new(
+            &ctx,
+            AppOptions {
+                source: DataSource::Fixture(mc_magpie::synthetic_series(1, 1), HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config::default()),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        );
+        app.hardware_state.epoch = 9;
+        app.hardware_pending = Some((77, HardwareOperation::Spd));
+        app.handle_event(mc_magpie::Event::Spd {
+            id: 76,
+            epoch: 9,
+            privileged: true,
+            result: Ok(vec![]),
+        });
+        assert_eq!(app.hardware_pending, Some((77, HardwareOperation::Spd)));
+        app.handle_event(mc_magpie::Event::Spd {
+            id: 77,
+            epoch: 8,
+            privileged: true,
+            result: Err("obsolete result".into()),
+        });
+        assert!(app.hardware_pending.is_none());
+        assert!(!app.config.extended_hardware_monitoring);
     }
 
     #[test]

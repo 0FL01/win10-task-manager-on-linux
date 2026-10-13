@@ -188,6 +188,7 @@ where
 
     pub fn refresh_disks(&'static self) {
         self.disks.refresh();
+        self.disks.refresh_smart_async(&self.thread_pool);
     }
 
     pub fn refresh_disks_async(&'static self) {
@@ -260,7 +261,11 @@ where
     }
 
     pub fn disks(&self) -> Vec<types::disks::Disk> {
-        self.disks.local_cache.lock().clone()
+        self.disks_snapshot().disks
+    }
+
+    pub fn disks_snapshot(&self) -> disks::DiskList {
+        self.disks.snapshot()
     }
 
     pub fn eject_disk(&self, id: &str) -> std::result::Result<(), DisksResponseErrorEjectFailed> {

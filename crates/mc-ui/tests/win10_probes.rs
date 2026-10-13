@@ -585,6 +585,197 @@ fn dark_theme_and_system_page_render_without_changing_light_geometry() {
     assert_eq!(&processes.get_pixel(900, 40).0[..3], &[32, 32, 32]);
 }
 
+fn bright_ink_count(image: &RgbaImage, region: [u32; 4]) -> usize {
+    (region[1]..=region[3])
+        .flat_map(|y| (region[0]..=region[2]).map(move |x| (x, y)))
+        .filter(|&(x, y)| {
+            image.get_pixel(x, y).0[..3]
+                .iter()
+                .all(|value| *value >= 200)
+        })
+        .count()
+}
+
+#[test]
+fn dark_close_glyph_and_menu_text_keep_foreground_ink() {
+    let mut h = performance_harness(
+        Config {
+            theme: mc_core::config::Theme::Dark,
+            ..Default::default()
+        },
+        mc_magpie::synthetic_readings(0, 1),
+        1.,
+    );
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|config| config.app_update_paused = true);
+    h.remove_cursor();
+    h.run_steps(2);
+    let normal = h.render().unwrap();
+    assert_eq!(hex(&normal, 985, 3), "#202020");
+    assert!(
+        bright_ink_count(&normal, [1003, 11, 1012, 20]) >= 8,
+        "normal close X"
+    );
+    assert!(
+        bright_ink_count(&normal, [9, 10, 100, 23]) >= 12,
+        "title text"
+    );
+    assert!(
+        bright_ink_count(&normal, [238, 103, 335, 123]) >= 12,
+        "page text"
+    );
+
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    normal
+        .save(out.join("win10-dark-caption-normal.png"))
+        .unwrap();
+    let close = egui::pos2(1007., 16.);
+    h.hover_at(close);
+    h.run_steps(2);
+    let hover = h.render().unwrap();
+    assert_eq!(hex(&hover, 985, 3), "#e81123");
+    assert!(
+        bright_ink_count(&hover, [1003, 11, 1012, 20]) >= 8,
+        "white hover X on red"
+    );
+    hover
+        .save(out.join("win10-dark-caption-hover.png"))
+        .unwrap();
+    button(&mut h, close, true);
+    let pressed = h.render().unwrap();
+    assert_eq!(hex(&pressed, 985, 3), "#f1707a");
+    assert!(
+        bright_ink_count(&pressed, [1003, 11, 1012, 20]) >= 8,
+        "white pressed X on red"
+    );
+    pressed
+        .save(out.join("win10-dark-caption-pressed.png"))
+        .unwrap();
+
+    // Release outside the close button, then inspect actual hovered drop-down text.
+    let view = egui::pos2(110., 40.);
+    h.hover_at(view);
+    button(&mut h, view, false);
+    click(&mut h, view);
+    h.run_steps(3);
+    let theme_text = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "Theme" => {
+                Some(egui::Rect::from_min_size(text.pos, text.galley.size()))
+            }
+            _ => None,
+        })
+        .expect("View menu renders the Theme item");
+    h.hover_at(theme_text.center());
+    h.run_steps(3);
+    let menu = h.render().unwrap();
+    assert_eq!(
+        hex(
+            &menu,
+            (theme_text.left() - 5.) as u32,
+            theme_text.center().y as u32
+        ),
+        "#325b78",
+        "hovered menu surface"
+    );
+    assert!(
+        bright_ink_count(
+            &menu,
+            [
+                theme_text.left() as u32,
+                theme_text.top() as u32,
+                theme_text.right().ceil() as u32,
+                theme_text.bottom().ceil() as u32,
+            ]
+        ) >= 8,
+        "foreground menu ink on the hover surface"
+    );
+    menu.save(out.join("win10-dark-menu-foreground.png"))
+        .unwrap();
+}
+
+#[test]
+fn graph_colors_follow_explicit_and_system_theme_without_new_samples() {
+    let mut h = performance_harness(
+        Config {
+            performance_page_cpu_graph: 1,
+            performance_page_cpu_graph_bottom: 0,
+            ..Default::default()
+        },
+        mc_magpie::synthetic_readings(0, 1),
+        1.,
+    );
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|config| config.app_update_paused = true);
+    h.run_steps(2);
+    let applied = h.state().as_ref().unwrap().stats.readings_applied;
+    assert!(applied > 0);
+    let light = h.render().unwrap();
+    assert_eq!(hex(&light, 241, 200), "#117dbb", "1 px graph border");
+    assert_eq!(hex(&light, 300, 160), "#ffffff", "graph background");
+    assert_eq!(hex(&light, 300, 183), "#d9eaf4", "cached graph grid");
+    let fill = (152..465)
+        .find_map(|y| {
+            (242..1004)
+                .find(|&x| hex(&light, x, y) == "#f1f6fa")
+                .map(|x| (x, y))
+        })
+        .expect("the initial sample has a visible CPU-hue fill");
+    let graph = |image: &RgbaImage| image::imageops::crop_imm(image, 241, 151, 764, 315).to_image();
+
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|config| {
+            config.theme = mc_core::config::Theme::Dark;
+        });
+    h.run_steps(2);
+    let dark = h.render().unwrap();
+    assert_eq!(hex(&dark, 241, 200), "#4d9ecc", "dark graph border");
+    assert_eq!(hex(&dark, 300, 160), "#202020", "dark graph background");
+    assert_eq!(hex(&dark, 300, 183), "#1c3c4f", "cached grid recolored");
+    assert_eq!(
+        hex(&dark, fill.0, fill.1),
+        "#1e2b33",
+        "cached fill recolored"
+    );
+    assert_eq!(h.state().as_ref().unwrap().stats.readings_applied, applied);
+
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|config| {
+            config.theme = mc_core::config::Theme::System;
+        });
+    for (theme, expected) in [
+        (egui::Theme::Light, &light),
+        (egui::Theme::Dark, &dark),
+        (egui::Theme::Light, &light),
+    ] {
+        h.input_mut().system_theme = Some(theme);
+        h.run_steps(2);
+        let actual = h.render().unwrap();
+        assert_eq!(
+            graph(&actual),
+            graph(expected),
+            "System {theme:?} updates every graph pixel without altering geometry/history"
+        );
+        assert_eq!(h.state().as_ref().unwrap().stats.readings_applied, applied);
+    }
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    light.save(out.join("win10-theme-graph-light.png")).unwrap();
+    dark.save(out.join("win10-theme-graph-dark.png")).unwrap();
+}
+
 #[test]
 fn system_metadata_copies_full_values_and_system_theme_follows_desktop() {
     let mut reading = mc_magpie::synthetic_series(1, 1).remove(0);
@@ -1481,11 +1672,26 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
 
 #[test]
 fn memory_slot_diagrams_distinguish_empty_and_populated_modules() {
+    check_memory_slot_module(false);
+}
+
+#[test]
+fn unknown_memory_capacity_keeps_metadata_and_spd_access() {
+    check_memory_slot_module(true);
+}
+
+fn check_memory_slot_module(unknown_capacity: bool) {
     let mut reading = mc_magpie::synthetic_readings(0, 1);
     reading.mem_devices[0].locator = "DIMMA1".into();
     reading.mem_devices[0].manufacturer = Some("Test memory manufacturer".into());
+    reading.mem_devices[0].speed_configured = Some(!unknown_capacity);
+    if unknown_capacity {
+        reading.mem_devices[0].size = 0;
+        reading.mem_devices[0].present = None;
+    }
     reading.mem_devices[1].locator = "DIMMA2".into();
     reading.mem_devices[1].size = 0;
+    reading.mem_devices[1].present = Some(false);
     reading.mem_devices[1].form_factor = "DIMM".into();
     reading.mem_info.max_devices = 2;
     let mut h = performance_harness(
@@ -1509,11 +1715,19 @@ fn memory_slot_diagrams_distinguish_empty_and_populated_modules() {
     for label in ["A1", "A2", "Empty", "Memory slots"] {
         assert!(h.output().shapes.iter().any(|shape| matches!(&shape.shape,egui::Shape::Text(text) if text.galley.job.text == label && shape.clip_rect.contains(text.pos))), "{label} visible");
     }
+    if unknown_capacity {
+        assert!(h.output().shapes.iter().any(|shape| {
+            matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == "Unknown" && shape.clip_rect.contains(text.pos))
+        }));
+    }
     h.render()
         .unwrap()
         .save(
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../target/ui-snapshots/win10-memory-slots-compact.png"),
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(if unknown_capacity {
+                "../../target/ui-snapshots/win10-memory-slots-unknown.png"
+            } else {
+                "../../target/ui-snapshots/win10-memory-slots-compact.png"
+            }),
         )
         .unwrap();
     let slot = h
@@ -1528,6 +1742,14 @@ fn memory_slot_diagrams_distinguish_empty_and_populated_modules() {
     click(&mut h, slot + egui::vec2(8., 5.));
     h.run_steps(2);
     assert!(h.query_by_label("Test memory manufacturer").is_some());
+    assert!(
+        h.query_by_label(if unknown_capacity {
+            "Speed (SMBIOS)"
+        } else {
+            "Configured speed (SMBIOS)"
+        })
+        .is_some()
+    );
     assert!(h.query_by_label("Read SPD").is_none());
     h.run_steps(3);
     std::thread::sleep(std::time::Duration::from_millis(100));

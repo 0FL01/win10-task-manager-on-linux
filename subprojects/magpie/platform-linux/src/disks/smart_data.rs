@@ -20,37 +20,42 @@
 
 use std::collections::HashMap;
 
-use tokio::runtime::Handle;
 use udisks2::ata::AtaProxy;
 use udisks2::nvme::controller::ControllerProxy;
 use udisks2::Object;
-use zbus::zvariant::{Array, OwnedValue};
+use zbus::zvariant::{Array, OwnedValue, Value};
 
 use magpie_platform::disks::{
     DiskSmartAtaAttribute, DiskSmartData, DiskSmartDataAta, DiskSmartDataNvme,
     DiskSmartDataVariant, DiskSmartPrettyUnitKind, DiskSmartTestResult,
 };
 
-use crate::sync;
-
-pub fn smart_data(rt: &Handle, drive: &Object, disk_id: &str) -> Option<DiskSmartData> {
-    if let Ok(ata) = sync!(rt, drive.drive_ata()) {
-        return ata_smart_data(rt, ata, disk_id);
+pub async fn smart_data(drive: &Object, disk_id: &str, automatic: bool) -> Option<DiskSmartData> {
+    if let Ok(ata) = drive.drive_ata().await {
+        return ata_smart_data(ata, disk_id, automatic).await;
     };
 
-    if let Ok(nvme) = sync!(rt, drive.nvme_controller()) {
-        return nvme_smart_data(rt, nvme, disk_id);
+    if let Ok(nvme) = drive.nvme_controller().await {
+        return nvme_smart_data(nvme, disk_id, automatic).await;
     };
 
     None
 }
 
-fn ata_smart_data(rt: &Handle, ata: AtaProxy, disk_id: &str) -> Option<DiskSmartData> {
-    let options = HashMap::from([(
-        "auth.no_user_interaction",
-        zbus::zvariant::Value::from(true),
-    )]);
-    let attributes = match sync!(rt, ata.smart_get_attributes(options)) {
+fn smart_options(automatic: bool) -> HashMap<&'static str, Value<'static>> {
+    if automatic {
+        HashMap::from([("auth.no_user_interaction", Value::from(true))])
+    } else {
+        HashMap::new()
+    }
+}
+
+async fn ata_smart_data(
+    ata: AtaProxy<'_>,
+    disk_id: &str,
+    automatic: bool,
+) -> Option<DiskSmartData> {
+    let attributes = match ata.smart_get_attributes(smart_options(automatic)).await {
         Ok(res) => res,
         Err(e) => {
             log::error!("Failed to find ata interface {disk_id}: {e}",);
@@ -60,9 +65,11 @@ fn ata_smart_data(rt: &Handle, ata: AtaProxy, disk_id: &str) -> Option<DiskSmart
 
     let mut result = DiskSmartData::default();
 
-    result.powered_on_seconds = sync!(rt, ata.smart_power_on_seconds()).unwrap_or(0);
-    result.last_update_time = sync!(rt, ata.smart_updated()).unwrap_or(0);
-    let test_result: Option<DiskSmartTestResult> = sync!(rt, ata.smart_selftest_status())
+    result.powered_on_seconds = ata.smart_power_on_seconds().await.unwrap_or(0);
+    result.last_update_time = ata.smart_updated().await.unwrap_or(0);
+    let test_result: Option<DiskSmartTestResult> = ata
+        .smart_selftest_status()
+        .await
         .ok()
         .and_then(|tr| tr.as_str().try_into().ok());
     result.test_result = test_result.map(|tr| tr as i32);
@@ -89,16 +96,15 @@ fn ata_smart_data(rt: &Handle, ata: AtaProxy, disk_id: &str) -> Option<DiskSmart
     Some(result)
 }
 
-fn nvme_smart_data<'a>(
-    rt: &Handle,
+async fn nvme_smart_data<'a>(
     controller: ControllerProxy<'a>,
     disk_id: &str,
+    automatic: bool,
 ) -> Option<DiskSmartData> {
-    let options = HashMap::from([(
-        "auth.no_user_interaction",
-        zbus::zvariant::Value::from(true),
-    )]);
-    let attributes = match sync!(rt, controller.smart_get_attributes(options)) {
+    let attributes = match controller
+        .smart_get_attributes(smart_options(automatic))
+        .await
+    {
         Ok(res) => res,
         Err(e) => {
             log::error!("Failed to get attributes for {disk_id}: {e}",);
@@ -108,9 +114,11 @@ fn nvme_smart_data<'a>(
 
     let mut result = DiskSmartData::default();
 
-    result.powered_on_seconds = sync!(rt, controller.smart_power_on_hours()).unwrap_or(0) * 3600;
-    result.last_update_time = sync!(rt, controller.smart_updated()).unwrap_or(0);
-    let test_result: Option<DiskSmartTestResult> = sync!(rt, controller.smart_selftest_status())
+    result.powered_on_seconds = controller.smart_power_on_hours().await.unwrap_or(0) * 3600;
+    result.last_update_time = controller.smart_updated().await.unwrap_or(0);
+    let test_result: Option<DiskSmartTestResult> = controller
+        .smart_selftest_status()
+        .await
         .ok()
         .and_then(|tr| tr.as_str().try_into().ok());
     result.test_result = test_result.map(|tr| tr as i32);
@@ -188,4 +196,17 @@ fn nvme_smart_data<'a>(
 
     result.data = Some(DiskSmartDataVariant::Nvme(nvme_smart_data));
     Some(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_automatic_smart_suppresses_authorization_prompts() {
+        assert!(smart_options(false).is_empty());
+        let options = smart_options(true);
+        assert_eq!(options.len(), 1);
+        assert_eq!(options["auth.no_user_interaction"], Value::from(true));
+    }
 }

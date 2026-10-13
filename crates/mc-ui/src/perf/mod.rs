@@ -92,6 +92,9 @@ pub trait DevicePage {
     ) {
     }
     fn clear_privileged_spd(&mut self) {}
+    fn set_spd_pending(&mut self, _pending: bool) {}
+    /// Metadata-only invalidation: never append another graph sample.
+    fn clear_privileged_hardware(&mut self) {}
     fn extra_ui(&mut self, _ui: &mut Ui, _rect: egui::Rect, _module_height: f32, _cx: &mut Cx) {}
     /// Returns `true` if a repaint is needed for the animation.
     fn set_grid_offset(&mut self, offset: u32) -> bool;
@@ -380,6 +383,17 @@ impl PerformancePage {
     }
     pub fn clear_privileged_spd(&mut self) {
         for device in &mut self.devices {
+            device.clear_privileged_spd();
+        }
+    }
+    pub fn set_spd_pending(&mut self, pending: bool) {
+        for device in &mut self.devices {
+            device.set_spd_pending(pending);
+        }
+    }
+    pub fn clear_privileged_hardware(&mut self) {
+        for device in &mut self.devices {
+            device.clear_privileged_hardware();
             device.clear_privileged_spd();
         }
     }

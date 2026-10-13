@@ -53,48 +53,59 @@ fn cpu_kind(id: u32) -> Option<String> {
         if libc::sched_setaffinity(0, size, &target) != 0 {
             return None;
         }
-        let basic = __cpuid(0);
-        let kind = if basic.ebx == 0x756e6547
-            && basic.edx == 0x49656e69
-            && basic.ecx == 0x6c65746e
-            && basic.eax >= 0x1a
-        {
-            match __cpuid(0x1a).eax >> 24 {
-                0x40 => Some("P".into()),
-                0x20 => Some("E".into()),
-                _ => None,
-            }
-        } else if basic.ebx == 0x68747541
-            && basic.edx == 0x69746e65
-            && basic.ecx == 0x444d4163
-            && __cpuid(0x80000000).eax >= 0x80000026
-        {
-            let topology = __cpuid_count(0x80000026, 0);
-            // AMD extended topology explicitly advertises heterogeneous cores in EAX[30].
-            // Core type is EBX[31:28], not the preferred-core ranking or clock speed.
-            if topology.eax & (1 << 30) != 0 && topology.ebx & 0xffff != 0 {
-                let signature = __cpuid(1).eax;
-                let family = ((signature >> 8) & 0xf) + ((signature >> 20) & 0xff);
-                match (family, topology.ebx >> 28) {
-                    (0x19, 0) => Some("Zen 4".into()),
-                    (0x19, 1) => Some("Zen 4c".into()),
-                    (0x1a, 0) => Some("Zen 5".into()),
-                    (0x1a, 1) => Some("Zen 5c".into()),
-                    (_, 0) => Some("P".into()),
-                    (_, 1) => Some("Compact".into()),
-                    (_, 2) => Some("Low power".into()),
-                    _ => None,
-                }
+        let kind = cpuid_kind(|leaf, subleaf| {
+            if subleaf == 0 {
+                __cpuid(leaf)
             } else {
-                None
+                __cpuid_count(leaf, subleaf)
             }
-        } else {
-            None
-        };
+        });
         if libc::sched_setaffinity(0, size, &original) != 0 {
             log::error!("Failed to restore gatherer CPU affinity");
         }
-        kind
+        kind.map(str::to_owned)
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+fn cpuid_kind(read: impl Fn(u32, u32) -> std::arch::x86_64::CpuidResult) -> Option<&'static str> {
+    let basic = read(0, 0);
+    if basic.ebx == 0x756e6547
+        && basic.edx == 0x49656e69
+        && basic.ecx == 0x6c65746e
+        && basic.eax >= 0x1a
+    {
+        match read(0x1a, 0).eax >> 24 {
+            0x40 => Some("P"),
+            0x20 => Some("E"),
+            _ => None,
+        }
+    } else if basic.ebx == 0x68747541
+        && basic.edx == 0x69746e65
+        && basic.ecx == 0x444d4163
+        && read(0x80000000, 0).eax >= 0x80000026
+    {
+        let topology = read(0x80000026, 0);
+        // AMD extended topology explicitly advertises heterogeneous cores in EAX[30].
+        // Core type is EBX[31:28], not the preferred-core ranking or clock speed.
+        if topology.eax & (1 << 30) != 0 && topology.ebx & 0xffff != 0 {
+            let signature = read(1, 0).eax;
+            let family = ((signature >> 8) & 0xf) + ((signature >> 20) & 0xff);
+            match (family, topology.ebx >> 28) {
+                (0x19, 0) => Some("Zen 4"),
+                (0x19, 1) => Some("Zen 4c"),
+                (0x1a, 0) => Some("Zen 5"),
+                (0x1a, 1) => Some("Zen 5c"),
+                (_, 0) => Some("P"),
+                (_, 1) => Some("Compact"),
+                (_, 2) => Some("Low power"),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
     }
 }
 
@@ -108,4 +119,87 @@ pub fn matches(info: &Cpu, ids: &[u32]) -> bool {
         .iter()
         .map(|cpu| cpu.id)
         .eq(ids.iter().copied())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sparse_cpu_ids_and_same_count_replacements_require_fresh_topology() {
+        let info = Cpu {
+            logical_cpus: [0, 4, 12]
+                .into_iter()
+                .map(|id| LogicalCpu {
+                    id,
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        };
+        assert!(matches(&info, &[0, 4, 12]));
+        assert!(!matches(&info, &[0, 4, 13]));
+        assert!(!matches(&info, &[0, 12, 4]));
+        assert!(!matches(&info, &[0, 4]));
+    }
+
+    #[test]
+    fn unavailable_cpu_topology_keeps_the_kernel_id_without_guessing_kind() {
+        let cpu = read(u32::MAX);
+        assert_eq!(cpu.id, u32::MAX);
+        assert_eq!(cpu.package_id, None);
+        assert_eq!(cpu.core_id, None);
+        assert_eq!(cpu.kind, None);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn unsupported_cpuid_leaves_and_core_types_remain_unknown() {
+        use std::arch::x86_64::CpuidResult;
+        let intel = CpuidResult {
+            eax: 0x19,
+            ebx: 0x756e6547,
+            ecx: 0x6c65746e,
+            edx: 0x49656e69,
+        };
+        assert_eq!(
+            cpuid_kind(|leaf, _| {
+                assert_eq!(leaf, 0, "unsupported leaf must not be queried");
+                intel
+            }),
+            None
+        );
+        for (core_type, expected) in [
+            (0, None),
+            (0x30, None),
+            (0x40, Some("P")),
+            (0x20, Some("E")),
+        ] {
+            assert_eq!(
+                cpuid_kind(|leaf, _| match leaf {
+                    0 => CpuidResult { eax: 0x1a, ..intel },
+                    0x1a => CpuidResult {
+                        eax: core_type << 24,
+                        ebx: 0,
+                        ecx: 0,
+                        edx: 0
+                    },
+                    _ => panic!("unexpected CPUID leaf"),
+                }),
+                expected
+            );
+        }
+        assert_eq!(
+            cpuid_kind(|leaf, _| {
+                assert_eq!(leaf, 0);
+                CpuidResult {
+                    eax: 0,
+                    ebx: 0,
+                    ecx: 0,
+                    edx: 0,
+                }
+            }),
+            None
+        );
+    }
 }
