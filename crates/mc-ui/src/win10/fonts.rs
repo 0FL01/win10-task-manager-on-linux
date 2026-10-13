@@ -22,8 +22,8 @@
 //! (SIL OFL 1.1, `assets/fonts/OFL.txt`), which is metric-compatible. The system sans-serif and
 //! egui's bundled fonts follow as fallbacks for scripts Selawik does not cover.
 
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, PoisonError};
 
 use egui::{FontData, FontDefinitions, FontFamily};
 
@@ -71,6 +71,20 @@ fn fc_match(pattern: &str, family: Option<&str>) -> Option<PathBuf> {
     (path.exists() && (ext == "ttf" || ext == "otf")).then_some(path)
 }
 
+/// Reads a system font once per process as a `'static` slice. epaint copies owned font data
+/// into its glyph blob while the definitions keep the original, so borrowed bytes avoid a
+/// second copy of every system font (~1.2 MiB for a typical sans fallback).
+fn read_static(path: &Path) -> Option<&'static [u8]> {
+    static FILES: Mutex<Vec<(PathBuf, &'static [u8])>> = Mutex::new(Vec::new());
+    let mut files = FILES.lock().unwrap_or_else(PoisonError::into_inner);
+    if let Some((_, bytes)) = files.iter().find(|(p, _)| p == path) {
+        return Some(bytes);
+    }
+    let bytes: &'static [u8] = Box::leak(std::fs::read(path).ok()?.into_boxed_slice());
+    files.push((path.to_owned(), bytes));
+    Some(bytes)
+}
+
 impl Fonts {
     pub fn discover() -> Self {
         let segoe = |style: &str| fc_match(&format!("Segoe UI:style={style}"), Some("Segoe UI"));
@@ -100,15 +114,11 @@ impl Fonts {
         }
 
         let mut fallback = vec![];
-        if let Some(bytes) = self
-            .system_sans
-            .as_ref()
-            .and_then(|p| std::fs::read(p).ok())
-        {
+        if let Some(bytes) = self.system_sans.as_deref().and_then(read_static) {
             fallback.push(insert(
                 &mut fonts,
                 "system-sans",
-                FontData::from_owned(bytes),
+                FontData::from_static(bytes),
             ));
         }
         fallback.extend(egui_proportional);
@@ -118,11 +128,11 @@ impl Fonts {
         let mut chains = vec![];
         for ((name, bytes), segoe) in names.iter().zip(bundled).zip(&self.segoe) {
             let mut chain = vec![];
-            if let Some(bytes) = segoe.as_ref().and_then(|p| std::fs::read(p).ok()) {
+            if let Some(bytes) = segoe.as_deref().and_then(read_static) {
                 chain.push(insert(
                     &mut fonts,
                     &format!("segoe-{name}"),
-                    FontData::from_owned(bytes),
+                    FontData::from_static(bytes),
                 ));
             }
             chain.push(insert(
@@ -144,12 +154,8 @@ impl Fonts {
                 .insert(family(name), chains.next().unwrap_or_default());
         }
 
-        if let Some(bytes) = self
-            .system_mono
-            .as_ref()
-            .and_then(|p| std::fs::read(p).ok())
-        {
-            let name = insert(&mut fonts, "system-mono", FontData::from_owned(bytes));
+        if let Some(bytes) = self.system_mono.as_deref().and_then(read_static) {
+            let name = insert(&mut fonts, "system-mono", FontData::from_static(bytes));
             fonts
                 .families
                 .entry(FontFamily::Monospace)
