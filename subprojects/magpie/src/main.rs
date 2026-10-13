@@ -218,6 +218,10 @@ fn handle_request(request_data: &[u8], socket: nng::nng_socket) {
             log::error!("Failed to send reply: Unknown error: {}", res);
         }
     }
+    if res != nng::NNG_OK {
+        // NNG frees an `NNG_FLAG_ALLOC` buffer only on success (`nng_send` in nng.c).
+        unsafe { nng::nng_free(response as *mut _, response_len) };
+    }
 }
 
 fn bind(socket_addr: &str) -> magpie_platform::Result<nng::nng_socket> {
