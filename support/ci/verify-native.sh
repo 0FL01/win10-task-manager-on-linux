@@ -21,8 +21,14 @@ case $distro in
         expected_version="${version}-1.fc44"
         ;;
     opensuse-tumbleweed)
+        # Rolling mirrors can briefly advertise metadata they have not synced yet.
+        if ! zypper --non-interactive refresh --force; then
+            printf 'Repository refresh failed; retrying in 15 seconds.\n' >&2
+            sleep 15
+            zypper --non-interactive refresh --force
+        fi
         # Tumbleweed splits pkexec from polkit; do not rely on image recommendation policy.
-        zypper --non-interactive install --allow-unsigned-rpm "$package" polkit pkexec
+        zypper --non-interactive --no-refresh install --allow-unsigned-rpm "$package" polkit pkexec
         package_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}' taskmanager)
         expected_version="${version}-1.tw"
         ;;
@@ -97,7 +103,7 @@ case $distro in
         dnf install -y binutils dbus-x11 python3 xorg-x11-server-Xvfb xorg-x11-xauth mesa-dri-drivers mesa-vulkan-drivers
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install binutils dbus-1-daemon gawk python3 xorg-x11-server xvfb-run xauth Mesa-dri libvulkan_lvp
+        zypper --non-interactive --no-refresh install binutils dbus-1-daemon gawk python3 xorg-x11-server xvfb-run xauth Mesa-dri libvulkan_lvp
         ;;
     arch)
         pacman -S --needed --noconfirm binutils dbus python xorg-server-xvfb xorg-xauth mesa vulkan-swrast

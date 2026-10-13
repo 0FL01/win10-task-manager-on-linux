@@ -18,7 +18,13 @@ case $distro in
             vulkan-loader-devel wayland-devel
         ;;
     opensuse-tumbleweed)
-        zypper --non-interactive install --no-recommends \
+        # Rolling mirrors can briefly advertise metadata they have not synced yet.
+        if ! zypper --non-interactive refresh --force; then
+            printf 'Repository refresh failed; retrying in 15 seconds.\n' >&2
+            sleep 15
+            zypper --non-interactive refresh --force
+        fi
+        zypper --non-interactive --no-refresh install --no-recommends \
             binutils cmake curl dbus-1-devel desktop-file-utils dirmngr gcc gcc-c++ gettext-tools git gpg2 \
             hicolor-icon-theme libX11-devel libXcursor-devel libXi-devel libdrm-devel libgbm-devel libxcb-devel \
             libxkbcommon-devel libxkbcommon-x11-devel Mesa-libEGL-devel \

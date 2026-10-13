@@ -79,6 +79,50 @@ class VerifyNativeTests(unittest.TestCase):
         self.assertIn("xvfb-run", result["args"])
         self.assertNotIn("--allow-unsigned-rpm", result["args"])
 
+    def test_opensuse_refresh_retries_once_and_requires_complete_metadata(self):
+        for name in ("setup-native.sh", "verify-native.sh"):
+            script = (ROOT / "support/ci" / name).read_text()
+            start = script.index("    opensuse-tumbleweed)")
+            branch = script[start:script.index("\n        ;;", start) + len("\n        ;;")]
+            for failures in (1, 2):
+                with self.subTest(script=name, refresh_failures=failures):
+                    result = subprocess.run(
+                        ["bash", "-c", """
+set -euo pipefail
+failures=$VERIFY_TEST_REFRESH_FAILURES
+zypper() {
+    "$VERIFY_TEST_PYTHON" -c 'import json, sys; print(json.dumps(sys.argv[1:]))' zypper "$@"
+    if [[ $2 == refresh ]]; then
+        if (( failures > 0 )); then
+            failures=$((failures - 1))
+            return 4
+        fi
+        return 0
+    fi
+    return 79
+}
+sleep() {
+    "$VERIFY_TEST_PYTHON" -c 'import json, sys; print(json.dumps(sys.argv[1:]))' sleep "$@"
+}
+distro=opensuse-tumbleweed
+package=taskmanager.rpm
+version=1.2.7
+case $distro in
+""" + branch + "\nesac"],
+                        env={**os.environ, "VERIFY_TEST_PYTHON": sys.executable,
+                             "VERIFY_TEST_REFRESH_FAILURES": str(failures)},
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 79 if failures == 1 else 4, result.stderr)
+                    commands = [json.loads(line) for line in result.stdout.splitlines()]
+                    refresh = ["zypper", "--non-interactive", "refresh", "--force"]
+                    self.assertEqual(commands[:3], [refresh, ["sleep", "15"], refresh])
+                    if failures == 1:
+                        self.assertEqual(len(commands), 4)
+                        self.assertEqual(commands[3][:4], ["zypper", "--non-interactive", "--no-refresh", "install"])
+                    else:
+                        self.assertEqual(len(commands), 3)
+
     def test_optional_hardware_prerequisites_are_checked_before_smoke_dependencies(self):
         script = (ROOT / "support/ci/verify-native.sh").read_text()
         probes = script[script.index("test -x /usr/bin/taskmanager"):script.index("test -s /usr/share/missioncenter/hw.db")]
