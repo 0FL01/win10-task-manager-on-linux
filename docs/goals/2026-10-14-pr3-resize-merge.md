@@ -36,7 +36,7 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Acceptance: reviewed correction is included in main with contributor attribution; all required jobs succeed, five native artifacts and ui-snapshots exist, and expected release targets main SHA with five packages plus source archive.
   - Primary evidence: GitHub Actions run/jobs/artifacts and release/tag API for the final SHA.
   - Status: in_progress.
-  - Evidence: runtime correction `2053e5b36e544d8432a95da17f18c7d5993563c4` and execution-state commit `a6f83484ea545bd9039a2ab7cff1cb00cb0ce3c6` were fast-forward pushed to the PR branch. Fork runs `38548411445` and `38549179131` failed on libdrm downloads. The identical head was pushed to upstream `verify/pr3-resize-handoff`; [run 38549851607, attempt 2](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38549851607/attempts/2) passes checks, Ubuntu, Debian and Arch, but Fedora/openSUSE again fail before compilation with `curl: (35) Recv failure: Connection reset by peer`. Main/base remains `906d46f706d05669a1174122d23525ea506d1fe0`, release `v1.2.26`; no merge or release occurred.
+  - Evidence: corrected PR head `7494f931cceb05600ea9622b918f42b63c40bb63` passed [upstream run 38552220831, attempt 2](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38552220831/attempts/2): checks, metadata and all five native jobs succeeded; publish was correctly skipped off main. Six nonempty, unexpired artifacts (`native-fedora44`, `native-opensuse-tumbleweed`, `native-ubuntu26.04`, `native-debian13`, `native-arch`, `ui-snapshots`) match that exact SHA. PR head and base were rechecked; guarded `PUT /repos/0FL01/win10-task-manager-on-linux/pulls/3/merge` with `merge_method=squash` was denied `403 Resource not accessible by personal access token`. Main remains `906d46f706d05669a1174122d23525ea506d1fe0`; no merge or release occurred.
 
 ### Constraints
 - Keep existing egui response gate, maximized guard and modal/layer arbitration; retain all 12 zone registrations each frame.
@@ -55,7 +55,7 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - Preserve PR changes in `win10/metrics.rs` and `docs/win10-spec/spec.md`; this goal tracks execution.
 - User-authorized R4 blocker fix: add `--retry-all-errors` to the two existing curl commands in `support/ci/prepare-libdrm-notices.sh`. Keep retry count 3, URLs, TLS verification, signing key, GPG verification and package provenance unchanged.
 - Generated logs, renders and temporary native-smoke scripts remain ignored under `target/` or the approved external temporary directory. No private dumps or reference images committed.
-- Commit/push and merge/publish are authorized by the instruction to execute the approved integration plan. No new dependency or CI architecture.
+- Commit/push and merge/publish are authorized by the instruction to execute the approved integration plan. After the API denied squash merge, the user explicitly authorized a normal `git merge --no-ff` and SSH push to main; the copied historical squash plan below is superseded only on merge method. No new dependency or CI architecture.
 
 ## Approved Plan (copy)
 
@@ -167,21 +167,22 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 
 ## Current Checkpoint
 - Closes: R4.
-- Smallest next action: push the verified retry-flag fix to the PR branch, verify all required jobs, then perform guarded merge. Reuse the upstream verification branch only if fork failed-job reruns are needed.
-- Expected evidence: the existing bounded retry now handles observed TLS error 35; corrected head checks and all five native jobs succeed before merge.
-- Stop or replan if: the proposed retry change cannot address the observed download failure without weakening TLS/GPG verification or changing package provenance.
+- Smallest next action: record the authorized merge method, recheck the pinned PR head/base, merge through git and push main without force. The merge tree may differ from verified head `7494f93` only in this execution-state document.
+- Expected evidence: PR marked merged with reviewed head `7494f93` in main's ancestry, followed by successful main workflow and verified release/artifacts.
+- Stop or replan if: PR head/base changed, the runtime tree differs from the verified SHA, or the normal push is rejected; do not bypass branch protections or force push.
 
 ## Current State
 - Resolved: R1, R2, R3; all runtime edits remain inside `resize_edges`, tests reuse the existing harness, no dependency/backend/workflow change.
-- Last relevant evidence: authorized helper fix passes `bash -n support/ci/prepare-libdrm-notices.sh` and a native curl loopback TLS-reset reproduction. The old flags exit 35 after one connection; flags read from both updated curl commands succeed after the reset on connection two, using a verified local certificate. Retry count remains 3. Runtime code and its prior green evidence are unchanged.
-- Blocker: real native jobs still need to verify the bounded retry against external downloads. Fork reruns are forbidden (403); upstream failed-job reruns work.
-- Next: corrected-head CI, then guarded merge and final main workflow/artifacts/release verification.
+- Last relevant evidence: corrected-head CI and all six artifacts verified in upstream run `38552220831`, attempt 2. Authorized helper fix also passes shell syntax and a native curl TLS-reset red-to-green probe with certificate verification; runtime/local evidence remains unchanged.
+- Blocker: none; API squash is unavailable, but the user authorized the working SSH merge path.
+- Next: normal merge/push to main, then final main workflow/artifacts/release verification.
 
 ## Material Decisions
 - 2026-10-14: execute the approved narrow plan; successful final workflow is the user's finish line, not merely a local green test.
 - 2026-10-14: retry the observed transient download failure through this necessary execution-state commit because fork Actions reruns are forbidden; do not change packaging/workflow code for an isolated network reset.
 - 2026-10-14: repeated download resets establish an external integration blocker, not a resize regression. Verify the identical PR SHA through an upstream branch to permit failed-job reruns; after its rerun also fails, stop blind retries and request permission before touching the excluded packaging helper.
 - 2026-10-14: user selected «Минимальный CI-fix (Recommended)», explicitly authorizing only `--retry-all-errors` on the existing two curl calls; R4 reactivated within this expanded envelope.
+- 2026-10-14: after API squash merge returned 403, the user selected «Обычный merge (Recommended)» and instructed «в main ветку заливай и коммит пуш и следи за сборкой». Use `git merge --no-ff` with existing SSH push authorization; preserve PR commits and author attribution, no force push.
 
 ## Checkpoint History
 - 2026-10-14: R1 verified; original PR and main SHAs pinned, plan frozen before runtime edits.
@@ -190,8 +191,10 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 - 2026-10-14: fork run `38549179131` and upstream run `38549851607` (including attempt 2, failed jobs only) reproduce the libdrm connection resets on unchanged runtime. R4 blocked pending a permitted minimal helper fix or external recovery; main unchanged.
 - 2026-10-14: user-authorized two-flag helper fix verified by shell syntax and a real local TLS-reset red→green probe (old exit 35/one attempt → new success/two attempts, certificate verification retained). No Rust edit or security/provenance change; next checkpoint is corrected-head CI.
 
+- 2026-10-14: corrected head `7494f93` passes upstream run `38552220831`, attempt 2, including all native builds and six verified artifacts. API squash merge denied 403; user subsequently authorized a normal SSH-pushed merge commit, unblocking R4 without runtime changes.
+
 ## Completion
 - Resolved outcomes: R1, R2, R3.
-- Commands and artifacts: local runtime gates/native evidence and helper retry probe above; corrected integration workflow pending.
-- Constraint and diff-scope check: implementation reviewed against the approved local runtime/test envelope; integration closure pending.
+- Commands and artifacts: local gates/native smoke, helper probe, corrected-head workflow and six artifacts verified; main workflow/release pending integration.
+- Constraint and diff-scope check: implementation remains within the approved envelope and authorized two-flag helper exception; the normal merge method is explicitly user-authorized.
 - Final status: active, not complete.
