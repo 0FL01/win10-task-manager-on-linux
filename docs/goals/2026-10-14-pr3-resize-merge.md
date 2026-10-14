@@ -1,6 +1,6 @@
 # Goal: Merge PR #3 with correct native resize initiation
 
-Status: active
+Status: complete
 Source: https://github.com/0FL01/win10-task-manager-on-linux/pull/3; approved review/plan below; user: «делай копию плана в цель и итеративно реализовать», «работа считается выполненой когда форкфлоу успешно завершился».
 Last updated: 2026-10-14
 
@@ -35,8 +35,8 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Source: latest user finish line; approved plan Integration and Checks; AGENTS.md after-push rule.
   - Acceptance: reviewed correction is included in main with contributor attribution; all required jobs succeed, five native artifacts and ui-snapshots exist, and expected release targets main SHA with five packages plus source archive.
   - Primary evidence: GitHub Actions run/jobs/artifacts and release/tag API for the final SHA.
-  - Status: in_progress.
-  - Evidence: corrected PR head `7494f931cceb05600ea9622b918f42b63c40bb63` passed [upstream run 38552220831, attempt 2](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38552220831/attempts/2): checks, metadata and all five native jobs succeeded; publish was correctly skipped off main. Six nonempty, unexpired artifacts (`native-fedora44`, `native-opensuse-tumbleweed`, `native-ubuntu26.04`, `native-debian13`, `native-arch`, `ui-snapshots`) match that exact SHA. PR head and base were rechecked; guarded `PUT /repos/0FL01/win10-task-manager-on-linux/pulls/3/merge` with `merge_method=squash` was denied `403 Resource not accessible by personal access token`. Main remains `906d46f706d05669a1174122d23525ea506d1fe0`; no merge or release occurred.
+  - Status: verified.
+  - Evidence: corrected PR head `7494f931cceb05600ea9622b918f42b63c40bb63` passed upstream run `38552220831`, attempt 2. After API squash was denied 403, the user authorized a normal merge: main `fab6c64475496bf7e329635b99c68d589b0ab1dc` was pushed without force, preserving contributor commits; GitHub marks PR #3 closed/merged. The API reports the reachable PR head as `merge_commit_sha`; actual main merge is `fab6c64`. Its runtime tree matches the verified head exactly. [Main run 38564600321](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38564600321) succeeded on attempt 1: checks, metadata, all five native builds and publish. All six expected artifacts are nonempty, unexpired and tied to that SHA. [Release v1.2.29](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.29) has six uploaded, nonempty assets (five distro packages plus source); release target and resolved tag commit both equal `fab6c64475496bf7e329635b99c68d589b0ab1dc`.
 
 ### Constraints
 - Keep existing egui response gate, maximized guard and modal/layer arbitration; retain all 12 zone registrations each frame.
@@ -166,16 +166,15 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 **По KISS/YAGNI/Pareto:** сохранить почти весь PR, исправить один участок выбора начала жеста и закрепить его точными тестами. Не превращать локальный баг resize в проект по переписыванию управления окнами.
 
 ## Current Checkpoint
-- Closes: R4.
-- Smallest next action: record the authorized merge method, recheck the pinned PR head/base, merge through git and push main without force. The merge tree may differ from verified head `7494f93` only in this execution-state document.
-- Expected evidence: PR marked merged with reviewed head `7494f93` in main's ancestry, followed by successful main workflow and verified release/artifacts.
-- Stop or replan if: PR head/base changed, the runtime tree differs from the verified SHA, or the normal push is rejected; do not bypass branch protections or force push.
+- Closed: R1–R4. No further implementation.
+- Smallest next action: commit/push this documentation-only closure, verify its automatic workflow under the after-push rule, then report completion and stop. Do not create another documentation commit merely to record that run ID.
+- Expected evidence: the closure push passes CI without changing the verified runtime/release.
 
 ## Current State
-- Resolved: R1, R2, R3; all runtime edits remain inside `resize_edges`, tests reuse the existing harness, no dependency/backend/workflow change.
-- Last relevant evidence: corrected-head CI and all six artifacts verified in upstream run `38552220831`, attempt 2. Authorized helper fix also passes shell syntax and a native curl TLS-reset red-to-green probe with certificate verification; runtime/local evidence remains unchanged.
-- Blocker: none; API squash is unavailable, but the user authorized the working SSH merge path.
-- Next: normal merge/push to main, then final main workflow/artifacts/release verification.
+- Resolved: R1, R2, R3, R4; approved resize/test/spec edits and the authorized two retry flags only, with no dependency/backend/workflow change.
+- Last relevant evidence: main merge `fab6c64` passed workflow `38564600321` on attempt 1; six artifacts and release `v1.2.29` with six assets verified through the API, including tag/target equality to the merge SHA. Local proof: `target/pr3-release-proof.json`. Prior local gates/native smoke remain current.
+- Blocker: none.
+- Next: after-push verification of this documentation-only closure, then stop.
 
 ## Material Decisions
 - 2026-10-14: execute the approved narrow plan; successful final workflow is the user's finish line, not merely a local green test.
@@ -192,9 +191,11 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 - 2026-10-14: user-authorized two-flag helper fix verified by shell syntax and a real local TLS-reset red→green probe (old exit 35/one attempt → new success/two attempts, certificate verification retained). No Rust edit or security/provenance change; next checkpoint is corrected-head CI.
 
 - 2026-10-14: corrected head `7494f93` passes upstream run `38552220831`, attempt 2, including all native builds and six verified artifacts. API squash merge denied 403; user subsequently authorized a normal SSH-pushed merge commit, unblocking R4 without runtime changes.
+- 2026-10-14: authorized normal merge pushed to main as `fab6c64`, preserving contributor history. PR #3 marked merged; ancestry and unchanged runtime tree verified. Main workflow `38564600321` started; release/artifact closure remains pending.
+- 2026-10-14: R4 verified: main run `38564600321` succeeded on attempt 1, including all eight jobs; six matching artifacts and release `v1.2.29` with six assets verified, tag and target resolve to `fab6c64`. Closure check confirms all outcomes verified and the diff remains inside the approved envelope. Goal complete; no further substantive work.
 
 ## Completion
-- Resolved outcomes: R1, R2, R3.
-- Commands and artifacts: local gates/native smoke, helper probe, corrected-head workflow and six artifacts verified; main workflow/release pending integration.
+- Resolved outcomes: R1, R2, R3, R4, all verified.
+- Commands and artifacts: exact-toolchain local gates/native Wayland and XWayland smoke; native curl TLS-reset probe; successful corrected-head and main workflows; six main artifacts; release `v1.2.29` with five native packages and source archive, targeting merge `fab6c64`.
 - Constraint and diff-scope check: implementation remains within the approved envelope and authorized two-flag helper exception; the normal merge method is explicitly user-authorized.
-- Final status: active, not complete.
+- Final status: complete. The documentation-only closure push still receives the normal after-push CI check before the final user report; it does not change the verified runtime or require a new release.
