@@ -10,6 +10,10 @@ use egui::{
 use mc_ui::win10::chrome;
 
 fn frame(ctx: &Context, events: Vec<Event>) -> FullOutput {
+    frame_with_modal(ctx, events, false)
+}
+
+fn frame_with_modal(ctx: &Context, events: Vec<Event>, modal: bool) -> FullOutput {
     let mut output = ctx.run_ui(
         RawInput {
             screen_rect: Some(Rect::from_min_size(pos2(0., 0.), vec2(1030., 705.))),
@@ -20,6 +24,11 @@ fn frame(ctx: &Context, events: Vec<Event>) -> FullOutput {
             let window = ui.max_rect();
             chrome::title_bar(ui, window, "Task Manager", false);
             chrome::resize_edges(ui, window);
+            if modal {
+                egui::Modal::new(egui::Id::new("resize-test-modal")).show(ui.ctx(), |ui| {
+                    ui.label("Modal blocks window resize");
+                });
+            }
         },
     );
     output.textures_delta.clear();
@@ -138,4 +147,140 @@ fn corners_are_reachable_along_both_adjacent_borders() {
         let output = frame(&ctx, vec![press(pos, PointerButton::Primary)]);
         assert_eq!(resize_commands(&output), [direction], "corner at {pos:?}");
     }
+}
+
+#[test]
+fn press_and_leave_in_one_frame_starts_resize() {
+    let ctx = Context::default();
+    let corner = pos2(2., 2.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(corner)]);
+    let output = frame(
+        &ctx,
+        vec![press(corner, PointerButton::Primary), Event::PointerGone],
+    );
+    assert_eq!(resize_commands(&output), [ResizeDirection::NorthWest]);
+    assert!(ctx.dragged_id().is_none());
+    assert!(!ctx.input(|input| input.pointer.primary_down()));
+}
+
+#[test]
+fn press_position_selects_direction_before_same_frame_move() {
+    let ctx = Context::default();
+    let corner = pos2(2., 2.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(corner)]);
+    let output = frame(
+        &ctx,
+        vec![
+            press(corner, PointerButton::Primary),
+            Event::PointerMoved(pos2(1028., 350.)),
+        ],
+    );
+    assert_eq!(resize_commands(&output), [ResizeDirection::NorthWest]);
+}
+
+#[test]
+fn caption_press_followed_by_move_to_border_does_not_resize() {
+    let ctx = Context::default();
+    let caption = pos2(1007., 16.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(caption)]);
+    let output = frame(
+        &ctx,
+        vec![
+            press(caption, PointerButton::Primary),
+            Event::PointerMoved(pos2(2., 2.)),
+        ],
+    );
+    assert!(resize_commands(&output).is_empty());
+    assert!(ctx.input(|input| input.pointer.primary_down()));
+}
+
+#[test]
+fn last_primary_press_in_frame_selects_resize_direction() {
+    let ctx = Context::default();
+    let corner = pos2(2., 2.);
+    let edge = pos2(1028., 350.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(corner)]);
+    let output = frame(
+        &ctx,
+        vec![
+            press(corner, PointerButton::Primary),
+            Event::PointerButton {
+                pos: corner,
+                button: PointerButton::Primary,
+                pressed: false,
+                modifiers: egui::Modifiers::NONE,
+            },
+            press(edge, PointerButton::Primary),
+        ],
+    );
+    assert_eq!(resize_commands(&output), [ResizeDirection::East]);
+}
+
+#[test]
+fn secondary_press_with_primary_held_does_not_resize_or_reset_pointer() {
+    let ctx = Context::default();
+    let caption = pos2(1007., 16.);
+    let corner = pos2(2., 2.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(caption)]);
+    let held = frame(&ctx, vec![press(caption, PointerButton::Primary)]);
+    assert!(resize_commands(&held).is_empty());
+    let output = frame(
+        &ctx,
+        vec![
+            Event::PointerMoved(corner),
+            press(corner, PointerButton::Secondary),
+        ],
+    );
+    assert!(resize_commands(&output).is_empty());
+    assert!(ctx.input(|input| input.pointer.primary_down()));
+    assert!(ctx.input(|input| input.pointer.secondary_down()));
+    assert!(ctx.dragged_id().is_some());
+}
+
+#[test]
+fn press_and_release_in_one_frame_does_not_handoff() {
+    let ctx = Context::default();
+    let corner = pos2(2., 2.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(corner)]);
+    let output = frame(
+        &ctx,
+        vec![
+            press(corner, PointerButton::Primary),
+            Event::PointerButton {
+                pos: corner,
+                button: PointerButton::Primary,
+                pressed: false,
+                modifiers: egui::Modifiers::NONE,
+            },
+        ],
+    );
+    assert!(resize_commands(&output).is_empty());
+    assert_eq!(ctx.input(|input| input.pointer.hover_pos()), Some(corner));
+}
+
+#[test]
+fn shared_corner_edge_seam_uses_later_zone() {
+    let ctx = Context::default();
+    let seam = pos2(16., 2.);
+    frame(&ctx, vec![]);
+    frame(&ctx, vec![Event::PointerMoved(seam)]);
+    let output = frame(&ctx, vec![press(seam, PointerButton::Primary)]);
+    assert_eq!(resize_commands(&output), [ResizeDirection::North]);
+}
+
+#[test]
+fn modal_blocks_native_resize() {
+    let ctx = Context::default();
+    let corner = pos2(2., 2.);
+    frame_with_modal(&ctx, vec![], true);
+    frame_with_modal(&ctx, vec![Event::PointerMoved(corner)], true);
+    let output = frame_with_modal(&ctx, vec![press(corner, PointerButton::Primary)], true);
+    assert!(resize_commands(&output).is_empty());
+    assert!(ctx.input(|input| input.pointer.primary_down()));
 }

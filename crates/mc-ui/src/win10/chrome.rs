@@ -214,6 +214,25 @@ pub fn resize_edges(ui: &mut Ui, window: Rect) {
             ResizeDirection::East,
         ),
     ];
+    let pressed_direction = ui.input(|input| {
+        // Hover may have moved or left since the press. Require an actual Primary press:
+        // drag_started_by only checks which button is currently held, not which started it.
+        let pos = input.events.iter().rev().find_map(|event| match event {
+            egui::Event::PointerButton {
+                pos,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                ..
+            } => Some(*pos),
+            _ => None,
+        })?;
+        // Shared bounds belong to the last registered zone, matching egui hit testing.
+        zones
+            .iter()
+            .rev()
+            .find_map(|(rect, direction)| rect.contains(pos).then_some(*direction))
+    });
+    let mut drag_started = false;
     for (i, (rect, direction)) in zones.into_iter().enumerate() {
         let response = ui.interact(rect, ui.id().with(("resize", i)), Sense::drag());
         let cursor = match direction {
@@ -232,18 +251,19 @@ pub fn resize_edges(ui: &mut Ui, window: Rect) {
         if response.hovered() && on_border {
             ui.ctx().set_cursor_icon(cursor);
         }
-        if response.drag_started_by(egui::PointerButton::Primary) && on_border {
-            ui.ctx()
-                .send_viewport_cmd(ViewportCommand::BeginResize(direction));
-            // The native compositor owns this gesture now, including its button release.
-            // Keeping an egui drag would lock the cursor and suppress the next resize when
-            // Wayland sends PointerGone instead of forwarding that release to the client.
-            ui.ctx().stop_dragging();
-            // stop_dragging clears widget ownership, not the held button. Without clearing
-            // that too, hover remains suppressed until some later client-side release.
-            ui.ctx()
-                .input_mut(|input| input.pointer = egui::PointerState::default());
-        }
+        drag_started |= response.drag_started_by(egui::PointerButton::Primary);
+    }
+    if drag_started && let Some(direction) = pressed_direction {
+        ui.ctx()
+            .send_viewport_cmd(ViewportCommand::BeginResize(direction));
+        // The native compositor owns this gesture now, including its button release.
+        // Keeping an egui drag would lock the cursor and suppress the next resize when
+        // Wayland sends PointerGone instead of forwarding that release to the client.
+        ui.ctx().stop_dragging();
+        // stop_dragging clears widget ownership, not the held button. Without clearing
+        // that too, hover remains suppressed until some later client-side release.
+        ui.ctx()
+            .input_mut(|input| input.pointer = egui::PointerState::default());
     }
 }
 
