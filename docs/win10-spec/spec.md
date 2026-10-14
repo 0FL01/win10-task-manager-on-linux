@@ -85,6 +85,10 @@ this document, never the screenshots.
 Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈ 3 px below the line top.
 
 ## Window chrome
+- Resize hit targets (own): 4 px border strips; each corner extends 16 px along both adjacent
+  borders as an L-shaped target, without covering interior caption buttons. Native resize starts
+  on primary press and releases egui's local drag immediately; the compositor owns the gesture
+  and may consume its mouse release. Cursor feedback follows the actual border under the pointer.
 - Outer border 1 px. Own design: `#7a7a7a` (the reference shows only the desktop behind a
   translucent border).
 - Title bar: y 1–30 (30 px), background `#ffffff`.

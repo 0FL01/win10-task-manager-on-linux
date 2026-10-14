@@ -40,6 +40,8 @@ pub const GPU_MEMORY_W: f32 = 180.;
 pub const TABLE_HORIZONTAL_STEP: f32 = 72.;
 /// Width of the invisible resize zone along the window edges.
 pub const RESIZE_GRIP: f32 = 4.;
+/// Own: extend corner targets along the border without covering caption buttons/content.
+pub const RESIZE_CORNER: f32 = 16.;
 
 pub const TITLE_TOP: f32 = 1.;
 /// Last row of the title bar (inclusive).

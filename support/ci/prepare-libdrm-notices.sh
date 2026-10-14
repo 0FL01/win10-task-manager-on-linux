@@ -33,8 +33,8 @@ workspace="$root/target/ci-source-inputs/libdrm"
 mkdir -p "$workspace"
 archive="$workspace/libdrm-${version}-${1}.tar.xz"
 signature="$archive.sig"
-curl --fail --location --retry 3 --output "$archive" "$url"
-curl --fail --location --retry 3 --output "$signature" "${url}.sig"
+curl --fail --location --retry 3 --retry-all-errors --output "$archive" "$url"
+curl --fail --location --retry 3 --retry-all-errors --output "$signature" "${url}.sig"
 
 gnupg_home=$(mktemp -d "${TMPDIR:-/tmp}/taskmanager-gpg.XXXXXX")
 notices_home=$(mktemp -d "${TMPDIR:-/tmp}/taskmanager-libdrm.XXXXXX")
