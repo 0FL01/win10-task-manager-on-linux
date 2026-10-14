@@ -36,12 +36,12 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Acceptance: reviewed correction is included in main with contributor attribution; all required jobs succeed, five native artifacts and ui-snapshots exist, and expected release targets main SHA with five packages plus source archive.
   - Primary evidence: GitHub Actions run/jobs/artifacts and release/tag API for the final SHA.
   - Status: in_progress.
-  - Evidence: corrected commit `2053e5b36e544d8432a95da17f18c7d5993563c4` was fast-forward pushed to the PR branch. [Fork run 38548411445](https://github.com/DurkaEbanaya/win10-task-manager-on-linux/actions/runs/38548411445) passed checks and four native builds; openSUSE failed during downloading with `curl: (35) Recv failure: Connection reset by peer`. Main/base remains `906d46f706d05669a1174122d23525ea506d1fe0`, release `v1.2.26`; PR remains open with maintainer modification enabled. Integration and final workflow evidence are pending.
+  - Evidence: runtime correction `2053e5b36e544d8432a95da17f18c7d5993563c4` and execution-state commit `a6f83484ea545bd9039a2ab7cff1cb00cb0ce3c6` were fast-forward pushed to the PR branch. Fork runs `38548411445` and `38549179131` failed on libdrm downloads. The identical head was pushed to upstream `verify/pr3-resize-handoff`; [run 38549851607, attempt 2](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38549851607/attempts/2) passes checks, Ubuntu, Debian and Arch, but Fedora/openSUSE again fail before compilation with `curl: (35) Recv failure: Connection reset by peer`. Main/base remains `906d46f706d05669a1174122d23525ea506d1fe0`, release `v1.2.26`; no merge or release occurred.
 
 ### Constraints
 - Keep existing egui response gate, maximized guard and modal/layer arbitration; retain all 12 zone registrations each frame.
 - Keep Mission Center attribution, own-design metrics/spec, event-driven repaint and existing public APIs/dependencies.
-- No unrelated runtime, backend, workflow or packaging changes; no force pushes or host-root changes.
+- No unrelated runtime, backend, workflow or packaging changes; only the user-authorized libdrm download retry flags may change outside the original resize envelope. No force pushes or host-root changes.
 - Correct and verify the PR branch before merging: main Rust changes automatically publish a release.
 - No assertion of manual verification from synthetic events or CI snapshots alone.
 
@@ -53,6 +53,7 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - Runtime: `crates/mc-ui/src/win10/chrome.rs::resize_edges`; direct consumer `App::ui` unchanged.
 - Tests: `crates/mc-ui/tests/window_resize.rs`, reusing its local input harness.
 - Preserve PR changes in `win10/metrics.rs` and `docs/win10-spec/spec.md`; this goal tracks execution.
+- User-authorized R4 blocker fix: add `--retry-all-errors` to the two existing curl commands in `support/ci/prepare-libdrm-notices.sh`. Keep retry count 3, URLs, TLS verification, signing key, GPG verification and package provenance unchanged.
 - Generated logs, renders and temporary native-smoke scripts remain ignored under `target/` or the approved external temporary directory. No private dumps or reference images committed.
 - Commit/push and merge/publish are authorized by the instruction to execute the approved integration plan. No new dependency or CI architecture.
 
@@ -166,27 +167,31 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 
 ## Current Checkpoint
 - Closes: R4.
-- Smallest next action: push this execution-state update to retry fork CI on unchanged runtime code, verify that head, then perform guarded squash merge and main workflow/release verification.
-- Expected evidence: corrected PR head checks and five native jobs succeed; publish skips on the feature branch; merged-main workflow and release then succeed.
-- Stop or replan if: PR head/base changes, branch update is rejected, or a mandatory workflow gate fails.
+- Smallest next action: push the verified retry-flag fix to the PR branch, verify all required jobs, then perform guarded merge. Reuse the upstream verification branch only if fork failed-job reruns are needed.
+- Expected evidence: the existing bounded retry now handles observed TLS error 35; corrected head checks and all five native jobs succeed before merge.
+- Stop or replan if: the proposed retry change cannot address the observed download failure without weakening TLS/GPG verification or changing package provenance.
 
 ## Current State
 - Resolved: R1, R2, R3; all runtime edits remain inside `resize_edges`, tests reuse the existing harness, no dependency/backend/workflow change.
-- Last relevant evidence: corrected runtime passed fork checks and four native builds; the fifth build stopped on a download connection reset before compilation. Local gates and automated native smoke pass.
-- Blocker: fork Actions rerun API returns 403; repository permissions confirm read-only access outside the modifiable PR branch. A docs-only execution-state push can trigger a fresh workflow without altering runtime or CI.
-- Next: R4 branch CI, guarded merge, main workflow/artifacts/release verification.
+- Last relevant evidence: authorized helper fix passes `bash -n support/ci/prepare-libdrm-notices.sh` and a native curl loopback TLS-reset reproduction. The old flags exit 35 after one connection; flags read from both updated curl commands succeed after the reset on connection two, using a verified local certificate. Retry count remains 3. Runtime code and its prior green evidence are unchanged.
+- Blocker: real native jobs still need to verify the bounded retry against external downloads. Fork reruns are forbidden (403); upstream failed-job reruns work.
+- Next: corrected-head CI, then guarded merge and final main workflow/artifacts/release verification.
 
 ## Material Decisions
 - 2026-10-14: execute the approved narrow plan; successful final workflow is the user's finish line, not merely a local green test.
 - 2026-10-14: retry the observed transient download failure through this necessary execution-state commit because fork Actions reruns are forbidden; do not change packaging/workflow code for an isolated network reset.
+- 2026-10-14: repeated download resets establish an external integration blocker, not a resize regression. Verify the identical PR SHA through an upstream branch to permit failed-job reruns; after its rerun also fails, stop blind retries and request permission before touching the excluded packaging helper.
+- 2026-10-14: user selected «Минимальный CI-fix (Recommended)», explicitly authorizing only `--retry-all-errors` on the existing two curl calls; R4 reactivated within this expanded envelope.
 
 ## Checkpoint History
 - 2026-10-14: R1 verified; original PR and main SHAs pinned, plan frozen before runtime edits.
 - 2026-10-14: R2 verified by red→green reproduction (4 failures→12 passes); R3 verified by exact-toolchain gates and actual Wayland/XWayland smoke. The first combined workspace command hit the shell's 120-second timeout without a test failure; the standalone background workspace run completed successfully. Temporary smoke navigation needed frame warm-up before summary double-click; production code did not change.
 - 2026-10-14: correction pushed as `2053e5b`; fork run `38548411445` verified checks and four native builds, with an openSUSE download connection reset. Rerun API was denied (403); next checkpoint retries via the execution-state update.
+- 2026-10-14: fork run `38549179131` and upstream run `38549851607` (including attempt 2, failed jobs only) reproduce the libdrm connection resets on unchanged runtime. R4 blocked pending a permitted minimal helper fix or external recovery; main unchanged.
+- 2026-10-14: user-authorized two-flag helper fix verified by shell syntax and a real local TLS-reset red→green probe (old exit 35/one attempt → new success/two attempts, certificate verification retained). No Rust edit or security/provenance change; next checkpoint is corrected-head CI.
 
 ## Completion
 - Resolved outcomes: R1, R2, R3.
-- Commands and artifacts: local gates/native evidence above; final workflow pending.
+- Commands and artifacts: local runtime gates/native evidence and helper retry probe above; corrected integration workflow pending.
 - Constraint and diff-scope check: implementation reviewed against the approved local runtime/test envelope; integration closure pending.
-- Final status: active.
+- Final status: active, not complete.
