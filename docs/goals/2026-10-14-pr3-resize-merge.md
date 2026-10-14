@@ -35,8 +35,8 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Source: latest user finish line; approved plan Integration and Checks; AGENTS.md after-push rule.
   - Acceptance: reviewed correction is included in main with contributor attribution; all required jobs succeed, five native artifacts and ui-snapshots exist, and expected release targets main SHA with five packages plus source archive.
   - Primary evidence: GitHub Actions run/jobs/artifacts and release/tag API for the final SHA.
-  - Status: pending.
-  - Evidence: main/base `906d46f706d05669a1174122d23525ea506d1fe0`; latest release `v1.2.26` targets that SHA. PR is open, mergeable, maintainer_can_modify=true.
+  - Status: in_progress.
+  - Evidence: corrected commit `2053e5b36e544d8432a95da17f18c7d5993563c4` was fast-forward pushed to the PR branch. [Fork run 38548411445](https://github.com/DurkaEbanaya/win10-task-manager-on-linux/actions/runs/38548411445) passed checks and four native builds; openSUSE failed during downloading with `curl: (35) Recv failure: Connection reset by peer`. Main/base remains `906d46f706d05669a1174122d23525ea506d1fe0`, release `v1.2.26`; PR remains open with maintainer modification enabled. Integration and final workflow evidence are pending.
 
 ### Constraints
 - Keep existing egui response gate, maximized guard and modal/layer arbitration; retain all 12 zone registrations each frame.
@@ -166,22 +166,24 @@ RUST_TEST_THREADS=1 cargo +1.96.1 test --locked --workspace -- --test-threads=1
 
 ## Current Checkpoint
 - Closes: R4.
-- Smallest next action: commit the correction/tests/goal, fast-forward the modifiable PR branch, and verify its workflow on the corrected head before guarded squash merge.
+- Smallest next action: push this execution-state update to retry fork CI on unchanged runtime code, verify that head, then perform guarded squash merge and main workflow/release verification.
 - Expected evidence: corrected PR head checks and five native jobs succeed; publish skips on the feature branch; merged-main workflow and release then succeed.
 - Stop or replan if: PR head/base changes, branch update is rejected, or a mandatory workflow gate fails.
 
 ## Current State
 - Resolved: R1, R2, R3; all runtime edits remain inside `resize_edges`, tests reuse the existing harness, no dependency/backend/workflow change.
-- Last relevant evidence: local gates and automated native smoke pass; authenticated GitHub identity is 0FL01 with repository admin/push rights; PR permits maintainer modification.
-- Blocker: none established.
+- Last relevant evidence: corrected runtime passed fork checks and four native builds; the fifth build stopped on a download connection reset before compilation. Local gates and automated native smoke pass.
+- Blocker: fork Actions rerun API returns 403; repository permissions confirm read-only access outside the modifiable PR branch. A docs-only execution-state push can trigger a fresh workflow without altering runtime or CI.
 - Next: R4 branch CI, guarded merge, main workflow/artifacts/release verification.
 
 ## Material Decisions
 - 2026-10-14: execute the approved narrow plan; successful final workflow is the user's finish line, not merely a local green test.
+- 2026-10-14: retry the observed transient download failure through this necessary execution-state commit because fork Actions reruns are forbidden; do not change packaging/workflow code for an isolated network reset.
 
 ## Checkpoint History
 - 2026-10-14: R1 verified; original PR and main SHAs pinned, plan frozen before runtime edits.
 - 2026-10-14: R2 verified by red→green reproduction (4 failures→12 passes); R3 verified by exact-toolchain gates and actual Wayland/XWayland smoke. The first combined workspace command hit the shell's 120-second timeout without a test failure; the standalone background workspace run completed successfully. Temporary smoke navigation needed frame warm-up before summary double-click; production code did not change.
+- 2026-10-14: correction pushed as `2053e5b`; fork run `38548411445` verified checks and four native builds, with an openSUSE download connection reset. Rerun API was denied (403); next checkpoint retries via the execution-state update.
 
 ## Completion
 - Resolved outcomes: R1, R2, R3.
