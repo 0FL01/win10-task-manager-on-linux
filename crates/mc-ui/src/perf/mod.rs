@@ -594,13 +594,7 @@ mod tests {
                 vec![(i18n("State"), i18n("Discharging"))],
             ]
         );
-        assert_eq!(
-            view.info,
-            vec![
-                (i18n("Type:"), i18n("Mouse")),
-                (i18n("Powering System:"), i18n("No")),
-            ]
-        );
+        assert_eq!(view.info, vec![(i18n("Type:"), i18n("Mouse"))]);
 
         page.update(&readings, &gpu, &mut config);
         assert_eq!(battery_rows(&page), expected, "no duplicate mouse page");

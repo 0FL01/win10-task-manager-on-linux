@@ -25,6 +25,7 @@ use mc_core::i18n::n_;
 use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
 use mc_graph::{DatasetGroup, FillingSettings, Graph, RoundingSettings, ScalingSettings};
+use mc_magpie::magpie_types::battery::BatteryType;
 use mc_magpie::{Battery, Readings};
 
 use super::{DevicePage, SummaryGraph, UpdateEnv};
@@ -192,6 +193,7 @@ impl BatteryPage {
             kind,
             power_supply_label: b
                 .power_supply
+                .filter(|_| matches!(b.kind(), BatteryType::Bat | BatteryType::Ups))
                 .map(|p| if p { i18n("Yes") } else { i18n("No") }),
             technology: b.technology.map(technology_to_str),
             capacity: b
@@ -459,6 +461,11 @@ impl DevicePage for BatteryPage {
             Some((direction, time)) => format!("\n    Time to {direction:<5}:          {time}"),
             None => String::new(),
         };
+        let power_supply_line = self
+            .power_supply_label
+            .as_ref()
+            .map(|value| format!("\n    Powering System:        {value}"))
+            .unwrap_or_default();
         format!(
             r#"Battery
 
@@ -471,8 +478,7 @@ impl DevicePage for BatteryPage {
     Energy Full (design):   {}
     Energy Empty            {}
     Voltage Max (design):   {}
-    Voltage Min (design):   {}
-    Powering System:        {}
+    Voltage Min (design):   {}{power_supply_line}
 
     Percentage:             {}
     State:                  {}{}
@@ -493,7 +499,6 @@ impl DevicePage for BatteryPage {
             o(&self.energy_empty),
             o(&self.voltage_max_design),
             o(&self.voltage_min_design),
-            o(&self.power_supply_label),
             l.percentage,
             l.state,
             time_to_line,
@@ -504,5 +509,46 @@ impl DevicePage for BatteryPage {
             o(&l.threshold_start),
             o(&l.threshold_end),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn powering_system_is_only_shown_for_host_batteries() {
+        let config = Config::default();
+        for (kind, power_supply, expected) in [
+            (BatteryType::Bat, true, Some("Yes")),
+            (BatteryType::Bat, false, Some("No")),
+            (BatteryType::Ups, true, Some("Yes")),
+            (BatteryType::Mouse, false, None),
+            (BatteryType::Headset, false, None),
+            (BatteryType::Headphones, false, None),
+        ] {
+            let battery = Battery {
+                kind: Some(kind as i32),
+                power_supply: Some(power_supply),
+                ..Default::default()
+            };
+            let mut page = BatteryPage::new(&battery, &config);
+            let row = page
+                .win10_view(&config)
+                .info
+                .into_iter()
+                .find(|(label, _)| *label == i18n("Powering System:"));
+            assert_eq!(row.map(|(_, value)| value), expected.map(i18n), "{kind:?}");
+
+            let summary = page.data_summary();
+            let line = expected.map(|value| format!("    Powering System:        {}", i18n(value)));
+            assert_eq!(
+                summary
+                    .lines()
+                    .find(|line| line.trim_start().starts_with("Powering System:")),
+                line.as_deref(),
+                "{kind:?} copied summary"
+            );
+        }
     }
 }
