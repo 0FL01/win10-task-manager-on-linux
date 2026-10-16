@@ -252,6 +252,69 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   "Open Resource Monitor"-style text (ours: none — no external tool; the slot stays empty).
   No horizontal separator in full Performance; footer controls and content retain their anchors.
 
+### Consolidated batteries (own design, not measured Win10 material)
+
+- All collected batteries share one sidebar/page key `battery`, heading **Batteries** and a
+  device count. The hover text lists each model, current percentage and state; there is no
+  averaged/total charge. The page exists only while at least one battery is present.
+- Its sidebar graphic replaces the mini graph with one empty, neutral `LABEL` contour, not
+  an illustrated collage or a live charge indicator. Overall size 40×22, centred in the
+  existing 60×40/46 slot: a 36×22 body and a centred 4×8 right terminal. In local coordinates
+  the body runs `(0,0)–(35,0)`, `(0,21)–(35,21)`, `(0,1)–(0,20)`; its right edge runs
+  `(35,1)–(35,6)` and `(35,15)–(35,20)`. The connected terminal is
+  `(35,7)–(39,7)–(39,14)–(35,14)`. No surrounding frame, gradient, charge fill or imported art.
+- One live charge graph overlays independent, unfilled device lines on a fixed 0–100% axis.
+  It uses the Battery frame/grid and the existing sample/grid clock. Unknown/missing charge
+  is a gap, never zero; a newly discovered device starts with unknown past samples. A first
+  isolated sample need not draw a line. Histories and assigned colours follow `(name,
+  power_supply)`, not model text or enumeration order; removal/return starts fresh history.
+- Original stroke pairs, Light / Dark, shared exactly by each line and its card indicator:
+  `#3b8f4e/#74bd86`, `#117dbb/#49a8dc`, `#8b12ae/#ba65d3`, `#a54d05/#d2935d`,
+  `#008b88/#56c3bf`, `#bb4c4c/#ee9191`, `#4da60c/#88c651`, `#813d9c/#b67bcc`.
+  Surviving devices keep their assignment; the finite palette repeats beyond eight devices.
+  Theme-only repaint changes the stroke/indicator ink without adding samples.
+- Preserve the existing title/model/graph left/right anchors. The overview graph height is
+  half the page viewport, rounded and clamped to 160–320 logical points, independent of the
+  number of devices. Cards begin 24 points below it. Card minimum width 224, height 104,
+  horizontal/vertical gap 12. Columns are `max(1, floor((usable_width + 12)/(224 + 12)))`,
+  excluding the scrollbar lane. Thus 1030×705 with the default sidebar fits three columns;
+  760×540 or a widened sidebar fits two. Smaller transient sizes fall back to one column.
+- Cards: 12-point padding; 16×16 neutral glyph at the padded top-left; model/name starts
+  10 points beyond the glyph, Body cap top 15 below card top. Percentage uses StatValue at
+  cap top +42; state uses Body at +48, right-aligned. A 6-point-high, series-coloured square
+  indicator starts at +80, with a two-point interior inset. Real zero reads `0%`; invalid
+  current percentage reads `—` and has no filled indicator. Elision never changes full
+  hover text or the accessible name. The ordinary flat separator outlines the card;
+  selection uses the existing selection fill, focus the existing blue focus border.
+- Small glyphs are purpose-drawn, not reduced sidebar art. Original 16×16 local paths:
+  - Battery: body corners `(1,4),(12,4),(12,11),(1,11)`, with the right-edge opening
+    connected to terminal `(12,6)–(14,6)–(14,9)–(12,9)`.
+  - Mouse: `(6,1)–(9,1)–(12,4)–(12,11)–(9,14)–(6,14)–(3,11)–(3,4)–(6,1)`;
+    button divider `(3,6)–(12,6)` and wheel `(8,2)–(8,5)`.
+  - Headphones: band `(2,8)–(2,6)–(4,2)–(6,1)–(9,1)–(11,2)–(13,6)–(13,8)`;
+    square cups `(1,7)–(4,13)` and `(11,7)–(14,13)`.
+  - Other kinds: enclosure `(3,1)–(12,14)`, lower detail `(6,11)–(9,11)`.
+  `BatteryType` selects battery/UPS, mouse, headset/headphones or the fallback; no model-name
+  or Bluetooth assumption. Glyph origins snap locally to the physical grid; one logical
+  pixel remains two physical pixels at 2×, consistent with existing UI geometry.
+- The whole content flows vertically inside the page clip and its own scrollbar. Each card
+  is one stable, named, focusable disclosure control: primary click/Space/Enter toggles its
+  details, another card replaces them. Tab can reach and reveal overflowed cards. Card
+  double-clicks remain card activations; graph/background double-click and Ctrl+M retain
+  graph summary. Card right-click opens the existing group context menu without toggling.
+- Details start 24 points below the grid: a Model-font heading in a 36-point block, optional
+  existing power/weekly graphs at 120 points each, then the existing flowing statistic and
+  metadata typography. Omit the duplicate recent percentage graph; retain other available
+  information and full-value metadata Copy. Powering System is only for Bat/UPS, including
+  valid **No**, never a peripheral label. Details start closed; a missing selected child
+  closes them. Graph summary contains only the common charge graph. Ctrl+C/context-menu
+  Copy concatenate every named child's existing summary, not only the expanded one.
+- Legacy per-device sidebar order/selection become `battery`; an existing group position
+  and Show/Hide override win. Otherwise inherit Hide only from a nonempty known legacy set
+  whose every member was explicitly hidden. A visible group includes every current child.
+  Removing the last child uses ordinary selection fallback; return does not steal selection.
+  This is a saved-preference fold, not preservation of individual hidden cards.
+
 ### Unix Performance parity (own adaptation, not historical pixel probes)
 
 - Keep the 1030×705 default, 760×540 minimum and 211-point default device list; restored

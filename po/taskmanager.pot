@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 16:55+0300\n"
+"POT-Creation-Date: 2026-10-16 21:18+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -488,7 +488,8 @@ msgstr ""
 msgid "Service Details"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:171 crates/mc-ui/src/perf/battery.rs:392
+#: crates/mc-ui/src/dialogs.rs:171 crates/mc-ui/src/perf/battery.rs:419
+#: crates/mc-ui/src/perf/mod.rs:608
 msgid "State"
 msgstr ""
 
@@ -565,19 +566,20 @@ msgstr ""
 msgid "File Location"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:279 crates/mc-ui/src/perf/battery.rs:174
-#: crates/mc-ui/src/perf/battery.rs:323 crates/mc-ui/src/perf/cpu.rs:214
-#: crates/mc-ui/src/perf/cpu.rs:230 crates/mc-ui/src/perf/cpu.rs:240
-#: crates/mc-ui/src/perf/cpu.rs:245 crates/mc-ui/src/perf/disk.rs:159
-#: crates/mc-ui/src/perf/disk.rs:163 crates/mc-ui/src/perf/disk.rs:170
-#: crates/mc-ui/src/perf/disk.rs:215 crates/mc-ui/src/perf/disk.rs:284
-#: crates/mc-ui/src/perf/gpu.rs:98 crates/mc-ui/src/perf/gpu.rs:165
-#: crates/mc-ui/src/perf/gpu.rs:451 crates/mc-ui/src/perf/gpu.rs:830
-#: crates/mc-ui/src/perf/mem_slots.rs:42 crates/mc-ui/src/perf/memory.rs:116
-#: crates/mc-ui/src/perf/network.rs:43 crates/mc-ui/src/perf/network.rs:121
-#: crates/mc-ui/src/perf/network.rs:178 crates/mc-ui/src/perf/network.rs:298
-#: crates/mc-ui/src/perf/network.rs:299 crates/mc-ui/src/smart.rs:140
-#: crates/mc-ui/src/smart.rs:380 crates/mc-ui/src/win10/details.rs:82
+#: crates/mc-ui/src/dialogs.rs:279 crates/mc-ui/src/perf/batteries.rs:202
+#: crates/mc-ui/src/perf/battery.rs:59 crates/mc-ui/src/perf/battery.rs:349
+#: crates/mc-ui/src/perf/cpu.rs:214 crates/mc-ui/src/perf/cpu.rs:230
+#: crates/mc-ui/src/perf/cpu.rs:240 crates/mc-ui/src/perf/cpu.rs:245
+#: crates/mc-ui/src/perf/disk.rs:159 crates/mc-ui/src/perf/disk.rs:163
+#: crates/mc-ui/src/perf/disk.rs:170 crates/mc-ui/src/perf/disk.rs:215
+#: crates/mc-ui/src/perf/disk.rs:284 crates/mc-ui/src/perf/gpu.rs:98
+#: crates/mc-ui/src/perf/gpu.rs:165 crates/mc-ui/src/perf/gpu.rs:451
+#: crates/mc-ui/src/perf/gpu.rs:830 crates/mc-ui/src/perf/mem_slots.rs:42
+#: crates/mc-ui/src/perf/memory.rs:116 crates/mc-ui/src/perf/network.rs:43
+#: crates/mc-ui/src/perf/network.rs:121 crates/mc-ui/src/perf/network.rs:178
+#: crates/mc-ui/src/perf/network.rs:298 crates/mc-ui/src/perf/network.rs:299
+#: crates/mc-ui/src/smart.rs:140 crates/mc-ui/src/smart.rs:380
+#: crates/mc-ui/src/win10/details.rs:82
 msgid "Unknown"
 msgstr ""
 
@@ -656,7 +658,7 @@ msgstr ""
 msgid "Drives"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:442 crates/mc-ui/src/perf/battery.rs:60
+#: crates/mc-ui/src/dialogs.rs:442 crates/mc-ui/src/perf/battery.rs:80
 #: crates/mc-ui/src/win10/processes.rs:82
 msgid "Network"
 msgstr ""
@@ -793,103 +795,120 @@ msgstr ""
 msgid "Copy All"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:46 crates/mc-ui/src/perf/battery.rs:150
-#: crates/mc-ui/src/perf/battery.rs:188 crates/mc-ui/src/perf/battery.rs:284
-#: crates/mc-ui/src/perf/battery.rs:302
+#: crates/mc-ui/src/perf/batteries.rs:62 crates/mc-ui/src/perf/mod.rs:579
+msgid "Batteries"
+msgstr ""
+
+#: crates/mc-ui/src/perf/batteries.rs:137 crates/mc-ui/src/perf/battery.rs:385
+#: crates/mc-ui/src/perf/battery.rs:462 crates/mc-ui/src/perf/cpu.rs:564
+#: crates/mc-ui/src/perf/disk.rs:363
+msgid "100%"
+msgstr ""
+
+#: crates/mc-ui/src/perf/batteries.rs:196 crates/mc-ui/src/perf/battery.rs:66
+#: crates/mc-ui/src/perf/battery.rs:170 crates/mc-ui/src/perf/battery.rs:203
+#: crates/mc-ui/src/perf/battery.rs:310 crates/mc-ui/src/perf/battery.rs:328
 msgid "Battery"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:95 crates/mc-ui/src/perf/battery.rs:321
-#: crates/mc-ui/src/perf/mem_slots.rs:37 crates/mc-ui/src/perf/mem_slots.rs:312
-msgid "Empty"
+#: crates/mc-ui/src/perf/batteries.rs:219
+#, rust-format
+msgid "{} device"
+msgid_plural "{} devices"
+msgstr[0] ""
+msgstr[1] ""
+
+#: crates/mc-ui/src/perf/batteries.rs:233 crates/mc-ui/src/perf/battery.rs:408
+#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/mod.rs:607
+msgid "Percentage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:96 crates/mc-ui/src/perf/battery.rs:318
-msgid "Full"
+#: crates/mc-ui/src/perf/batteries.rs:234 crates/mc-ui/src/perf/battery.rs:452
+msgid " over "
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:330
-#: crates/mc-ui/src/perf/cpu.rs:238 crates/mc-ui/src/perf/disk.rs:166
-msgid "Yes"
-msgstr ""
-
-#: crates/mc-ui/src/perf/battery.rs:195 crates/mc-ui/src/perf/battery.rs:332
-#: crates/mc-ui/src/perf/cpu.rs:239 crates/mc-ui/src/perf/disk.rs:168
-msgid "No"
-msgstr ""
-
-#: crates/mc-ui/src/perf/battery.rs:199 crates/mc-ui/src/perf/battery.rs:309
-#: crates/mc-ui/src/perf/battery.rs:337 crates/mc-ui/src/perf/fan.rs:160
+#: crates/mc-ui/src/perf/battery.rs:50 crates/mc-ui/src/perf/battery.rs:215
+#: crates/mc-ui/src/perf/battery.rs:363 crates/mc-ui/src/perf/fan.rs:160
 #, rust-format
 msgid "{}%"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:283 crates/mc-ui/src/perf/battery.rs:301
+#: crates/mc-ui/src/perf/battery.rs:115 crates/mc-ui/src/perf/battery.rs:347
+#: crates/mc-ui/src/perf/mem_slots.rs:37 crates/mc-ui/src/perf/mem_slots.rs:312
+msgid "Empty"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:116 crates/mc-ui/src/perf/battery.rs:344
+msgid "Full"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:211 crates/mc-ui/src/perf/battery.rs:356
+#: crates/mc-ui/src/perf/cpu.rs:238 crates/mc-ui/src/perf/disk.rs:166
+msgid "Yes"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:211 crates/mc-ui/src/perf/battery.rs:358
+#: crates/mc-ui/src/perf/cpu.rs:239 crates/mc-ui/src/perf/disk.rs:168
+msgid "No"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:309 crates/mc-ui/src/perf/battery.rs:327
 #, rust-format
 msgid "Battery {}"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:328
+#: crates/mc-ui/src/perf/battery.rs:354
 msgid "Firmware"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:358 crates/mc-ui/src/perf/battery.rs:435
-#: crates/mc-ui/src/perf/cpu.rs:564 crates/mc-ui/src/perf/disk.rs:363
-msgid "100%"
-msgstr ""
-
-#: crates/mc-ui/src/perf/battery.rs:381 crates/mc-ui/src/perf/battery.rs:423
-msgid "Percentage"
-msgstr ""
-
-#: crates/mc-ui/src/perf/battery.rs:383
+#: crates/mc-ui/src/perf/battery.rs:410
 msgid "Energy"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:387
+#: crates/mc-ui/src/perf/battery.rs:414
 msgid "Voltage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:390
+#: crates/mc-ui/src/perf/battery.rs:417
 msgid "Power"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:394
+#: crates/mc-ui/src/perf/battery.rs:421
 msgid "Time to "
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:397
+#: crates/mc-ui/src/perf/battery.rs:424
 msgid "Charge Cycles"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:411 crates/mc-ui/src/perf/disk.rs:341
+#: crates/mc-ui/src/perf/battery.rs:438 crates/mc-ui/src/perf/disk.rs:341
 msgid "Serial:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:412 crates/mc-ui/src/perf/disk.rs:335
-#: crates/mc-ui/src/perf/memory.rs:400
+#: crates/mc-ui/src/perf/battery.rs:439 crates/mc-ui/src/perf/disk.rs:335
+#: crates/mc-ui/src/perf/memory.rs:400 crates/mc-ui/src/perf/mod.rs:611
 msgid "Type:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:415 crates/mc-ui/src/perf/disk.rs:332
+#: crates/mc-ui/src/perf/battery.rs:442 crates/mc-ui/src/perf/disk.rs:332
 msgid "Capacity:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:421
+#: crates/mc-ui/src/perf/battery.rs:448
 msgid "Power Input"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:425
-msgid " over "
-msgstr ""
-
-#: crates/mc-ui/src/perf/battery.rs:434
+#: crates/mc-ui/src/perf/battery.rs:461
 msgid "Battery Charge over past week"
 msgstr ""
 
-#: crates/mc-ui/src/perf/battery.rs:452 crates/mc-ui/src/perf/cpu.rs:236
+#: crates/mc-ui/src/perf/battery.rs:479 crates/mc-ui/src/perf/cpu.rs:236
 #: crates/mc-ui/src/perf/fan.rs:233 crates/mc-ui/src/perf/gpu.rs:101
 msgid "Unsupported"
+msgstr ""
+
+#: crates/mc-ui/src/perf/battery.rs:567 crates/mc-ui/src/perf/battery.rs:592
+msgid "Powering System:"
 msgstr ""
 
 #: crates/mc-ui/src/perf/cpu.rs:193
@@ -1640,6 +1659,14 @@ msgstr ""
 msgid "Show Swap Usage"
 msgstr ""
 
+#: crates/mc-ui/src/perf/mod.rs:608
+msgid "Discharging"
+msgstr ""
+
+#: crates/mc-ui/src/perf/mod.rs:611
+msgid "Mouse"
+msgstr ""
+
 #: crates/mc-ui/src/perf/network.rs:45
 msgid "Disconnected"
 msgstr ""
@@ -2116,23 +2143,23 @@ msgstr ""
 msgid "Click to copy"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:230
+#: crates/mc-ui/src/win10/performance.rs:258
 msgid "Graph summary view"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:236
+#: crates/mc-ui/src/win10/performance.rs:264
 msgid "_Copy"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:1074
+#: crates/mc-ui/src/win10/performance.rs:1511
 msgid "More details…"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:1175
+#: crates/mc-ui/src/win10/performance.rs:1612
 msgid "Memory composition"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:1195
+#: crates/mc-ui/src/win10/performance.rs:1632
 msgid "Swap usage"
 msgstr ""
 

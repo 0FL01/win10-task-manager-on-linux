@@ -132,6 +132,18 @@ pub const BATTERY: DeviceColors = DeviceColors {
     fill: rgb(0xf0f7f1),
 };
 
+/// Own battery overview series, [Light, Dark]. Cards use these exact inks as their legend.
+pub const BATTERY_SERIES: [[Color32; 2]; 8] = [
+    [BATTERY.line, rgb(0x74bd86)],
+    [CPU.line, rgb(0x49a8dc)],
+    [MEMORY.line, rgb(0xba65d3)],
+    [NETWORK.line, rgb(0xd2935d)],
+    [rgb(0x008b88), rgb(0x56c3bf)],
+    [rgb(0xbb4c4c), rgb(0xee9191)],
+    [DISK.line, rgb(0x88c651)],
+    [FAN.line, rgb(0xb67bcc)],
+];
+
 /// Own dark adaptation. Light constants remain the measured reference palette. Resolution is
 /// per egui context (including offscreen renders), never process-global.
 pub fn resolve(ctx: &egui::Context, color: Color32) -> Color32 {

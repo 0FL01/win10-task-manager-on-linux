@@ -208,6 +208,50 @@ pub fn store_sidebar_order(order: &[String]) -> String {
         .join(";")
 }
 
+/// Folds saved per-battery navigation and visibility into the single `battery` page.
+/// Call after migrating the legacy hidden-graphs setting into device overrides.
+pub fn migrate_battery_group(config: &mut Config) {
+    let mut order = load_sidebar_order(&config.performance_sidebar_order);
+    let mut overrides = parse_device_overrides(&config.performance_sidebar_device_overrides);
+    let legacy_keys = order
+        .iter()
+        .chain(overrides.keys())
+        .chain(std::iter::once(&config.performance_selected_page))
+        .filter(|name| name.starts_with("battery-"))
+        .cloned()
+        .collect::<HashSet<_>>();
+    if legacy_keys.is_empty() {
+        return;
+    }
+
+    let all_hidden = legacy_keys
+        .iter()
+        .all(|name| overrides.get(name) == Some(&DeviceOverride::Hide));
+    let mut has_group = order.iter().any(|name| name == "battery");
+    order.retain_mut(|name| {
+        if !name.starts_with("battery-") {
+            return true;
+        }
+        if has_group {
+            return false;
+        }
+        *name = "battery".into();
+        has_group = true;
+        true
+    });
+    overrides.retain(|name, _| !legacy_keys.contains(name));
+    if all_hidden {
+        overrides
+            .entry("battery".into())
+            .or_insert(DeviceOverride::Hide);
+    }
+    if config.performance_selected_page.starts_with("battery-") {
+        config.performance_selected_page = "battery".into();
+    }
+    config.performance_sidebar_order = store_sidebar_order(&order);
+    config.performance_sidebar_device_overrides = serialize_device_overrides(&overrides);
+}
+
 pub fn merge_new_devices(order: &mut Vec<String>, mut present: Vec<String>) {
     present.sort_unstable_by(|a, b| canonical_key(a).cmp(&canonical_key(b)));
 
@@ -436,6 +480,7 @@ mod tests {
             "net-eth0",
             "gpu-0",
             "fan-0-0",
+            "battery",
             "battery-BAT0",
         ];
 
@@ -476,6 +521,7 @@ mod tests {
             ("net-eth0", "network"),
             ("gpu-0000:01:00.0", "gpu"),
             ("fan-0-1", "fan"),
+            ("battery", "battery"),
             ("battery-0-BAT0", "battery"),
         ];
 
@@ -606,6 +652,108 @@ mod tests {
     }
 
     // New behaviour of the egui port
+
+    #[test]
+    fn battery_group_replaces_first_legacy_and_preserves_raw_names_and_settings() {
+        let selected = "battery-hid-mouse;left:50%3B";
+        let unrelated = "net-dock;port:50%3B";
+        let mut config = Config::default();
+        config.performance_selected_page = selected.into();
+        config.performance_sidebar_order = store_sidebar_order(&names(&[
+            unrelated,
+            selected,
+            "cpu",
+            "battery-BAT-0",
+            "memory",
+        ]));
+        config.performance_sidebar_device_overrides = serialize_device_overrides(&HashMap::from([
+            (selected.into(), DeviceOverride::Hide),
+            ("battery-BAT-0".into(), DeviceOverride::Hide),
+            (unrelated.into(), DeviceOverride::Show),
+        ]));
+        config.window_width = 1234;
+        config.performance_sidebar_hidden_graphs = "net-legacy".into();
+        let mut expected = config.clone();
+        expected.performance_selected_page = "battery".into();
+        expected.performance_sidebar_order =
+            store_sidebar_order(&names(&[unrelated, "battery", "cpu", "memory"]));
+        expected.performance_sidebar_device_overrides =
+            serialize_device_overrides(&HashMap::from([
+                ("battery".into(), DeviceOverride::Hide),
+                (unrelated.into(), DeviceOverride::Show),
+            ]));
+
+        migrate_battery_group(&mut config);
+        assert_eq!(config, expected);
+        migrate_battery_group(&mut config);
+        assert_eq!(config, expected);
+    }
+
+    #[test]
+    fn battery_group_keeps_existing_position_and_override() {
+        for (group, legacy) in [
+            (DeviceOverride::Show, DeviceOverride::Hide),
+            (DeviceOverride::Hide, DeviceOverride::Show),
+        ] {
+            let mut config = Config::default();
+            config.performance_sidebar_order =
+                "battery-BAT0;cpu;battery;memory;battery-mouse-left;net-eth0".into();
+            config.performance_sidebar_device_overrides =
+                serialize_device_overrides(&HashMap::from([
+                    ("battery".into(), group),
+                    ("battery-BAT0".into(), legacy),
+                    ("battery-mouse-left".into(), legacy),
+                ]));
+
+            migrate_battery_group(&mut config);
+            assert_eq!(
+                config.performance_sidebar_order,
+                "cpu;battery;memory;net-eth0"
+            );
+            assert_eq!(
+                parse_device_overrides(&config.performance_sidebar_device_overrides),
+                HashMap::from([("battery".into(), group)])
+            );
+        }
+    }
+
+    #[test]
+    fn battery_group_stays_visible_if_any_known_legacy_is_not_explicitly_hidden() {
+        let mut base = Config::default();
+        base.performance_sidebar_order = "cpu;battery-BAT0".into();
+        base.performance_sidebar_device_overrides = "battery-BAT0:hide".into();
+
+        let mut default_visible = base.clone();
+        default_visible
+            .performance_sidebar_order
+            .push_str(";battery-default-visible");
+        let mut explicitly_shown = base.clone();
+        explicitly_shown
+            .performance_sidebar_device_overrides
+            .push_str(";battery-override-only:show");
+        let mut selected_only = base;
+        selected_only.performance_selected_page = "battery-selected-only".into();
+
+        for mut config in [default_visible, explicitly_shown, selected_only] {
+            migrate_battery_group(&mut config);
+            assert!(config.performance_sidebar_device_overrides.is_empty());
+            assert!(!config.performance_selected_page.starts_with("battery-"));
+        }
+    }
+
+    #[test]
+    fn battery_group_without_legacy_evidence_leaves_future_group_visible() {
+        let mut config = Config::default();
+        let expected = config.clone();
+        migrate_battery_group(&mut config);
+        migrate_battery_group(&mut config);
+        assert_eq!(config, expected);
+        assert!(resolve_device_visibility(
+            "battery",
+            &parse_device_overrides(&config.performance_sidebar_device_overrides),
+            true
+        ));
+    }
 
     #[test]
     fn rebuild_order_stores_and_filters() {

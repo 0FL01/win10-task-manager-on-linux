@@ -37,6 +37,7 @@ use mc_magpie::{INTERVAL_STEP, Readings};
 
 use crate::cx::Cx;
 
+pub mod batteries;
 pub mod battery;
 pub mod cpu;
 pub mod disk;
@@ -101,6 +102,14 @@ pub trait DevicePage {
     fn data_summary(&self) -> String;
     /// Content of the Win10-style page: title, graphs, statistic blocks and key/value rows.
     fn win10_view(&mut self, config: &Config) -> PageView<'_>;
+    /// The consolidated battery page's cards and optional child details.
+    fn win10_batteries_view(
+        &mut self,
+        _config: &Config,
+        _selected: Option<&str>,
+    ) -> Option<batteries::BatteriesView<'_>> {
+        None
+    }
     /// Page specific entries of the Win10 context menu.
     fn win10_menu(&mut self, _ui: &mut Ui, _cx: &mut Cx) {}
     /// Optional per-tile captions for the first graph panel. Other device layouts are unchanged.
@@ -183,6 +192,7 @@ pub struct SummaryGraph {
     pub info1: String,
     pub info2: String,
     pub opacity: f32,
+    pub tooltip: Option<String>,
 }
 
 impl SummaryGraph {
@@ -197,6 +207,7 @@ impl SummaryGraph {
             info1: String::new(),
             info2: String::new(),
             opacity: 1.,
+            tooltip: None,
         }
     }
 
@@ -264,7 +275,9 @@ impl PerformancePage {
         );
         present.extend(readings.gpus.keys().map(|id| gpu::page_name(id)));
         present.extend(readings.fans.iter().map(fan::page_name));
-        present.extend(readings.batteries.iter().map(battery::page_name));
+        if !readings.batteries.is_empty() {
+            present.push("battery".into());
+        }
 
         let existing: HashSet<String> = self.devices.iter().map(|d| d.name().to_owned()).collect();
 
@@ -296,11 +309,7 @@ impl PerformancePage {
                     .iter()
                     .find(|f| fan::page_name(f) == n)
                     .map(|f| Box::new(fan::FanPage::new(f, config)) as Box<dyn DevicePage>),
-                n if n.starts_with("battery-") => readings
-                    .batteries
-                    .iter()
-                    .find(|b| battery::page_name(b) == n)
-                    .map(|b| Box::new(battery::BatteryPage::new(b, config)) as Box<dyn DevicePage>),
+                "battery" => Some(Box::new(batteries::BatteriesPage::new())),
                 _ => None,
             };
             if let Some(device) = device {
@@ -335,6 +344,10 @@ impl PerformancePage {
     /// Applies a new snapshot. `config` may be updated (sidebar order, migrated keys).
     pub fn update(&mut self, readings: &Readings, gpu: &GpuSnapshot, config: &mut Config) {
         migrate_hidden_graphs(config);
+        sidebar::migrate_battery_group(config);
+        if self.selected.starts_with("battery-") {
+            self.selected = "battery".into();
+        }
         let before = self.devices.len();
         self.create_missing_devices(readings, config);
         let added = self.devices.len() != before;
@@ -552,41 +565,42 @@ mod tests {
                 .map(|d| (d.name().to_owned(), d.summary().heading.clone()))
                 .collect::<Vec<_>>()
         };
-        let mut config = Config::default();
         let mut readings = mc_magpie::synthetic_readings(0, 8);
         let bat0 = battery::page_name(&readings.batteries[0]);
-        // Unrelated GPU removals must not mask the late-insertion indexing bug.
+        let mut config = Config {
+            performance_selected_page: bat0,
+            ..Config::default()
+        };
+        // Keep unrelated GPU topology coherent throughout the battery lifecycle.
         let gpu = GpuSnapshot::from_readings(&readings, &mut Default::default(), 1000);
         let mut page = PerformancePage::new(&config);
         page.update(&readings, &gpu, &mut config);
         assert!(page.loaded());
-        assert_eq!(battery_rows(&page), vec![(bat0.clone(), i18n("Battery"))]);
+        let expected = vec![("battery".into(), i18n("Batteries"))];
+        assert_eq!(battery_rows(&page), expected);
+        assert_eq!(
+            page.selected, "battery",
+            "migrate the startup live selection too"
+        );
+        assert_eq!(config.performance_selected_page, "battery");
 
         readings.batteries.push(mouse("synthetic-mouse-a", 0.65));
         let mouse_key = battery::page_name(&readings.batteries[1]);
-        let battery0 = mc_core::i18n::i18n_f("Battery {}", &["0"]);
-        let battery1 = mc_core::i18n::i18n_f("Battery {}", &["1"]);
-        let expected = vec![
-            (bat0.clone(), battery0.clone()),
-            (mouse_key.clone(), battery1.clone()),
-        ];
         page.update(&readings, &gpu, &mut config);
         assert_eq!(battery_rows(&page), expected);
 
-        let mouse_index = page.device_index(&mouse_key).unwrap();
-        let view = page.devices[mouse_index].win10_view(&config);
+        let group = page.device_index("battery").unwrap();
+        let view = page.devices[group]
+            .win10_batteries_view(&config, Some(&mouse_key))
+            .unwrap();
+        assert_eq!(view.cards.len(), 2);
+        assert_eq!(view.overview.panels.len(), 1);
+        let view = view.detail.unwrap();
         assert_eq!(view.model, "Logitech MX Master 3S");
-        assert_eq!(view.panels.len(), 1, "no fabricated battery history");
-        assert_eq!(
-            view.panels[0].caption,
-            format!(
-                "{}{}{}",
-                i18n("Percentage"),
-                i18n(" over "),
-                max_duration(&config)
-            )
+        assert!(
+            view.panels.is_empty(),
+            "no duplicate charge graph or fabricated history"
         );
-        assert_eq!(view.panels[0].right, i18n("100%"));
         assert_eq!(
             view.stats,
             vec![
@@ -597,41 +611,40 @@ mod tests {
         assert_eq!(view.info, vec![(i18n("Type:"), i18n("Mouse"))]);
 
         page.update(&readings, &gpu, &mut config);
-        assert_eq!(battery_rows(&page), expected, "no duplicate mouse page");
-        page.select(&mouse_key, &mut config);
-        assert_eq!(page.selected, mouse_key);
+        assert_eq!(battery_rows(&page), expected, "no duplicate group page");
+        assert_eq!(page.selected, "battery");
 
         let device_count = page.devices.len();
         readings.batteries[1] = mouse("synthetic-mouse-b", 0.4);
-        let replacement_key = battery::page_name(&readings.batteries[1]);
         page.update(&readings, &gpu, &mut config);
         assert_eq!(page.devices.len(), device_count, "same-count replacement");
-        assert!(page.device_index(&mouse_key).is_none());
-        let expected = vec![
-            (bat0.clone(), battery0),
-            (replacement_key.clone(), battery1),
-        ];
         assert_eq!(battery_rows(&page), expected);
-        let fallback = page.shown_names(&config)[0].clone();
-        assert_eq!(page.selected, fallback);
-        assert_eq!(config.performance_selected_page, page.selected);
+        let view = page.devices[group]
+            .win10_batteries_view(&config, Some(&mouse_key))
+            .unwrap();
+        assert!(view.detail.is_none(), "a removed child has no details");
+        assert_eq!(
+            page.selected, "battery",
+            "partial removal keeps the group selected"
+        );
 
-        page.select(&replacement_key, &mut config);
-        assert_eq!(page.selected, replacement_key);
         readings.batteries.truncate(1);
         page.update(&readings, &gpu, &mut config);
-        assert!(page.device_index(&replacement_key).is_none());
-        assert_eq!(battery_rows(&page), vec![(bat0, i18n("Battery"))]);
+        assert_eq!(battery_rows(&page), expected);
+        assert_eq!(page.selected, "battery");
+
+        readings.batteries.clear();
+        page.update(&readings, &gpu, &mut config);
+        assert!(battery_rows(&page).is_empty());
         let fallback = page.shown_names(&config)[0].clone();
         assert_eq!(page.selected, fallback);
         assert_eq!(config.performance_selected_page, fallback);
 
         let returned = mouse("synthetic-mouse-b", 0.41);
-        assert_eq!(battery::page_name(&returned), replacement_key);
         readings.batteries.push(returned);
         page.update(&readings, &gpu, &mut config);
         assert_eq!(battery_rows(&page), expected, "stable logical page key");
-        assert_eq!(page.selected, fallback, "do not restore mouse selection");
+        assert_eq!(page.selected, fallback, "do not restore group selection");
         assert_eq!(config.performance_selected_page, fallback);
     }
 }

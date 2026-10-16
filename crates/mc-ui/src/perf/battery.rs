@@ -41,7 +41,26 @@ pub fn page_name(b: &Battery) -> String {
     )
 }
 
-fn kind_to_str(kind: i32) -> String {
+pub(super) fn percentage(value: f32) -> Option<f32> {
+    (value.is_finite() && (0. ..=1.).contains(&value)).then_some(value)
+}
+
+pub(super) fn percentage_label(value: f32) -> String {
+    percentage(value)
+        .map(|value| i18n_f("{}%", &[&format!("{:.0}", value * 100.)]))
+        .unwrap_or_else(|| "—".into())
+}
+
+pub(super) fn model_label(b: &Battery) -> String {
+    match (&b.vendor, &b.model) {
+        (Some(v), Some(m)) => format!("{v} {m}"),
+        (Some(v), None) => v.clone(),
+        (None, Some(m)) => m.clone(),
+        (None, None) => i18n("Unknown"),
+    }
+}
+
+pub(super) fn kind_to_str(kind: i32) -> String {
     let s = match kind {
         1 => "LinePower",
         2 => n_("Battery"),
@@ -89,7 +108,7 @@ fn technology_to_str(t: i32) -> String {
     i18n(s)
 }
 
-fn state_to_str(s: i32) -> String {
+pub(super) fn state_to_str(s: i32) -> String {
     let s = match s {
         1 => "Charging",
         2 => "Discharging",
@@ -168,12 +187,7 @@ impl BatteryPage {
             rate_graph.add_dataset(d);
         }
 
-        let model = match (&b.vendor, &b.model) {
-            (Some(v), Some(m)) => format!("{v} {m}"),
-            (Some(v), None) => v.clone(),
-            (None, Some(m)) => m.clone(),
-            (None, None) => i18n("Unknown"),
-        };
+        let model = model_label(b);
         let kind = b.kind.map(kind_to_str);
 
         let mut page = Self {
@@ -214,6 +228,16 @@ impl BatteryPage {
         page
     }
 
+    pub(super) fn detail_view(&mut self, config: &Config) -> PageView<'_> {
+        let power_mode = self.power_mode;
+        let mut view = self.win10_view(config);
+        if !power_mode {
+            // The group overview already contains this device's recent charge history.
+            view.panels.remove(0);
+        }
+        view
+    }
+
     fn update_history(&mut self, b: &Battery) {
         let d: Vec<(f32, f32)> = b.history.iter().map(|p| (p.x, p.y)).collect();
         if d.len() < 2 {
@@ -238,7 +262,7 @@ impl BatteryPage {
             }
             his.push(w[1]);
         }
-        his.push((0., b.percentage));
+        his.push((0., percentage(b.percentage).unwrap_or(f32::NAN)));
 
         let mut main = DatasetGroup::new_with_datas(vec![his]);
         main.dataset_settings.high_watermark = 1.;
@@ -308,7 +332,7 @@ impl DevicePage for BatteryPage {
         let power = b.power.map(|p| if discharging && p != 0. { -p } else { p });
 
         let l = &mut self.labels;
-        l.percentage = i18n_f("{}%", &[&format!("{:.0}", b.percentage * 100.)]);
+        l.percentage = percentage_label(b.percentage);
         l.voltage = b
             .voltage
             .map(|v| to_human_readable_nice(v, &DataType::Volts));
@@ -356,7 +380,8 @@ impl DevicePage for BatteryPage {
                 &DataType::Watts,
             ));
         } else {
-            self.rate_graph.add_data_point(vec![vec![b.percentage]]);
+            self.rate_graph
+                .add_data_point(vec![vec![percentage(b.percentage).unwrap_or(f32::NAN)]]);
             l.rate_max_y = i18n("100%");
             l.rate_min_y = None;
         }
@@ -365,12 +390,12 @@ impl DevicePage for BatteryPage {
             self.update_history(b);
         }
 
-        self.summary
-            .graph
-            .add_data_point(vec![vec![b.percentage * 100.]]);
+        self.summary.graph.add_data_point(vec![vec![
+            percentage(b.percentage).unwrap_or(f32::NAN) * 100.,
+        ]]);
         self.summary.info1 = self.plain_model.clone();
         let temp = b.temp.map(|t| format!(" ({t} °C)")).unwrap_or_default();
-        self.summary.info2 = format!("{:.0}%{temp}", b.percentage * 100.);
+        self.summary.info2 = format!("{}{temp}", percentage_label(b.percentage));
         true
     }
 
@@ -523,7 +548,9 @@ mod tests {
             (BatteryType::Bat, true, Some("Yes")),
             (BatteryType::Bat, false, Some("No")),
             (BatteryType::Ups, true, Some("Yes")),
+            (BatteryType::Ups, false, Some("No")),
             (BatteryType::Mouse, false, None),
+            (BatteryType::Mouse, true, None),
             (BatteryType::Headset, false, None),
             (BatteryType::Headphones, false, None),
         ] {
@@ -548,6 +575,28 @@ mod tests {
                     .find(|line| line.trim_start().starts_with("Powering System:")),
                 line.as_deref(),
                 "{kind:?} copied summary"
+            );
+
+            let mut readings = mc_magpie::synthetic_readings(0, 8);
+            readings.batteries = vec![battery.clone()];
+            let mut group = super::super::batteries::BatteriesPage::new();
+            group.update(&readings, &UpdateEnv::new(&config));
+            let view = group
+                .win10_batteries_view(&config, Some(&page_name(&battery)))
+                .unwrap();
+            let row = view
+                .detail
+                .unwrap()
+                .info
+                .into_iter()
+                .find(|(label, _)| *label == i18n("Powering System:"));
+            assert_eq!(row.map(|(_, value)| value), expected.map(i18n));
+            assert_eq!(
+                group
+                    .data_summary()
+                    .lines()
+                    .find(|line| line.trim_start().starts_with("Powering System:")),
+                line.as_deref()
             );
         }
     }

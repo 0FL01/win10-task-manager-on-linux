@@ -29,7 +29,9 @@ use mc_graph::Graph;
 use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
+use crate::perf::batteries::{BatteriesView, BatteryCard};
 use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage};
+use mc_magpie::magpie_types::battery::BatteryType;
 
 /// Reference device list width (separator at content left + 211); the separator can be dragged
 /// wider (own design), the page keeps at least `PAGE_MIN_W`
@@ -80,6 +82,8 @@ pub struct PerformanceView {
     memory_scroll: listview::ListState,
     memory_active: bool,
     memory_size: egui::Vec2,
+    battery_scroll: listview::ListState,
+    battery_selected: Option<String>,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
 }
@@ -135,79 +139,103 @@ impl PerformanceView {
         self.memory_active = memory_active;
         let colors = device_colors(kind);
         let tiles = perf.devices[index].win10_graph_tiles(cx.config);
-        let view = perf.devices[index].win10_view(cx.config);
         // The page geometry is relative to the reference list width
         let shifted = Rect::from_min_max(
             pos2(content.left() + list_w - LIST_W, content.top()),
             content.max,
         );
-        let graph_response = if kind == DeviceType::System {
-            if self.scroll_device != perf.selected {
-                self.gpu_scroll.offset = 0.;
-                self.scroll_device.clone_from(&perf.selected);
-            }
-            system_page_ui(ui, page, view, &mut self.gpu_scroll);
-            GraphResponse::default()
-        } else if perf.summary_mode {
-            summary_ui(ui, page, view, &tiles, colors, &perf.selected)
-        } else if kind == DeviceType::Gpu {
-            if self.scroll_device != perf.selected {
-                self.gpu_scroll.offset = 0.;
-                self.scroll_device.clone_from(&perf.selected);
-            }
-            gpu_page_ui(ui, page, view, &tiles, colors, &mut self.gpu_scroll)
+        let graph_response = if kind == DeviceType::Battery && !perf.summary_mode {
+            perf.devices[index]
+                .win10_batteries_view(cx.config, self.battery_selected.as_deref())
+                .map(|view| {
+                    battery_page_ui(
+                        ui,
+                        page,
+                        view,
+                        &mut self.battery_scroll,
+                        &mut self.battery_selected,
+                    )
+                })
+                .unwrap_or_default()
         } else {
-            if memory_active {
-                let count = view.panels.len().max(1) as f32;
-                let stack_h = count * m::MEMORY_GRAPH_MIN_H
-                    + count * (PANEL_GAP + 13.)
-                    + m::MEMORY_COMPOSITION_H
-                    + swap_block_height(&view);
-                let base_h = shifted.height().max(
-                    GRAPH_TOP + stack_h + PANEL_GAP + stats_height(view.stats.len()) + PANEL_GAP,
-                );
-                let total_h = base_h;
-                if ui.rect_contains_pointer(page) {
-                    self.memory_scroll.offset -= wheel_delta(ui);
+            let view = perf.devices[index].win10_view(cx.config);
+            if kind == DeviceType::System {
+                if self.scroll_device != perf.selected {
+                    self.gpu_scroll.offset = 0.;
+                    self.scroll_device.clone_from(&perf.selected);
                 }
-                self.memory_scroll.offset = self
-                    .memory_scroll
-                    .offset
-                    .clamp(0., (total_h - page.height()).max(0.))
-                    .round();
-                let mut child = ui.new_child(
-                    egui::UiBuilder::new()
-                        .id_salt(("memory-performance-page", &perf.selected))
-                        .max_rect(page),
-                );
-                child.set_clip_rect(page.intersect(ui.clip_rect()));
-                let track =
-                    Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
-                listview::scrollbar(
-                    &mut child,
-                    track,
-                    &mut self.memory_scroll,
-                    INFO_PITCH,
-                    total_h,
-                    page.height(),
-                );
-                let top = shifted.top() - self.memory_scroll.offset;
-                let virtual_page = Rect::from_min_max(
-                    pos2(shifted.left(), top),
-                    pos2(shifted.right(), top + base_h),
-                );
-                let module_height =
-                    stats_height(view.stats.len()) - 5. - m::MEMORY_SLOT_FOOTER_RESERVE;
-                if let Some(slots) =
-                    page_ui(&mut child, virtual_page, view, colors, kind, &perf.selected)
-                {
-                    perf.devices[index].extra_ui(&mut child, slots, module_height, cx);
+                system_page_ui(ui, page, view, &mut self.gpu_scroll);
+                GraphResponse::default()
+            } else if perf.summary_mode {
+                summary_ui(ui, page, view, &tiles, colors, &perf.selected)
+            } else if kind == DeviceType::Gpu {
+                if self.scroll_device != perf.selected {
+                    self.gpu_scroll.offset = 0.;
+                    self.scroll_device.clone_from(&perf.selected);
                 }
+                gpu_page_ui(ui, page, view, &tiles, colors, &mut self.gpu_scroll)
             } else {
-                page_ui(ui, shifted, view, colors, kind, &perf.selected);
+                if memory_active {
+                    let count = view.panels.len().max(1) as f32;
+                    let stack_h = count * m::MEMORY_GRAPH_MIN_H
+                        + count * (PANEL_GAP + 13.)
+                        + m::MEMORY_COMPOSITION_H
+                        + swap_block_height(&view);
+                    let base_h = shifted.height().max(
+                        GRAPH_TOP
+                            + stack_h
+                            + PANEL_GAP
+                            + stats_height(view.stats.len())
+                            + PANEL_GAP,
+                    );
+                    let total_h = base_h;
+                    if ui.rect_contains_pointer(page) {
+                        self.memory_scroll.offset -= wheel_delta(ui);
+                    }
+                    self.memory_scroll.offset = self
+                        .memory_scroll
+                        .offset
+                        .clamp(0., (total_h - page.height()).max(0.))
+                        .round();
+                    let mut child = ui.new_child(
+                        egui::UiBuilder::new()
+                            .id_salt(("memory-performance-page", &perf.selected))
+                            .max_rect(page),
+                    );
+                    child.set_clip_rect(page.intersect(ui.clip_rect()));
+                    let track = Rect::from_min_max(
+                        pos2(page.right() - m::SCROLLBAR_W, page.top()),
+                        page.max,
+                    );
+                    listview::scrollbar(
+                        &mut child,
+                        track,
+                        &mut self.memory_scroll,
+                        INFO_PITCH,
+                        total_h,
+                        page.height(),
+                    );
+                    let top = shifted.top() - self.memory_scroll.offset;
+                    let virtual_page = Rect::from_min_max(
+                        pos2(shifted.left(), top),
+                        pos2(shifted.right(), top + base_h),
+                    );
+                    let module_height =
+                        stats_height(view.stats.len()) - 5. - m::MEMORY_SLOT_FOOTER_RESERVE;
+                    if let Some(slots) =
+                        page_ui(&mut child, virtual_page, view, colors, kind, &perf.selected)
+                    {
+                        perf.devices[index].extra_ui(&mut child, slots, module_height, cx);
+                    }
+                } else {
+                    page_ui(ui, shifted, view, colors, kind, &perf.selected);
+                }
+                GraphResponse::default()
             }
-            GraphResponse::default()
         };
+        if graph_response.suppress_summary {
+            toggle_summary = false;
+        }
         toggle_summary |= graph_response.double_clicked;
         if toggle_summary {
             cx.send(Command::ToggleSummaryMode);
@@ -384,6 +412,12 @@ impl PerformanceView {
                     graph.bottom() - 4.,
                     pal::LABEL,
                 );
+            } else if kind == DeviceType::Battery {
+                let origin = pos2(
+                    (graph.center().x - m::BATTERY_SIDEBAR_SIZE[0] / 2.).round(),
+                    (graph.center().y - m::BATTERY_SIDEBAR_SIZE[1] / 2.).round(),
+                );
+                battery_glyph(&painter, origin, m::BATTERY_SIDEBAR_OUTLINE);
             } else {
                 summary.graph.paint(&child, graph);
             }
@@ -419,6 +453,9 @@ impl PerformanceView {
                     cap += 15.;
                 }
             }
+            if let Some(tooltip) = &summary.tooltip {
+                response.on_hover_text(tooltip);
+            }
         }
         if let Some(name) = clicked {
             perf.select(&name, cx.config);
@@ -430,6 +467,406 @@ impl PerformanceView {
 struct GraphResponse {
     menu: Option<(Pos2, Option<usize>)>,
     double_clicked: bool,
+    suppress_summary: bool,
+}
+
+/// Original battery glyph family. Straight edges use the same pixel meshes as other Win10 ink.
+fn battery_glyph(painter: &egui::Painter, origin: Pos2, segments: &[([f32; 2], [f32; 2])]) {
+    let ppp = painter.ctx().pixels_per_point();
+    let origin = pos2(
+        (origin.x * ppp).round() / ppp,
+        (origin.y * ppp).round() / ppp,
+    );
+    for &([x0, y0], [x1, y1]) in segments {
+        let (x0, y0, x1, y1) = (origin.x + x0, origin.y + y0, origin.x + x1, origin.y + y1);
+        if y0 == y1 {
+            paint::hline(painter, x0.min(x1), x0.max(x1), y0, pal::LABEL);
+        } else if x0 == x1 {
+            paint::vline(painter, x0, y0.min(y1), y0.max(y1), pal::LABEL);
+        } else {
+            paint::line(painter, (x0, y0), (x1, y1), pal::LABEL);
+        }
+    }
+}
+
+fn battery_card_ui(ui: &mut Ui, rect: Rect, card: &BatteryCard, selected: bool) -> egui::Response {
+    let response = ui.interact(rect, Id::new(("battery-card", &card.key)), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::CollapsingHeader,
+            ui.is_enabled(),
+            selected,
+            &card.accessible_label,
+        )
+    });
+    ui.ctx()
+        .accesskit_node_builder(response.id, |node| node.set_expanded(selected));
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
+        if selected || response.hovered() {
+            paint::fill(
+                painter,
+                rect.left(),
+                rect.top(),
+                rect.right() - 1.,
+                rect.bottom() - 1.,
+                if selected { pal::SELECTION } else { pal::HOVER },
+            );
+        }
+        paint::outline(
+            painter,
+            rect.left(),
+            rect.top(),
+            rect.right() - 1.,
+            rect.bottom() - 1.,
+            if response.has_focus() {
+                pal::BUTTON_HOVER_BORDER
+            } else {
+                pal::HEADER_SEPARATOR_FLAT
+            },
+        );
+        let segments = match card.kind {
+            BatteryType::Bat | BatteryType::Ups => m::BATTERY_GLYPH,
+            BatteryType::Mouse => m::BATTERY_MOUSE_GLYPH,
+            BatteryType::Headset | BatteryType::Headphones => m::BATTERY_HEADPHONES_GLYPH,
+            _ => m::BATTERY_GENERIC_GLYPH,
+        };
+        battery_glyph(
+            painter,
+            rect.min + vec2(m::BATTERY_CARD_PAD, m::BATTERY_CARD_PAD),
+            segments,
+        );
+        let name_x =
+            rect.left() + m::BATTERY_CARD_PAD + m::BATTERY_GLYPH_SIZE + m::BATTERY_CARD_NAME_GAP;
+        let right = rect.right() - m::BATTERY_CARD_PAD;
+        let name = paint::elide(painter, &card.name, Font::Body, right - name_x);
+        paint::text(
+            painter,
+            name_x,
+            rect.top() + m::BATTERY_CARD_NAME_DY,
+            &name,
+            Font::Body,
+            pal::TEXT,
+            Align::Min,
+        );
+        let left = rect.left() + m::BATTERY_CARD_PAD;
+        paint::text(
+            painter,
+            left,
+            rect.top() + m::BATTERY_CARD_PERCENT_DY,
+            &card.percentage_label,
+            Font::StatValue,
+            pal::TEXT,
+            Align::Min,
+        );
+        let state_x = left
+            + paint::text_width(painter, &card.percentage_label, Font::StatValue)
+            + m::BATTERY_CARD_PAD;
+        let state = paint::elide(painter, &card.state, Font::Body, right - state_x);
+        paint::text(
+            painter,
+            right,
+            rect.top() + m::BATTERY_CARD_STATE_DY,
+            &state,
+            Font::Body,
+            pal::LABEL,
+            Align::Max,
+        );
+        // Already-resolved ink: exactly the same pair element as Graph's group strokes.
+        let ink = card.colors[usize::from(ui.ctx().theme() == egui::Theme::Dark)];
+        let y = rect.top() + m::BATTERY_CARD_BAR_DY;
+        let bottom = y + m::BATTERY_CARD_BAR_H - 1.;
+        for (from, to) in [
+            ((left, y), (right - 1., y)),
+            ((left, bottom), (right - 1., bottom)),
+            ((left, y), (left, bottom)),
+            ((right - 1., y), (right - 1., bottom)),
+        ] {
+            paint::line_ink(painter, from, to, ink);
+        }
+        if let Some(percentage) = card.percentage.filter(|p| *p > 0.) {
+            let mut fill = egui::Mesh::default();
+            fill.add_colored_rect(
+                Rect::from_min_max(
+                    pos2(left + 2., y + 2.),
+                    pos2(left + 2. + (right - left - 4.) * percentage, bottom - 1.),
+                ),
+                ink,
+            );
+            painter.add(egui::Shape::mesh(fill));
+        }
+    }
+    response.on_hover_text(&card.accessible_label)
+}
+
+fn battery_page_ui(
+    ui: &mut Ui,
+    page: Rect,
+    mut view: BatteriesView<'_>,
+    scroll: &mut listview::ListState,
+    selected: &mut Option<String>,
+) -> GraphResponse {
+    if selected
+        .as_ref()
+        .is_some_and(|key| !view.cards.iter().any(|card| card.key == *key))
+    {
+        *selected = None;
+    }
+    let gx0 = page.left() + GRAPH_X - LIST_W - 1.;
+    let gx1 = page.right() - RIGHT_INSET;
+    let room = (gx1 - gx0 + 1.).max(1.);
+    let columns = ((room + m::BATTERY_CARD_GAP) / (m::BATTERY_CARD_MIN_W + m::BATTERY_CARD_GAP))
+        .floor()
+        .max(1.) as usize;
+    let card_w = ((room - (columns - 1) as f32 * m::BATTERY_CARD_GAP) / columns as f32).floor();
+    let rows = view.cards.len().div_ceil(columns);
+    let graph_h = (page.height() * 0.5)
+        .clamp(m::BATTERY_GRAPH_MIN_H, m::BATTERY_GRAPH_MAX_H)
+        .round();
+    let cards_y = GRAPH_TOP + graph_h + m::BATTERY_SECTION_GAP;
+    let cards_h =
+        rows as f32 * m::BATTERY_CARD_H + rows.saturating_sub(1) as f32 * m::BATTERY_CARD_GAP;
+    let details_y = cards_y + cards_h + m::BATTERY_SECTION_GAP;
+
+    // Established flowing statistic typography; indices, not another device-data model.
+    let mut stat_rows = vec![];
+    let mut detail_h = 0.;
+    if let Some(detail) = &view.detail {
+        for (row, entries) in detail.stats.iter().enumerate() {
+            let mut line = vec![];
+            let mut width = 0.;
+            for (column, (label, value)) in entries.iter().enumerate() {
+                let entry_w = paint::text_width(ui.painter(), label, Font::Body)
+                    .max(paint::text_width(ui.painter(), value, Font::StatValue))
+                    .min(room);
+                if !line.is_empty() && width + entry_w > room {
+                    stat_rows.push(line);
+                    line = vec![];
+                    width = 0.;
+                }
+                line.push((row, column, entry_w));
+                width += entry_w + STAT_COLUMN_GAP;
+            }
+            if !line.is_empty() {
+                stat_rows.push(line);
+            }
+        }
+        detail_h = m::BATTERY_DETAIL_HEADING_H
+            + detail.panels.len() as f32
+                * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP)
+            + stat_rows.len() as f32 * STAT_PITCH
+            + m::BATTERY_SECTION_GAP
+            + detail.info.len() as f32 * INFO_PITCH
+            + m::BATTERY_SECTION_GAP;
+    }
+    let total_h = details_y + detail_h;
+    if ui.rect_contains_pointer(page) {
+        scroll.offset -= wheel_delta(ui);
+    }
+    scroll.offset = scroll
+        .offset
+        .clamp(0., (total_h - page.height()).max(0.))
+        .round();
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .id_salt("battery-performance-page")
+            .max_rect(page),
+    );
+    child.set_clip_rect(page.intersect(ui.clip_rect()));
+    let track = Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
+    listview::scrollbar(
+        &mut child,
+        track,
+        scroll,
+        INFO_PITCH,
+        total_h,
+        page.height(),
+    );
+    let top = page.top() - scroll.offset;
+    let painter = child.painter().clone();
+    paint::text(
+        &painter,
+        page.left() + TITLE_X - LIST_W - 1.,
+        top + TITLE_CAP,
+        &view.overview.title,
+        Font::Title,
+        pal::TEXT,
+        Align::Min,
+    );
+    paint::text(
+        &painter,
+        gx1 + 1.,
+        top + MODEL_CAP,
+        &view.overview.model,
+        Font::Model,
+        pal::TEXT,
+        Align::Max,
+    );
+    let mut out = child
+        .push_id("battery-overview", |ui| {
+            graph_panels_ui(
+                ui,
+                gx0,
+                gx1,
+                top + GRAPH_TOP,
+                &mut view.overview.panels,
+                &[],
+                &[graph_h],
+                pal::BATTERY,
+            )
+        })
+        .inner;
+
+    for (index, card) in view.cards.iter().enumerate() {
+        let rect = Rect::from_min_size(
+            pos2(
+                gx0 + (index % columns) as f32 * (card_w + m::BATTERY_CARD_GAP),
+                top + cards_y
+                    + (index / columns) as f32 * (m::BATTERY_CARD_H + m::BATTERY_CARD_GAP),
+            ),
+            vec2(card_w, m::BATTERY_CARD_H),
+        );
+        // Register offscreen cards too: their clipped hit rectangles do not steal pointer input,
+        // but Tab can still focus and reveal the entire inventory.
+        let response = battery_card_ui(
+            &mut child,
+            rect,
+            card,
+            selected.as_deref() == Some(&card.key),
+        );
+        out.suppress_summary |= response.contains_pointer() || response.clicked();
+        if response.clicked() {
+            *selected = if selected.as_deref() == Some(&card.key) {
+                None
+            } else {
+                Some(card.key.clone())
+            };
+            child.ctx().request_repaint();
+        }
+        if response.secondary_clicked() {
+            out.menu = response.interact_pointer_pos().map(|pos| (pos, None));
+        }
+        if response.gained_focus() {
+            let before = scroll.offset;
+            if rect.top() < page.top() {
+                scroll.offset -= page.top() - rect.top();
+            } else if rect.bottom() > page.bottom() {
+                scroll.offset += rect.bottom() - page.bottom();
+            }
+            scroll.offset = scroll
+                .offset
+                .clamp(0., (total_h - page.height()).max(0.))
+                .round();
+            if scroll.offset != before {
+                child.ctx().request_repaint();
+            }
+        }
+    }
+    if let Some(mut detail) = view.detail {
+        let y = top + details_y;
+        let model = paint::elide(&painter, &detail.model, Font::Model, room);
+        paint::text(
+            &painter,
+            gx0,
+            y + 6.,
+            &model,
+            Font::Model,
+            pal::TEXT,
+            Align::Min,
+        );
+        paint::copy_value(
+            &mut child,
+            Rect::from_min_max(pos2(gx0, y), pos2(gx1 + 1., y + 25.)),
+            &detail.model,
+        );
+        let mut cursor = y + m::BATTERY_DETAIL_HEADING_H;
+        if !detail.panels.is_empty() {
+            let heights = vec![m::BATTERY_DETAIL_GRAPH_H; detail.panels.len()];
+            let graph_response = child
+                .push_id("battery-detail", |ui| {
+                    graph_panels_ui(
+                        ui,
+                        gx0,
+                        gx1,
+                        cursor + 13.,
+                        &mut detail.panels,
+                        &[],
+                        &heights,
+                        pal::BATTERY,
+                    )
+                })
+                .inner;
+            out.double_clicked |= graph_response.double_clicked;
+            out.menu = out.menu.or(graph_response.menu);
+            cursor +=
+                heights.len() as f32 * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP);
+        }
+        for row in &stat_rows {
+            let mut x = gx0;
+            for &(source_row, source_column, width) in row {
+                let (label, value) = &detail.stats[source_row][source_column];
+                let label = paint::elide(&painter, label, Font::Body, width);
+                let value = paint::elide(&painter, value, Font::StatValue, width);
+                paint::text(
+                    &painter,
+                    x,
+                    cursor + 5.,
+                    &label,
+                    Font::Body,
+                    pal::LABEL,
+                    Align::Min,
+                );
+                paint::text(
+                    &painter,
+                    x,
+                    cursor + 5. + STAT_VALUE_DY,
+                    &value,
+                    Font::StatValue,
+                    pal::TEXT,
+                    Align::Min,
+                );
+                x += width + STAT_COLUMN_GAP;
+            }
+            cursor += STAT_PITCH;
+        }
+        cursor += m::BATTERY_SECTION_GAP;
+        let label_w = detail
+            .info
+            .iter()
+            .map(|(label, _)| paint::text_width(&painter, label, Font::Body))
+            .fold(0., f32::max)
+            .min(room * 0.6);
+        let value_x = gx0 + INFO_VALUE_DX.max(label_w + 12.);
+        for (label, value) in &detail.info {
+            let short_label = paint::elide(&painter, label, Font::Body, label_w);
+            let short_value = paint::elide(&painter, value, Font::Body, gx1 + 1. - value_x);
+            paint::text(
+                &painter,
+                gx0,
+                cursor,
+                &short_label,
+                Font::Body,
+                pal::LABEL,
+                Align::Min,
+            );
+            paint::text(
+                &painter,
+                value_x,
+                cursor,
+                &short_value,
+                Font::Body,
+                pal::TEXT,
+                Align::Min,
+            );
+            paint::copy_value(
+                &mut child,
+                Rect::from_min_max(pos2(value_x, cursor - 3.), pos2(gx1 + 1., cursor + 12.)),
+                value,
+            );
+            cursor += INFO_PITCH;
+        }
+    }
+    out
 }
 
 /// GPU-only own adaptation: minimum usable graph heights and a vertical flow ensure every

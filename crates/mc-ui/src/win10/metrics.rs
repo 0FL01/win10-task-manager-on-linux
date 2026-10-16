@@ -138,3 +138,78 @@ pub const SPD_SCROLL_MAX_H: f32 = 400.;
 pub const MEMORY_SWAP_BAR_H: f32 = 20.;
 pub const MEMORY_SWAP_ROW_H: f32 = 18.;
 pub const MEMORY_SWAP_ROW_CAP: f32 = 6.;
+
+/// Own consolidated-battery layout and original outline glyphs (not measured Win10 assets).
+pub const BATTERY_CARD_MIN_W: f32 = 224.;
+pub const BATTERY_CARD_H: f32 = 104.;
+pub const BATTERY_CARD_GAP: f32 = 12.;
+pub const BATTERY_CARD_PAD: f32 = 12.;
+pub const BATTERY_CARD_NAME_GAP: f32 = 10.;
+pub const BATTERY_CARD_NAME_DY: f32 = 15.;
+pub const BATTERY_CARD_PERCENT_DY: f32 = 42.;
+pub const BATTERY_CARD_STATE_DY: f32 = 48.;
+pub const BATTERY_CARD_BAR_DY: f32 = 80.;
+pub const BATTERY_CARD_BAR_H: f32 = 6.;
+pub const BATTERY_SECTION_GAP: f32 = 24.;
+pub const BATTERY_GRAPH_MIN_H: f32 = 160.;
+pub const BATTERY_GRAPH_MAX_H: f32 = 320.;
+pub const BATTERY_DETAIL_GRAPH_H: f32 = 120.;
+pub const BATTERY_DETAIL_HEADING_H: f32 = 36.;
+pub const BATTERY_GLYPH_SIZE: f32 = 16.;
+pub const BATTERY_SIDEBAR_SIZE: [f32; 2] = [40., 22.];
+pub const BATTERY_SIDEBAR_OUTLINE: &[([f32; 2], [f32; 2])] = &[
+    ([0., 0.], [35., 0.]),
+    ([0., 21.], [35., 21.]),
+    ([0., 1.], [0., 20.]),
+    ([35., 1.], [35., 6.]),
+    ([35., 7.], [39., 7.]),
+    ([39., 8.], [39., 13.]),
+    ([35., 14.], [39., 14.]),
+    ([35., 15.], [35., 20.]),
+];
+pub const BATTERY_GLYPH: &[([f32; 2], [f32; 2])] = &[
+    ([1., 4.], [12., 4.]),
+    ([1., 11.], [12., 11.]),
+    ([1., 5.], [1., 10.]),
+    ([12., 5.], [12., 6.]),
+    ([12., 6.], [14., 6.]),
+    ([14., 6.], [14., 9.]),
+    ([12., 9.], [14., 9.]),
+    ([12., 9.], [12., 10.]),
+];
+pub const BATTERY_MOUSE_GLYPH: &[([f32; 2], [f32; 2])] = &[
+    ([6., 1.], [9., 1.]),
+    ([9., 1.], [12., 4.]),
+    ([12., 4.], [12., 11.]),
+    ([12., 11.], [9., 14.]),
+    ([9., 14.], [6., 14.]),
+    ([6., 14.], [3., 11.]),
+    ([3., 11.], [3., 4.]),
+    ([3., 4.], [6., 1.]),
+    ([3., 6.], [12., 6.]),
+    ([8., 2.], [8., 5.]),
+];
+pub const BATTERY_HEADPHONES_GLYPH: &[([f32; 2], [f32; 2])] = &[
+    ([2., 8.], [2., 6.]),
+    ([2., 6.], [4., 2.]),
+    ([4., 2.], [6., 1.]),
+    ([6., 1.], [9., 1.]),
+    ([9., 1.], [11., 2.]),
+    ([11., 2.], [13., 6.]),
+    ([13., 6.], [13., 8.]),
+    ([1., 7.], [4., 7.]),
+    ([4., 7.], [4., 13.]),
+    ([4., 13.], [1., 13.]),
+    ([1., 13.], [1., 7.]),
+    ([11., 7.], [14., 7.]),
+    ([14., 7.], [14., 13.]),
+    ([14., 13.], [11., 13.]),
+    ([11., 13.], [11., 7.]),
+];
+pub const BATTERY_GENERIC_GLYPH: &[([f32; 2], [f32; 2])] = &[
+    ([3., 1.], [12., 1.]),
+    ([12., 1.], [12., 14.]),
+    ([12., 14.], [3., 14.]),
+    ([3., 14.], [3., 1.]),
+    ([6., 11.], [9., 11.]),
+];

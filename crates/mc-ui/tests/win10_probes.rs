@@ -844,6 +844,451 @@ fn system_metadata_copies_full_values_and_system_theme_follows_desktop() {
     light.save(dir.join("win10-system-light.png")).unwrap();
 }
 
+/// Original battery design, not historical Win10 pixel measurements.
+#[test]
+fn performance_batteries_cards_theme_and_dpi() {
+    use mc_magpie::magpie_types::battery::Battery;
+    let mut reading = mc_magpie::synthetic_readings(0, 1);
+    reading.batteries[0].vendor = None;
+    reading.batteries[0].model = Some("Laptop".into());
+    reading.batteries.extend([
+        Battery {
+            name: "01-mouse".into(),
+            model: Some("MX Master 3S".into()),
+            kind: Some(5),
+            power_supply: Some(false),
+            percentage: 0.5,
+            state: Some(2),
+            ..Default::default()
+        },
+        Battery {
+            name: "02-headphones".into(),
+            model: Some("Headphones".into()),
+            kind: Some(19),
+            power_supply: Some(false),
+            percentage: 0.7,
+            state: Some(2),
+            ..Default::default()
+        },
+    ]);
+    let config = Config {
+        performance_selected_page: "battery".into(),
+        performance_sidebar_order: "battery;cpu;memory;system".into(),
+        app_update_interval: 2,
+        ..Default::default()
+    };
+    let mut h = performance_harness(config.clone(), reading.clone(), 1.);
+    for _ in 0..100 {
+        h.run_steps(1);
+        if h.state().as_ref().unwrap().stats.readings_applied >= 3 {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert!(h.state().as_ref().unwrap().stats.readings_applied >= 3);
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = true);
+    h.run_steps(2);
+    let applied = h.state().as_ref().unwrap().stats.readings_applied;
+    let cards = ["Laptop —", "MX Master 3S —", "Headphones —"]
+        .map(|name| h.get_by_label_contains(name).rect());
+    assert!(
+        cards
+            .iter()
+            .all(|card| card.width() >= 224. && card.height() == 104.)
+    );
+    assert!(cards.iter().all(|card| card.top() == cards[0].top()));
+    assert!(
+        cards
+            .windows(2)
+            .all(|pair| pair[0].right() + 12. <= pair[1].left())
+    );
+    assert_eq!(
+        h.output()
+            .shapes
+            .iter()
+            .filter(|s| matches!(&s.shape,
+        egui::Shape::Text(t) if t.galley.job.text == "Batteries"))
+            .count(),
+        2,
+        "one sidebar row plus the page title"
+    );
+    let light = h.render().unwrap();
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    light
+        .save(out.join("win10-performance-batteries-light.png"))
+        .unwrap();
+    assert_eq!(
+        hex(&light, 25, 108),
+        "#707070",
+        "neutral connected sidebar contour"
+    );
+    assert_eq!(
+        hex(&light, 26, 109),
+        "#d9d9d9",
+        "empty icon, not a charge indicator"
+    );
+    let graph = |image: &RgbaImage| image::imageops::crop_imm(image, 242, 152, 761, 285).to_image();
+    for (index, pair) in mc_ui::win10::palette::BATTERY_SERIES
+        .iter()
+        .take(3)
+        .enumerate()
+    {
+        let color = pair[0];
+        assert_eq!(
+            light
+                .get_pixel(
+                    cards[index].left() as u32 + 14,
+                    cards[index].top() as u32 + 82
+                )
+                .0[..3],
+            color.to_array()[..3]
+        );
+        assert!(
+            h.output()
+                .shapes
+                .iter()
+                .any(|s| matches!(&s.shape, egui::Shape::Path(path)
+                if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(ink) if ink == color)
+                    && path.points.iter().any(|p| p.x > 241. && p.y > 151. && p.y < 437.))),
+            "{color:?} is an independent charge line, not only its card legend"
+        );
+    }
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.theme = mc_core::config::Theme::Dark);
+    h.run_steps(2);
+    let dark = h.render().unwrap();
+    dark.save(out.join("win10-performance-batteries-dark.png"))
+        .unwrap();
+    assert_eq!(hex(&dark, 25, 108), "#aaaaaa");
+    for (index, pair) in mc_ui::win10::palette::BATTERY_SERIES
+        .iter()
+        .take(3)
+        .enumerate()
+    {
+        let color = pair[1];
+        assert_eq!(
+            dark.get_pixel(
+                cards[index].left() as u32 + 14,
+                cards[index].top() as u32 + 82
+            )
+            .0[..3],
+            color.to_array()[..3]
+        );
+        assert!(
+            h.output()
+                .shapes
+                .iter()
+                .any(|s| matches!(&s.shape, egui::Shape::Path(path)
+                if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(ink) if ink == color)
+                    && path.points.iter().any(|p| p.x > 241. && p.y > 151. && p.y < 437.)))
+        );
+    }
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.theme = mc_core::config::Theme::System);
+    for (theme, expected) in [(egui::Theme::Light, &light), (egui::Theme::Dark, &dark)] {
+        h.input_mut().system_theme = Some(theme);
+        h.run_steps(2);
+        assert_eq!(
+            graph(&h.render().unwrap()),
+            graph(expected),
+            "theme repaint preserves samples"
+        );
+        assert_eq!(h.state().as_ref().unwrap().stats.readings_applied, applied);
+    }
+    drop(h);
+    let mut high = performance_harness(config, reading, 2.);
+    let image = high.render().unwrap();
+    assert_eq!(
+        high.get_by_label_contains("Laptop —").rect(),
+        cards[0],
+        "same logical card geometry at 2×"
+    );
+    assert_eq!(hex(&image, 50, 216), "#707070");
+    assert_eq!(
+        hex(&image, 51, 216),
+        "#707070",
+        "one logical-pixel contour scales to two physical pixels"
+    );
+    image
+        .save(out.join("win10-performance-batteries-2x.png"))
+        .unwrap();
+}
+
+#[test]
+fn performance_batteries_controls_and_minimum_overflow() {
+    use egui_kittest::kittest::NodeT;
+    use mc_magpie::magpie_types::battery::Battery;
+    let mut reading = mc_magpie::synthetic_readings(0, 1);
+    reading.batteries[0].vendor = None;
+    reading.batteries[0].model = Some("Laptop".into());
+    reading.batteries.extend([
+        Battery {
+            name: "01-mouse".into(),
+            model: Some("MX Master 3S".into()),
+            kind: Some(5),
+            power_supply: Some(false),
+            percentage: 0.5,
+            state: Some(2),
+            ..Default::default()
+        },
+        Battery {
+            name: "02-headphones".into(),
+            model: Some("Headphones".into()),
+            kind: Some(19),
+            power_supply: Some(false),
+            percentage: 0.7,
+            state: Some(2),
+            ..Default::default()
+        },
+    ]);
+    let config = Config {
+        performance_selected_page: "battery".into(),
+        performance_sidebar_order: "battery;cpu;memory;system".into(),
+        ..Default::default()
+    };
+    let mut h = performance_harness(config.clone(), reading.clone(), 1.);
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = true);
+    h.run_steps(2);
+    let mouse = h.get_by_label_contains("MX Master 3S —").rect().center();
+    click(&mut h, mouse);
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("MX Master 3S —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    click(&mut h, mouse);
+    assert!(h.ctx.input(|i| {
+        i.pointer
+            .button_double_clicked(egui::PointerButton::Primary)
+    }));
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("MX Master 3S —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(false)
+    );
+    assert_eq!(
+        h.ctx.content_rect().size(),
+        egui::vec2(1030., 705.),
+        "card double click never enters summary"
+    );
+    h.get_by_label_contains("MX Master 3S —").focus();
+    h.run_steps(2);
+    h.key_press(egui::Key::Space);
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("MX Master 3S —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    h.get_by_label_contains("Headphones —").focus();
+    h.run_steps(2);
+    h.key_press(egui::Key::Enter);
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("MX Master 3S —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(false)
+    );
+    assert_eq!(
+        h.get_by_label_contains("Headphones —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    // Inspect the key-down frame; Harness::key_press also runs key-up, clearing transient output.
+    h.event(egui::Event::ModifiersChanged(egui::Modifiers::COMMAND));
+    h.event(egui::Event::Key {
+        key: egui::Key::C,
+        pressed: true,
+        modifiers: egui::Modifiers::COMMAND,
+        repeat: false,
+        physical_key: None,
+    });
+    h.run_steps(1);
+    let commands = &h.output().platform_output.commands;
+    assert!(commands.iter().any(|cmd| matches!(cmd,
+        egui::OutputCommand::CopyText(value) if value.contains("Laptop") && value.contains("MX Master 3S")
+            && value.contains("Headphones") && value.contains("Powering System:        Yes"))), "{commands:?}");
+    h.event(egui::Event::ModifiersChanged(egui::Modifiers::NONE));
+    h.key_up(egui::Key::C);
+    h.run_steps(1);
+    h.event(egui::Event::PointerMoved(mouse));
+    for pressed in [true, false] {
+        h.event(egui::Event::PointerButton {
+            pos: mouse,
+            button: egui::PointerButton::Secondary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.run_steps(1);
+    }
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("Headphones —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    let copy = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|s| match &s.shape {
+            egui::Shape::Text(t) if t.galley.job.text == "Copy" => Some(t.pos + egui::vec2(5., 5.)),
+            _ => None,
+        })
+        .expect("card right click opens the group menu");
+    click(&mut h, copy);
+    assert!(h.output().platform_output.commands.iter().any(|cmd| matches!(cmd,
+        egui::OutputCommand::CopyText(value) if value.contains("Laptop") && value.contains("MX Master 3S")
+            && value.contains("Headphones"))));
+    let graph = egui::pos2(600., 250.);
+    // End the earlier menu-click sequence: egui distinguishes double from triple clicks.
+    h.run_steps(40);
+    click(&mut h, graph);
+    click(&mut h, graph);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(400., 380.));
+    assert!(
+        h.query_by_label_contains("Headphones —").is_none(),
+        "summary contains only the shared graph"
+    );
+    h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
+    h.run_steps(4);
+    assert_eq!(h.ctx.content_rect().size(), egui::vec2(1030., 705.));
+    drop(h);
+
+    let long_name = format!("Long device {}", "extended model ".repeat(12));
+    for index in 0..5 {
+        reading.batteries.push(Battery {
+            name: format!("03-keyboard-{index}"),
+            model: Some(if index == 0 {
+                long_name.clone()
+            } else {
+                format!("Keyboard {index}")
+            }),
+            kind: Some(6),
+            power_supply: Some(false),
+            percentage: 0.6,
+            ..Default::default()
+        });
+    }
+    let mut h = performance_harness(
+        Config {
+            window_width: 760,
+            window_height: 540,
+            ..config
+        },
+        reading,
+        1.,
+    );
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = true);
+    h.run_steps(2);
+    let laptop = h.get_by_label_contains("Laptop —").rect();
+    let mouse = h.get_by_label_contains("MX Master 3S —").rect();
+    let headphones = h.get_by_label_contains("Headphones —").rect();
+    assert_eq!(laptop.top(), mouse.top());
+    assert!(
+        headphones.top() > mouse.top(),
+        "minimum width wraps into two columns"
+    );
+    h.get_by_label_contains("Long device").focus();
+    h.run_steps(3);
+    assert!(h.get_by_label_contains("Long device").is_focused());
+    assert!(
+        h.output()
+            .shapes
+            .iter()
+            .any(|s| matches!(&s.shape, egui::Shape::Text(t)
+        if t.galley.job.text.starts_with("Long device") && t.galley.job.text.ends_with('…')
+            && s.clip_rect.contains(t.pos) && s.clip_rect.contains(t.pos + t.galley.size())))
+    );
+    h.get_by_label_contains("Keyboard 4 —").focus();
+    h.run_steps(3);
+    let last = h.get_by_label_contains("Keyboard 4 —").rect();
+    assert!(
+        last.top() >= 77. && last.bottom() <= 490.,
+        "keyboard focus reveals overflowed cards: {last:?}"
+    );
+    h.key_press(egui::Key::Space);
+    h.run_steps(3);
+    assert_eq!(
+        h.get_by_label_contains("Keyboard 4 —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    h.hover_at(egui::pos2(600., 400.));
+    h.event(egui::Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: egui::vec2(0., -10_000.),
+        phase: egui::TouchPhase::Move,
+        modifiers: egui::Modifiers::NONE,
+    });
+    h.run_steps(4);
+    let value_pos = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|s| match &s.shape {
+            egui::Shape::Text(t)
+                if t.galley.job.text == "Keyboard" && s.clip_rect.contains(t.pos) =>
+            {
+                Some(t.pos)
+            }
+            _ => None,
+        })
+        .expect("selected device metadata remains reachable below all card rows");
+    click(&mut h, value_pos + egui::vec2(4., 4.));
+    assert!(
+        h.output()
+            .platform_output
+            .commands
+            .iter()
+            .any(|cmd| matches!(cmd,
+        egui::OutputCommand::CopyText(value) if value == "Keyboard"))
+    );
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-batteries-minimum-details.png"))
+        .unwrap();
+    // Widening the sidebar recomputes the same bounded grid instead of imposing three columns.
+    h.set_size(egui::vec2(1030., 705.));
+    h.run_steps(3);
+    drag(&mut h, egui::pos2(212., 300.), egui::pos2(450., 300.));
+    h.run_steps(3);
+    assert!(h.get_by_label_contains("Laptop —").rect().width() >= 224.);
+}
+
 /// Column widths, column order, sorting and collapsed groups survive closing and reopening.
 #[test]
 fn ui_state_survives_restart() {

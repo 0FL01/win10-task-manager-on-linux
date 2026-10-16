@@ -67,6 +67,8 @@ struct CacheKey {
 /// A time-series graph with the same API surface as the GTK `GraphWidget`.
 pub struct Graph {
     groups: Vec<DatasetGroup>,
+    /// Optional positional stroke colours, ordered [Light, Dark].
+    group_colors: Vec<[Color32; 2]>,
 
     data_points: u32,
     /// Line, border and (mixed into white) grid colour
@@ -92,6 +94,7 @@ impl Graph {
     pub fn new() -> Self {
         Self {
             groups: vec![],
+            group_colors: vec![],
             data_points: DEFAULT_DATA_POINTS,
             base_color: Color32::BLACK,
             fill: Color32::WHITE,
@@ -136,6 +139,15 @@ impl Graph {
         }
     }
 
+    /// Overrides group strokes with positional [Light, Dark] pairs. Missing entries use the
+    /// base colour's theme adaptation; excess entries are unused until those groups exist.
+    pub fn set_group_colors(&mut self, colors: Vec<[Color32; 2]>) {
+        if self.group_colors != colors {
+            self.group_colors = colors;
+            self.invalidate();
+        }
+    }
+
     pub fn set_fill(&mut self, fill: Color32) {
         if self.fill != fill {
             self.fill = fill;
@@ -166,6 +178,7 @@ impl Graph {
 
     pub fn clear_datasets(&mut self) {
         self.groups.clear();
+        self.group_colors.clear();
         self.invalidate();
     }
 
@@ -320,7 +333,7 @@ impl Graph {
 
         let rebuild = !matches!(&self.cache, Some((k, ..)) if *k == key);
         if rebuild {
-            let (mut under, mut grid, mut data) = self.build_shapes(size);
+            let (mut under, mut grid, data) = self.build_shapes(size, key.dark);
             if key.dark {
                 // Own dark adaptation: preserve device hue and geometry, replace white mixes.
                 let adapt = |shapes: &mut Vec<Shape>, ratio: f32| {
@@ -337,16 +350,6 @@ impl Graph {
                 };
                 adapt(&mut under, 0.12);
                 adapt(&mut grid, 0.30);
-                let color = mix_white(self.base_color, 0.75);
-                for shape in &mut data {
-                    match shape {
-                        Shape::Path(path) => {
-                            path.stroke.color = egui::epaint::ColorMode::Solid(color)
-                        }
-                        Shape::LineSegment { stroke, .. } => stroke.color = color,
-                        _ => {}
-                    }
-                }
             }
             self.cache = Some((key, under, grid, data));
         }
@@ -391,7 +394,7 @@ impl Graph {
         add(&painter, data, origin);
     }
 
-    fn build_shapes(&self, size: Vec2) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
+    fn build_shapes(&self, size: Vec2, dark: bool) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
         let (width, height) = (size.x, size.y);
         let mut grid = vec![];
         if self.grid_visible {
@@ -400,8 +403,19 @@ impl Graph {
 
         let mut under = vec![];
         let mut data = vec![];
-        for group in &self.groups {
-            self.build_group(&mut under, &mut data, group, width, height);
+        for (index, group) in self.groups.iter().enumerate() {
+            let stroke_color = self
+                .group_colors
+                .get(index)
+                .map(|colors| colors[usize::from(dark)])
+                .unwrap_or_else(|| {
+                    if dark {
+                        mix_white(self.base_color, 0.75)
+                    } else {
+                        self.base_color
+                    }
+                });
+            self.build_group(&mut under, &mut data, group, stroke_color, width, height);
         }
 
         (under, grid, data)
@@ -449,6 +463,7 @@ impl Graph {
         under: &mut Vec<Shape>,
         out: &mut Vec<Shape>,
         group: &DatasetGroup,
+        stroke_color: Color32,
         width: f32,
         height: f32,
     ) {
@@ -457,7 +472,6 @@ impl Graph {
         };
 
         let settings = &group.dataset_settings;
-        let stroke_color = self.base_color;
         let stroke_width = 1.;
 
         let baseline = match settings.fill {
@@ -631,9 +645,129 @@ mod tests {
     }
 
     #[test]
+    fn group_colors_apply_to_solid_dashed_and_dropoff_strokes() {
+        let mut g = graph_with(&[10., 50.]);
+        let group = g.groups()[0].clone();
+        g.add_dataset(group.clone());
+        g.add_dataset(group);
+        g.groups_mut()[1].dataset_settings.dashed = true;
+        g.set_base_color(Color32::BLUE);
+        let colors = [
+            [Color32::RED, Color32::LIGHT_RED],
+            [Color32::GREEN, Color32::LIGHT_GREEN],
+        ];
+        g.set_group_colors(colors.to_vec());
+
+        for dark in [false, true] {
+            let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), dark);
+            let strokes: Vec<Color32> = data
+                .iter()
+                .map(|shape| match shape {
+                    Shape::Path(path) => match path.stroke.color {
+                        egui::epaint::ColorMode::Solid(color) => color,
+                        _ => panic!("expected a solid stroke colour"),
+                    },
+                    Shape::LineSegment { stroke, .. } => stroke.color,
+                    _ => panic!("unexpected data shape"),
+                })
+                .collect();
+            assert_eq!(&strokes[..3], &[colors[0][usize::from(dark)]; 3]);
+            let dashed = 3..strokes.len() - 3;
+            assert!(!dashed.is_empty());
+            assert!(
+                data[dashed.clone()]
+                    .iter()
+                    .all(|s| matches!(s, Shape::LineSegment { .. }))
+            );
+            assert!(
+                strokes[dashed]
+                    .iter()
+                    .all(|c| *c == colors[1][usize::from(dark)])
+            );
+            let fallback = if dark {
+                mix_white(Color32::BLUE, 0.75)
+            } else {
+                Color32::BLUE
+            };
+            assert_eq!(&strokes[strokes.len() - 3..], &[fallback; 3]);
+        }
+    }
+
+    #[test]
+    fn group_color_changes_invalidate_and_clear_with_datasets() {
+        let mut g = graph_with(&[10., 50.]);
+        let before = g.generation();
+        g.set_group_colors(vec![]);
+        assert_eq!(before, g.generation());
+        let colors = vec![
+            [Color32::RED, Color32::LIGHT_RED],
+            [Color32::GREEN, Color32::LIGHT_GREEN],
+        ];
+        g.set_group_colors(colors.clone());
+        assert_eq!(before.wrapping_add(1), g.generation());
+        let before = g.generation();
+        g.set_group_colors(colors.clone());
+        assert_eq!(before, g.generation());
+
+        g.set_base_color(Color32::BLUE);
+        *g.groups_mut() = vec![DatasetGroup::new()];
+        assert_eq!(g.group_colors, colors);
+        let before = g.generation();
+        g.set_group_colors(vec![colors[1]]);
+        assert_eq!(before.wrapping_add(1), g.generation());
+        g.clear_datasets();
+        g.add_dataset(DatasetGroup::new());
+        g.add_data_point(vec![vec![10.]]);
+        g.add_data_point(vec![vec![50.]]);
+        assert!(g.group_colors.is_empty());
+        let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), false);
+        assert!(matches!(
+            &data[0],
+            Shape::Path(path)
+                if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(Color32::BLUE))
+        ));
+    }
+
+    #[test]
+    fn theme_only_repaint_uses_group_color_pairs() {
+        let mut g = graph_with(&[10., 50.]);
+        g.add_dataset(g.groups()[0].clone());
+        let colors = [
+            [Color32::RED, Color32::LIGHT_RED],
+            [Color32::GREEN, Color32::LIGHT_GREEN],
+        ];
+        g.set_group_colors(colors.to_vec());
+        let generation = g.generation();
+        let ctx = egui::Context::default();
+        for dark in [false, true] {
+            ctx.set_visuals(if dark {
+                egui::Visuals::dark()
+            } else {
+                egui::Visuals::light()
+            });
+            let mut output = ctx.run_ui(egui::RawInput::default(), |ui| {
+                g.paint(ui, Rect::from_min_size(Pos2::ZERO, Vec2::new(202., 102.)));
+            });
+            output.textures_delta.clear();
+            assert_eq!(generation, g.generation());
+            let (key, _, _, data) = g.cache.as_ref().unwrap();
+            assert_eq!(key.dark, dark);
+            assert_eq!(data.len(), 6);
+            for (group, shapes) in data.chunks_exact(3).enumerate() {
+                assert!(matches!(
+                    &shapes[0],
+                    Shape::Path(path)
+                        if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(color)
+                            if color == colors[group][usize::from(dark)])
+                ));
+            }
+        }
+    }
+
+    #[test]
     fn shapes_cover_fill_and_line() {
         let g = graph_with(&[10., 50., 90.]);
-        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.));
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), false);
         assert!(!grid.is_empty());
         assert!(under.iter().any(|s| matches!(s, Shape::Mesh(_))));
         assert!(data.iter().any(|s| matches!(s, Shape::Path(_))));
@@ -644,7 +778,7 @@ mod tests {
         let mut g = graph_with(&[10., 50.]);
         g.set_data_visible(0, false);
         g.set_grid_visible(false);
-        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.));
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), false);
         assert!(under.is_empty() && grid.is_empty() && data.is_empty());
     }
 
@@ -695,7 +829,7 @@ mod tests {
     fn win10_fill_goes_under_the_grid() {
         let mut g = graph_with(&[0.2, 0.4, 0.6]);
         g.set_fill(Color32::LIGHT_BLUE);
-        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.));
+        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.), false);
         assert!(!under.is_empty());
         assert!(data.iter().all(|s| !matches!(s, Shape::Mesh(_))));
     }
