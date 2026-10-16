@@ -1,6 +1,6 @@
 # Goal: Wireless mouse battery, starting with MX Master 3S
 
-Status: active
+Status: complete
 Source: approved audited plan below; user: «делайю копию плана в цель, итеративно реализовать и коммит пуш», «задача считается выполненой после успешного прохождения github action (tool используй)».
 Last updated: 2026-10-16
 
@@ -35,8 +35,8 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Source: latest user finish line; AGENTS.md after-push rule.
   - Acceptance: workflow checks, five native builds and publish succeed; expected nonempty artifacts and any required release point to the pushed SHA.
   - Primary evidence: GitHub Actions tools plus artifact/release API.
-  - Status: pending.
-  - Evidence:
+  - Status: verified.
+  - Evidence: implementation pushed to main as 0fb280b2549b3f6ffaf11fa5afa4b2e6e0f32255. GitHub Actions tools confirm Native packages run 38929371108 attempt 2 completed successfully: metadata, checks, all five native builds and publish. API verification confirms six nonempty, unexpired artifacts for that SHA and published v1.2.31 with five native packages plus source archive; release target and tag resolve to the implementation SHA. Initial Ubuntu checkout HTTP 503 was resolved by retrying failed jobs without source/CI changes.
 
 ### Constraints
 - Existing UPower/sysfs behavior, battery protobuf, IPC and public frontend API remain unchanged.
@@ -97,16 +97,15 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - Gates AGENTS.md без дублирования Win10 probes/snapshots поверх полного workspace test. Без новых screenshot эталонов, benchmarks и DPI/renderer matrix.
 
 ## Current Checkpoint
-- Closes: R4.
-- Smallest next action: commit/push the verified diff to main, then use GitHub Actions tools to verify the exact pushed SHA, all jobs, artifacts and expected release.
-- Expected evidence: checks, metadata, five native builds and publish succeed; six nonempty artifacts and the required release with five packages plus source archive.
-- Stop or replan if: an unrelated packaging/CI change is necessary. Do not expand the runtime scope after passing tests.
+- No further implementation checkpoint: R1–R4 verified.
+- Delivery only: commit/push this closure record and verify that documentation-only push with GitHub Actions tools. No new release is expected without unpublished Rust changes; do not create another documentation commit merely to embed its own SHA/run ID.
+- Stop after the delivery gate; do not expand scope or rerun unchanged successful local gates.
 
 ## Current State
-- Resolved: R1–R3. Native implementation and focused/full gates passed; live Rust getter succeeded alongside Solaar without root or configuration writes.
-- Last relevant evidence: backend release tests and host smoke passed; logs above. Final diff is confined to the private collector/merge, late UI indexing/test, README/provenance and this goal. Main still matches origin at 9d6c9a4 before commit.
+- Resolved: R1–R4. Native implementation, focused/full gates and release workflow passed; live Rust getter succeeded alongside Solaar without root or configuration writes.
+- Last relevant evidence: [successful runtime workflow](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38929371108), all eight jobs successful, six verified artifacts; [v1.2.31](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.31) and its six uploaded assets target 0fb280b. No runtime changes after local verification.
 - Blocker: none. Flatpak packaging remains an explicitly excluded preexisting limitation.
-- Next: R4 commit/push/Actions. Do not rerun unchanged successful local gates.
+- Next: documentation-only closure delivery gate above, then stop.
 
 ## Material Decisions
 - 2026-10-16: use the approved Bolt fallback because live UPower has no mouse; rootless ACL exists, without installing/changing any host rule.
@@ -118,6 +117,12 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - 2026-10-16: plan frozen; live source/access preflight completed; no runtime edits before this contract.
 - 2026-10-16: getter-only prototype confirms the protocol on the live mouse; independent UI red→green regression completed and root gates passed. Backend compilation has not yet reached Rust checking because of local build prerequisites; resolve those without expanding the product diff.
 - 2026-10-16: R2/R3 verified by four backend focused tests, live Rust host getter (50%, Discharging, 0.44 s test elapsed), backend release suite (86 passed) and both workspace formatting checks. Root gates remain current; ready for the authorized commit/push and CI finish line.
+- 2026-10-16: implementation committed/pushed as 0fb280b; Actions tool confirms run 38929371108 on the matching main SHA. No runtime changes after local verification.
+- 2026-10-16: first run completed with checks/four native builds successful; Ubuntu job 117069140339 failed solely on GitLab HTTP 503 fetching the unchanged app-rummage submodule. Requested failed-job retry (HTTP 201); Actions tool confirms attempt 2. No runtime/CI configuration changes for this external failure.
+- 2026-10-16: R4 verified: attempt 2 succeeded, all eight jobs green. Artifact/release API verified six artifacts, v1.2.31 with six nonempty uploaded assets, and exact release/tag SHA 0fb280b2549b3f6ffaf11fa5afa4b2e6e0f32255. Closure check passes: all frozen outcomes verified; final product diff remains inside the six-file envelope and affected constraints remain satisfied.
 
 ## Completion
-- Pending successful implementation, gates and workflow verification; not complete merely after local tests or push.
+- Resolved outcomes: R1–R4, all verified with evidence above.
+- Commands/artifacts: pinned-toolchain root fmt/Clippy/workspace tests; backend fmt/release tests; unprivileged Rust hardware smoke; successful Actions run 38929371108, six artifacts, release v1.2.31.
+- Constraint/scope check: only private collector/merge, late UI indexing/regression and the three approved documents; no dependencies, schema/IPC/layout changes, privileged actions, host ACL changes or unrelated fixes.
+- Final status: complete. Only commit/push of this record and its mandatory after-push verification remain; no further implementation or audit.
