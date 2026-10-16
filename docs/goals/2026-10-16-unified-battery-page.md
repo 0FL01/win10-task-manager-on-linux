@@ -1,6 +1,6 @@
 # Goal: One Performance battery page
 
-Status: active
+Status: complete
 Source: User's unified-battery mockup, icon clarification, approved audited plan, and implementation/commit/push instruction of 2026-10-16.
 Last updated: 2026-10-16
 
@@ -35,8 +35,8 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
   - Source: User: "приступай к реализации, сделать комит пуш, проверить экшенс" and compile/tests on two–three CPU cores; AGENTS.md Verify.
   - Acceptance: Local required gates pass, changes committed/pushed, Actions tools verify successful jobs on the pushed SHA plus expected artifacts/release. Local build/test commands and their children use CPU affinity 0,1,2, CARGO_BUILD_JOBS=2 and RUST_TEST_THREADS=2.
   - Primary evidence: Local gate results and GitHub Actions/API evidence for the pushed SHA.
-  - Status: in_progress
-  - Evidence: POT updated; root formatting, exact Rust 1.96.1 workspace Clippy with -D warnings and the complete locked workspace tests pass. Commands used affinity 0,1,2, two Cargo jobs and serial tests. Commit/push and Actions verification remain.
+  - Status: verified
+  - Evidence: POT, formatting, exact Rust 1.96.1 workspace Clippy with -D warnings and the complete locked workspace tests pass, using CPUs 0,1,2, two Cargo jobs and serial tests. Commit `a31dc78d3c0c004e763ad449cc26f59e4c0e837f` was pushed to main. Actions tools verified all eight jobs successful in run [38946645907](https://github.com/0FL01/win10-task-manager-on-linux/actions/runs/38946645907); API checks verified six nonempty, unexpired artifacts on that SHA and published [v1.2.34](https://github.com/0FL01/win10-task-manager-on-linux/releases/tag/v1.2.34), with the release target/tag matching that commit and all five packages plus source uploaded.
 
 ### Constraints
 - Keep UPower/HID++ collection, battery schema, IPC, dependencies and host permissions unchanged.
@@ -66,16 +66,16 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 3. Record own-design geometry, update POT, run narrow proofs then required workspace gates under the CPU budget, commit/push and verify Actions/artifacts/release. Do not repeat unchanged gates or add unrelated fixes.
 
 ## Current Checkpoint
-- Closes: R3, R4.
-- Smallest next action: Commit/push the verified implementation and verify Actions on its exact SHA.
-- Expected evidence: Successful pushed-SHA jobs, all six expected workflow artifacts and the eligible main-branch release.
-- Stop or replan if: A proven requirement cannot be met inside the envelope; record the smallest necessary expansion before editing.
+- Closes: All implementation outcomes are verified; only delivery of this completion record remains.
+- Smallest next action: Commit/push this documentation-only closure and verify its Actions run and artifacts. Do not create another documentation commit merely to embed its own SHA or run ID.
+- Expected evidence: Successful final-push jobs and six expected artifacts; no new release is expected without unpublished Rust changes.
+- Stop or replan if: Final delivery fails; diagnose only the confirmed failure, without reopening completed implementation work.
 
 ## Current State
-- Resolved: R1–R3; implementation, original-design spec and POT are ready. Prior mouse/Powering System deliveries remain preserved.
+- Resolved: R1–R4; implementation, original-design spec and POT are delivered in `a31dc78`, with successful CI and release v1.2.34. Prior mouse/Powering System deliveries remain preserved.
 - Last relevant evidence: Complete workspace gate passes: 81 core tests, 10 graph tests, 49 UI units, nine snapshots, 29 Win10 probes and 12 resize tests, plus other workspace suites. Exact Rust 1.96.1 Clippy and formatting pass. Every compilation/test has used CPUs 0,1,2 with two Cargo jobs and at most two test threads.
 - Blocker: None.
-- Next: Verified delivery only; no more runtime edits, backend/CI changes or repeated local gates.
+- Next: Deliver this completion record and verify its push, then stop. No more runtime edits, backend/CI changes or repeated local gates.
 
 ## Material Decisions
 - 2026-10-16: Details selection is transient UI state, validated against current cards before display; no App intake synchronizer or generation counter.
@@ -87,9 +87,10 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - 2026-10-16: Model/compatibility checkpoint passed: mc-core migration 4/4, mc-graph 10/10, battery UI model 3/3. No backend/schema/dependency/host changes.
 - 2026-10-16: Presentation checkpoint passed: both original-design UI probes, actual image inspection, keyboard overflow, copied summaries/metadata and summary/menu ownership verified. Harness checks inspect transient Copy on key-down and separate double-click sequences from earlier menu clicks.
 - 2026-10-16: Integration checkpoint passed: POT generation, formatting, exact-toolchain Clippy and complete workspace tests. Final scope review confirms the approved paths only. Retained unrelated existing POT entries that the current extractor does not discover; no extractor refactor or translation loss.
+- 2026-10-16: Delivery checkpoint passed: main commit `a31dc78`, Actions run 38946645907 (first attempt), all eight jobs successful. Verified six workflow artifacts and release v1.2.34 with six nonempty uploaded assets and matching target/tag SHA. Closure check passed within the original twelve-path envelope and CPU budget.
 
 ## Completion
-- Resolved outcomes: Pending.
-- Commands and artifacts: Pending.
-- Constraint and diff-scope check: Pending.
-- Final status: active.
+- Resolved outcomes: R1–R4 verified.
+- Commands and artifacts: Resource-bounded focused tests, POT/format checks, exact Rust 1.96.1 Clippy and complete workspace tests; successful Actions run 38946645907, six verified artifacts and release v1.2.34.
+- Constraint and diff-scope check: Approved twelve paths only; no backend, schema, IPC, dependency, lockfile, CI or host-permission changes. Original glyphs/spec, existing attribution, details and host-only Powering System behavior preserved. All local compilation/tests used the requested CPU limit.
+- Final status: complete. The documentation-only delivery of this record is verified separately, without an additional self-referential closure commit.
