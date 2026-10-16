@@ -37,6 +37,8 @@ use zbus::zvariant::ObjectPath;
 
 use upower_dbus::{BatteryType, DeviceAddedStream, DeviceProxy, DeviceRemovedStream, UPowerProxy};
 
+mod hidpp;
+
 const BAT_BASE_DIR: &str = "/sys/class/power_supply/";
 
 struct UPowerData {
@@ -47,6 +49,8 @@ struct UPowerData {
 
 pub struct BatteryCache {
     batteries: Vec<Battery>,
+    hidpp: hidpp::Collector,
+    published: Vec<Battery>,
 
     upower: Option<UPowerProxy<'static>>,
     devices: HashMap<String, (Option<UPowerData>, bool)>,
@@ -626,6 +630,8 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                 };
                 let mut batterycache = BatteryCache {
                     batteries,
+                    hidpp: hidpp::Collector::new(),
+                    published: Vec::new(),
                     upower,
                     devices,
                     denylist,
@@ -634,11 +640,16 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                 };
                 batterycache.update_batteries().await;
                 batterycache
+                    .hidpp
+                    .merge(&batterycache.batteries, &mut batterycache.published);
+                batterycache
             })
         } else {
             sync!(rt, async {
                 let mut batterycache = BatteryCache {
                     batteries,
+                    hidpp: hidpp::Collector::new(),
+                    published: Vec::new(),
                     upower: None,
                     devices,
                     denylist,
@@ -646,6 +657,9 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                     devices_stream: None,
                 };
                 batterycache.update_batteries().await;
+                batterycache
+                    .hidpp
+                    .merge(&batterycache.batteries, &mut batterycache.published);
                 batterycache
             })
         }
@@ -719,10 +733,11 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                 }
             })
         });
+        self.hidpp.merge(&self.batteries, &mut self.published);
     }
 
     fn cached_entries(&self) -> &[Battery] {
-        &self.batteries
+        &self.published
     }
 }
 

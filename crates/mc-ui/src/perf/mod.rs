@@ -335,7 +335,9 @@ impl PerformancePage {
     /// Applies a new snapshot. `config` may be updated (sidebar order, migrated keys).
     pub fn update(&mut self, readings: &Readings, gpu: &GpuSnapshot, config: &mut Config) {
         migrate_hidden_graphs(config);
+        let before = self.devices.len();
         self.create_missing_devices(readings, config);
+        let added = self.devices.len() != before;
 
         let env_config = config.clone();
         let env = UpdateEnv::new(&env_config);
@@ -345,7 +347,7 @@ impl PerformancePage {
             d.update_gpu(gpu);
             d.update(readings, &env)
         });
-        if self.devices.len() != before || !self.loaded {
+        if added || self.devices.len() != before || !self.loaded {
             self.assign_indices();
         }
 
@@ -497,6 +499,7 @@ pub fn fixed_group(max: f32) -> DatasetGroup {
 
 #[cfg(test)]
 mod tests {
+    use mc_magpie::Battery;
     use mc_magpie::magpie_types::network::ConnectionKind;
 
     use super::*;
@@ -528,5 +531,113 @@ mod tests {
         assert!(!page.shown_names(&config).contains(&veth));
         assert_ne!(page.selected, veth);
         assert_eq!(config.performance_selected_page, page.selected);
+    }
+
+    #[test]
+    fn late_mouse_battery_lifecycle() {
+        let mouse = |name: &str, percentage| Battery {
+            name: name.into(),
+            vendor: Some("Logitech".into()),
+            model: Some("MX Master 3S".into()),
+            kind: Some(5),
+            power_supply: Some(false),
+            percentage,
+            state: Some(2),
+            ..Default::default()
+        };
+        let battery_rows = |page: &PerformancePage| {
+            page.devices
+                .iter()
+                .filter(|d| d.device_type() == DeviceType::Battery)
+                .map(|d| (d.name().to_owned(), d.summary().heading.clone()))
+                .collect::<Vec<_>>()
+        };
+        let mut config = Config::default();
+        let mut readings = mc_magpie::synthetic_readings(0, 8);
+        let bat0 = battery::page_name(&readings.batteries[0]);
+        // Unrelated GPU removals must not mask the late-insertion indexing bug.
+        let gpu = GpuSnapshot::from_readings(&readings, &mut Default::default(), 1000);
+        let mut page = PerformancePage::new(&config);
+        page.update(&readings, &gpu, &mut config);
+        assert!(page.loaded());
+        assert_eq!(battery_rows(&page), vec![(bat0.clone(), i18n("Battery"))]);
+
+        readings.batteries.push(mouse("synthetic-mouse-a", 0.65));
+        let mouse_key = battery::page_name(&readings.batteries[1]);
+        let battery0 = mc_core::i18n::i18n_f("Battery {}", &["0"]);
+        let battery1 = mc_core::i18n::i18n_f("Battery {}", &["1"]);
+        let expected = vec![
+            (bat0.clone(), battery0.clone()),
+            (mouse_key.clone(), battery1.clone()),
+        ];
+        page.update(&readings, &gpu, &mut config);
+        assert_eq!(battery_rows(&page), expected);
+
+        let mouse_index = page.device_index(&mouse_key).unwrap();
+        let view = page.devices[mouse_index].win10_view(&config);
+        assert_eq!(view.model, "Logitech MX Master 3S");
+        assert_eq!(view.panels.len(), 1, "no fabricated battery history");
+        assert_eq!(
+            view.panels[0].caption,
+            format!(
+                "{}{}{}",
+                i18n("Percentage"),
+                i18n(" over "),
+                max_duration(&config)
+            )
+        );
+        assert_eq!(view.panels[0].right, i18n("100%"));
+        assert_eq!(
+            view.stats,
+            vec![
+                vec![(i18n("Percentage"), "65%".into())],
+                vec![(i18n("State"), i18n("Discharging"))],
+            ]
+        );
+        assert_eq!(
+            view.info,
+            vec![
+                (i18n("Type:"), i18n("Mouse")),
+                (i18n("Powering System:"), i18n("No")),
+            ]
+        );
+
+        page.update(&readings, &gpu, &mut config);
+        assert_eq!(battery_rows(&page), expected, "no duplicate mouse page");
+        page.select(&mouse_key, &mut config);
+        assert_eq!(page.selected, mouse_key);
+
+        let device_count = page.devices.len();
+        readings.batteries[1] = mouse("synthetic-mouse-b", 0.4);
+        let replacement_key = battery::page_name(&readings.batteries[1]);
+        page.update(&readings, &gpu, &mut config);
+        assert_eq!(page.devices.len(), device_count, "same-count replacement");
+        assert!(page.device_index(&mouse_key).is_none());
+        let expected = vec![
+            (bat0.clone(), battery0),
+            (replacement_key.clone(), battery1),
+        ];
+        assert_eq!(battery_rows(&page), expected);
+        let fallback = page.shown_names(&config)[0].clone();
+        assert_eq!(page.selected, fallback);
+        assert_eq!(config.performance_selected_page, page.selected);
+
+        page.select(&replacement_key, &mut config);
+        assert_eq!(page.selected, replacement_key);
+        readings.batteries.truncate(1);
+        page.update(&readings, &gpu, &mut config);
+        assert!(page.device_index(&replacement_key).is_none());
+        assert_eq!(battery_rows(&page), vec![(bat0, i18n("Battery"))]);
+        let fallback = page.shown_names(&config)[0].clone();
+        assert_eq!(page.selected, fallback);
+        assert_eq!(config.performance_selected_page, fallback);
+
+        let returned = mouse("synthetic-mouse-b", 0.41);
+        assert_eq!(battery::page_name(&returned), replacement_key);
+        readings.batteries.push(returned);
+        page.update(&readings, &gpu, &mut config);
+        assert_eq!(battery_rows(&page), expected, "stable logical page key");
+        assert_eq!(page.selected, fallback, "do not restore mouse selection");
+        assert_eq!(config.performance_selected_page, fallback);
     }
 }

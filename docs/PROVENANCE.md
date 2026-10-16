@@ -67,6 +67,22 @@ bundles and checksum-pinned libdrm/eudev source notices; native builds use match
 package notices or explicitly supplied matching-source notices. These binaries are build
 artifacts, not repository source assets.
 
+## Logitech battery protocol
+
+`subprojects/magpie/platform-linux/src/battery/hidpp.rs` is a local Rust implementation of
+the Bolt receiver registers and HID++ 2.0 Unified Battery wire formats. The receiver IDs,
+interface, register selectors, field offsets and request/response framing were checked against
+[Solaar 1.1.20](https://github.com/pwr-Solaar/Solaar/tree/b2afd88129533997eb3112fe9b8e75e6d9e2b1b4),
+particularly `lib/logitech_receiver/{base_usb,base,receiver,hidpp10,hidpp20}.py` and their
+constants. Solaar is GPL-2.0-or-later, copyright Daniel Pavel and Solaar Contributors. Its
+Python implementation and receiver/device lifecycle were not copied or translated; only
+protocol facts were used. Solaar is not a runtime dependency.
+
+The Unified Battery capability bits and its feature-specific charging status values were
+also checked against [OpenLogi's protocol documentation](https://openlogi.org/hidpp/features/x1004-unified-battery).
+Linux's hidraw API and HID++ driver were consulted for queue/serial behavior only; no
+GPL-2.0-only kernel implementation is included. Existing Mission Center notices remain intact.
+
 ## Local graph core
 
 `crates/mc-graph-core/` carries the GUI-free `core/` portion of

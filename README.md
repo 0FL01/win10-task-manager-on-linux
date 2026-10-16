@@ -158,6 +158,43 @@ Disabling monitoring revokes a permanent grant or ends the temporary helper. Sta
 sampling never ask for a password. The GUI and magpie stay unprivileged.
 Available sources and installation details are in [hardware monitoring](docs/hardware-monitoring.md).
 
+### Wireless mouse batteries
+
+Performance's existing Battery pages show peripherals reported by UPower/sysfs. In addition,
+host-side magpie reads Logitech mice paired with a Logi Bolt receiver (`046d:c548`, interface
+`02`) when they support HID++ Unified Battery (`0x1004`) with an exact percentage. This covers
+MX Master 3S without a running or installed Solaar. Other receiver families and proprietary
+protocols are not implemented; their batteries may still be available through UPower.
+
+The additional collector sends only getters, checks approximately every 30 seconds and uses
+the existing snapshot/cache flow. A completed failed/offline read removes the mouse rather
+than reporting `0%` or keeping that failed measurement indefinitely. Sleep can make a mouse
+temporarily unavailable. A real zero remains `0%`; coarse levels are not converted into a
+fabricated percentage. Only available charging state is shown, not estimated Wh or power.
+
+Both GUI and magpie run as your ordinary user. HID++ getters require **read and write** access
+to the receiver's host `/dev/hidraw*` endpoint to send requests. Solaar's installed udev rule
+may already provide this. Check `upower --enumerate`, the receiver's sysfs interface, and
+`getfacl /dev/hidrawN` (the number is not fixed) when a battery is missing. The privileged
+hardware-monitoring helper is unrelated and cannot grant this access.
+
+On a system without a suitable ACL, an administrator can optionally create
+`/etc/udev/rules.d/70-taskmanager-bolt-battery.rules` on the **host**:
+
+```udev
+ACTION!="remove", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", IMPORT{builtin}="usb_id"
+ACTION!="remove", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", ENV{ID_USB_INTERFACE_NUM}=="02", TAG+="uaccess"
+```
+
+Reload host udev rules and reconnect the receiver after installing a rule. `uaccess` grants
+the active local seat user access; an SSH/headless session alone is insufficient. This ACL
+permits **arbitrary raw read/write** on that receiver endpoint, including potentially changing
+commands for paired devices; it is not limited to battery getters. The application does not
+install/activate the rule, loosen existing policies, access `uinput`, or need `sudo` at runtime.
+Do not use `chmod 666` or run the GUI as root. For AppImage/Flatpak the same host ACL applies:
+collection remains in host magpie, not the sandbox. This does not repair existing packaging
+limitations or guarantee that a particular Flatpak build is functional.
+
 ### GPU monitoring
 
 Processes includes GPU and GPU engine by default; the header menu also exposes total,
