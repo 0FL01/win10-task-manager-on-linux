@@ -117,10 +117,16 @@ impl DatasetGroup {
     }
 }
 
+/// One series, newest value first. Live series keep only as many values as they show
+/// (`used_data`, at most `MAX_DATA_POINTS`) and use the sample index as their x axis; series
+/// built from recorded history keep their explicit x positions.
 #[derive(Clone)]
 pub struct Dataset {
     data: Vec<f32>,
-    x_points: Vec<f32>,
+    /// `None`: the x position of each value is its index
+    x_points: Option<Vec<f32>>,
+    /// Value of history slots that have not received a value yet
+    fill: f32,
     pub used_data: usize,
 }
 
@@ -379,7 +385,8 @@ impl Dataset {
         let (x_points, data) = d.into_iter().unzip();
         Dataset {
             data,
-            x_points,
+            x_points: Some(x_points),
+            fill: f32::NAN,
             used_data: 0,
         }
     }
@@ -393,21 +400,31 @@ impl Dataset {
         Self {
             data,
             x_points: other.x_points.clone(),
+            fill: f32::NAN,
             used_data: other.used_data,
         }
     }
 
     pub fn new_with_fill(v: f32) -> Self {
-        let data = vec![v; MAX_DATA_POINTS];
+        let data = vec![v; MIN_DATA_POINTS];
         Self {
             data,
-            x_points: (0..MAX_DATA_POINTS).map(|x| x as f32).collect(),
+            x_points: None,
+            fill: v,
             used_data: MIN_DATA_POINTS,
         }
     }
 
+    /// A live series grows its history to the new width; values older than the previous
+    /// width were never kept, so the newly visible part starts empty.
     pub fn update_data_points(&mut self, new_points: usize) {
         self.used_data = new_points;
+        if self.x_points.is_none() {
+            let len = new_points.min(MAX_DATA_POINTS);
+            if len > self.data.len() {
+                self.data.resize(len, self.fill);
+            }
+        }
     }
 
     pub fn get_data(&self) -> Vec<f32> {
@@ -449,13 +466,15 @@ impl Dataset {
 
         let spacing = width * point_spacing_factor;
 
-        self.x_points
+        let x_at = |i: usize| match &self.x_points {
+            Some(x_points) => x_points.get(i).copied(),
+            None => Some(i as f32),
+        };
+        self.get_data_sanitized(val_min)
             .iter()
-            .zip(
-                self.get_data_sanitized(val_min)
-                    .iter()
-                    .map(|y| (*y - val_min) / (val_max - val_min)),
-            )
+            .map(|y| (*y - val_min) / (val_max - val_min))
+            .enumerate()
+            .map_while(|(i, y)| Some((x_at(i)?, y)))
             .map(|(x, y)| (width - x * spacing, (1. - y) * height))
             .map(|(x, y)| DatasetPoints { x, y })
             .collect()
@@ -464,14 +483,15 @@ impl Dataset {
 
 impl Default for Dataset {
     fn default() -> Self {
-        let mut data = vec![f32::NAN; MAX_DATA_POINTS];
+        let mut data = vec![f32::NAN; MIN_DATA_POINTS];
         if let Some(v) = data.first_mut() {
             // so there's no vertical drop on first refresh
             *v = 0.0
         }
         Self {
             data,
-            x_points: (0..MAX_DATA_POINTS).map(|x| x as f32).collect(),
+            x_points: None,
+            fill: f32::NAN,
             used_data: MIN_DATA_POINTS,
         }
     }
@@ -525,6 +545,37 @@ mod tests {
             assert_eq!(set.x_points, first.x_points);
             assert_eq!(set.data.len(), first.data.len());
         }
+    }
+
+    #[test]
+    fn live_series_keep_only_their_visible_history() {
+        let mut group = DatasetGroup::new();
+        group.update_data_points(60);
+        group.add_data(&[1.0]);
+        let set = &group.datas[0];
+        assert_eq!(set.data.len(), 60);
+        assert_eq!(set.get_data()[..2], [1.0, 0.0]);
+        assert!(set.get_data()[2..].iter().all(|v| v.is_nan()));
+        assert_eq!(
+            set.plot(100., 100., &group.dataset_settings, 0.01).len(),
+            60
+        );
+
+        let mut filled = DatasetGroup::new_with_fill(0.0);
+        filled.update_data_points(MAX_DATA_POINTS * 1000);
+        assert_eq!(filled.datas[0].data.len(), MAX_DATA_POINTS);
+        assert!(filled.datas[0].data.iter().all(|v| *v == 0.0));
+    }
+
+    #[test]
+    fn recorded_series_keep_their_own_points() {
+        let mut group = DatasetGroup::new_with_datas(vec![vec![(0., 1.), (10., 2.), (20., 3.)]]);
+        group.update_data_points(604_800);
+        let set = &group.datas[0];
+        assert_eq!(set.data.len(), 3);
+        let points = set.plot(100., 100., &group.dataset_settings, 0.001);
+        let x: Vec<f32> = points.iter().map(|p| p.x).collect();
+        assert_eq!(x, [100., 99., 98.]);
     }
 
     #[test]
