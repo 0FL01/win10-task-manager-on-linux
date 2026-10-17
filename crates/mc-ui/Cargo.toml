@@ -15,6 +15,7 @@ mc-graph.workspace = true
 mc-magpie.workspace = true
 image.workspace = true
 freedesktop-icons.workspace = true
+memmap2 = "0.9"
 resvg = "0.45"
 
 [dev-dependencies]

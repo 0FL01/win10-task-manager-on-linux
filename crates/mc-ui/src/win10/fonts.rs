@@ -71,16 +71,24 @@ fn fc_match(pattern: &str, family: Option<&str>) -> Option<PathBuf> {
     (path.exists() && (ext == "ttf" || ext == "otf")).then_some(path)
 }
 
-/// Reads a system font once per process as a `'static` slice. epaint copies owned font data
+/// Maps a system font once per process as a `'static` slice. epaint copies owned font data
 /// into its glyph blob while the definitions keep the original, so borrowed bytes avoid a
-/// second copy of every system font (~1.2 MiB for a typical sans fallback).
+/// second copy of every system font. A read-only file mapping instead of a heap copy keeps
+/// the bytes out of anonymous memory (~1.2 MiB for a typical sans fallback): the pages are
+/// clean, reclaimable and shared with every other process that maps the same font.
 fn read_static(path: &Path) -> Option<&'static [u8]> {
     static FILES: Mutex<Vec<(PathBuf, &'static [u8])>> = Mutex::new(Vec::new());
     let mut files = FILES.lock().unwrap_or_else(PoisonError::into_inner);
     if let Some((_, bytes)) = files.iter().find(|(p, _)| p == path) {
         return Some(bytes);
     }
-    let bytes: &'static [u8] = Box::leak(std::fs::read(path).ok()?.into_boxed_slice());
+    let file = std::fs::File::open(path).ok()?;
+    // SAFETY: font files are replaced, not rewritten in place, by package managers (as
+    // fontconfig and FreeType also assume when they map them); the mapping lives until exit.
+    let bytes: &'static [u8] = match unsafe { memmap2::Mmap::map(&file) } {
+        Ok(map) => &Box::leak(Box::new(map))[..],
+        Err(_) => Box::leak(std::fs::read(path).ok()?.into_boxed_slice()),
+    };
     files.push((path.to_owned(), bytes));
     Some(bytes)
 }

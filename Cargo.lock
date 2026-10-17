@@ -2347,6 +2347,7 @@ dependencies = [
  "mc-core",
  "mc-graph",
  "mc-magpie",
+ "memmap2",
  "resvg",
  "serde_json",
 ]
