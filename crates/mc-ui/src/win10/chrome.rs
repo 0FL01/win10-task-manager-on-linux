@@ -357,7 +357,7 @@ pub fn menu_bar(
     );
 }
 
-/// Tab strip; returns the index of a newly clicked tab.
+/// Tab strip; returns the index of a newly pressed (or keyboard-activated) tab.
 pub fn tabs(ui: &mut Ui, window: Rect, labels: &[String], selected: usize) -> Option<usize> {
     let painter = ui.painter().clone();
     let top = window.top();
@@ -377,17 +377,28 @@ pub fn tabs(ui: &mut Ui, window: Rect, labels: &[String], selected: usize) -> Op
         bounds.push(bounds.last().copied().unwrap_or_default() + width);
     }
 
-    let mut clicked = None;
+    let tab_rect = |i: usize| {
+        Rect::from_min_max(
+            pos2(bounds[i], top + m::TAB_TOP),
+            pos2(bounds[i + 1] + 1., line_y),
+        )
+    };
+    // own: like the Win32 tab control, a tab activates on the primary press, and the strip is
+    // painted with the new selection in the same pass, so rapid switching follows the mouse
+    let pressed = if ui.input(|i| i.pointer.primary_pressed()) {
+        (0..labels.len()).find(|&i| i != selected && ui.rect_contains_pointer(tab_rect(i)))
+    } else {
+        None
+    };
+    let selected = pressed.unwrap_or(selected);
+
+    let mut clicked = pressed;
     for (i, label) in labels.iter().enumerate() {
         if i == selected {
             continue;
         }
         let (x0, x1) = (bounds[i], bounds[i + 1]);
-        let response = ui.interact(
-            Rect::from_min_max(pos2(x0, top + m::TAB_TOP), pos2(x1 + 1., line_y)),
-            ui.id().with(("tab", i)),
-            Sense::click(),
-        );
+        let response = ui.interact(tab_rect(i), ui.id().with(("tab", i)), Sense::click());
         // own: hover tint
         let fill = if response.hovered() {
             pal::HOVER

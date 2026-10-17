@@ -127,6 +127,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   −1/+2), label cap top y 60.
 - Our tabs: Processes, Performance, Details, Services (in this order) → natural boundaries
   3, 65, 145, 192, 244.
+- Activation (own design, after the Win32 tab control; not measured): a tab is selected on the
+  primary button press, not on release, and the same frame shows the new page with the strip
+  already repainted. Presses on an open menu or dialog above the strip do not switch.
 
 ## Content frame
 - Content starts at y 77. List views have a 1 px `#a0a0a0` frame line on top (Details/Services

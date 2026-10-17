@@ -137,6 +137,8 @@ pub struct App {
     /// Text of the open "Create new task" dialog
     run_task: Option<String>,
     reduced: bool,
+    /// Page shown before a switch made in this pass, and when (debug latency log)
+    page_switch: Option<(MainPage, Instant)>,
 
     pub stats: PerfStats,
     show_overlay: bool,
@@ -237,6 +239,7 @@ impl App {
             apply_next,
             run_task: None,
             reduced: false,
+            page_switch: None,
             stats: PerfStats::default(),
             show_overlay: options.perf_overlay,
             fatal: None,
@@ -675,6 +678,9 @@ impl App {
         if page != MainPage::Performance && self.perf.summary_mode {
             return;
         }
+        if page != self.page {
+            self.page_switch = Some((self.page, Instant::now()));
+        }
         self.page = page;
         self.config.window_selected_page = page.settings_name().into();
     }
@@ -699,7 +705,7 @@ impl App {
             .zip(MainPage::ALL)
         {
             if pressed(ctrl(k)) || pressed(alt(k)) {
-                commands.push(Command::SetPage(page));
+                self.set_page(page);
             }
         }
         if pressed(ctrl(Key::A)) {
@@ -1069,8 +1075,9 @@ impl App {
                 .iter()
                 .position(|p| *p == self.page)
                 .unwrap_or(0);
+            // Applied before the footer and the content are drawn: this pass shows the new page
             if let Some(index) = chrome::tabs(ui, window, &labels, selected) {
-                commands.push(Command::SetPage(MainPage::ALL[index]));
+                self.set_page(MainPage::ALL[index]);
             }
         }
 
@@ -1203,6 +1210,15 @@ impl App {
             self.execute(&ctx, command);
         }
 
+        if let Some((from, at)) = self.page_switch.take() {
+            log::debug!(
+                target: "TaskManager::Latency",
+                "page {from:?} -> {:?}: switch to end of pass {:.2} ms, whole pass {:.2} ms",
+                self.page,
+                at.elapsed().as_secs_f64() * 1000.,
+                started.elapsed().as_secs_f64() * 1000.,
+            );
+        }
         self.stats.record(started.elapsed().as_secs_f32() * 1000.);
         self.stats.frames = ctx.cumulative_frame_nr();
         if ctx.current_pass_index() == 0 {
@@ -1528,5 +1544,178 @@ mod tests {
             error: None,
         });
         assert!(app.config().window_always_on_top);
+    }
+
+    /// App on synthetic data with `processes` rows, starting on `page`.
+    fn switching_app(ctx: &Context, processes: usize, page: MainPage) -> App {
+        let mut app = App::new(
+            ctx,
+            AppOptions {
+                source: DataSource::Fixture(
+                    mc_magpie::synthetic_series(1, processes),
+                    HashMap::new(),
+                ),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config {
+                    window_selected_page: page.settings_name().into(),
+                    ..Default::default()
+                }),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        );
+        app.apply_readings(mc_magpie::synthetic_readings(1, processes));
+        app
+    }
+
+    fn pass(ctx: &Context, app: &mut App, events: Vec<Event>) -> egui::FullOutput {
+        let mut output = ctx.run_ui(
+            RawInput {
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1030., 705.))),
+                events,
+                ..Default::default()
+            },
+            |ui| app.ui(ui),
+        );
+        output.textures_delta.clear();
+        output
+    }
+
+    fn text_center(output: &egui::FullOutput, text: &str) -> Option<Pos2> {
+        output.shapes.iter().find_map(|shape| match &shape.shape {
+            egui::Shape::Text(t) if t.galley.job.text == text => {
+                Some(t.pos + t.galley.rect.center().to_vec2())
+            }
+            _ => None,
+        })
+    }
+
+    fn shows(output: &egui::FullOutput, text: &str) -> bool {
+        text_center(output, text).is_some()
+    }
+
+    fn press(at: Pos2) -> Vec<Event> {
+        vec![
+            Event::PointerMoved(at),
+            Event::PointerButton {
+                pos: at,
+                button: PointerButton::Primary,
+                pressed: true,
+                modifiers: Modifiers::NONE,
+            },
+        ]
+    }
+
+    fn release(at: Pos2) -> Vec<Event> {
+        vec![Event::PointerButton {
+            pos: at,
+            button: PointerButton::Primary,
+            pressed: false,
+            modifiers: Modifiers::NONE,
+        }]
+    }
+
+    #[test]
+    fn tab_press_shows_the_new_page_in_the_same_pass() {
+        let ctx = Context::default();
+        let mut app = switching_app(&ctx, 20, MainPage::Processes);
+        let output = pass(&ctx, &mut app, vec![]);
+        let performance = text_center(&output, &MainPage::Performance.label()).unwrap();
+        let processes = text_center(&output, &MainPage::Processes.label()).unwrap();
+        assert!(!shows(&output, &i18n("Utilization")));
+
+        // Press only: the button is still held, yet this very pass draws the Performance page
+        let output = pass(&ctx, &mut app, press(performance));
+        assert_eq!(app.page, MainPage::Performance);
+        assert!(shows(&output, &i18n("Utilization")));
+        assert_eq!(app.config.window_selected_page, "performance-page");
+        // Releasing over the now selected tab changes nothing
+        pass(&ctx, &mut app, release(performance));
+        assert_eq!(app.page, MainPage::Performance);
+
+        // And straight back, again on the press
+        let output = pass(&ctx, &mut app, press(processes));
+        assert_eq!(app.page, MainPage::Processes);
+        assert!(!shows(&output, &i18n("Utilization")));
+        pass(&ctx, &mut app, release(processes));
+    }
+
+    #[test]
+    fn shortcut_switches_page_in_the_same_pass() {
+        let ctx = Context::default();
+        let mut app = switching_app(&ctx, 20, MainPage::Processes);
+        pass(&ctx, &mut app, vec![]);
+        let output = pass(
+            &ctx,
+            &mut app,
+            vec![Event::Key {
+                key: Key::Num2,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::COMMAND,
+            }],
+        );
+        assert_eq!(app.page, MainPage::Performance);
+        assert!(shows(&output, &i18n("Utilization")));
+    }
+
+    #[test]
+    fn tab_press_under_an_open_menu_does_not_switch() {
+        let ctx = Context::default();
+        let mut app = switching_app(&ctx, 20, MainPage::Processes);
+        let output = pass(&ctx, &mut app, vec![]);
+        let view = text_center(&output, &i18n("View")).unwrap();
+        let performance = text_center(&output, &MainPage::Performance.label()).unwrap();
+        // Open the View menu; its popup covers the tab strip below the menu bar
+        pass(&ctx, &mut app, press(view));
+        pass(&ctx, &mut app, release(view));
+        pass(&ctx, &mut app, vec![]);
+        assert!(
+            ctx.layer_id_at(performance)
+                .is_some_and(|layer| layer.order != egui::Order::Background),
+            "the View menu should cover the Performance tab"
+        );
+        pass(&ctx, &mut app, press(performance));
+        assert_eq!(app.page, MainPage::Processes);
+    }
+
+    /// Pass times of rapid switching between Processes and Performance:
+    /// `cargo test -p mc-ui --release -- --ignored --nocapture rapid_tab_switching`
+    #[test]
+    #[ignore = "timing report, not a check"]
+    fn rapid_tab_switching_pass_times() {
+        let ctx = Context::default();
+        ctx.set_fonts(crate::win10::fonts::Fonts::discover().definitions());
+        let mut app = switching_app(&ctx, 600, MainPage::Processes);
+        let output = pass(&ctx, &mut app, vec![]);
+        let tabs = [
+            text_center(&output, &MainPage::Performance.label()).unwrap(),
+            text_center(&output, &MainPage::Processes.label()).unwrap(),
+        ];
+        for _ in 0..5 {
+            pass(&ctx, &mut app, vec![]);
+        }
+        // UI pass plus tessellation: everything before the GPU upload
+        let frame = |app: &mut App, events| {
+            let started = Instant::now();
+            let output = pass(&ctx, app, events);
+            ctx.tessellate(output.shapes, output.pixels_per_point);
+            started.elapsed().as_secs_f64() * 1000.
+        };
+        let steady: Vec<f64> = (0..40).map(|_| frame(&mut app, vec![])).collect();
+        let mut switches = vec![];
+        for i in 0..40 {
+            let at = tabs[i % 2];
+            switches.push(frame(&mut app, press(at)));
+            frame(&mut app, release(at));
+        }
+        let stats = |mut v: Vec<f64>| {
+            v.sort_by(f64::total_cmp);
+            (v[v.len() / 2], v[v.len() * 95 / 100], v[v.len() - 1])
+        };
+        eprintln!("steady frame ms p50/p95/max: {:.2?}", stats(steady));
+        eprintln!("switch frame ms p50/p95/max: {:.2?}", stats(switches));
     }
 }

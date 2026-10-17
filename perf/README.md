@@ -197,6 +197,20 @@ Diagnostic builds log resident memory and allocator state around every heap trim
 `RUST_LOG=warn,TaskManager::Memory=debug,magpie::footprint=debug`. Production builds compile
 these messages out.
 
+## Tab switching (2026-10-17)
+
+A tab used to switch on mouse release, and only in the frame after the click: the click's pass
+still drew the old page and queued `Command::SetPage`. Tabs (and Ctrl/Alt+1..4) now switch on
+the primary press, in the same pass, before the footer and content are drawn.
+
+`cargo test -p mc-ui --lib --release -- --ignored --nocapture rapid_tab_switching` alternates
+Processes and Performance 40 times on 600 synthetic processes with the system fonts, timing
+the UI pass plus tessellation (no GPU upload). Three runs: a steady frame takes 0.40–0.42 ms
+(p50), a switch frame 1.13–1.20 ms (p50) and 1.40–2.97 ms (p95). The only slower frame is the
+first switch to Performance (6.5–7.6 ms), which rasterises that page's glyph sizes once. Every
+switch fits well inside one 60 Hz frame, so no text or geometry caches were added. Built
+with the diagnostic profile, `RUST_LOG=warn,TaskManager::Latency=debug` logs each switch pass.
+
 ## Reports and historical evidence
 
 - `bench-latest.md` — generated current-run output, git-ignored; it is not reviewed release evidence.
