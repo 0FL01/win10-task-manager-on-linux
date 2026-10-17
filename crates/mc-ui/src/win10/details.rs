@@ -21,7 +21,8 @@
 //! Details tab: flat list of every process (docs/win10-spec/spec.md, "Details tab").
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use egui::{Align, Id, Pos2, Rect, Ui};
 use mc_core::config::SortOrder;
@@ -184,6 +185,15 @@ impl DetailsPage {
                 ordering
             }
         });
+        let mut tooltips: HashSet<Arc<str>> = HashSet::new();
+        let mut shared = |text: String| -> Option<Arc<str>> {
+            if let Some(text) = tooltips.get(text.as_str()) {
+                return Some(text.clone());
+            }
+            let text: Arc<str> = text.into();
+            tooltips.insert(text.clone());
+            Some(text)
+        };
         self.rows = self
             .entries
             .iter()
@@ -209,10 +219,10 @@ impl DetailsPage {
                     None,
                     None,
                     None,
-                    Some(e.gpu.usage.tooltip()),
-                    Some(e.gpu.usage.tooltip()),
-                    Some(e.gpu.memory_tooltip(e.gpu.dedicated_state)),
-                    Some(e.gpu.memory_tooltip(e.gpu.shared_state)),
+                    shared(e.gpu.usage.tooltip()),
+                    shared(e.gpu.usage.tooltip()),
+                    shared(e.gpu.memory_tooltip(e.gpu.dedicated_state)),
+                    shared(e.gpu.memory_tooltip(e.gpu.shared_state)),
                 ],
             })
             .collect();

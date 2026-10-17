@@ -21,6 +21,8 @@
 //! Flat Win32 list of the Details and Services tabs: frame line, single-line header, 19 px rows
 //! (docs/win10-spec/spec.md, "Details tab", "Services tab").
 
+use std::sync::Arc;
+
 use egui::{Align, Id, Pos2, Rect, Ui, pos2, vec2};
 use mc_core::config::SortOrder;
 use mc_core::table::RowIcon;
@@ -46,7 +48,8 @@ pub struct FlatRow {
     pub key: String,
     pub icon: Option<RowIcon>,
     pub cells: Vec<String>,
-    pub tooltips: Vec<Option<String>>,
+    /// Shared: every process row of a list repeats the same few telemetry explanations
+    pub tooltips: Vec<Option<Arc<str>>>,
 }
 
 #[derive(Default)]
@@ -313,7 +316,7 @@ impl FlatList {
                             Id::new((self.id, index, l, "tip")),
                             egui::Sense::hover(),
                         )
-                        .on_hover_text(tooltip);
+                        .on_hover_text(&**tooltip);
                     }
                 }
                 let cell = painter.with_clip_rect(
