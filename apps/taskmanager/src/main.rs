@@ -52,6 +52,12 @@ mod kwin_always_on_top;
 
 const APP_ID: &str = "io.github.taskmanager.TaskManager";
 
+/// egui makes its font atlas as wide as the largest texture the GPU supports (16384 on
+/// current desktop drivers) and at least 32 rows high: a 2 MiB image kept in memory for the
+/// whole run. The interface's glyphs fill about 20 rows of 2048 pixels, and the atlas can
+/// still grow to 2048×2048; every other texture (icons) is far smaller.
+const MAX_TEXTURE_SIDE: usize = 2048;
+
 struct Args {
     fixture: Option<PathBuf>,
     dump: Option<(usize, PathBuf)>,
@@ -160,6 +166,11 @@ struct Shell {
 }
 
 impl eframe::App for Shell {
+    fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
+        raw_input.max_texture_side = raw_input
+            .max_texture_side
+            .map(|side| side.min(MAX_TEXTURE_SIDE));
+    }
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         #[cfg(target_os = "linux")]
         {
@@ -256,6 +267,27 @@ impl Shell {
             }
             let _ = std::fs::write(path, text);
         }
+    }
+}
+
+/// egui_glow compiles all of its shaders while it creates the painter, before the app exists.
+/// Mesa keeps its GLSL built-in function library (5.8 MB of heap on radeonsi) for the lifetime
+/// of the context unless the application releases the compiler; a later compilation would
+/// simply load it again.
+#[cfg(feature = "glow")]
+fn release_shader_compiler(cc: &eframe::CreationContext<'_>) {
+    let Some(get_proc_address) = &cc.get_proc_address else {
+        return;
+    };
+    let address = get_proc_address(c"glReleaseShaderCompiler");
+    if address.is_null() {
+        return;
+    }
+    // SAFETY: the address was resolved for the context that is current on this thread, and
+    // glReleaseShaderCompiler takes no arguments (GL 4.1 / ARB_ES2_compatibility).
+    unsafe {
+        let release: unsafe extern "system" fn() = std::mem::transmute(address);
+        release();
     }
 }
 
@@ -379,6 +411,8 @@ fn main() -> eframe::Result {
         native,
         Box::new(move |cc| {
             let _profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::AppInit);
+            #[cfg(feature = "glow")]
+            release_shader_compiler(cc);
             let always_on_top_mode = match cc.display_handle().map(|handle| handle.as_raw()) {
                 Ok(RawDisplayHandle::Wayland(_)) => AlwaysOnTopMode::Unavailable,
                 Ok(_) => AlwaysOnTopMode::Viewport,
