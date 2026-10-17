@@ -144,6 +144,59 @@ other GL clients. Causes found with heaptrack, in order of size: zbus property c
 proxies per systemd unit (57.7 MB), glibc arena retention and NNG pools sized by core count,
 per-process file mapping lists for the shared-memory estimate, and system font bytes held twice.
 
+## Memory footprint, second pass (2026-10-17)
+
+Release builds (with debug info, not stripped) of `743ef7c` (before) and this work (after),
+same host and setup as above: nested `kwin_wayland --virtual` 1280x800, private session bus,
+live daemon, 1 s updates, glow unless noted. `RssAnon`/`RssFile` from `/proc/<pid>/status`
+and PSS from `smaps_rollup` after 80 s, 3 runs per row (wgpu: 2), shown as ranges. Peak heap from
+`heaptrack --record-only` (120 s, Processes page).
+
+| UI `RssAnon` | before | after |
+|---|---|---|
+| Processes | 30.3–30.4 MiB | 21.1–21.4 MiB |
+| Performance (CPU) | 30.5–30.7 MiB | 21.2–21.3 MiB |
+| Details | 29.9–30.1 MiB | 20.7–20.8 MiB |
+| Services | 30.3–30.4 MiB | 20.9–21.1 MiB |
+| Processes, wgpu | 23.6–23.8 MiB | 20.9–21.0 MiB |
+| UI PSS, Processes | 56.2–56.3 MiB | 47.1–47.7 MiB |
+| UI peak heap | 22.0 MB | 12.2 MB |
+| daemon `RssAnon` (all pages) | 7.6–8.3 MiB | 7.0–7.3 MiB |
+| daemon peak heap | 5.6 MB | 4.9 MB |
+
+PSS depends on what else maps the same libraries, so compare it only within one session.
+Threads are unchanged (UI 28, daemon 14), and so is CPU: in two alternating 60 s windows,
+UI 2.03/2.15 % before and 2.02/1.80 % after, daemon 30.3/31.2 % before and 32.0/27.7 % after
+(one core). UI `RssFile` is still ~67 MiB of shared, clean library pages.
+
+The causes were found with heaptrack (live allocations at exit and at the peak, by call stack)
+and `/proc/<pid>/smaps`, largest first:
+
+- Mesa keeps its GLSL built-in function library (5.8 MB on radeonsi) for the context's
+  lifetime. egui_glow compiles its shaders only while it creates the painter, so the app
+  calls `glReleaseShaderCompiler` once at startup; another compilation would load the library again.
+- egui sizes its font atlas to the GPU's largest texture side: 16384×32 RGBA, a 2 MiB image
+  kept for the whole run. The glyphs used fill ~20 rows of 2048 px, so the app limits
+  `max_texture_side` to 2048 (atlas 256 KiB, still able to grow to 2048×2048).
+- System fonts (Segoe UI, sans and monospace fallbacks) were read into the heap (1.2 MiB);
+  they are now read-only file mappings that share clean pages with other programs.
+- Every live graph series allocated 600 values and 600 x positions, though it shows 60;
+  series now store only the values they show and use the index as their x position.
+- The daemon's 5 s maps walk held one 16-byte entry per file mapping of every process (one
+  process's list alone reached 1.1 MB). Adjacent segments of the same file are now one entry
+  of 8 bytes; the walk's share of the daemon's heap peak fell from 1.68 MB to 0.46 MB.
+- The Details tab stored four GPU tooltip strings per process; rows now share the few
+  distinct texts.
+
+Not changed: Mesa's buffer slabs and context state (~5 MB heap on radeonsi), and the
+`--synthetic` scenario, whose 60 pre-generated snapshots stay in memory (UI ~82 MiB at 1000
+processes) because they are the data source itself. Neither turning off Mesa glthread nor a
+64 KiB `MALLOC_MMAP_THRESHOLD_` saved more than ~0.8 MiB.
+
+Diagnostic builds log resident memory and allocator state around every heap trim:
+`RUST_LOG=warn,TaskManager::Memory=debug,magpie::footprint=debug`. Production builds compile
+these messages out.
+
 ## Reports and historical evidence
 
 - `bench-latest.md` — generated current-run output, git-ignored; it is not reviewed release evidence.
