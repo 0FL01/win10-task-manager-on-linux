@@ -84,10 +84,15 @@ struct MapsWalk {
     processes: Vec<(u32, Vec<FileMapping>)>,
 }
 
+/// Mapping ranges are page aligned, so sizes are kept in 4 KiB units (at most 16 TiB per
+/// entry); the share factor is a ratio of sizes and does not depend on the unit.
+const SIZE_UNIT: u64 = 4096;
+
 #[derive(Clone, Copy, Debug)]
 struct FileMapping {
     path: u32,
-    size: u64,
+    /// In [`SIZE_UNIT`]s
+    size: u32,
 }
 
 impl MapsWalk {
@@ -259,13 +264,20 @@ fn read_file_mappings(pid: u32, walk: &mut MapsWalk) -> Option<Vec<FileMapping>>
             continue;
         }
 
-        result.push(FileMapping {
-            path,
-            size: end - start,
-        });
+        push_mapping(&mut result, path, end - start);
     }
 
     Some(result)
+}
+
+/// Segments of one file are usually adjacent; their sizes add up in the weighted mean, so one
+/// entry per run gives the same share factor and keeps the walk small.
+fn push_mapping(mappings: &mut Vec<FileMapping>, path: u32, bytes: u64) {
+    let size = u32::try_from(bytes.div_ceil(SIZE_UNIT)).unwrap_or(u32::MAX);
+    match mappings.last_mut() {
+        Some(last) if last.path == path => last.size = last.size.saturating_add(size),
+        _ => mappings.push(FileMapping { path, size }),
+    }
 }
 
 /// Size-weighted harmonic mean of per-file share counts
@@ -337,6 +349,17 @@ mod tests {
 
     use super::*;
 
+    /// Entries one process keeps during a walk
+    fn walk_entries(mappings: &[(&str, u64)]) -> usize {
+        let mut walk = MapsWalk::default();
+        let mut merged = Vec::new();
+        for &(path, size) in mappings {
+            let path = walk.intern(path);
+            push_mapping(&mut merged, path, size);
+        }
+        merged.len()
+    }
+
     /// The previous representation: per-PID mappings with paths interned per process.
     fn reference(processes: &[(u32, Vec<(&str, u64)>)]) -> HashMap<u32, f64> {
         let mut share_count: HashMap<Arc<str>, u32> = HashMap::new();
@@ -386,13 +409,15 @@ mod tests {
     }
 
     #[test]
-    fn share_factors_match_per_process_mappings_exactly() {
+    fn share_factors_match_per_process_mappings() {
         let processes = vec![
             (
                 1,
                 vec![
                     ("/usr/bin/a", 4096),
+                    ("/usr/bin/a", 8192),
                     ("/usr/lib/libc.so.6", 1_900_544),
+                    ("/usr/lib/libc.so.6", 4096),
                     ("/usr/bin/a", 8192),
                     ("/usr/lib/libm.so.6", 905_216),
                 ],
@@ -401,32 +426,36 @@ mod tests {
                 2,
                 vec![
                     ("/usr/lib/libc.so.6", 1_900_544),
-                    ("/usr/lib/libLLVM.so.22.1", 123_456_789),
+                    ("/usr/lib/libLLVM.so.22.1", 123_457_536),
                 ],
             ),
-            (3, vec![("/usr/lib/libc.so.6", 3), ("/usr/bin/c", 7)]),
+            (
+                3,
+                vec![("/usr/lib/libc.so.6", 4096), ("/usr/bin/c", 28_672)],
+            ),
             (4, vec![]),
         ];
 
         let mut walk = MapsWalk::default();
         for (pid, mappings) in &processes {
-            let mappings = mappings
-                .iter()
-                .map(|&(path, size)| FileMapping {
-                    path: walk.intern(path),
-                    size,
-                })
-                .collect();
-            walk.add(*pid, mappings);
+            let mut merged = Vec::new();
+            for &(path, size) in mappings {
+                let path = walk.intern(path);
+                push_mapping(&mut merged, path, size);
+            }
+            walk.add(*pid, merged);
         }
         let share = walk.finish();
 
         let expected = reference(&processes);
         assert_eq!(share.len(), expected.len());
         for (pid, factor) in &expected {
-            assert_eq!(share[pid].to_bits(), factor.to_bits(), "pid {pid}");
+            // Merged runs and 4 KiB units only regroup the same sums
+            let error = (share[pid] - factor).abs() / factor;
+            assert!(error < 1e-12, "pid {pid}: {} vs {factor}", share[pid]);
         }
         assert_eq!(share[&4], 1.0);
+        assert_eq!(walk_entries(&processes[0].1), 4);
         assert!(share[&2] > 1.0);
     }
 }
