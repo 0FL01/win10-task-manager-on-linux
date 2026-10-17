@@ -122,7 +122,9 @@ Useful flags of the `taskmanager` binary:
 
 Environment variables: `MC_LOCALEDIR` (translations directory), `MC_MAGPIE_HW_DB` (hardware database of the daemon),
 `RUST_LOG` (logging). On glibc both processes limit malloc to two arenas unless `MALLOC_ARENA_MAX` (or the
-`glibc.malloc.arena_max` tunable) is set.
+`glibc.malloc.arena_max` tunable) is set. In diagnostic builds,
+`RUST_LOG=warn,TaskManager::Memory=debug,magpie::footprint=debug` logs resident memory and malloc state
+around each periodic heap trim (at most every 10 s) of the UI and the daemon.
 
 Production release builds compile logging down to WARN/ERROR; DEBUG/TRACE cannot be enabled
 with `RUST_LOG`, and the aggregate profiler is compiled out. Local profiling requires the

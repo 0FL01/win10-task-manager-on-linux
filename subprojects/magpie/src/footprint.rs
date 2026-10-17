@@ -81,10 +81,78 @@ impl Trimmer {
             return;
         }
         self.last = Instant::now();
+        let before = log::log_enabled!(target: LOG_TARGET, log::Level::Debug).then(Usage::read);
         #[cfg(all(target_os = "linux", target_env = "gnu"))]
         unsafe {
             libc::malloc_trim(0);
         }
+        if let Some(before) = before {
+            log::debug!(target: LOG_TARGET, "before trim: {before}; after: {}", Usage::read());
+        }
+    }
+}
+
+const LOG_TARGET: &str = "magpie::footprint";
+
+/// Resident memory and allocator state, for the debug log around each trim.
+struct Usage {
+    /// `RssAnon`, `RssFile` from `/proc/self/status`, KiB
+    rss: Option<(u64, u64)>,
+    /// Heap bytes in use, free inside the heap, and held in separate mmap chunks
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    heap: (usize, usize, usize),
+}
+
+impl Usage {
+    fn read() -> Self {
+        let rss = std::fs::read_to_string("/proc/self/status")
+            .ok()
+            .and_then(|status| {
+                let kib = |key: &str| {
+                    status
+                        .lines()
+                        .find_map(|line| line.strip_prefix(key))
+                        .and_then(|rest| rest.split_whitespace().next()?.parse().ok())
+                };
+                Some((kib("RssAnon:")?, kib("RssFile:")?))
+            });
+        #[cfg(all(target_os = "linux", target_env = "gnu"))]
+        let heap = {
+            let info = unsafe { libc::mallinfo2() };
+            (info.uordblks, info.fordblks, info.hblkhd)
+        };
+        Self {
+            rss,
+            #[cfg(all(target_os = "linux", target_env = "gnu"))]
+            heap,
+        }
+    }
+}
+
+impl std::fmt::Display for Usage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.rss {
+            Some((anon, file)) => write!(
+                f,
+                "rss_anon={:.1}MiB rss_file={:.1}MiB",
+                anon as f64 / 1024.0,
+                file as f64 / 1024.0
+            )?,
+            None => f.write_str("rss=unavailable")?,
+        }
+        #[cfg(all(target_os = "linux", target_env = "gnu"))]
+        {
+            const MIB: f64 = 1024.0 * 1024.0;
+            let (used, free, mapped) = self.heap;
+            write!(
+                f,
+                " heap_used={:.1}MiB heap_free={:.1}MiB mmapped={:.1}MiB",
+                used as f64 / MIB,
+                free as f64 / MIB,
+                mapped as f64 / MIB
+            )?;
+        }
+        Ok(())
     }
 }
 
