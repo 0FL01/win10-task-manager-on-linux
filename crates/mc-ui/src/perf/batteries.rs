@@ -130,8 +130,9 @@ impl BatteriesPage {
 
 fn overview<'a>(summary: &'a mut SummaryGraph, caption: &str) -> PageView<'a> {
     PageView {
+        model_tooltip: None,
         title: summary.heading.clone(),
-        model: summary.info1.clone(),
+        model: summary.info2.clone(),
         panels: vec![GraphPanel::single(
             caption.into(),
             i18n("100%"),
@@ -215,12 +216,18 @@ impl DevicePage for BatteriesPage {
                 .map(|card| vec![card.percentage.unwrap_or(f32::NAN) * 100.])
                 .collect(),
         );
-        self.summary.info1 = ni18n_f(
+        self.summary.info2 = ni18n_f(
             "{} device",
             "{} devices",
             self.cards.len() as u32,
             &[&self.cards.len().to_string()],
         );
+        self.summary.info1 = self
+            .cards
+            .iter()
+            .map(|card| card.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
         self.summary.tooltip = Some(
             self.cards
                 .iter()

@@ -474,8 +474,8 @@ impl DevicePage for CpuPage {
         if let Some(t) = cpu.temperature_celsius {
             info1.push_str(&format!(" ({t:.0} °C)"));
         }
-        self.summary.info1 = info1;
-        self.summary.info2.clear();
+        self.summary.info1.clone_from(&self.cpu_name);
+        self.summary.info2 = info1;
 
         true
     }
@@ -583,6 +583,7 @@ impl DevicePage for CpuPage {
             ));
         }
         PageView {
+            model_tooltip: None,
             title: i18n("CPU"),
             model: self.cpu_name.clone(),
             panels,
@@ -725,8 +726,8 @@ mod tests {
         assert!(s.starts_with("CPU\n\n    Test CPU\n"));
         assert!(s.contains("    Utilization: 42%\n"));
         assert!(s.contains("    Virtual processors: 4\n"));
-        assert!(page.summary.info1.starts_with("42% "));
-        assert!(page.summary.info2.is_empty());
+        assert_eq!(page.summary.info1, "Test CPU");
+        assert!(page.summary.info2.starts_with("42% "));
     }
 
     #[test]

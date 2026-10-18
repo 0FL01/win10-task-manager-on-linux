@@ -211,7 +211,7 @@ fn update_zfs_arc_usage(memory: &mut Memory) {
         0
     };
 
-    memory.mem_free = memory.mem_free.saturating_add(arc_used);
+    // ARC is occupied RAM, not MemFree. Only the availability estimate may include it.
     memory.mem_available = memory.mem_available.saturating_add(arc_used);
 }
 

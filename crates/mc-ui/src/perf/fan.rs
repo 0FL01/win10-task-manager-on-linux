@@ -219,6 +219,7 @@ impl DevicePage for FanPage {
             ));
         }
         PageView {
+            model_tooltip: None,
             title: self.title.clone(),
             model: self.temp_name.clone(),
             panels,

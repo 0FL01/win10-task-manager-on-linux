@@ -922,12 +922,12 @@ fn performance_batteries_cards_theme_and_dpi() {
         .save(out.join("win10-performance-batteries-light.png"))
         .unwrap();
     assert_eq!(
-        hex(&light, 25, 108),
+        hex(&light, 25, 111),
         "#707070",
         "neutral connected sidebar contour"
     );
     assert_eq!(
-        hex(&light, 26, 109),
+        hex(&light, 26, 112),
         "#d9d9d9",
         "empty icon, not a charge indicator"
     );
@@ -965,7 +965,7 @@ fn performance_batteries_cards_theme_and_dpi() {
     let dark = h.render().unwrap();
     dark.save(out.join("win10-performance-batteries-dark.png"))
         .unwrap();
-    assert_eq!(hex(&dark, 25, 108), "#aaaaaa");
+    assert_eq!(hex(&dark, 25, 111), "#aaaaaa");
     for (index, pair) in mc_ui::win10::palette::BATTERY_SERIES
         .iter()
         .take(3)
@@ -1011,9 +1011,9 @@ fn performance_batteries_cards_theme_and_dpi() {
         cards[0],
         "same logical card geometry at 2×"
     );
-    assert_eq!(hex(&image, 50, 216), "#707070");
+    assert_eq!(hex(&image, 50, 222), "#707070");
     assert_eq!(
-        hex(&image, 51, 216),
+        hex(&image, 51, 222),
         "#707070",
         "one logical-pixel contour scales to two physical pixels"
     );
@@ -1524,7 +1524,7 @@ fn performance_memory_composition_regions_and_ram_hover() {
     assert_eq!(bytes.iter().sum::<u64>(), mem.mem_total);
     let values = bytes.map(|v| to_human_readable_nice(v as f32, &DataType::MemoryBytes));
     let overview = format!(
-        "Used: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}",
+        "Other: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}",
         values[0], values[1], values[2], values[3], values[4]
     );
     let mut h = performance_harness(
@@ -1565,7 +1565,7 @@ fn performance_memory_composition_regions_and_ram_hover() {
     assert_eq!(hex(&image, 990, 441), "#ffffff", "below composition");
 
     for (index, (category, explanation)) in [
-        ("Used", "MemAvailable"),
+        ("Other", "MemAvailable"),
         ("Cache", "SReclaimable"),
         ("Shared", "Shmem"),
         ("Buff", "Buffers"),
@@ -1639,6 +1639,127 @@ fn performance_memory_composition_regions_and_ram_hover() {
         .unwrap()
         .save(out.join("win10-performance-memory-ram-hover-edge.png"))
         .unwrap();
+}
+
+#[test]
+fn memory_occupied_preview_renders_at_minimum_and_default_size() {
+    for (width, height, theme, suffix) in [
+        (1030, 705, mc_core::config::Theme::Light, "light"),
+        (760, 540, mc_core::config::Theme::Light, "minimum"),
+        (1030, 705, mc_core::config::Theme::Dark, "dark"),
+    ] {
+        let reading = mc_magpie::synthetic_readings(0, 20);
+        let expected = mc_core::memory::MemoryUsage::from_memory(&reading.mem_info);
+        let mut h = performance_harness(
+            Config {
+                performance_selected_page: "memory".into(),
+                window_width: width,
+                window_height: height,
+                theme,
+                ..Default::default()
+            },
+            reading,
+            1.,
+        );
+        for label in ["Used (incl. cache)", "Free", "Of used: cache"] {
+            assert!(
+                h.output().shapes.iter().any(|s| matches!(&s.shape,
+                egui::Shape::Text(t) if t.galley.job.text == label)),
+                "missing {label}"
+            );
+        }
+        assert_eq!(expected.occupied + expected.free, expected.total);
+        let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+        std::fs::create_dir_all(&out).unwrap();
+        h.render()
+            .unwrap()
+            .save(out.join(format!("memory-occupied-preview-{suffix}.png")))
+            .unwrap();
+    }
+}
+
+#[test]
+fn sidebar_models_elide_and_hover_keeps_complete_identity_and_readings() {
+    let mut reading = mc_magpie::synthetic_readings(0, 20);
+    let cpu = "Intel Core i5-14600KF long complete processor model";
+    reading.cpu.name = Some(cpu.into());
+    for module in &mut reading.mem_devices {
+        module.manufacturer = Some("G.Skill".into());
+        module.part_number = Some("F4-3200C14-8GTZSW".into());
+    }
+    let mut h = performance_harness(
+        Config {
+            performance_selected_page: "memory".into(),
+            ..Default::default()
+        },
+        reading,
+        1.,
+    );
+    assert!(h.output().shapes.iter().any(|s| matches!(&s.shape,
+        egui::Shape::Text(t) if t.pos.x < 210. && t.galley.job.text.starts_with("Intel Core") && t.galley.job.text.ends_with('…'))));
+    h.hover_at(egui::pos2(110., 125.));
+    h.run_steps(40);
+    let tip = h.get_by_label_contains(cpu).value().unwrap();
+    assert!(tip.contains("50%") && tip.contains("GHz"));
+    h.hover_at(egui::pos2(110., 180.));
+    h.run_steps(40);
+    let tip = h
+        .get_by_label_contains("G.Skill F4-3200C14-8GTZSW")
+        .value()
+        .unwrap();
+    assert!(tip.contains("GiB") && tip.contains('%'));
+    h.remove_cursor();
+    h.run_steps(2);
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../target/ui-snapshots/sidebar-device-models.png");
+    h.render().unwrap().save(out).unwrap();
+}
+
+#[test]
+fn memory_capacity_heading_is_compact_and_hover_explains_difference() {
+    let mut reading = mc_magpie::synthetic_readings(0, 20);
+    reading.mem_info.mem_total = 31 * 1024 * 1024 * 1024;
+    reading.mem_info.max_devices = reading.mem_devices.len() as u64;
+    let config = Config {
+        performance_selected_page: "memory".into(),
+        ..Default::default()
+    };
+    let mut h = performance_harness(config.clone(), reading.clone(), 1.);
+    let title = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|s| match &s.shape {
+            egui::Shape::Text(t)
+                if t.pos.y < 130.
+                    && t.pos.x > 700.
+                    && t.galley.job.text == "32 GiB · SO-DIMM DDR5" =>
+            {
+                Some(t.pos)
+            }
+            _ => None,
+        })
+        .expect("heading contains capacity, package and memory technology");
+    h.hover_at(title + egui::vec2(12., 8.));
+    h.run_steps(40);
+    let text = h
+        .get_by_label_contains("Installed: 32.0 GiB")
+        .value()
+        .unwrap();
+    assert!(text.contains("OS-managed RAM: 31.0 GiB"));
+    assert!(text.contains("SO-DIMM DDR5"));
+    assert!(text.contains("Outside OS-managed RAM: 1.00 GiB"));
+    assert!(text.contains("firmware reservations and early kernel allocations"));
+    reading.mem_devices.pop();
+    let mut unknown = performance_harness(config, reading, 1.);
+    unknown.hover_at(egui::pos2(975., 118.));
+    unknown.run_steps(40);
+    let text = unknown
+        .get_by_label_contains("Installed capacity is unknown")
+        .value()
+        .unwrap();
+    assert!(text.contains("OS-managed RAM: 31.0 GiB"));
+    assert!(!text.contains("Outside OS-managed RAM:"));
 }
 
 #[test]
@@ -1937,7 +2058,9 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         .shapes
         .iter()
         .find_map(|shape| match &shape.shape {
-            egui::Shape::Text(text) if text.galley.job.text == "In use" => Some(text.pos),
+            egui::Shape::Text(text) if text.galley.job.text == "Used (incl. cache)" => {
+                Some(text.pos)
+            }
             _ => None,
         })
         .unwrap();
@@ -1981,8 +2104,8 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         "scrolled composition bottom"
     );
     for label in [
-        "In use",
-        "Cached",
+        "Used (incl. cache)",
+        "Of used: cache",
         "zram · RAM compression",
         "zswap · Compressed cache",
         zswap_detail.as_str(),
@@ -2300,9 +2423,9 @@ fn memory_module_height_follows_last_stats_row_and_empty_slots_are_grey() {
             })
             .unwrap()
     };
-    let top = at("In use").y + 3.;
+    let top = at("Used (incl. cache)").y + 3.;
     let bottom =
-        at("Cached").y + 3. + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
+        at("Of used: cache").y + 3. + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
     let start = at("Memory slots").x;
     let image = h.render().unwrap();
     let m = &mc_ui::win10::metrics::MEMORY_SLOT_DRAW_W;

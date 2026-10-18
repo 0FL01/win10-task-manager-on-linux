@@ -464,6 +464,7 @@ impl DevicePage for BatteryPage {
             ));
         }
         PageView {
+            model_tooltip: None,
             title: self.title.clone(),
             model: self.model.clone(),
             panels,

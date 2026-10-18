@@ -199,6 +199,11 @@ pub fn elide(painter: &Painter, text: &str, font: Font, max_width: f32) -> Strin
 /// Shared metadata interaction: copy the full value, even when its painted form is elided.
 /// Only the current highlight is retained; it expires with one scheduled repaint.
 pub fn copy_value(ui: &mut egui::Ui, rect: Rect, value: &str) {
+    copy_value_with_tooltip(ui, rect, value, None);
+}
+
+/// Copy the value, with optional explanatory text in the same hover interaction.
+pub fn copy_value_with_tooltip(ui: &mut egui::Ui, rect: Rect, value: &str, tooltip: Option<&str>) {
     if value.is_empty() || !ui.is_rect_visible(rect) {
         return;
     }
@@ -240,6 +245,10 @@ pub fn copy_value(ui: &mut egui::Ui, rect: Rect, value: &str) {
         .on_hover_text(if highlighted {
             mc_core::i18n::i18n("Copied")
         } else {
-            format!("{}\n{}", value, mc_core::i18n::i18n("Click to copy"))
+            format!(
+                "{}\n{}",
+                tooltip.unwrap_or(value),
+                mc_core::i18n::i18n("Click to copy")
+            )
         });
 }

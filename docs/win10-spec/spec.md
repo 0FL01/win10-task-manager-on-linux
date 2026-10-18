@@ -1,5 +1,24 @@
 # Win10 Task Manager look — clean-room visual specification
 
+Local Memory preview (own design): `docs/memory-preview.md` defines occupied RAM
+including cache consistently across the sidebar, graph, statistics and table header.
+Only labels/accounting change; measured geometry and colours remain unchanged.
+
+Local sidebar preview (own design): every device uses the existing three lines for
+type, model/identity, current readings. CPU and RAM gain model lines, network combines
+send/receive on its final line, battery groups list their device models. Mixed RAM
+part numbers show Mixed modules; incomplete identity shows Unknown, never an arbitrary
+single stick. Full unelided identity/readings are available on hover. Row size, fonts
+and colours remain unchanged.
+
+Memory capacity preview (own design): the top-right model line contains the
+installed capacity, or OS-managed capacity when the installed total is unknown,
+followed by ` · ` and the reported package/technology, e.g. `32 GiB · DIMM DDR4`.
+SODIMM is displayed as SO-DIMM; LPDDR uses its reported type without guessing an X
+suffix or a removable package. Different populated types are separated by ` / `.
+Hovering it shows both totals and their difference with the firmware/early-kernel
+reservation explanation, using the standard tooltip and existing text-copy feedback.
+
 Authored from measurements of local reference screenshots (`tools/measure_refs.py`, references are
 **not** in the repository). This document contains only facts — sizes, positions, colours, font
 sizes — and our own design decisions where the references show nothing. Implementation must use

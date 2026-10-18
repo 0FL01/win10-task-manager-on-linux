@@ -38,6 +38,11 @@ const COLOR: egui::Color32 = crate::win10::palette::MEMORY.line;
 struct Labels {
     in_use: String,
     available: String,
+    free: String,
+    installed: Option<String>,
+    reserved: Option<String>,
+    capacity_tooltip: String,
+    memory_kind: String,
     committed: String,
     cached: String,
     swap_total: Option<String>,
@@ -82,6 +87,7 @@ impl MemoryPage {
         used.dataset_settings.high_watermark = mem.mem_total as f32;
         summary.graph.add_dataset(committed);
         summary.graph.add_dataset(used);
+        summary.graph.set_data_visible(0, false);
         summary.info1 = "0/0 GiB".into();
         summary.info2 = "0%".into();
 
@@ -95,6 +101,9 @@ impl MemoryPage {
         usage.add_dataset(a);
         usage.add_dataset(b);
         usage.add_dataset(DatasetGroup::new());
+        // One RAM occupation curve; commit is virtual accounting, not extra physical RAM.
+        usage.set_data_visible(0, false);
+        usage.set_data_visible(1, false);
         usage.connect_datasets(0, 1);
         usage.connect_datasets(1, 2);
         usage.connect_datasets(2, 0);
@@ -174,6 +183,86 @@ fn memory_divider(uclk: f32, mclk: f32) -> Option<u32> {
     (1..=3).find(|divider| (ratio - *divider as f32).abs() < 0.03)
 }
 
+/// Use reported technology/package only: never infer LPDDR's X suffix.
+fn memory_kind_label(modules: &[mc_magpie::MemoryDevice]) -> String {
+    let mut kinds = std::collections::BTreeSet::new();
+    for module in modules
+        .iter()
+        .filter(|m| !super::mem_slots::slot_is_empty(m) && (m.size > 0 || m.present == Some(true)))
+    {
+        let technology = module.ram_type.trim().to_ascii_uppercase();
+        let technology = match technology.as_str() {
+            "" | "UNKNOWN" | "OTHER" | "NONE" | "NOT SPECIFIED" => "",
+            value => value,
+        };
+        let package = module.form_factor.trim().to_ascii_uppercase();
+        let package = match package.as_str() {
+            "SODIMM" | "SO-DIMM" | "SO DIMM" => "SO-DIMM",
+            "DIMM" => "DIMM",
+            _ => "",
+        };
+        let label = match (package, technology) {
+            ("", "") => i18n("Unknown"),
+            (_, kind) if kind.starts_with("LPDDR") => kind.to_owned(),
+            ("", kind) => kind.to_owned(),
+            (package, "") => package.to_owned(),
+            (package, kind) => format!("{package} {kind}"),
+        };
+        kinds.insert(label);
+    }
+    kinds.into_iter().collect::<Vec<_>>().join(" / ")
+}
+
+fn module_model_label(modules: &[mc_magpie::MemoryDevice]) -> String {
+    let known = |value: &str| {
+        let value = value.trim();
+        !value.is_empty()
+            && ![
+                "unknown",
+                "none",
+                "not specified",
+                "default string",
+                "to be filled by o.e.m.",
+            ]
+            .iter()
+            .any(|placeholder| value.eq_ignore_ascii_case(placeholder))
+    };
+    let occupied: Vec<_> = modules
+        .iter()
+        .filter(|m| !super::mem_slots::slot_is_empty(m) && (m.size > 0 || m.present == Some(true)))
+        .collect();
+    if occupied.is_empty() {
+        return i18n("Unknown");
+    }
+    let models: std::collections::BTreeSet<_> = occupied
+        .iter()
+        .filter_map(|m| m.part_number.as_deref().map(str::trim).filter(|s| known(s)))
+        .collect();
+    if models.len() > 1 {
+        return i18n("Mixed modules");
+    }
+    if occupied
+        .iter()
+        .any(|m| m.part_number.as_deref().is_none_or(|s| !known(s)))
+    {
+        return i18n("Unknown");
+    }
+    let manufacturer = occupied[0]
+        .manufacturer
+        .as_deref()
+        .map(str::trim)
+        .unwrap_or_default();
+    let consistent = occupied
+        .iter()
+        .all(|m| m.manufacturer.as_deref().map(str::trim).unwrap_or_default() == manufacturer);
+    let model = models.first().copied().unwrap_or_default();
+    if consistent && known(manufacturer) {
+        format!("{manufacturer} {model}")
+    } else {
+        model.to_owned()
+    }
+}
+
 impl DevicePage for MemoryPage {
     fn name(&self) -> &str {
         "memory"
@@ -197,12 +286,8 @@ impl DevicePage for MemoryPage {
         self.max_duration = env.max_duration.clone();
         let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
 
-        let mem_avail = if mem.mem_available > mem.mem_total {
-            mem.mem_free
-        } else {
-            mem.mem_available
-        };
-        let used = mem.mem_total.saturating_sub(mem_avail);
+        let accounting = mc_core::memory::MemoryUsage::from_memory(mem);
+        let used = accounting.occupied;
 
         self.usage.set_all_datasets_max_scale(mem.mem_total as f32);
         self.usage.add_data_point(vec![
@@ -318,9 +403,39 @@ impl DevicePage for MemoryPage {
             l.hardware.push(row);
         }
         l.in_use = h(used);
+        l.free = h(accounting.free);
         l.available = h(mem.mem_available);
         l.committed = h(mem.committed);
-        l.cached = h(mem.cached);
+        l.cached = h(accounting.cache);
+        let installed = readings
+            .mem_devices
+            .iter()
+            .try_fold(0_u64, |sum, module| {
+                sum.checked_add(super::mem_slots::known_capacity(module)?)
+            })
+            .filter(|total| *total >= mem.mem_total && *total > 0);
+        let inventory_complete =
+            mem.max_devices > 0 && readings.mem_devices.len() as u64 >= mem.max_devices;
+        l.installed = installed.filter(|_| inventory_complete).map(h);
+        l.reserved = installed
+            .filter(|_| inventory_complete)
+            .map(|total| h(total - mem.mem_total));
+        l.memory_kind = memory_kind_label(&readings.mem_devices);
+        l.capacity_tooltip = if let (Some(installed), Some(reserved)) = (&l.installed, &l.reserved)
+        {
+            i18n_f(
+                "Installed: {}\nOS-managed RAM: {}\nOutside OS-managed RAM: {}\n\nThe difference includes firmware reservations and early kernel allocations.",
+                &[installed, &self.total_ram, reserved],
+            )
+        } else {
+            i18n_f(
+                "OS-managed RAM: {}\n\nInstalled capacity is unknown because the memory slot inventory is incomplete.",
+                &[&self.total_ram],
+            )
+        };
+        if !l.memory_kind.is_empty() {
+            l.capacity_tooltip = format!("{}\n\n{}", l.memory_kind, l.capacity_tooltip);
+        }
         self.has_swap = mem.swap_total != 0;
         if self.has_swap {
             l.swap_total = Some(h(mem.swap_total));
@@ -333,7 +448,7 @@ impl DevicePage for MemoryPage {
         }
         l.usage_tooltip = i18n_f(
             n_(
-                "Memory usage ({})\n\nTotal minus MemAvailable; falls back to MemFree when MemAvailable exceeds total. This is separate from Used in the composition bar.",
+                "Occupied RAM, including cache ({})\n\nTotal minus MemFree. Includes programs, kernel, drivers, shared memory, buffers and cache. Cache is part of this value, not an additional allocation. MemAvailable is a separate estimate of reusable memory.",
             ),
             &[&l.in_use],
         );
@@ -348,13 +463,13 @@ impl DevicePage for MemoryPage {
             .graph
             .add_data_point(vec![vec![mem.committed as f32], vec![used as f32]]);
         // Win10 list: "used/total (percent)" on one line
-        self.summary.info1 = format!(
+        self.summary.info2 = format!(
             "{}/{} ({}%)",
             h(used),
             h(mem.mem_total),
             (used as f32 / total as f32 * 100.).round()
         );
-        self.summary.info2.clear();
+        self.summary.info1 = module_model_label(&readings.mem_devices);
 
         true
     }
@@ -385,12 +500,12 @@ impl DevicePage for MemoryPage {
         let l = &self.labels;
         let stats = vec![
             vec![
-                (i18n("In use"), l.in_use.clone()),
-                (i18n("Available"), l.available.clone()),
+                (i18n("Used (incl. cache)"), l.in_use.clone()),
+                (i18n("Free"), l.free.clone()),
             ],
             vec![
+                (i18n("Of used: cache"), l.cached.clone()),
                 (i18n("Committed"), l.committed.clone()),
-                (i18n("Cached"), l.cached.clone()),
             ],
         ];
         let mut info = vec![
@@ -406,9 +521,21 @@ impl DevicePage for MemoryPage {
             ));
         }
         info.extend(l.hardware.clone());
+        if let Some(installed) = &l.installed {
+            info.push((i18n("Installed:"), installed.clone()));
+            info.push((
+                i18n("Outside OS-managed RAM:"),
+                l.reserved.clone().unwrap_or_default(),
+            ));
+        }
+        info.push((i18n("OS-managed RAM:"), self.total_ram.clone()));
+        info.push((i18n("Available (estimate):"), l.available.clone()));
         let show_swap = config.performance_page_memory_swap_visible && self.has_swap;
         let mut panels = vec![GraphPanel::single(
-            over(n_("Memory usage over "), &self.max_duration),
+            over(
+                n_("RAM occupied (including cache) over "),
+                &self.max_duration,
+            ),
             self.max_graph_ram.clone(),
             &mut self.usage,
         )];
@@ -422,7 +549,19 @@ impl DevicePage for MemoryPage {
         }
         PageView {
             title: i18n("Memory"),
-            model: self.total_ram.clone(),
+            model: {
+                let capacity = l
+                    .installed
+                    .as_deref()
+                    .unwrap_or(&self.total_ram)
+                    .replace(".0 ", " ");
+                if l.memory_kind.is_empty() {
+                    capacity
+                } else {
+                    format!("{capacity} · {}", l.memory_kind)
+                }
+            },
+            model_tooltip: Some(&l.capacity_tooltip),
             panels,
             stats,
             info,
@@ -454,10 +593,11 @@ impl DevicePage for MemoryPage {
 
     {}
 
-    In use:         {}
+    Used (incl. cache): {}
+    Free:           {}
     Available:      {}
     Committed:      {}
-    Cached:         {}
+    Of used: cache: {}
     Swap total:     {}
     Swap used:      {}
     Swap free:      {}
@@ -470,6 +610,7 @@ impl DevicePage for MemoryPage {
     Type:        {}"#,
             self.total_ram,
             l.in_use,
+            l.free,
             l.available,
             l.committed,
             l.cached,
@@ -489,6 +630,93 @@ impl DevicePage for MemoryPage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn memory_heading_identifies_package_and_technology_without_guessing() {
+        let module = |form: &str, kind: &str| mc_magpie::MemoryDevice {
+            size: 8 * 1024 * 1024 * 1024,
+            form_factor: form.into(),
+            ram_type: kind.into(),
+            ..Default::default()
+        };
+        assert_eq!(memory_kind_label(&[module("DIMM", "DDR4")]), "DIMM DDR4");
+        assert_eq!(
+            memory_kind_label(&[module("SODIMM", "DDR5")]),
+            "SO-DIMM DDR5"
+        );
+        assert_eq!(
+            memory_kind_label(&[module("SO-DIMM", "DDR3")]),
+            "SO-DIMM DDR3"
+        );
+        for kind in ["LPDDR4", "LPDDR4X", "LPDDR5", "LPDDR5X"] {
+            assert_eq!(memory_kind_label(&[module("Row of chips", kind)]), kind);
+        }
+        let mut modules = vec![module("DIMM", "DDR4"), module("DIMM", "DDR4")];
+        modules.push(mc_magpie::MemoryDevice {
+            present: Some(false),
+            form_factor: "SODIMM".into(),
+            ram_type: "DDR5".into(),
+            ..Default::default()
+        });
+        assert_eq!(memory_kind_label(&modules), "DIMM DDR4");
+        modules[1] = module("SODIMM", "DDR5");
+        assert_eq!(memory_kind_label(&modules), "DIMM DDR4 / SO-DIMM DDR5");
+        assert_eq!(memory_kind_label(&[module("", "DDR5")]), "DDR5");
+        assert_eq!(memory_kind_label(&[module("DIMM", "Unknown")]), "DIMM");
+        assert_eq!(
+            memory_kind_label(&[module("Unknown", "Unknown")]),
+            "Unknown"
+        );
+        assert!(memory_kind_label(&[]).is_empty());
+    }
+    #[test]
+    fn sidebar_memory_model_never_selects_an_arbitrary_module() {
+        let module = |part: &str| mc_magpie::MemoryDevice {
+            size: 8 * 1024 * 1024 * 1024,
+            manufacturer: Some("G.Skill".into()),
+            part_number: Some(part.into()),
+            ..Default::default()
+        };
+        let mut modules = vec![module("F4-3200"), module("F4-3200")];
+        assert_eq!(module_model_label(&modules), "G.Skill F4-3200");
+        modules.push(mc_magpie::MemoryDevice {
+            present: Some(false),
+            ..Default::default()
+        });
+        assert_eq!(module_model_label(&modules), "G.Skill F4-3200");
+        modules[1].part_number = Some("F4-3600".into());
+        assert_eq!(module_model_label(&modules), "Mixed modules");
+        modules[1].part_number = None;
+        assert_eq!(module_model_label(&modules), "Unknown");
+        assert_eq!(module_model_label(&[]), "Unknown");
+        modules[0].part_number = Some("Default string".into());
+        assert_eq!(module_model_label(&modules), "Unknown");
+    }
+    #[test]
+    fn sidebar_stats_graph_and_process_header_share_physical_occupation() {
+        let mut r = mc_magpie::synthetic_readings(0, 1);
+        let gib = 1024 * 1024 * 1024;
+        r.mem_info.mem_total = 32 * gib;
+        r.mem_info.mem_free = 16 * gib;
+        r.mem_info.mem_available = 26 * gib;
+        r.mem_info.cached = 9 * gib;
+        r.mem_info.sh_mem = gib;
+        r.mem_info.s_reclaimable = gib;
+        let config = Config::default();
+        let mut page = MemoryPage::new(&r, &config);
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(page.summary.info2, "16.0 GiB/32.0 GiB (50%)");
+        assert_eq!(page.labels.in_use, "16.0 GiB");
+        assert_eq!(page.labels.free, "16.0 GiB");
+        assert_eq!(page.labels.cached, "9.00 GiB");
+        let view = page.win10_view(&config);
+        assert_eq!(view.stats[0][0].0, "Used (incl. cache)");
+        assert_eq!(view.stats[0][1].0, "Free");
+        assert!(view.panels[0].tooltips[0].contains("Total minus MemFree"));
+        let snapshot = mc_core::gpu::GpuSnapshot::default();
+        let totals = mc_core::table::ColumnTotals::from_readings(&r, &snapshot);
+        assert_eq!(totals.memory_percent, 50.);
+    }
+
     #[test]
     fn divider_requires_two_valid_clocks_and_known_ratio() {
         assert_eq!(memory_divider(3000., 3000.), Some(1));

@@ -171,6 +171,7 @@ impl<'a> GraphPanel<'a> {
 pub struct PageView<'a> {
     pub title: String,
     pub model: String,
+    pub model_tooltip: Option<&'a str>,
     pub panels: Vec<GraphPanel<'a>>,
     /// Rows of label/value statistic blocks
     pub stats: Vec<Vec<(String, String)>>,
@@ -576,6 +577,68 @@ mod tests {
         assert!(!page.shown_names(&config).contains(&veth));
         assert_ne!(page.selected, veth);
         assert_eq!(config.performance_selected_page, page.selected);
+    }
+
+    #[test]
+    fn sidebar_devices_keep_identity_above_current_readings() {
+        let mut r = mc_magpie::synthetic_readings(0, 8);
+        for module in &mut r.mem_devices {
+            module.manufacturer = Some("Example RAM".into());
+            module.part_number = Some("DDR5-5600".into());
+        }
+        let gpu = GpuSnapshot::from_readings(&r, &mut Default::default(), 1000);
+        let mut config = Config::default();
+        let mut page = PerformancePage::new(&config);
+        page.update(&r, &gpu, &mut config);
+        for d in &page.devices {
+            if d.name() == "system" {
+                continue;
+            } // About is delivered independently.
+            let s = d.summary();
+            assert!(!s.info1.is_empty(), "{} needs a model/identity", d.name());
+            assert!(!s.info2.is_empty(), "{} needs readings", d.name());
+        }
+        assert_eq!(
+            page.devices[page.device_index("cpu").unwrap()]
+                .summary()
+                .info1,
+            r.cpu.name.as_deref().unwrap()
+        );
+        assert_eq!(
+            page.devices[page.device_index("memory").unwrap()]
+                .summary()
+                .info1,
+            "Example RAM DDR5-5600"
+        );
+        let connection = r.network_connections.values().next().unwrap();
+        let summary = page.devices[page
+            .device_index(&network::page_name(&connection.id))
+            .unwrap()]
+        .summary();
+        assert_eq!(summary.info1, connection.device_name.as_deref().unwrap());
+        assert!(summary.info2.contains("S:") && summary.info2.contains("R:"));
+        let mut about = mc_magpie::About::default();
+        about.device_info.model = Some("Example motherboard".into());
+        about.device_info.hostname = Some("example-host".into());
+        page.update_about(&about);
+        assert_eq!(
+            page.devices[page.device_index("system").unwrap()]
+                .summary()
+                .info1,
+            "Example motherboard"
+        );
+        let connection = r.network_connections.values_mut().next().unwrap();
+        connection.device_name = None;
+        page.update(&r, &gpu, &mut config);
+        let connection = r.network_connections.values().next().unwrap();
+        assert_eq!(
+            page.devices[page
+                .device_index(&network::page_name(&connection.id))
+                .unwrap()]
+            .summary()
+            .info1,
+            connection.id
+        );
     }
 
     #[test]

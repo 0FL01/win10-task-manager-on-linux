@@ -741,6 +741,7 @@ impl DevicePage for GpuPage {
             ));
         }
         PageView {
+            model_tooltip: None,
             title,
             model: self.device_name.clone(),
             panels,

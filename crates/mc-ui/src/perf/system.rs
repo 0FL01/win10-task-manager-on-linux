@@ -125,7 +125,13 @@ impl DevicePage for SystemPage {
         &mut self.summary
     }
     fn update_about(&mut self, about: &About) {
-        self.summary.info1 = about.device_info.hostname.clone().unwrap_or_default();
+        self.summary.info1 = about
+            .device_info
+            .model
+            .as_deref()
+            .and_then(clean)
+            .or_else(|| about.device_info.hostname.as_deref().and_then(clean))
+            .unwrap_or_default();
         self.summary.info2 = about.os_info.name.clone().unwrap_or_default();
         self.about = Some(about.clone());
         self.rows = self.build_rows();
@@ -257,6 +263,7 @@ impl DevicePage for SystemPage {
     }
     fn win10_view(&mut self, _: &Config) -> PageView<'_> {
         PageView {
+            model_tooltip: None,
             title: i18n("System"),
             model: self.summary.info1.clone(),
             panels: vec![],

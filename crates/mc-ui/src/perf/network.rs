@@ -170,6 +170,14 @@ impl DevicePage for NetworkPage {
             return false;
         };
         self.max_duration = env.max_duration.clone();
+        self.device_name = c
+            .device_name
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .unwrap_or(&self.if_id)
+            .to_owned();
+        self.summary.info1.clone_from(&self.device_name);
         self.max_speed = c.max_speed_bytes_ps;
         let h = |v: f32, t: DataType| to_human_readable_nice(v, &t);
 
@@ -214,11 +222,9 @@ impl DevicePage for NetworkPage {
             1.
         };
         if c.state() != ConnectionState::Connected {
-            self.summary.info1 = i18n_f("{}", &[c.state().as_str_name()]);
-            self.summary.info2.clear();
+            self.summary.info2 = i18n_f("{}", &[c.state().as_str_name()]);
         } else {
-            self.summary.info1 = i18n_f("{}: {}", &["S", &l.speed_send]);
-            self.summary.info2 = i18n_f("{}: {}", &["R", &l.speed_recv]);
+            self.summary.info2 = format!("S: {} · R: {}", l.speed_send, l.speed_recv);
         }
         true
     }
@@ -267,6 +273,7 @@ impl DevicePage for NetworkPage {
         info.push((i18n("IPv6 address:"), l.ipv6.clone()));
         let max_y = l.max_y.clone();
         PageView {
+            model_tooltip: None,
             title: self.kind.as_str_name().to_owned(),
             model: self.device_name.clone(),
             panels: vec![GraphPanel::single(

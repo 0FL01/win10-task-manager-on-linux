@@ -456,9 +456,12 @@ impl PerformanceView {
                     cap += 15.;
                 }
             }
-            if let Some(tooltip) = &summary.tooltip {
-                response.on_hover_text(tooltip);
+            let mut tooltip = format!("{}\n{}\n{}", summary.heading, summary.info1, summary.info2);
+            if let Some(extra) = &summary.tooltip {
+                tooltip.push_str("\n\n");
+                tooltip.push_str(extra);
             }
+            response.on_hover_text(tooltip);
         }
         if let Some(name) = clicked {
             perf.select(&name, cx.config);
@@ -1366,7 +1369,7 @@ fn page_ui(
         pal::TEXT,
         Align::Max,
     );
-    paint::copy_value(
+    paint::copy_value_with_tooltip(
         ui,
         Rect::from_min_max(
             pos2(
@@ -1376,6 +1379,7 @@ fn page_ui(
             pos2(gx1 + 1., top + MODEL_CAP + 15.),
         ),
         &view.model,
+        view.model_tooltip,
     );
 
     // Statistics and key/value rows at the bottom
@@ -1612,7 +1616,7 @@ fn page_ui(
             &painter,
             gx0,
             graph_top - 13.,
-            &i18n("Memory composition"),
+            &i18n("Physical memory composition"),
             Font::Caption,
             pal::LABEL,
             Align::Min,

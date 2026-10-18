@@ -24,6 +24,7 @@ pub mod config;
 pub mod format;
 pub mod gpu;
 pub mod i18n;
+pub mod memory;
 pub mod sidebar;
 pub mod spd;
 pub mod table;

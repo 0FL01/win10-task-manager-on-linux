@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-//! Disjoint Unix memory composition: Used, Cache, Shared, Buff and Free.
+//! Disjoint physical composition: Other, Cache, Shared, Buff and Free.
 
 use egui::{Pos2, Rect, Sense, Ui};
 use mc_core::format::{DataType, to_human_readable_nice};
@@ -48,27 +48,15 @@ impl MemComposition {
             return;
         }
 
-        let cached_without_shared = mem.cached.saturating_sub(mem.sh_mem);
-        let raw_cache = cached_without_shared.saturating_add(mem.s_reclaimable);
-        let mut remaining = self.total;
-        let free = mem.mem_free.min(remaining);
-        remaining -= free;
-        let shared = mem.sh_mem.min(remaining);
-        remaining -= shared;
-        let buff = mem.buffers.min(remaining);
-        remaining -= buff;
-        let cache = raw_cache.min(remaining);
-        remaining -= cache;
-        self.bytes = [remaining, cache, shared, buff, free];
-
-        let adjusted = mem.cached < mem.sh_mem
-            || cached_without_shared
-                .checked_add(mem.s_reclaimable)
-                .is_none()
-            || free != mem.mem_free
-            || shared != mem.sh_mem
-            || buff != mem.buffers
-            || cache != raw_cache;
+        let accounting = mc_core::memory::MemoryUsage::from_memory(mem);
+        self.bytes = [
+            accounting.other,
+            accounting.cache,
+            accounting.shared,
+            accounting.buffers,
+            accounting.free,
+        ];
+        let adjusted = accounting.adjusted;
         let values = self.bytes.map(|v| {
             if v < 1024 {
                 i18n_f(n_("{} B"), &[&v.to_string()])
@@ -77,13 +65,13 @@ impl MemComposition {
             }
         });
         let overview = i18n_f(
-            n_("Used: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}"),
+            n_("Other: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}"),
             &[&values[0], &values[1], &values[2], &values[3], &values[4]],
         );
         self.tooltips = [
             i18n_f(
                 n_(
-                    "Used ({})\n\nMemory remaining after Free, Shared, Buff and Cache are accounted for. This is not In use (total minus MemAvailable).",
+                    "Other ({})\n\nPrograms, kernel and other memory outside Cache, Shared and Buff. All four non-free sections together equal Used (incl. cache). MemAvailable is a separate estimate, not a section of this bar.",
                 ),
                 &[&values[0]],
             ),
@@ -105,7 +93,7 @@ impl MemComposition {
             ),
             i18n_f(
                 n_(
-                    "Free ({})\n\nCollector-reported free memory (MemFree). It may include reclaimable ZFS ARC.",
+                    "Free ({})\n\nUnoccupied physical memory (MemFree). Cache, including ZFS ARC, is not free memory.",
                 ),
                 &[&values[4]],
             ),
@@ -244,11 +232,11 @@ mod tests {
             memory.mem_total - memory.mem_available
         );
         assert_ne!(composition.bytes[1], memory.cached);
-        assert!(composition.tooltips[0].starts_with("Used (6.00 GiB)\n\n"));
+        assert!(composition.tooltips[0].starts_with("Other (6.00 GiB)\n\n"));
         assert!(composition.tooltips[1].starts_with("Cache (5.00 GiB)\n\n"));
-        assert!(composition.tooltips[4].contains("reclaimable ZFS ARC"));
+        assert!(composition.tooltips[4].contains("ZFS ARC"));
         assert!(composition.tooltips.iter().all(|tip| tip.contains(
-            "Used: 6.00 GiB\nCache: 5.00 GiB\nShared: 2.00 GiB\nBuff: 1.00 GiB\nFree: 2.00 GiB"
+            "Other: 6.00 GiB\nCache: 5.00 GiB\nShared: 2.00 GiB\nBuff: 1.00 GiB\nFree: 2.00 GiB"
         ) && !tip.contains("Adjusted counters")));
 
         memory.mem_available = 3 * gib;
@@ -293,7 +281,7 @@ mod tests {
         assert_eq!(composition.bytes, [0, 40, 30, 10, 20]);
         assert!(composition.tooltips[1].starts_with("Cache (40 B)\n\n"));
         assert!(composition.tooltips[1].contains("overflow is saturated"));
-        assert!(composition.tooltips[1].contains("Used: 0 B"));
+        assert!(composition.tooltips[1].contains("Other: 0 B"));
 
         composition.update(&Memory {
             mem_total: 100,
@@ -316,7 +304,7 @@ mod tests {
         assert!(composition.tooltips[4].starts_with("Free (100 B)\n\n"));
         assert!(
             composition.tooltips[4]
-                .contains("Used: 0 B\nCache: 0 B\nShared: 0 B\nBuff: 0 B\nFree: 100 B")
+                .contains("Other: 0 B\nCache: 0 B\nShared: 0 B\nBuff: 0 B\nFree: 100 B")
         );
     }
 

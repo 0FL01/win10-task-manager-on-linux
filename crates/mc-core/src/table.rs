@@ -809,13 +809,7 @@ impl ColumnTotals {
     pub fn from_readings(readings: &Readings, gpu: &GpuSnapshot) -> Self {
         let mem = &readings.mem_info;
         let mem_total = mem.mem_total.max(1);
-        // https://gitlab.com/procps-ng/procps/-/blob/master/library/meminfo.c?ref_type=heads#L736
-        let mem_avail = if mem.mem_available > mem.mem_total {
-            mem.mem_free
-        } else {
-            mem.mem_available
-        };
-        let memory_used = mem_total.saturating_sub(mem_avail);
+        let memory_used = crate::memory::MemoryUsage::from_memory(mem).occupied;
 
         let drive_percent = readings
             .disks_info

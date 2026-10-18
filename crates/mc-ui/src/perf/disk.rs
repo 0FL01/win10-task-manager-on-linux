@@ -190,6 +190,13 @@ impl DiskPage {
     }
 
     fn update_titles(&mut self, disk: &Disk) {
+        self.summary.info1 = disk
+            .model
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .unwrap_or(&disk.id)
+            .to_owned();
         self.title = match self.index {
             Some(i) => i18n_f("Drive {} ({})", &[&i.to_string(), &disk.id]),
             None => i18n_f("Drive ({})", &[&disk.id]),
@@ -372,6 +379,7 @@ impl DevicePage for DiskPage {
         panels[0].tooltips = &self.graph_tooltips[..1];
         panels[1].tooltips = &self.graph_tooltips[1..];
         PageView {
+            model_tooltip: None,
             title: self.title.clone(),
             model: self.model.clone(),
             panels,

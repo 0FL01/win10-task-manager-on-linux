@@ -64,6 +64,7 @@ struct Args {
     renderer: Option<String>,
     perf_overlay: bool,
     no_config: bool,
+    memory_preview: bool,
     stats_file: Option<PathBuf>,
     bench_seconds: Option<f64>,
     synthetic: Option<usize>,
@@ -72,7 +73,7 @@ struct Args {
 fn usage() -> ! {
     println!(
         "taskmanager [--renderer wgpu|glow] [--fixture DIR] [--dump-readings N DIR]\n\
-         \x20             [--synthetic PROCESSES] [--perf-overlay] [--no-config]\n\
+         \x20             [--synthetic PROCESSES] [--perf-overlay] [--no-config] [--memory-preview]\n\
          \x20             [--stats-file FILE] [--bench-seconds SECONDS]"
     );
     std::process::exit(0);
@@ -85,6 +86,7 @@ fn parse_args() -> Args {
         renderer: None,
         perf_overlay: false,
         no_config: false,
+        memory_preview: false,
         stats_file: None,
         bench_seconds: None,
         synthetic: None,
@@ -104,6 +106,10 @@ fn parse_args() -> Args {
             "--renderer" => args.renderer = it.next(),
             "--perf-overlay" => args.perf_overlay = true,
             "--no-config" => args.no_config = true,
+            "--memory-preview" => {
+                args.memory_preview = true;
+                args.no_config = true;
+            }
             "--stats-file" => args.stats_file = it.next().map(PathBuf::from),
             "--bench-seconds" => args.bench_seconds = it.next().and_then(|s| s.parse().ok()),
             "--synthetic" => args.synthetic = it.next().and_then(|s| s.parse().ok()),
@@ -350,6 +356,10 @@ fn main() -> eframe::Result {
     // at the reference size
     let min = mc_ui::win10::metrics::MIN_WINDOW_SIZE;
     initial.migrate_layout(mc_ui::win10::metrics::min_window_size_i32());
+    if args.memory_preview {
+        initial.window_selected_page = "performance-page".into();
+        initial.performance_selected_page = "memory".into();
+    }
 
     // The compact "Fewer details" view is restored with its own size
     let (inner, min_size, maximized) = if initial.window_fewer_details {
@@ -447,7 +457,7 @@ fn main() -> eframe::Result {
                     config_path,
                     perf_overlay,
                     fonts,
-                    initial_config: None,
+                    initial_config: args.memory_preview.then_some(initial),
                     always_on_top_mode,
                 },
             );
