@@ -96,16 +96,22 @@ fn read_static(path: &Path) -> Option<&'static [u8]> {
 impl Fonts {
     pub fn discover() -> Self {
         let segoe = |style: &str| fc_match(&format!("Segoe UI:style={style}"), Some("Segoe UI"));
-        Self {
-            segoe: [
-                segoe("Regular"),
-                segoe("Light"),
-                segoe("Semilight"),
-                segoe("Semibold"),
-            ],
-            system_sans: fc_match("sans-serif:style=Regular", None),
-            system_mono: fc_match("monospace:style=Regular", None),
-        }
+        // Fixed-size parallel discovery, before any rendering. No font swap/reflow after the
+        // first frame, and no persistent cache that can outlive fontconfig configuration.
+        std::thread::scope(|scope| {
+            let regular = scope.spawn(|| segoe("Regular"));
+            let light = scope.spawn(|| segoe("Light"));
+            let semilight = scope.spawn(|| segoe("Semilight"));
+            let semibold = scope.spawn(|| segoe("Semibold"));
+            let sans = scope.spawn(|| fc_match("sans-serif:style=Regular", None));
+            let mono = scope.spawn(|| fc_match("monospace:style=Regular", None));
+            Self {
+                segoe: [regular, light, semilight, semibold]
+                    .map(|job| job.join().unwrap_or_default()),
+                system_sans: sans.join().unwrap_or_default(),
+                system_mono: mono.join().unwrap_or_default(),
+            }
+        })
     }
 
     pub fn definitions(&self) -> FontDefinitions {

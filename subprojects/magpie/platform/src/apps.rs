@@ -53,6 +53,69 @@ pub trait AppCache {
     fn cached_icons(&self) -> HashMap<String, Icon>;
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
+    struct FakeCache {
+        entries: Vec<App>,
+        started: SyncSender<()>,
+        release: Receiver<()>,
+    }
+    impl AppCache for FakeCache {
+        fn new() -> Self {
+            panic!("test constructs gated cache explicitly")
+        }
+        fn refresh(&mut self, _: &Mutex<HashMap<u32, Process>>) {
+            self.entries = vec![App {
+                id: "ready-before-icons".into(),
+                ..Default::default()
+            }];
+        }
+        fn refresh_icons(&mut self) {
+            self.started.send(()).unwrap();
+            self.release
+                .recv_timeout(std::time::Duration::from_secs(2))
+                .unwrap();
+        }
+        fn cached_entries(&self) -> &[App] {
+            &self.entries
+        }
+        fn cached_icons(&self) -> HashMap<String, Icon> {
+            HashMap::new()
+        }
+    }
+    #[test]
+    fn slow_icons_do_not_hide_a_completed_application_map() {
+        let (started_tx, started) = sync_channel(1);
+        let (release, released) = sync_channel(1);
+        let handler = AppsHandler {
+            apps: Mutex::new(FakeCache {
+                entries: vec![],
+                started: started_tx,
+                release: released,
+            }),
+            local_cache: Mutex::new(vec![]),
+            local_icons_cache: Mutex::new(HashMap::new()),
+            refreshing: AtomicBool::new(false),
+        };
+        let processes = Box::leak(Box::new(Mutex::new(HashMap::new())));
+        std::thread::scope(|scope| {
+            scope.spawn(|| handler.refresh(processes));
+            started
+                .recv_timeout(std::time::Duration::from_secs(2))
+                .unwrap();
+            let published = handler
+                .local_cache
+                .try_lock()
+                .expect("icon work must not lock the map");
+            assert_eq!(published[0].id, "ready-before-icons");
+            drop(published);
+            release.send(()).unwrap();
+        });
+    }
+}
+
 pub struct AppsHandler<AC>
 where
     AC: AppCache,
@@ -94,6 +157,9 @@ where
         let mut publish = Span::new(Phase::Publish(Domain::Apps));
         publish.items(apps.cached_entries().len());
         *self.local_cache.lock() = apps.cached_entries().to_vec();
+        drop(publish);
+        // Names/PIDs are usable before icon-theme discovery and file reads complete.
+        apps.refresh_icons();
         *self.local_icons_cache.lock() = apps.cached_icons();
     }
 

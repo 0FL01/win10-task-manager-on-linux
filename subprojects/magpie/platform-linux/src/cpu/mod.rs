@@ -39,6 +39,7 @@ pub struct CpuCache {
     info: Cpu,
     ticks_prev: Ticks,
     core_ticks_prev: Vec<Ticks>,
+    core_ids_prev: Vec<u32>,
     power_draw: Option<PowerDraw>,
 
     refresh_fn: fn(&mut Self),
@@ -101,9 +102,15 @@ impl CpuCache {
             let ids: Vec<_> = lines.iter().map(|(id, _)| *id).collect();
             if !topology::matches(info, &ids) {
                 info.logical_cpus = ids.iter().map(|id| topology::read(*id)).collect();
+            }
+            if self.core_ids_prev != ids {
                 self.core_ticks_prev = vec![Ticks::default(); ids.len()];
+                for (ticks, (_, line)) in self.core_ticks_prev.iter_mut().zip(&lines) {
+                    ticks.update(line);
+                }
                 info.core_usage_percent.resize(ids.len(), 0.);
                 info.core_kernel_usage_percent.resize(ids.len(), 0.);
+                self.core_ids_prev = ids;
             }
             for (i, (_, line)) in lines.iter().enumerate() {
                 (
@@ -153,14 +160,48 @@ impl magpie_platform::cpu::CpuCache for CpuCache {
         let mut core_ticks = Vec::with_capacity(cpu_count);
         core_ticks.resize(cpu_count, Ticks::default());
 
-        Self {
+        let mut cache = Self {
             info,
             ticks_prev: Ticks::default(),
             core_ticks_prev: core_ticks,
+            core_ids_prev: vec![],
             power_draw: PowerDraw::default(),
 
             refresh_fn: Self::update_static_info,
+        };
+        // Start the aggregate counter interval now, rather than reporting the machine's
+        // lifetime average in the first visible sample.
+        if let Ok(stat) = std::fs::read_to_string("/proc/stat") {
+            let mut lines = stat.lines();
+            if let Some(line) = lines.next() {
+                cache.ticks_prev.update(line);
+            }
+            cache.core_ticks_prev.clear();
+            for line in lines.take_while(|line| line.starts_with("cpu")) {
+                if let Some(id) = line
+                    .split_whitespace()
+                    .next()
+                    .and_then(|name| name.strip_prefix("cpu"))
+                    .and_then(|id| id.parse().ok())
+                {
+                    let mut ticks = Ticks::default();
+                    ticks.update(line);
+                    cache.core_ids_prev.push(id);
+                    cache.core_ticks_prev.push(ticks);
+                }
+            }
+            if !cache.core_ids_prev.is_empty() {
+                cache
+                    .info
+                    .core_usage_percent
+                    .resize(cache.core_ids_prev.len(), 0.);
+                cache
+                    .info
+                    .core_kernel_usage_percent
+                    .resize(cache.core_ids_prev.len(), 0.);
+            }
         }
+        cache
     }
 
     fn refresh(&mut self) {

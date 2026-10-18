@@ -124,6 +124,7 @@ mod tests {
                 ..Default::default()
             }],
             smart_data: HashMap::from([("a".into(), DiskSmartData::default())]),
+            ready: Some(true),
         };
         // An old client still reads inventory and skips the additive tag 2.
         let legacy = LegacyDiskList::decode(snapshot.encode_to_vec().as_slice()).unwrap();

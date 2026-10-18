@@ -131,6 +131,7 @@ struct SmartJob {
 
 #[derive(Default)]
 struct DiskSnapshotCache {
+    ready: bool,
     disks: Vec<Disk>,
     smart: HashMap<String, SmartEntry>,
     generation: u64,
@@ -167,10 +168,12 @@ impl DiskSnapshotCache {
             }
         }
         self.disks = disks;
+        self.ready = true;
     }
 
     fn snapshot(&self, now: Instant) -> DiskList {
         DiskList {
+            ready: Some(self.ready),
             disks: self.disks.clone(),
             smart_data: self
                 .smart
@@ -537,4 +540,11 @@ mod tests {
         assert_eq!(handler.disk_manager.calls.load(Ordering::SeqCst), 1);
         assert_eq!(handler.snapshot().smart_data.len(), 1);
     }
+}
+#[test]
+fn startup_inventory_is_not_a_completed_empty_result() {
+    let mut cache = DiskSnapshotCache::default();
+    assert_eq!(cache.snapshot(Instant::now()).ready, Some(false));
+    cache.observe(vec![]);
+    assert_eq!(cache.snapshot(Instant::now()).ready, Some(true));
 }

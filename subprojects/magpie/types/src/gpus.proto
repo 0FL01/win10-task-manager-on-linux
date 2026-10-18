@@ -181,6 +181,7 @@ message GpusRequest {}
 message GpusResponse {
   message GpuMap {
     map<string, Gpu> gpus = 1;
+    optional bool ready = 2;
   }
 
   oneof response {

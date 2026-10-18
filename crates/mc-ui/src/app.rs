@@ -49,6 +49,8 @@ use crate::{AlwaysOnTopError, AlwaysOnTopMode, AlwaysOnTopRequest, AlwaysOnTopRe
 
 pub enum DataSource {
     Magpie,
+    /// Native startup can start collection while the window/renderer is being created.
+    StartedMagpie(MagpieClient),
     Fixture(Vec<Readings>, HashMap<String, Icon>),
 }
 
@@ -167,6 +169,7 @@ impl App {
             Arc::new(move || waker_ctx.request_repaint_after(Duration::from_millis(1)));
         let magpie = match options.source {
             DataSource::Magpie => MagpieClient::new(waker.clone()),
+            DataSource::StartedMagpie(client) => client,
             DataSource::Fixture(readings, icons) => {
                 MagpieClient::from_fixtures(readings, icons, waker.clone())
             }
@@ -356,6 +359,9 @@ impl App {
         self.grid_offset = self.grid_offset.wrapping_add(1);
         self.perf.set_grid_offset(self.grid_offset);
         self.have_readings = true;
+        if self.stats.readings_applied == 0 {
+            log::debug!(target: "TaskManager::Startup", "first snapshot applied; processes={} cpu_threads={} inventories_pending={}", readings.running_processes.len(), readings.cpu.core_usage_percent.len(), readings.inventories_pending);
+        }
         self.stats.readings_applied += 1;
         profile::count(Counter::Applied);
     }

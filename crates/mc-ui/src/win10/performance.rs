@@ -105,7 +105,10 @@ impl PerformanceView {
             self.list_ui(ui, cx, perf, list);
         }
 
-        let Some(index) = perf.device_index(&perf.selected) else {
+        let Some(index) = perf
+            .device_index(&perf.selected)
+            .or_else(|| perf.device_index("cpu"))
+        else {
             return;
         };
         let page = if perf.summary_mode {

@@ -113,6 +113,12 @@ cargo xtask run-dev
 `patchelf` or extra library license-notice files. `cargo xtask install`, `rpm` and `magpie`
 build the relocatable private bundle and require the packaging tools and matching notices.
 
+Native startup begins live collection while the window is being created. CPU, memory and
+processes appear before slower disk/GPU discovery; missing-yet devices do not reset the saved
+Performance selection. Three short startup follow-ups then restore the configured refresh
+interval. Rate counters still require successive measurements. Startup measurements and their
+limitations are documented in [perf/README.md](perf/README.md#native-startup-2026-10-17).
+
 Useful flags of the `taskmanager` binary:
 
 * `--renderer wgpu|glow` — select the renderer; glow (OpenGL) is the default, both are compiled in by default builds

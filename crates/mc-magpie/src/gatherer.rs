@@ -46,6 +46,9 @@ const REQUEST_CAPACITY: usize = 64;
 /// One complete snapshot of the system state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Readings {
+    /// Old daemons/fixtures have completed inventories. Pending is not hot-unplug.
+    #[serde(default)]
+    pub inventories_pending: bool,
     #[serde(default)]
     pub hardware: Option<crate::HardwareTelemetry>,
     /// Access validity generation; zero preserves legacy recorded fixtures.
@@ -87,6 +90,7 @@ impl Default for Readings {
 impl Readings {
     pub fn new() -> Self {
         Self {
+            inventories_pending: false,
             hardware: None,
             hardware_epoch: 0,
             cpu: Default::default(),
@@ -502,6 +506,9 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut sockets = crate::sockets::SocketTraffic::default();
     let mut hardware_sample: Option<crate::hardware_worker::Sample> = None;
     let mut trimmer = crate::footprint::Trimmer::new();
+    let ready_at = Instant::now();
+    let mut startup_refresh = 0;
+    let mut about_pending = false;
     drop(startup);
 
     while ctx.running() {
@@ -513,6 +520,8 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         let mut readings = Readings::new();
         readings.mem_devices = mem_devices.clone();
         readings.includes_app_data = !reduced;
+        // Sets Client's processor-count normalization before reading process percentages.
+        readings.cpu = timed!("CPU info", Cpu, magpie.cpu());
 
         if !reduced {
             readings.running_processes = timed!("Process", Processes, magpie.processes());
@@ -531,10 +540,12 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         }
 
         let disks = timed!("Disks info", Disks, magpie.disks_snapshot());
+        readings.inventories_pending = disks.ready == Some(false);
         readings.disks_info = disks.disks;
         readings.smart_data = disks.smart_data;
-        readings.gpus = timed!("GPU info", Gpus, magpie.gpus());
-        readings.cpu = timed!("CPU info", Cpu, magpie.cpu());
+        let gpus = timed!("GPU info", Gpus, magpie.gpus_snapshot());
+        readings.inventories_pending |= gpus.ready == Some(false);
+        readings.gpus = gpus.gpus;
         readings.mem_info = timed!("Memory info", Memory, magpie.memory());
         if let Some(sample) = ctx.hardware_samples.take() {
             hardware_sample = Some(sample);
@@ -576,7 +587,9 @@ fn gather_from_magpie(ctx: ThreadCtx) {
 
             if !missing.is_empty() {
                 let icons = magpie.app_icons(missing.clone());
-                known_icons.extend(missing);
+                // Early app matching can finish before its icon batch. Remember only returned
+                // entries so a later snapshot retries icons still being resolved.
+                known_icons.extend(icons.keys().cloned());
 
                 if !icons.is_empty() {
                     if let Err(Event::IconsReady(icons)) = ctx.outbox.send(Event::IconsReady(icons))
@@ -601,8 +614,21 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         }
 
         cycle.items(readings.running_processes.len());
+        if ready_at.elapsed() < Duration::from_secs(1) {
+            g_debug!("TaskManager::Startup", "sample processes={} apps={} cpu_threads={} memory_bytes={} disks={} gpus={} pending={}",
+                readings.running_processes.len(), readings.running_apps.len(),
+                readings.cpu.core_usage_percent.len(), readings.mem_info.mem_total,
+                readings.disks_info.len(), readings.gpus.len(), readings.inventories_pending);
+        }
         ctx.outbox.publish(readings);
         drop(cycle);
+
+        if about_pending {
+            let about = magpie.about();
+            if about.ready != Some(false) {
+                about_pending = ctx.outbox.send(Event::About(about)).is_err();
+            }
+        }
 
         g_debug!(
             "TaskManager::Perf",
@@ -610,14 +636,48 @@ fn gather_from_magpie(ctx: ThreadCtx) {
             cycle_start.elapsed()
         );
 
-        let deadline = cycle_start + ctx.interval();
+        let deadline = startup_deadline(ready_at, &mut startup_refresh)
+            .unwrap_or_else(|| cycle_start + ctx.interval());
         if Instant::now() > deadline {
             profile::count(Counter::Overrun);
         }
         if !ctx.serve_until(deadline, |request| {
-            handle_request(&magpie, &ctx.outbox, request)
+            if request == Request::AboutSystem {
+                // About discovery runs on the daemon worker; never hold the metrics socket
+                // behind package-manager/desktop subprocesses. Completion is not dropped.
+                about_pending = true;
+            } else {
+                handle_request(&magpie, &ctx.outbox, request)
+            }
         }) {
             break;
+        }
+    }
+}
+
+/// Three bounded startup follow-ups fill independently collected device/icon caches and collect
+/// short-interval counter deltas. There is no startup polling after the half-second warmup.
+fn startup_deadline(ready_at: Instant, next: &mut usize) -> Option<Instant> {
+    let offset = [100, 250, 500].get(*next)?;
+    *next += 1;
+    Some(ready_at + Duration::from_millis(*offset))
+}
+
+#[cfg(test)]
+mod startup_tests {
+    use super::*;
+    #[test]
+    fn warmup_is_bounded_and_does_not_replace_normal_refresh_interval() {
+        let start = Instant::now();
+        let mut next = 0;
+        for offset in [100, 250, 500] {
+            assert_eq!(
+                startup_deadline(start, &mut next),
+                Some(start + Duration::from_millis(offset))
+            );
+        }
+        for _ in 0..10 {
+            assert_eq!(startup_deadline(start, &mut next), None);
         }
     }
 }

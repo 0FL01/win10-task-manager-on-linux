@@ -56,7 +56,7 @@ pub struct GpusHandler<GC>
 where
     GC: GpuCache,
 {
-    pub(crate) gpus: Mutex<GC>,
+    pub(crate) gpus: Mutex<Option<GC>>,
     pub(crate) local_cache: Mutex<HashMap<String, Gpu>>,
     last_cache_update: Mutex<Option<Instant>>,
     refreshing: AtomicBool,
@@ -78,7 +78,9 @@ where
     pub fn new() -> Self {
         let _profile = Span::new(Phase::Init(Domain::Gpus));
         Self {
-            gpus: Mutex::new(GC::new()),
+            // Driver/API discovery can fork probes or wait on a driver. Initialize in the
+            // existing GPU worker, not while constructing every other telemetry domain.
+            gpus: Mutex::new(None),
             local_cache: Mutex::new(HashMap::new()),
             last_cache_update: Mutex::new(None),
             refreshing: AtomicBool::new(false),
@@ -87,7 +89,8 @@ where
 
     pub fn refresh(&self) {
         let refresh = Span::new(Phase::Refresh(Domain::Gpus));
-        let mut gpus = self.gpus.lock();
+        let mut guard = self.gpus.lock();
+        let gpus = guard.get_or_insert_with(GC::new);
         gpus.refresh();
         drop(refresh);
         let mut publish = Span::new(Phase::Publish(Domain::Gpus));
@@ -113,6 +116,10 @@ where
             }
         }
         result
+    }
+
+    pub fn ready(&self) -> bool {
+        self.last_cache_update.lock().is_some()
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
@@ -172,7 +179,15 @@ mod tests {
     #[test]
     fn response_age_increases_without_advancing_or_mutating_cached_sample() {
         let handler = GpusHandler::<FakeCache>::new();
+        assert!(
+            handler.gpus.lock().is_none(),
+            "constructor must not discover drivers"
+        );
+        assert!(!handler.ready());
+        assert!(handler.cached_entries_with_age().is_empty());
         handler.refresh();
+        assert!(handler.gpus.lock().is_some());
+        assert!(handler.ready());
         *handler.last_cache_update.lock() = Some(Instant::now() - Duration::from_secs(2));
         let first = handler.cached_entries_with_age()["gpu"]
             .telemetry

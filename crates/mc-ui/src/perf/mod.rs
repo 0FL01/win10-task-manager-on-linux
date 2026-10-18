@@ -234,6 +234,7 @@ pub struct PerformancePage {
     pub(crate) loaded: bool,
     overrides_raw: String,
     overrides: HashMap<String, DeviceOverride>,
+    inventories_pending: bool,
 }
 
 impl PerformancePage {
@@ -247,6 +248,7 @@ impl PerformancePage {
             loaded: false,
             overrides_raw: String::new(),
             overrides: HashMap::new(),
+            inventories_pending: false,
         }
     }
 
@@ -343,6 +345,7 @@ impl PerformancePage {
 
     /// Applies a new snapshot. `config` may be updated (sidebar order, migrated keys).
     pub fn update(&mut self, readings: &Readings, gpu: &GpuSnapshot, config: &mut Config) {
+        self.inventories_pending = readings.inventories_pending;
         migrate_hidden_graphs(config);
         sidebar::migrate_battery_group(config);
         if self.selected.starts_with("battery-") {
@@ -450,6 +453,9 @@ impl PerformancePage {
 
     /// Moves the selection to the first shown device when the selected one is gone or hidden.
     pub(crate) fn keep_selection_shown(&mut self, shown: &[String], config: &mut Config) {
+        if self.inventories_pending && self.device_index(&self.selected).is_none() {
+            return;
+        }
         if !shown.contains(&self.selected)
             && let Some(first) = shown.first()
         {
@@ -525,6 +531,32 @@ mod tests {
         veth.wireless_connection = None;
         r.network_connections.insert("veth0".into(), veth);
         r
+    }
+
+    #[test]
+    fn pending_inventory_preserves_restored_device_then_completed_absence_falls_back() {
+        let mut readings = mc_magpie::synthetic_readings(0, 1);
+        let disk = disk::page_name(&readings.disks_info[0].id);
+        let saved_disks = readings.disks_info.clone();
+        readings.disks_info.clear();
+        readings.inventories_pending = true;
+        let mut config = Config {
+            performance_selected_page: disk.clone(),
+            ..Default::default()
+        };
+        let mut page = PerformancePage::new(&config);
+        page.update(&readings, &GpuSnapshot::default(), &mut config);
+        let shown = page.shown_names(&config);
+        page.keep_selection_shown(&shown, &mut config);
+        assert_eq!(page.selected, disk);
+        assert_eq!(config.performance_selected_page, disk);
+        readings.disks_info = saved_disks;
+        readings.inventories_pending = false;
+        page.update(&readings, &GpuSnapshot::default(), &mut config);
+        assert_eq!(page.selected, disk);
+        readings.disks_info.clear();
+        page.update(&readings, &GpuSnapshot::default(), &mut config);
+        assert_eq!(page.selected, "cpu");
     }
 
     #[test]

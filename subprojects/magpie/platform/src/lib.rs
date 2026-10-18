@@ -156,9 +156,14 @@ where
     }
 
     pub fn about(&'static self) -> About {
-        self.about.refresh();
+        self.refresh_about_async();
+        let mut data = self.about.local_cache.lock().clone();
+        data.ready = Some(data.ready == Some(true));
+        data
+    }
 
-        self.about.local_cache.lock().clone()
+    pub fn refresh_about_async(&'static self) {
+        self.about.refresh_async(&self.thread_pool);
     }
 
     pub fn refresh_apps(&'static self) {
@@ -284,6 +289,10 @@ where
 
     pub fn gpus(&self) -> HashMap<String, Gpu> {
         self.gpus.cached_entries_with_age()
+    }
+
+    pub fn gpus_ready(&self) -> bool {
+        self.gpus.ready()
     }
 
     pub fn memory(&self) -> Memory {

@@ -42,6 +42,40 @@ pub trait AboutCache {
     fn about(&self) -> &About;
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    struct FakeCache {
+        data: About,
+        reads: usize,
+    }
+    impl AboutCache for FakeCache {
+        fn new() -> Self {
+            Self {
+                data: About::default(),
+                reads: 0,
+            }
+        }
+        fn refresh(&mut self) {
+            self.reads += 1;
+        }
+        fn about(&self) -> &About {
+            &self.data
+        }
+    }
+    #[test]
+    fn identity_is_loaded_once_even_with_concurrent_requests() {
+        let handler = AboutHandler::<FakeCache>::new();
+        std::thread::scope(|scope| {
+            for _ in 0..4 {
+                scope.spawn(|| handler.refresh());
+            }
+        });
+        handler.refresh();
+        assert_eq!(handler.about.lock().reads, 1);
+    }
+}
+
 pub struct AboutHandler<MC>
 where
     MC: AboutCache,
@@ -49,6 +83,7 @@ where
     pub(crate) about: Mutex<MC>,
     pub(crate) local_cache: Mutex<About>,
     refreshing: AtomicBool,
+    initialized: std::sync::Once,
 }
 
 impl<MC> Default for AboutHandler<MC>
@@ -70,20 +105,32 @@ where
             about: Mutex::new(MC::new()),
             local_cache: Mutex::new(About::default()),
             refreshing: AtomicBool::new(false),
+            initialized: std::sync::Once::new(),
         }
     }
 
     pub fn refresh(&self) {
+        self.initialized.call_once(|| self.load());
+    }
+
+    // OS/firmware/session identity is static for the lifetime of this daemon. Repeated About
+    // requests must not rerun desktop/package-manager subprocesses on the IPC serving thread.
+    fn load(&self) {
         let refresh = Span::new(Phase::Refresh(Domain::About));
         let mut about = self.about.lock();
         about.refresh();
         drop(refresh);
         let mut publish = Span::new(Phase::Publish(Domain::About));
         publish.items(1);
-        *self.local_cache.lock() = about.about().clone();
+        let mut data = about.about().clone();
+        data.ready = Some(true);
+        *self.local_cache.lock() = data;
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {
+        if self.initialized.is_completed() {
+            return;
+        }
         if self.refreshing.fetch_or(true, Ordering::AcqRel) {
             profile::coalesced(Phase::Refresh(Domain::About));
             return;

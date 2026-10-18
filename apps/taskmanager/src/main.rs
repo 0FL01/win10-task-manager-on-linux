@@ -323,6 +323,7 @@ fn main() -> eframe::Result {
 
     mc_core::i18n::init(&locale_dir());
 
+    let readings_context = std::sync::Arc::new(std::sync::OnceLock::<egui::Context>::new());
     let source = if let Some(processes) = args.synthetic {
         DataSource::Fixture(mc_magpie::synthetic_series(60, processes), HashMap::new())
     } else {
@@ -334,7 +335,16 @@ fn main() -> eframe::Result {
                     std::process::exit(1);
                 }
             },
-            None => DataSource::Magpie,
+            None => {
+                let context = readings_context.clone();
+                DataSource::StartedMagpie(mc_magpie::MagpieClient::new(std::sync::Arc::new(
+                    move || {
+                        if let Some(ctx) = context.get() {
+                            ctx.request_repaint_after(Duration::from_millis(1));
+                        }
+                    },
+                )))
+            }
         }
     };
 
@@ -410,6 +420,9 @@ fn main() -> eframe::Result {
         mc_ui::APP_NAME,
         native,
         Box::new(move |cc| {
+            // A snapshot published before this point remains in LatestSlot and is consumed by
+            // the initial logic pass; later completions wake the attached context normally.
+            let _ = readings_context.set(cc.egui_ctx.clone());
             let _profile = mc_magpie::profile::Span::new(mc_magpie::profile::Phase::AppInit);
             #[cfg(feature = "glow")]
             release_shader_compiler(cc);

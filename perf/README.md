@@ -82,6 +82,57 @@ can be redirected to a separate file under `target/diagnostic/`.
 
 ## Method
 
+### Native startup (2026-10-17)
+
+Warm-cache comparison against `3e6ea5f` (v1.2.37), five alternating before/after launches on
+one Intel Core i5-14600KF host (20 logical processors, ~554 processes, 32 GiB RAM), openSUSE,
+KDE Wayland 6.7.5, glow. Both UI and matching daemon were built with Rust 1.96.1,
+`--locked --release --no-default-features --features diagnostic-profile` (UI additionally `glow`).
+Every UI used its matching sibling daemon, `--no-config --bench-seconds 1`; no persistent daemon,
+root helper, cache dropping or fake/stored readings. No performance threshold is a CI assertion.
+
+| From process spawn | Before, median (range), ms | After, median (range), ms |
+|---|---:|---:|
+| First top-level Wayland buffer attach | 86.79 (64.64–92.35) | 51.42 (46.59–57.38) |
+| First published CPU/memory/process snapshot | 299.52 (274.52–324.46) | 77.93 (68.00–83.11) |
+| First snapshot applied to UI | not instrumented | 78.63 (69.29–84.42) |
+| Disk/GPU inventories both ready | not instrumented | 326.25 (315.29–330.23) |
+
+The window measurement is the first non-null buffer attached to the `wl_surface` identified by
+`get_xdg_surface`, not the cursor surface, nor proof of compositor presentation. Collection and
+apply timestamps are received diagnostic stderr lines; pipe/scheduling delay is included. These
+are warm process launches, **not** cold-boot/storage-cache results or a guarantee for other drivers.
+
+Reproduce with immutable before/after binaries and matching daemon siblings:
+
+```sh
+python3 -B support/measure-startup.py /path/to/before/taskmanager /path/to/after/taskmanager --repeats 5
+```
+
+The script streams stderr with a 15 s wall-clock limit per launch, prints timing-only JSON lines
+and medians, rejects missing primary measurements and nonzero exits, and does not save raw
+Wayland traffic or private process data. Missing new diagnostic markers remain `null` on the
+baseline rather than being inferred from another phase.
+
+Startup now overlaps collection with window creation, runs the six existing fontconfig lookups
+concurrently without changing font selection, connects without an unconditional 150 ms sleep,
+and publishes core readings before slow disk/driver discovery. Application names/PIDs are
+published before icon resolution; GTK icon theme is resolved once per nonempty batch. The
+existing bounded worker pool initializes GPU discovery lazily. About identity is collected once
+on that pool, with nonblocking cache reads instead of package-manager subprocesses on the IPC
+thread. Optional `ready` wire fields distinguish pending inventory/identity from completed empty
+data; old daemons and recorded fixtures retain their legacy completed behavior. Startup never
+overwrites the user's missing-yet device selection merely because a worker is still running.
+
+Three bounded follow-up reads at 100/250/500 ms after connection fill late device/icon caches
+and request short-interval counter deltas; afterwards the configured refresh interval resumes.
+CPU counters are seeded from `/proc/stat` instead of reporting the boot-lifetime average, and
+unchanged counters yield finite zero. Process normalization reads CPU count first. This does not
+make rate counters instantaneous: process/disk/network/GPU rates need successive observations,
+and optional sources can take longer than this warmup. No stale persistent snapshot is shown as
+live data. Slow system-bus constructors, SMBIOS reads, fontconfig and CPU topology still depend
+on the host; this work does not impose a universal hard startup deadline on every collector.
+
 Each run uses a fresh virtual KWin with `--no-lockscreen`: this isolates benchmark frame
 callbacks from the host session's screen locker without unlocking or reconfiguring that session.
 

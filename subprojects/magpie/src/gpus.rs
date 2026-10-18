@@ -31,11 +31,17 @@ pub fn handle_request() -> nng::Buffer {
     let start = Instant::now();
 
     let cache = data_cache();
+    // Read the monotonic readiness flag first: never label a pre-publication map as ready
+    // if the first worker completes between these two observations.
+    let ready = cache.gpus_ready();
     let gpus = cache.gpus();
 
     let response = Response {
         body: Some(ResponseBody::Gpus(GpusResponse {
-            response: Some(GpusResponseKind::Gpus(GpuMap { gpus })),
+            response: Some(GpusResponseKind::Gpus(GpuMap {
+                gpus,
+                ready: Some(ready),
+            })),
         })),
     };
     let mut buffer = nng::Buffer::new(response.encoded_len());

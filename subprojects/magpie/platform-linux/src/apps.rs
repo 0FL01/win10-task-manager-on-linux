@@ -135,16 +135,16 @@ impl magpie_platform::apps::AppCache for AppCache {
             "PERF: Refreshed process information in {:?}",
             start.elapsed()
         );
-
-        if !self.unresolved_icons.is_empty() {
-            self.refresh_icons();
-        }
     }
 
     fn refresh_icons(&mut self) {
         let mut icons = Span::new(Phase::AppsIcons);
         icons.items(self.unresolved_icons.len());
         let start = std::time::Instant::now();
+
+        // Resolve once for this batch, not by spawning gsettings for every icon.
+        let theme = (!self.unresolved_icons.is_empty())
+            .then(|| default_theme_gtk().unwrap_or_else(|| "hicolor".into()));
 
         for (appid, icon) in self.unresolved_icons.drain() {
             // We can't access `/snap` when packaged as a Snap, we can go through the hostfs though.
@@ -172,7 +172,7 @@ impl magpie_platform::apps::AppCache for AppCache {
                     .force_svg()
                     .with_cache()
                     .with_size(64)
-                    .with_theme(&default_theme_gtk().unwrap_or("hicolor".to_string()))
+                    .with_theme(theme.as_deref().unwrap_or("hicolor"))
                     .find();
 
                 let svgfile = svgpath.as_ref().and_then(|path| std::fs::read(path).ok());

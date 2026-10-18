@@ -604,19 +604,22 @@ fn main() -> magpie_platform::Result<()> {
             std::thread::scope(|s| {
                 s.spawn(|| data_cache.refresh_cpu());
                 s.spawn(|| data_cache.refresh_memory());
-                s.spawn(|| data_cache.refresh_processes());
+                s.spawn(|| {
+                    data_cache.refresh_processes();
+                    // Application matching needs this first process map, but not disks/network.
+                    data_cache.refresh_apps_async();
+                });
                 s.spawn(|| data_cache.refresh_batteries());
-                s.spawn(|| data_cache.refresh_disks());
                 s.spawn(|| data_cache.refresh_network());
                 s.spawn(|| data_cache.refresh_fans());
             });
 
-            // These have a tendency to take a long time, just start the refresh and let it
-            // run in the background.
-            data_cache.refresh_apps_async();
+            // Publish the small core sample first, then discover slower domains on existing
+            // workers. Starting driver/fdinfo probes earlier competes with the initial /proc
+            // scan and delays both its data and the GUI's first frame.
             data_cache.refresh_gpus_async();
             data_cache.refresh_services_async();
-
+            data_cache.refresh_disks_async();
             let _ = done_tx.send(());
         });
 

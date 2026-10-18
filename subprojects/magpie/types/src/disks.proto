@@ -170,6 +170,8 @@ message DisksResponse {
     repeated Disk disks = 1;
     // Only fresh, automatically collected data; missing means unavailable.
     map<string, SmartData> smart_data = 2;
+    // Absent on legacy daemons; false distinguishes startup from an empty inventory.
+    optional bool ready = 3;
   }
 
   message OptionalSmartData {

@@ -263,6 +263,10 @@ fn magpie_command(socket_addr: &str) -> std::process::Command {
 }
 
 fn connect_socket(socket: &mut nng_c::Socket, socket_addr: &str) -> bool {
+    connect_socket_with_log(socket, socket_addr, false)
+}
+
+fn connect_socket_with_log(socket: &mut nng_c::Socket, socket_addr: &str, starting: bool) -> bool {
     let _ = socket.close();
     socket.id = 0;
 
@@ -301,7 +305,11 @@ fn connect_socket(socket: &mut nng_c::Socket, socket_addr: &str) -> bool {
                 nng::NNG_EUNREACHABLE => "The remote address is not reachable".to_string(),
                 _ => format!("Unknown error: {error_code}"),
             };
-            g_critical!("TaskManager::Gatherer", "Failed to dial socket: {msg}");
+            if starting && error_code == nng::NNG_ECONNREFUSED {
+                log::debug!(target: "TaskManager::Gatherer", "Waiting for daemon socket: {msg}");
+            } else {
+                g_critical!("TaskManager::Gatherer", "Failed to dial socket: {msg}");
+            }
             false
         }
     }
@@ -639,18 +647,19 @@ impl Client {
                 start_magpie_process_thread(self.socket_addr.clone(), self.stop_requested.clone());
         }
 
-        const START_WAIT_TIME_MS: u64 = 300;
-        const RETRY_COUNT: i32 = 50;
-
-        // Let the child process start up
-        for _ in 0..RETRY_COUNT {
-            std::thread::sleep(Duration::from_millis(START_WAIT_TIME_MS / 2));
-
-            if connect_socket(&mut *self.socket.borrow_mut(), &self.socket_addr) {
+        // The socket can already be ready (especially an externally supplied daemon).
+        // Keep the existing 15 s startup budget, but do not impose a successful-path sleep.
+        let deadline = std::time::Instant::now() + Duration::from_secs(15);
+        let mut retry_delay = Duration::from_millis(5);
+        loop {
+            if connect_socket_with_log(&mut self.socket.borrow_mut(), &self.socket_addr, true) {
                 return;
             }
-
-            std::thread::sleep(Duration::from_millis(START_WAIT_TIME_MS / 2));
+            let Some(remaining) = deadline.checked_duration_since(std::time::Instant::now()) else {
+                break;
+            };
+            std::thread::sleep(remaining.min(retry_delay));
+            retry_delay = (retry_delay * 2).min(Duration::from_millis(100));
         }
 
         show_error_dialog_and_exit("Failed to connect to Gatherer socket");
@@ -884,7 +893,7 @@ impl Client {
         )
     }
 
-    pub fn gpus(&self) -> HashMap<String, Gpu> {
+    pub fn gpus_snapshot(&self) -> GpuMap {
         let mut socket = self.socket.borrow_mut();
 
         let response = make_request(ipc::req_get_gpus(), &mut socket, self.socket_addr.as_ref())
@@ -895,7 +904,7 @@ impl Client {
             ResponseBody::Gpus,
             GpusResponse::Gpus,
             GpusResponse::Error,
-            |mut gpus: GpuMap| { std::mem::take(&mut gpus.gpus) }
+            |gpus: GpuMap| gpus
         )
     }
 

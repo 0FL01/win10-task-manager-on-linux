@@ -56,9 +56,25 @@ impl Ticks {
         *self = new_ticks;
 
         let total = (used + kernel + idle) as f32;
+        if total == 0. {
+            return (0., 0.);
+        }
         (
             (used + kernel) as f32 / total * 100.0,
             kernel as f32 / total * 100.0,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn unchanged_counters_are_finite_and_deltas_are_not_boot_averages() {
+        let mut ticks = Ticks::default();
+        let baseline = "cpu 100 0 0 900 0 0 0 0 0 0";
+        ticks.update(baseline);
+        assert_eq!(ticks.update(baseline), (0., 0.));
+        assert_eq!(ticks.update("cpu 120 0 0 920 0 0 0 0 0 0"), (50., 0.));
     }
 }
