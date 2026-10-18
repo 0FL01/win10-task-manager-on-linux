@@ -84,12 +84,19 @@ can be redirected to a separate file under `target/diagnostic/`.
 
 ### Native startup (2026-10-17)
 
-Warm-cache comparison against `3e6ea5f` (v1.2.37), five alternating before/after launches on
+Historical warm-cache comparison of PR #4 head `37fdadb` against `3e6ea5f` (v1.2.37),
+five alternating before/after launches on
 one Intel Core i5-14600KF host (20 logical processors, ~554 processes, 32 GiB RAM), openSUSE,
 KDE Wayland 6.7.5, glow. Both UI and matching daemon were built with Rust 1.96.1,
 `--locked --release --no-default-features --features diagnostic-profile` (UI additionally `glow`).
 Every UI used its matching sibling daemon, `--no-config --bench-seconds 1`; no persistent daemon,
 root helper, cache dropping or fake/stored readings. No performance threshold is a CI assertion.
+
+That PR revision started collection before native window/renderer initialization. The corrected
+implementation creates the client inside the native app creator instead, so a native initialization
+failure before the creator runs has no live client to tear down. The figures below measure the
+original PR, **not** this corrected implementation; the contribution of early overlap was not
+measured separately.
 
 | From process spawn | Before, median (range), ms | After, median (range), ms |
 |---|---:|---:|
@@ -114,8 +121,8 @@ and medians, rejects missing primary measurements and nonzero exits, and does no
 Wayland traffic or private process data. Missing new diagnostic markers remain `null` on the
 baseline rather than being inferred from another phase.
 
-Startup now overlaps collection with window creation, runs the six existing fontconfig lookups
-concurrently without changing font selection, connects without an unconditional 150 ms sleep,
+Startup runs the six existing fontconfig lookups concurrently without changing font selection,
+connects without an unconditional 150 ms sleep,
 and publishes core readings before slow disk/driver discovery. Application names/PIDs are
 published before icon resolution; GTK icon theme is resolved once per nonempty batch. The
 existing bounded worker pool initializes GPU discovery lazily. About identity is collected once
