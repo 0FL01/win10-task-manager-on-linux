@@ -38,6 +38,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - Translatable strings use `mc_core::i18n::{i18n, i18n_f, ni18n_f, ...}` with msgids identical to the GTK app (see `docs/port-spec/`); mnemonic underscores are part of the msgid, strip them for display with `strip_mnemonic`.
 - No `Arc<Mutex<AppState>>`; views mutate state through `Cx` and typed `Command`s.
 - Recorded fixtures (`--dump-readings`) contain private process data: keep them under `testkit/fixtures/live/` (git-ignored). Tests use `mc_magpie::synthetic_series`.
+- Start nested compositors only after establishing an owned private session bus and private HOME/XDG/runtime boundary, including in ad-hoc ignored scripts; `--virtual`, a separate socket or a process session is not isolation. Use supported `cargo xtask bench-idle` (`perf/README.md`).
 - Report only measured numbers (method and historical evidence in `perf/README.md`); screenshots only from real renders (`target/ui-snapshots/`).
 - Run `cargo fmt` after touching Rust code.
 

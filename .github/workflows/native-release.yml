@@ -54,8 +54,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            binutils build-essential cmake gettext libdbus-1-dev libdrm-dev libegl-dev \
-            libgbm-dev libgl-dev libudev-dev libvulkan-dev libwayland-dev libx11-dev \
+            binutils build-essential cmake dbus-bin dbus-daemon gettext libdbus-1-dev \
+            libdrm-dev libegl-dev libgbm-dev libgl-dev libudev-dev libvulkan-dev libwayland-dev libx11-dev \
             libxcb1-dev libxcursor-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev \
             lld mesa-vulkan-drivers patchelf pkg-config python3-venv
       - name: Install Rust toolchain

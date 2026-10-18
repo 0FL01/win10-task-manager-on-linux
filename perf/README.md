@@ -1,13 +1,16 @@
 # Performance measurements
 
 `cargo xtask bench-idle` measures the current egui application with the wgpu and glow renderers.
-It uses a supplied UI binary's sibling `missioncenter-magpie` when present; otherwise it prepares
-the normal Cargo-built daemon through `xtask::dist`. No GTK baseline or Meson build tree is
+It uses a supplied UI binary's sibling `missioncenter-magpie` when present; Cargo `debug`/`release`
+directories also allow the normal Cargo-built daemon through `xtask::dist`. Other layouts require
+the matching sibling daemon. No GTK baseline or Meson build tree is
 required by the current benchmark.
 
 ## Running
 
-Build the release UI, then run from a Linux session with `kwin_wayland` and `XDG_RUNTIME_DIR`:
+Build the release UI, then run on Linux with `kwin_wayland` and `dbus-daemon` available.
+No host `XDG_RUNTIME_DIR` or graphical session is required; the benchmark creates a fresh
+private runtime internally:
 
 ```sh
 cargo +1.96.1 build --locked --release -p taskmanager-app
@@ -147,11 +150,22 @@ and optional sources can take longer than this warmup. No stale persistent snaps
 live data. Slow system-bus constructors, SMBIOS reads, fontconfig and CPU topology still depend
 on the host; this work does not impose a universal hard startup deadline on every collector.
 
-Each run uses a fresh virtual KWin with `--no-lockscreen`: this isolates benchmark frame
-callbacks from the host session's screen locker without unlocking or reconfiguring that session.
+Before starting KWin, each run establishes a private `HOME`, `XDG_CONFIG_HOME`,
+`XDG_DATA_HOME`, `XDG_CACHE_HOME`, `XDG_STATE_HOME` and `XDG_RUNTIME_DIR`, with system-only
+`XDG_CONFIG_DIRS`/`XDG_DATA_DIRS`, and starts an owned private `dbus-daemon` inside that
+environment. The bus daemon, compositor, UI and magpie all inherit this boundary, with no
+fallback to the host session bus or display. A virtual compositor, separate socket or process
+session alone does not isolate the desktop.
 
-- Every run starts a fresh nested compositor (`kwin_wayland --virtual`, 1280x800) so the user's
-  desktop is not touched and an idle compositor cannot stop frame callbacks mid-run.
+Cleanup stops the UI/daemon group, then KWin, then the private bus before removing the
+temporary state. SIGINT/SIGTERM cancel the benchmark without starting another run or writing
+a completed report. Group cleanup has finite TERM/KILL observation budgets; a cleanup failure
+aborts the benchmark and retains the private directory. Process groups cover cooperating
+children, not helpers that detach into other groups or external service managers.
+
+- Every run starts a fresh nested compositor (`kwin_wayland --virtual --no-lockscreen`,
+  1280x800) inside that private session, keeping frame callbacks independent of the host screen
+  locker without unlocking or reconfiguring the host session.
 - Both renderers use the same magpie daemon with a 1 s refresh interval and the CPU page selected;
   settings are injected through temporary `taskmanager/config.toml` directories. A separate
   Processes-page scenario uses 1000 synthetic processes and no daemon.
@@ -180,15 +194,24 @@ callbacks from the host session's screen locker without unlocking or reconfiguri
 Not covered automatically: input-driven scrolling (needs input injection) and the minimized state
 (eframe skips the UI pass while hidden by design; `logic` still drains data).
 
-The UI is single-instance on the session bus: while Task Manager already runs in the session, a
-launched UI only activates that window and exits. Run measurements under `dbus-run-session` in
-that case; the system bus (system services) stays the real one.
+The UI is measured directly on the automatically created private session bus, so its
+single-instance check cannot activate an existing host UI. Wrapping only the UI in
+`dbus-run-session` would not isolate a compositor started earlier. The system bus and hardware
+intentionally remain real; host user-systemd services are not visible on the private session bus,
+and the backend supports running without those services.
+
+Private HOME/XDG directories exclude host user fonts, icons, application entries and config;
+system resources remain available, but selection and workload can differ. Shader/font caches
+start fresh in the private directories. New before/after comparisons must use the same isolation
+conditions; this is neither a cold machine-cache benchmark nor a sandbox against hostile
+processes running as the same UID.
 
 ## Memory footprint (2026-10-13)
 
 Release builds of `10562c3` (before) and the memory work (after), one host (16 threads, ~620
 processes, ~530 system units, AMD radeonsi/glow), nested `kwin_wayland --virtual` 1280x800,
-private session bus, live daemon, 1 s updates. `RssAnon`/`RssFile` from `/proc/<pid>/status`
+private session bus for the UI/daemon only in the inspected old memory harness, not proof of
+compositor isolation; live daemon, 1 s updates. `RssAnon`/`RssFile` from `/proc/<pid>/status`
 after ≥80 s; CPU from `/proc/<pid>/stat` over the window after a 10 s warm-up, relative to one
 core. Peak heap from `heaptrack --record-only` (120 s, Processes page).
 
@@ -212,7 +235,8 @@ per-process file mapping lists for the shared-memory estimate, and system font b
 ## Memory footprint, second pass (2026-10-17)
 
 Release builds (with debug info, not stripped) of `743ef7c` (before) and this work (after),
-same host and setup as above: nested `kwin_wayland --virtual` 1280x800, private session bus,
+same host and setup as above: nested `kwin_wayland --virtual` 1280x800, private session bus for
+the UI/daemon only in the inspected old memory harness, not proof of compositor isolation;
 live daemon, 1 s updates, glow unless noted. `RssAnon`/`RssFile` from `/proc/<pid>/status`
 and PSS from `smaps_rollup` after 80 s, 3 runs per row (wgpu: 2), shown as ranges. Peak heap from
 `heaptrack --record-only` (120 s, Processes page).

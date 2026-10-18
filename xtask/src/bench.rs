@@ -6,19 +6,23 @@
  */
 
 //! `cargo xtask bench-idle`: compares idle resource usage of the wgpu and glow renderers
-//! inside a nested virtual KWin compositor, so the user's desktop is not disturbed.
+//! inside a nested virtual KWin with a private session bus and HOME/XDG state.
 
 use std::collections::HashMap;
 use std::fs;
-use std::os::unix::process::CommandExt;
+use std::io::Write;
+use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
-use std::thread::sleep;
+use std::process::{Command, Stdio};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::{dist, root};
 
-const SOCKET_PREFIX: &str = "wayland-mcbench";
+mod session;
+
+use session::{Cancellation, ManagedChild, PrivateSession};
+
+const SOCKET_NAME: &str = "wayland-0";
 const MEMORY_INTERVAL: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
@@ -96,44 +100,16 @@ struct DaemonIdentity {
     start_time: u64,
 }
 
-/// Own spawned processes through every early-return path, including socket startup failures.
-struct ManagedChild {
-    child: Child,
-    descendants: Vec<u32>,
+#[derive(Debug)]
+enum RunError {
+    Invalid(String),
+    // Isolation/cleanup failures must not be retried as ordinary discarded samples.
+    Fatal(String),
 }
 
-impl ManagedChild {
-    fn new(child: Child) -> Self {
-        Self {
-            child,
-            descendants: vec![],
-        }
-    }
-}
-
-impl Drop for ManagedChild {
-    fn drop(&mut self) {
-        self.descendants.extend(children(self.child.id()));
-        self.descendants.sort_unstable();
-        self.descendants.dedup();
-        // A separate process group also catches children orphaned before warmup completes.
-        let _ = Command::new("kill")
-            .args(["-TERM", "--"])
-            .arg(format!("-{}", self.child.id()))
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
-        let _ = self.child.kill();
-        for pid in &self.descendants {
-            if Path::new(&format!("/proc/{pid}")).exists() {
-                let _ = Command::new("kill")
-                    .arg(pid.to_string())
-                    .stdout(Stdio::null())
-                    .stderr(Stdio::null())
-                    .status();
-            }
-        }
-        let _ = self.child.wait();
+impl From<String> for RunError {
+    fn from(error: String) -> Self {
+        Self::Invalid(error)
     }
 }
 
@@ -305,46 +281,52 @@ fn vram_kib(pid: u32) -> Option<u64> {
     (!clients.is_empty()).then(|| clients.values().sum())
 }
 
-fn wait_for_socket(path: &Path, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
-        if path.exists() {
-            return true;
+fn wait_for_socket(
+    child: &ManagedChild,
+    path: &Path,
+    timeout: Duration,
+    cancel: &Cancellation,
+) -> Result<(), String> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        cancel.check()?;
+        if let Some(status) = child.status()? {
+            return Err(format!(
+                "nested compositor exited before readiness: {status}"
+            ));
         }
-        sleep(Duration::from_millis(100));
+        if fs::symlink_metadata(path).is_ok_and(|m| m.file_type().is_socket()) {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            return Err("nested compositor did not create its private socket".into());
+        }
+        cancel.wait(
+            Duration::from_millis(50).min(deadline.saturating_duration_since(Instant::now())),
+        )?;
     }
-    false
 }
 
 /// A fresh nested compositor per run: a long-lived idle KWin eventually stops frame callbacks
 /// (idle/DPMS), which would make clients look hidden and skew the measurement.
-fn start_compositor(socket_name: &str) -> Result<ManagedChild, String> {
-    let runtime = std::env::var("XDG_RUNTIME_DIR").map_err(|_| "XDG_RUNTIME_DIR not set")?;
-    let socket = PathBuf::from(runtime).join(socket_name);
-    let _ = fs::remove_file(&socket);
-    let child = ManagedChild::new(
-        Command::new("kwin_wayland")
-            .args([
-                "--virtual",
-                "--no-lockscreen",
-                "--socket",
-                socket_name,
-                "--width",
-                "1280",
-                "--height",
-                "800",
-            ])
-            .stdout(Stdio::null())
-            // Keep startup errors visible instead of reporting them as absent frames.
-            .stderr(Stdio::inherit())
-            .process_group(0)
-            .spawn()
-            .map_err(|e| format!("failed to start kwin_wayland: {e}"))?,
-    );
-    if !wait_for_socket(&socket, Duration::from_secs(15)) {
-        return Err("nested compositor did not create its socket".into());
-    }
-    Ok(child)
+fn compositor_command(session: &PrivateSession) -> Command {
+    let mut command = Command::new("kwin_wayland");
+    session.apply(&mut command);
+    command
+        .args([
+            "--virtual",
+            "--no-lockscreen",
+            "--socket",
+            SOCKET_NAME,
+            "--width",
+            "1280",
+            "--height",
+            "800",
+        ])
+        .stdout(Stdio::null())
+        // Keep startup errors visible instead of reporting them as absent frames.
+        .stderr(Stdio::inherit());
+    command
 }
 
 fn write_egui_settings(dir: &Path, page: &str) -> std::io::Result<()> {
@@ -366,13 +348,34 @@ fn run_once(
     page: &str,
     synthetic: Option<usize>,
     tck: f64,
-    tag: &str,
-) -> Result<Sample, String> {
-    let tmp = std::env::temp_dir().join(format!("mc-bench-{tag}-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&tmp);
-    fs::create_dir_all(&tmp).map_err(|e| e.to_string())?;
-    let stats = tmp.join("stats.txt");
-    let total = opts.warmup + opts.seconds + 2;
+    cancel: &Cancellation,
+) -> Result<Sample, RunError> {
+    cancel.check()?;
+    let mut session = PrivateSession::new(cancel).map_err(RunError::Fatal)?;
+    let result = (|| {
+        write_egui_settings(session.config_home(), page).map_err(|e| e.to_string())?;
+        run_in_session(opts, backend, variant, synthetic, tck, &session, cancel)
+    })();
+    if matches!(result, Err(RunError::Fatal(_))) {
+        session.preserve();
+    }
+    session.shutdown().map_err(RunError::Fatal)?;
+    result
+}
+
+fn ui_command(
+    opts: &Options,
+    backend: &Backend,
+    variant: Variant,
+    synthetic: Option<usize>,
+    session: &PrivateSession,
+) -> Result<Command, String> {
+    let stats = session.root().join("stats.txt");
+    let total = opts
+        .warmup
+        .checked_add(opts.seconds)
+        .and_then(|n| n.checked_add(2))
+        .ok_or("benchmark duration overflow")?;
 
     let magpie_dir = backend
         .daemon
@@ -384,12 +387,13 @@ fn run_once(
         std::env::var("PATH").unwrap_or_default()
     );
 
-    write_egui_settings(&tmp, page).map_err(|e| e.to_string())?;
     let (bin, renderer) = match variant {
         Variant::EguiWgpu => (&opts.egui, "wgpu"),
         Variant::EguiGlow => (&opts.egui_glow, "glow"),
     };
-    let mut cmd = Command::new(bin);
+    // Use the same executable that prepare_backend resolved, not PATH search for a bare name.
+    let mut cmd = Command::new(fs::canonicalize(bin).map_err(|e| e.to_string())?);
+    session.apply(&mut cmd);
     cmd.arg("--renderer")
         .arg(renderer)
         .arg("--bench-seconds")
@@ -399,9 +403,7 @@ fn run_once(
     if let Some(n) = synthetic {
         cmd.arg("--synthetic").arg(n.to_string());
     }
-    cmd.env_remove("DISPLAY")
-        .env("XDG_CONFIG_HOME", &tmp)
-        .env("PATH", path)
+    cmd.env("PATH", path)
         .env("MC_MAGPIE_HW_DB", &backend.hwdb)
         .stdout(Stdio::null())
         .stderr(Stdio::inherit());
@@ -409,51 +411,82 @@ fn run_once(
         cmd.env("MC_LOCALEDIR", locale);
     }
 
-    let socket_name = format!("{SOCKET_PREFIX}-{tag}");
-    let compositor = start_compositor(&socket_name)?;
-    cmd.env("WAYLAND_DISPLAY", &socket_name);
+    cmd.env("WAYLAND_DISPLAY", SOCKET_NAME);
+    Ok(cmd)
+}
 
-    let result = measure(
-        opts,
-        variant,
-        &mut cmd,
-        &stats,
-        &backend.daemon,
-        synthetic.is_none(),
-        tck,
-    );
-    drop(compositor);
-
-    let mut sample = result?;
-    if sample.frames.unwrap_or(0) == 0 {
-        return Err("egui rendered no frames (window not visible); run discarded".into());
-    }
-    sample.valid = true;
-    let _ = fs::remove_dir_all(&tmp);
-    Ok(sample)
+fn run_in_session(
+    opts: &Options,
+    backend: &Backend,
+    variant: Variant,
+    synthetic: Option<usize>,
+    tck: f64,
+    session: &PrivateSession,
+    cancel: &Cancellation,
+) -> Result<Sample, RunError> {
+    let mut cmd = ui_command(opts, backend, variant, synthetic, session)?;
+    cancel.check()?;
+    let mut compositor = ManagedChild::spawn(&mut compositor_command(session))?;
+    let result = (|| {
+        wait_for_socket(
+            &compositor,
+            &session.runtime_dir().join(SOCKET_NAME),
+            Duration::from_secs(15),
+            cancel,
+        )?;
+        cancel.check()?;
+        let mut sample = measure(
+            opts,
+            &mut cmd,
+            &session.root().join("stats.txt"),
+            &backend.daemon,
+            synthetic.is_none(),
+            tck,
+            cancel,
+        )?;
+        if sample.frames.unwrap_or(0) == 0 {
+            return Err(RunError::Invalid(
+                "egui rendered no frames (window not visible); run discarded".into(),
+            ));
+        }
+        sample.valid = true;
+        Ok(sample)
+    })();
+    compositor.shutdown().map_err(RunError::Fatal)?;
+    result
 }
 
 fn measure(
     opts: &Options,
-    variant: Variant,
     cmd: &mut Command,
     stats: &Path,
     daemon_binary: &Path,
     live: bool,
     tck: f64,
+    cancel: &Cancellation,
+) -> Result<Sample, RunError> {
+    cancel.check()?;
+    let mut child = ManagedChild::spawn(cmd)?;
+    let result = measure_child(opts, &child, stats, daemon_binary, live, tck, cancel);
+    child.shutdown().map_err(RunError::Fatal)?;
+    result.map_err(RunError::Invalid)
+}
+
+fn measure_child(
+    opts: &Options,
+    child: &ManagedChild,
+    stats: &Path,
+    daemon_binary: &Path,
+    live: bool,
+    tck: f64,
+    cancel: &Cancellation,
 ) -> Result<Sample, String> {
-    let mut child = ManagedChild::new(
-        cmd.process_group(0)
-            .spawn()
-            .map_err(|e| format!("spawn {}: {e}", variant.name()))?,
-    );
-    let pid = child.child.id();
-    sleep(Duration::from_secs(opts.warmup));
-    if let Ok(Some(status)) = child.child.try_wait() {
-        return Err(format!("{} exited during warmup: {status}", variant.name()));
+    let pid = child.id();
+    cancel.wait(Duration::from_secs(opts.warmup))?;
+    if let Some(status) = child.status()? {
+        return Err(format!("UI exited during warmup: {status}"));
     }
 
-    child.descendants = children(pid);
     let ui0 = proc_stat(pid).ok_or("app exited during warmup")?;
     let daemon0 = live.then(|| find_daemon(pid, daemon_binary)).flatten();
     let d0 = daemon0
@@ -469,12 +502,9 @@ fn measure(
     let end = t0 + Duration::from_secs(opts.seconds);
     let mut next = (t0 + MEMORY_INTERVAL).min(end);
     let (ui1, d1, elapsed) = loop {
-        sleep(next.saturating_duration_since(Instant::now()));
-        if let Ok(Some(status)) = child.child.try_wait() {
-            return Err(format!(
-                "{} exited during measurement: {status}",
-                variant.name()
-            ));
+        cancel.wait(next.saturating_duration_since(Instant::now()))?;
+        if let Some(status) = child.status()? {
+            return Err(format!("UI exited during measurement: {status}"));
         }
         let ui = proc_stat(pid).ok_or("app exited during measurement")?;
         let daemon = live.then(|| find_daemon(pid, daemon_binary)).flatten();
@@ -518,18 +548,7 @@ fn measure(
         ..Default::default()
     };
 
-    let deadline = Instant::now() + Duration::from_secs(10);
-    loop {
-        if let Ok(Some(_)) = child.child.try_wait() {
-            break;
-        }
-        if Instant::now() > deadline {
-            let _ = child.child.kill();
-            let _ = child.child.wait();
-            break;
-        }
-        sleep(Duration::from_millis(100));
-    }
+    wait_for_success(child, Duration::from_secs(10), cancel)?;
     {
         let text = fs::read_to_string(stats).map_err(|e| {
             format!(
@@ -547,6 +566,30 @@ fn measure(
         sample.readings = get("readings_applied").and_then(|v| v.parse().ok());
     }
     Ok(sample)
+}
+
+fn wait_for_success(
+    child: &ManagedChild,
+    timeout: Duration,
+    cancel: &Cancellation,
+) -> Result<(), String> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        cancel.check()?;
+        if let Some(status) = child.status()? {
+            return if status.success() {
+                Ok(())
+            } else {
+                Err(format!("UI exited unsuccessfully: {status}"))
+            };
+        }
+        if Instant::now() >= deadline {
+            return Err("UI did not exit normally before the deadline; run discarded".into());
+        }
+        cancel.wait(
+            Duration::from_millis(50).min(deadline.saturating_duration_since(Instant::now())),
+        )?;
+    }
 }
 
 fn median(mut v: Vec<f64>) -> f64 {
@@ -637,18 +680,27 @@ fn prepare_backend(
     default_daemon: &mut Option<PathBuf>,
     default_hwdb: &mut Option<PathBuf>,
 ) -> Result<Backend, String> {
-    let daemon = if let Some(sibling) = sibling_daemon(binary) {
+    let binary = fs::canonicalize(binary).map_err(|e| e.to_string())?;
+    let directory = binary.parent().ok_or("UI binary has no parent directory")?;
+    let daemon = if let Some(sibling) = sibling_daemon(&binary) {
         sibling
     } else {
+        if !directory
+            .file_name()
+            .is_some_and(|n| n == "debug" || n == "release")
+        {
+            return Err(format!(
+                "{} requires a sibling missioncenter-magpie; PATH fallback is only supported in Cargo debug/release directories",
+                binary.display()
+            ));
+        }
         if default_daemon.is_none() {
             *default_daemon = Some(dist::magpie_binary(root)?);
         }
         fs::canonicalize(default_daemon.as_ref().unwrap()).map_err(|e| e.to_string())?
     };
-    let prefix = fs::canonicalize(binary)
-        .map_err(|e| e.to_string())?
+    let prefix = directory
         .parent()
-        .and_then(Path::parent)
         .ok_or("UI binary has no bundle prefix")?
         .to_path_buf();
     let bundled_hwdb = prefix.join("share/missioncenter/hw.db");
@@ -677,6 +729,7 @@ fn prepare_backend(
 
 pub fn bench_idle(args: &[String]) -> Result<(), String> {
     let opts = parse(args)?;
+    let cancel = Cancellation::install()?;
     for p in [&opts.egui, &opts.egui_glow] {
         if !p.exists() {
             return Err(format!("missing binary {}", p.display()));
@@ -694,6 +747,7 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
             &mut default_hwdb,
         )?,
     ];
+    cancel.check()?;
     let tck = clk_tck();
 
     let mut rows: Vec<Row> = vec![];
@@ -721,22 +775,10 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
                 Variant::EguiWgpu => 0,
                 Variant::EguiGlow => 1,
             }];
-            let mut samples = vec![];
-            for r in 0..opts.repeats {
+            let samples = collect_samples(opts.repeats, &cancel, |r| {
                 eprintln!("[bench] {scenario} / {} / run {}", variant.name(), r + 1);
-                match run_once(
-                    &opts,
-                    backend,
-                    *variant,
-                    page,
-                    *synthetic,
-                    tck,
-                    &format!("{}-{r}", variant.name()),
-                ) {
-                    Ok(s) => samples.push(s),
-                    Err(e) => eprintln!("[bench] run failed: {e}"),
-                }
-            }
+                run_once(&opts, backend, *variant, page, *synthetic, tck, &cancel)
+            })?;
             rows.push(Row {
                 scenario: scenario.clone(),
                 variant: *variant,
@@ -746,15 +788,42 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
         }
     }
 
-    write_report(&opts, &rows)
+    cancel.check()?;
+    write_report(&opts, &rows, &cancel)
 }
 
-fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
+fn collect_samples(
+    repeats: usize,
+    cancel: &Cancellation,
+    mut run: impl FnMut(usize) -> Result<Sample, RunError>,
+) -> Result<Vec<Sample>, String> {
+    let mut samples = vec![];
+    for r in 0..repeats {
+        cancel.check()?;
+        match run(r) {
+            Err(RunError::Fatal(error)) => return Err(error),
+            Ok(sample) => {
+                cancel.check()?;
+                samples.push(sample);
+            }
+            Err(RunError::Invalid(error)) => {
+                cancel.check()?;
+                eprintln!("[bench] run failed: {error}");
+            }
+        }
+    }
+    Ok(samples)
+}
+
+fn write_report(opts: &Options, rows: &[Row], cancel: &Cancellation) -> Result<(), String> {
+    cancel.check()?;
     let mut md = String::new();
     md.push_str(&format!(
         "# Idle benchmark (generated by `cargo xtask bench-idle`)\n\n\
          Nested `kwin_wayland --virtual --no-lockscreen` 1280x800, refresh interval 1 s, warmup {} s, measurement {} s, {} repeats, medians shown.\n\
+         Each run has a private session bus and fresh HOME/XDG state, including runtime/config/data/cache. Host user-systemd services and user fonts/app entries may be absent; system bus and GPU remain real. This is not a cold-machine benchmark or a security sandbox.\n\
          CPU = % of one core. Daemon CPU requires the matching executable and unchanged PID/start time throughout the sampled window. Frames/readings/p95 come from the egui app itself.\n\n\
+         UI and verified daemon process measurements exclude KWin, the private bus and their helpers.\n\n\
           Runs without rendered frames are discarded; `valid` = kept runs. Rows with no valid runs make the benchmark fail after saving this report.\n\n\
          UI wgpu: `{}`; UI glow: `{}`. These binaries are used as supplied, without rebuilding the UI.\n\
          RUST_LOG: `{}`.\n\n",
@@ -763,6 +832,7 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
         std::env::var("RUST_LOG").unwrap_or_default(),
     ));
     for row in rows.iter().filter(|r| r.daemon.is_some()) {
+        cancel.check()?;
         md.push_str(&format!(
             "- {} / {} daemon: `{}`\n",
             row.scenario,
@@ -772,6 +842,7 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
     }
     md.push_str("\n| scenario | variant | valid | UI CPU % | daemon CPU % | GPU mem MiB | frames/reading | UI pass p95 ms |\n|---|---|---|---|---|---|---|---|\n");
     for row in rows {
+        cancel.check()?;
         let s = &row.samples;
         let frames_per_reading = median_text(
             s.iter().filter_map(|x| match (x.frames, x.readings) {
@@ -801,6 +872,7 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
     }
     md.push_str("\n## Process memory (MiB)\n\nExternal RSS/PSS samples at measurement start, every 10 s, and measurement end. Final values and maximum observed values are distinct; the sampled maximum is not an absolute peak. `n/a` means absent/unreadable, including the synthetic scenario's daemon. RSS falls back to VmRSS when smaps_rollup is unavailable; PSS has no fallback. Each summary component is the median of available run values.\n\n| scenario | variant | UI final RSS / PSS | UI maximum observed RSS / PSS | daemon final RSS / PSS | daemon maximum observed RSS / PSS |\n|---|---|---|---|---|---|\n");
     for row in rows {
+        cancel.check()?;
         let pair = |daemon, maximum| {
             let memories: Vec<_> = row
                 .samples
@@ -840,6 +912,7 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
     }
     md.push_str("\n### Individual memory observations\n\nSeconds are relative to the post-warmup measurement start.\n\n| scenario | variant | run | seconds | UI RSS MiB | UI PSS MiB | daemon RSS MiB | daemon PSS MiB |\n|---|---|---|---|---|---|---|---|\n");
     for row in rows {
+        cancel.check()?;
         for (run, sample) in row.samples.iter().enumerate() {
             for point in &sample.memory {
                 let mib = |value: Option<u64>| {
@@ -861,10 +934,8 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
             }
         }
     }
-    if let Some(parent) = opts.out.parent() {
-        let _ = fs::create_dir_all(parent);
-    }
-    fs::write(&opts.out, &md).map_err(|e| e.to_string())?;
+    publish_report(&opts.out, &md, cancel)?;
+    cancel.check()?;
     println!("{md}");
     println!("written to {}", opts.out.display());
     let invalid: Vec<String> = rows
@@ -879,13 +950,31 @@ fn write_report(opts: &Options, rows: &[Row]) -> Result<(), String> {
             opts.out.display()
         ));
     }
+    cancel.check()
+}
+
+fn publish_report(path: &Path, report: &str, cancel: &Cancellation) -> Result<(), String> {
+    cancel.check()?;
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    let mut staged = tempfile::NamedTempFile::new_in(parent).map_err(|e| e.to_string())?;
+    staged
+        .write_all(report.as_bytes())
+        .map_err(|e| e.to_string())?;
+    // Do not truncate a previous report while constructing/writing a cancelled replacement.
+    cancel.check()?;
+    staged.persist(path).map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{BufRead, BufReader};
+    use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::net::UnixListener;
 
     fn args(values: &[&str]) -> Vec<String> {
         values.iter().map(|s| (*s).to_owned()).collect()
@@ -1103,6 +1192,24 @@ mod tests {
     }
 
     #[test]
+    fn installed_layout_requires_sibling_before_attempting_backend_build() {
+        let dir = tempfile::tempdir_in(root().join("target")).unwrap();
+        let binary = dir.path().join("taskmanager");
+        fs::write(&binary, []).unwrap();
+        let mut default_daemon = None;
+        let mut default_hwdb = None;
+        let result = prepare_backend(&binary, &root(), &mut default_daemon, &mut default_hwdb);
+        assert!(
+            result
+                .err()
+                .unwrap()
+                .contains("requires a sibling missioncenter-magpie")
+        );
+        assert!(default_daemon.is_none());
+        assert!(default_hwdb.is_none());
+    }
+
+    #[test]
     fn invalid_measurements_fail_after_saving_report() {
         let mut opts = parse(&[]).unwrap();
         let dir = std::env::temp_dir().join(format!("mc-bench-report-test-{}", std::process::id()));
@@ -1113,7 +1220,8 @@ mod tests {
             daemon: None,
             samples: vec![],
         }];
-        let error = write_report(&opts, &rows).unwrap_err();
+        let cancel = Cancellation::default();
+        let error = write_report(&opts, &rows, &cancel).unwrap_err();
         assert!(error.contains("no valid measurements"));
         assert!(error.contains("performance/cpu / egui-wgpu"));
         let report = fs::read_to_string(&opts.out).unwrap();
@@ -1131,7 +1239,7 @@ mod tests {
                 ..Default::default()
             }],
         }];
-        write_report(&opts, &rows).unwrap();
+        write_report(&opts, &rows, &cancel).unwrap();
         let report = fs::read_to_string(&opts.out).unwrap();
         assert!(report.contains("| egui-wgpu | 1/3 | 0.00 | n/a | n/a | 2.00 | n/a |"));
         assert!(report.contains("| egui-wgpu | n/a / n/a | n/a / n/a | n/a / n/a | n/a / n/a |"));
@@ -1139,33 +1247,339 @@ mod tests {
     }
 
     #[test]
-    fn managed_child_cleans_up_process_group_without_warmup_snapshot() {
-        let mut child = ManagedChild::new(
-            Command::new("sh")
-                .args(["-c", "sleep 60 >/dev/null & printf '%s\\n' \"$!\"; wait"])
-                .process_group(0)
-                .stdout(Stdio::piped())
-                .spawn()
-                .unwrap(),
-        );
-        let pid = child.child.id();
-        let mut line = String::new();
-        BufReader::new(child.child.stdout.take().unwrap())
-            .read_line(&mut line)
-            .unwrap();
-        let descendant: u32 = line.trim().parse().unwrap();
-        assert!(child.descendants.is_empty());
-        drop(child);
-        assert!(proc_stat(pid).is_none(), "spawned process was not reaped");
-        let deadline = Instant::now() + Duration::from_secs(2);
-        loop {
-            let stat = fs::read_to_string(format!("/proc/{descendant}/stat"));
-            if stat.is_err() || stat.is_ok_and(|s| s[s.rfind(')').unwrap() + 2..].starts_with('Z'))
-            {
-                break;
-            }
-            assert!(Instant::now() < deadline, "descendant is still running");
-            sleep(Duration::from_millis(10));
+    fn readiness_requires_socket_and_live_child() {
+        let cancel = Cancellation::default();
+        let session = PrivateSession::new(&cancel).unwrap();
+        let path = session.runtime_dir().join(SOCKET_NAME);
+        let mut child = ManagedChild::spawn(Command::new("sleep").arg("60")).unwrap();
+        fs::write(&path, []).unwrap();
+        assert!(wait_for_socket(&child, &path, Duration::from_millis(30), &cancel).is_err());
+        fs::remove_file(&path).unwrap();
+        let _listener = UnixListener::bind(&path).unwrap();
+        wait_for_socket(&child, &path, Duration::from_millis(30), &cancel).unwrap();
+        child.shutdown().unwrap();
+        assert!(wait_for_socket(&child, &path, Duration::from_millis(30), &cancel).is_err());
+    }
+
+    #[test]
+    fn commands_share_private_state_and_ui_is_not_wrapped() {
+        let cancel = Cancellation::default();
+        let session = PrivateSession::new(&cancel).unwrap();
+        let executable = std::env::current_exe().unwrap();
+        let mut opts = parse(&[]).unwrap();
+        opts.egui = executable.clone();
+        let backend = Backend {
+            daemon: executable.clone(),
+            hwdb: session.root().join("hw.db"),
+            locale: Some(session.root().join("locale")),
+        };
+        let ui = ui_command(&opts, &backend, Variant::EguiWgpu, Some(1000), &session).unwrap();
+        let compositor = compositor_command(&session);
+        assert_eq!(ui.get_program(), executable.as_os_str());
+        for key in [
+            "HOME",
+            "XDG_CONFIG_HOME",
+            "XDG_DATA_HOME",
+            "XDG_CACHE_HOME",
+            "XDG_STATE_HOME",
+            "XDG_RUNTIME_DIR",
+            "XDG_CONFIG_DIRS",
+            "XDG_DATA_DIRS",
+            "DBUS_SESSION_BUS_ADDRESS",
+        ] {
+            let env_value = |cmd: &Command| {
+                cmd.get_envs()
+                    .find(|(k, _)| *k == key)
+                    .unwrap()
+                    .1
+                    .unwrap()
+                    .to_owned()
+            };
+            assert_eq!(env_value(&ui), env_value(&compositor), "{key}");
         }
+        assert_eq!(
+            ui.get_envs()
+                .find(|(k, _)| *k == "WAYLAND_DISPLAY")
+                .unwrap()
+                .1
+                .unwrap(),
+            SOCKET_NAME
+        );
+        assert!(
+            compositor
+                .get_envs()
+                .any(|(k, v)| k == "WAYLAND_DISPLAY" && v.is_none())
+        );
+        assert!(
+            ui.get_envs()
+                .any(|(k, v)| k == "MC_MAGPIE_HW_DB" && v == Some(backend.hwdb.as_os_str()))
+        );
+        assert!(ui.get_envs().any(
+            |(k, v)| k == "MC_LOCALEDIR" && v == backend.locale.as_deref().map(Path::as_os_str)
+        ));
+        write_egui_settings(session.config_home(), "performance-page").unwrap();
+        let config =
+            fs::read_to_string(session.config_home().join("taskmanager/config.toml")).unwrap();
+        assert!(config.contains("window-selected-page = \"performance-page\""));
+    }
+
+    #[test]
+    fn final_exit_must_be_successful_and_not_timed_out() {
+        let cancel = Cancellation::default();
+        for (script, expected) in [("exit 0", true), ("exit 7", false), ("sleep 60", false)] {
+            let mut child = ManagedChild::spawn(Command::new("sh").args(["-c", script])).unwrap();
+            let timeout = if script == "sleep 60" {
+                Duration::from_millis(30)
+            } else {
+                Duration::from_secs(2)
+            };
+            assert_eq!(
+                wait_for_success(&child, timeout, &cancel).is_ok(),
+                expected,
+                "{script}"
+            );
+            child.shutdown().unwrap();
+        }
+    }
+
+    #[test]
+    fn saved_statistics_do_not_rescue_unsuccessful_ui_exit() {
+        let dir = tempfile::tempdir_in(root().join("target")).unwrap();
+        let stats = dir.path().join("stats");
+        let mut opts = parse(&[]).unwrap();
+        opts.warmup = 0;
+        opts.seconds = 1;
+        for exit in ["exit 7", "kill -KILL $$"] {
+            let script = format!(
+                "printf 'frames=20\\nreadings_applied=2\\nui_pass_p95_ms=1\\n' > \"$1\"; sleep 2; {exit}"
+            );
+            let mut command = Command::new("sh");
+            command.args(["-c", &script, "failed-ui"]).arg(&stats);
+            let result = measure(
+                &opts,
+                &mut command,
+                &stats,
+                Path::new("unused-daemon"),
+                false,
+                100.,
+                &Cancellation::default(),
+            );
+            assert!(stats.is_file());
+            assert!(
+                matches!(result, Err(RunError::Invalid(error)) if error.contains("exited unsuccessfully"))
+            );
+        }
+    }
+
+    #[test]
+    fn cancellation_interrupts_socket_readiness() {
+        let dir = tempfile::tempdir_in(root().join("target")).unwrap();
+        let cancel = Cancellation::default();
+        let mut child = ManagedChild::spawn(Command::new("sleep").arg("60")).unwrap();
+        let start = Instant::now();
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                std::thread::sleep(Duration::from_millis(50));
+                cancel.request();
+            });
+            assert!(
+                wait_for_socket(
+                    &child,
+                    &dir.path().join("absent-socket"),
+                    Duration::from_secs(60),
+                    &cancel
+                )
+                .is_err()
+            );
+        });
+        assert!(start.elapsed() < Duration::from_secs(1));
+        child.shutdown().unwrap();
+    }
+
+    #[test]
+    fn cancelled_report_publication_keeps_previous_report() {
+        let dir = tempfile::tempdir_in(root().join("target")).unwrap();
+        let report = dir.path().join("report.md");
+        fs::write(&report, "previous report").unwrap();
+        let cancel = Cancellation::default();
+        let constructed = "completed replacement report";
+        cancel.request();
+        assert!(publish_report(&report, constructed, &cancel).is_err());
+        assert_eq!(fs::read_to_string(&report).unwrap(), "previous report");
+    }
+
+    #[test]
+    fn cancellation_interrupts_warmup_measurement_and_final_wait() {
+        for warmup in [0, 60] {
+            let cancel = Cancellation::default();
+            let mut opts = parse(&[]).unwrap();
+            opts.warmup = warmup;
+            opts.seconds = 60;
+            let start = Instant::now();
+            let result = std::thread::scope(|scope| {
+                scope.spawn(|| {
+                    std::thread::sleep(Duration::from_millis(50));
+                    cancel.request();
+                });
+                measure(
+                    &opts,
+                    Command::new("sleep").arg("60"),
+                    Path::new("unread-stats"),
+                    Path::new("unused-daemon"),
+                    false,
+                    100.,
+                    &cancel,
+                )
+            });
+            assert!(result.is_err());
+            assert!(cancel.is_cancelled());
+            assert!(start.elapsed() < Duration::from_secs(5));
+        }
+        let cancel = Cancellation::default();
+        let mut child = ManagedChild::spawn(Command::new("sleep").arg("60")).unwrap();
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                std::thread::sleep(Duration::from_millis(50));
+                cancel.request();
+            });
+            assert!(wait_for_success(&child, Duration::from_secs(60), &cancel).is_err());
+        });
+        child.shutdown().unwrap();
+    }
+
+    #[test]
+    fn cancelled_run_does_not_spawn_workload() {
+        let cancel = Cancellation::default();
+        cancel.request();
+        let opts = parse(&[]).unwrap();
+        let backend = Backend {
+            daemon: PathBuf::from("/must-not-start"),
+            hwdb: PathBuf::new(),
+            locale: None,
+        };
+        assert!(
+            run_once(
+                &opts,
+                &backend,
+                Variant::EguiGlow,
+                "apps-page",
+                Some(1),
+                100.,
+                &cancel
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn failed_compositor_child() {
+        // Only a dedicated subprocess uses the fixture-only PATH; never the test runner's PATH.
+        let Some(fixture) = std::env::var_os("MC_BENCH_COMPOSITOR_TEST_ROOT") else {
+            return;
+        };
+        let fixture = PathBuf::from(fixture);
+        let report = fixture.join("report.md");
+        let error = bench_idle(&args(&[
+            "--egui",
+            fixture.join("bin/taskmanager").to_str().unwrap(),
+            "--seconds",
+            "1",
+            "--warmup",
+            "0",
+            "--repeats",
+            "1",
+            "--out",
+            report.to_str().unwrap(),
+        ]))
+        .unwrap_err();
+        assert!(error.contains("no valid measurements"), "{error}");
+        assert!(report.is_file());
+        assert!(
+            !fixture.join("ui-started").exists(),
+            "failed compositor must prevent UI launch"
+        );
+    }
+
+    #[test]
+    fn missing_or_failed_compositor_never_starts_ui() {
+        for missing in [true, false] {
+            let fixture = tempfile::tempdir_in(root().join("target")).unwrap();
+            let fixture = fixture.path();
+            fs::create_dir_all(fixture.join("bin")).unwrap();
+            fs::create_dir_all(fixture.join("stubs")).unwrap();
+            fs::create_dir_all(fixture.join("share/missioncenter")).unwrap();
+            fs::write(fixture.join("share/missioncenter/hw.db"), []).unwrap();
+            fs::write(fixture.join("bin/missioncenter-magpie"), []).unwrap();
+            let ui = fixture.join("bin/taskmanager");
+            fs::write(&ui, "#!/bin/sh\n: > \"$MC_BENCH_TEST_UI_MARKER\"\n").unwrap();
+            fs::set_permissions(ui, fs::Permissions::from_mode(0o700)).unwrap();
+            if !missing {
+                let compositor = fixture.join("stubs/kwin_wayland");
+                fs::write(
+                    &compositor,
+                    "#!/bin/sh\n: > \"$MC_BENCH_TEST_KWIN_MARKER\"\nexit 23\n",
+                )
+                .unwrap();
+                fs::set_permissions(compositor, fs::Permissions::from_mode(0o700)).unwrap();
+            }
+            let mut command = Command::new(std::env::current_exe().unwrap());
+            command
+                .args(["--exact", "bench::tests::failed_compositor_child"])
+                .env("MC_BENCH_COMPOSITOR_TEST_ROOT", fixture)
+                .env("MC_BENCH_TEST_UI_MARKER", fixture.join("ui-started"))
+                .env("MC_BENCH_TEST_KWIN_MARKER", fixture.join("kwin-started"))
+                // Deliberately NO system PATH fallback: the real KWin must never be found.
+                .env("PATH", fixture.join("stubs"))
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+            let mut child = ManagedChild::spawn(&mut command).unwrap();
+            let result =
+                wait_for_success(&child, Duration::from_secs(20), &Cancellation::default());
+            child.shutdown().unwrap();
+            result.unwrap();
+            assert_eq!(fixture.join("kwin-started").exists(), !missing);
+            assert!(!fixture.join("ui-started").exists());
+        }
+    }
+
+    #[test]
+    fn cancellation_and_cleanup_failure_abort_instead_of_retrying() {
+        for cancel_run in [true, false] {
+            let cancel = Cancellation::default();
+            let mut started = 0;
+            let result = collect_samples(3, &cancel, |_| {
+                started += 1;
+                if cancel_run {
+                    cancel.request();
+                    Err(RunError::Invalid("cancelled sample".into()))
+                } else {
+                    Err(RunError::Fatal("cleanup failed".into()))
+                }
+            });
+            assert!(result.is_err());
+            assert_eq!(started, 1);
+        }
+        let cancel = Cancellation::default();
+        let mut started = 0;
+        let samples = collect_samples(3, &cancel, |_| {
+            started += 1;
+            Err(RunError::Invalid("ordinary invalid sample".into()))
+        })
+        .unwrap();
+        assert_eq!(started, 3);
+        assert!(samples.is_empty());
+        let cancel = Cancellation::default();
+        let mut started = 0;
+        let error = collect_samples(3, &cancel, |_| {
+            started += 1;
+            cancel.request();
+            Err(RunError::Fatal(
+                "cleanup failed; directory retained at target/isolated/test".into(),
+            ))
+        })
+        .err()
+        .unwrap();
+        assert_eq!(started, 1);
+        assert!(error.contains("cleanup failed; directory retained"));
     }
 }
