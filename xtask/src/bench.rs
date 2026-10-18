@@ -22,7 +22,7 @@ mod session;
 
 use session::{Cancellation, ManagedChild, PrivateSession};
 
-const SOCKET_NAME: &str = "wayland-0";
+const SOCKET_NAME: &str = "w";
 const MEMORY_INTERVAL: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]

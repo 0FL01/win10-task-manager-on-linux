@@ -26,6 +26,7 @@ const TERM_GRACE: Duration = Duration::from_millis(500);
 const KILL_BUDGET: Duration = Duration::from_secs(2);
 const BUS_STARTUP_BUDGET: Duration = Duration::from_secs(5);
 const MAX_ADDRESS_BYTES: usize = 4096;
+const RUNTIME_DIR_NAME: &str = "r";
 
 static SIGNAL_SCOPE: AtomicBool = AtomicBool::new(false);
 static SIGNAL_CANCELLED: AtomicBool = AtomicBool::new(false);
@@ -376,7 +377,8 @@ impl PrivateSession {
         let data = make_dir("data")?;
         let cache = make_dir("cache")?;
         let state = make_dir("state")?;
-        let runtime = make_dir("runtime")?;
+        // Leave room for both Unix sockets even under GitHub's long checkout path.
+        let runtime = make_dir(RUNTIME_DIR_NAME)?;
         validate_private_directory(&runtime)?;
         validate_socket_path(&runtime.join(super::SOCKET_NAME))?;
         let address = bus_address(&runtime.join("bus"))?;
@@ -739,19 +741,21 @@ mod tests {
 
     #[test]
     fn addresses_escape_filesystem_bytes_and_count_the_socket_terminator() {
-        let socket = Path::new(OsStr::from_bytes(b"/private/a b,%=\\*\xff/bus"));
+        let socket = Path::new(OsStr::from_bytes(b"/private/a b,%;=\\*\xff/bus"));
         assert_eq!(
             bus_address(socket).unwrap(),
-            "unix:path=/private/a%20b%2c%25%3d\\*%ff/bus"
+            "unix:path=/private/a%20b%2c%25%3b%3d\\*%ff/bus"
         );
         assert!(bus_address(Path::new("relative/bus")).is_err());
         assert!(bus_address(Path::new(OsStr::from_bytes(b"/bad\0socket"))).is_err());
         // Linux sockaddr_un.sun_path has 108 bytes, including the terminating NUL.
         assert!(bus_address(Path::new(&format!("/{}", "a".repeat(106)))).is_ok());
         assert!(bus_address(Path::new(&format!("/{}", "a".repeat(107)))).is_err());
-        let runtime = PathBuf::from(format!("/{}", "a".repeat(101)));
-        assert!(bus_address(&runtime.join("bus")).is_ok());
-        assert!(validate_socket_path(&runtime.join(super::super::SOCKET_NAME)).is_err());
+        for socket in ["bus", super::super::SOCKET_NAME] {
+            let runtime = format!("/{}", "a".repeat(105 - socket.len()));
+            assert!(validate_socket_path(&Path::new(&runtime).join(socket)).is_ok());
+            assert!(validate_socket_path(&Path::new(&format!("{runtime}a")).join(socket)).is_err());
+        }
         assert!(matches_bus_address(
             "unix:path=/bus,guid=0123456789abcdef0123456789abcdef",
             "unix:path=/bus"
@@ -764,6 +768,18 @@ mod tests {
             "unix:path=/bus,guid=bad",
             "unix:path=/bus"
         ));
+    }
+
+    #[test]
+    fn short_socket_paths_fit_the_standard_ci_checkout() {
+        let checkout =
+            Path::new("/home/runner/work/win10-task-manager-on-linux/win10-task-manager-on-linux");
+        let runtime = checkout
+            .join("target/isolated/s-ABCDEF")
+            .join(RUNTIME_DIR_NAME);
+        for socket in ["bus", super::super::SOCKET_NAME] {
+            validate_socket_path(&runtime.join(socket)).unwrap();
+        }
     }
 
     fn private_bus_id(session: &PrivateSession) -> String {
@@ -815,7 +831,8 @@ mod tests {
     #[test]
     fn real_bus_accepts_percent_escaped_runtime_paths() {
         let mut session = PrivateSession::allocate().unwrap();
-        session.runtime = session.root().join(r"r ,%;\*");
+        // Exercise canonical escaping without exceeding sockaddr_un in CI's long checkout.
+        session.runtime = session.root().join(" ,;%");
         fs::DirBuilder::new()
             .mode(0o700)
             .create(&session.runtime)
