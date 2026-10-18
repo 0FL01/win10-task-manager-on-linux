@@ -26,7 +26,8 @@ const TERM_GRACE: Duration = Duration::from_millis(500);
 const KILL_BUDGET: Duration = Duration::from_secs(2);
 const BUS_STARTUP_BUDGET: Duration = Duration::from_secs(5);
 const MAX_ADDRESS_BYTES: usize = 4096;
-const RUNTIME_DIR_NAME: &str = "r";
+const BUS_SOCKET_NAME: &str = "b";
+const SESSION_NAME_LEN: usize = 6;
 
 static SIGNAL_SCOPE: AtomicBool = AtomicBool::new(false);
 static SIGNAL_CANCELLED: AtomicBool = AtomicBool::new(false);
@@ -358,9 +359,14 @@ impl PrivateSession {
         let base =
             fs::canonicalize(&base).map_err(|e| format!("resolve private session root: {e}"))?;
         let directory = tempfile::Builder::new()
-            .prefix("s-")
+            .prefix("")
+            .rand_bytes(SESSION_NAME_LEN)
             .tempdir_in(base)
             .map_err(|e| format!("create private session directory: {e}"))?;
+        Self::from_directory(directory)
+    }
+
+    fn from_directory(directory: TempDir) -> Result<Self, String> {
         fs::set_permissions(directory.path(), fs::Permissions::from_mode(0o700))
             .map_err(|e| format!("protect private session root: {e}"))?;
         validate_private_directory(directory.path())?;
@@ -377,11 +383,11 @@ impl PrivateSession {
         let data = make_dir("data")?;
         let cache = make_dir("cache")?;
         let state = make_dir("state")?;
-        // Leave room for both Unix sockets even under GitHub's long checkout path.
-        let runtime = make_dir(RUNTIME_DIR_NAME)?;
-        validate_private_directory(&runtime)?;
+        // The owned root already meets XDG runtime requirements. Avoid another path component:
+        // D-Bus uses a smaller portable limit than Linux's sockaddr_un.
+        let runtime = directory.path().to_path_buf();
         validate_socket_path(&runtime.join(super::SOCKET_NAME))?;
-        let address = bus_address(&runtime.join("bus"))?;
+        let address = bus_address(&runtime.join(BUS_SOCKET_NAME))?;
         Ok(Self {
             directory,
             home,
@@ -476,7 +482,7 @@ impl PrivateSession {
                         self.address
                     ));
                 }
-                let socket = self.runtime.join("bus");
+                let socket = self.runtime.join(BUS_SOCKET_NAME);
                 if fs::symlink_metadata(&socket)
                     .is_ok_and(|metadata| metadata.file_type().is_socket())
                     && bus.status()?.is_none()
@@ -613,6 +619,13 @@ fn validate_socket_path(socket: &Path) -> Result<(), String> {
 
 fn bus_address(socket: &Path) -> Result<String, String> {
     validate_socket_path(socket)?;
+    // D-Bus caps pathname sockets at 99 bytes even on Linux (excluding NUL).
+    if socket.as_os_str().len() > 99 {
+        return Err(format!(
+            "private bus socket exceeds the portable D-Bus limit of 99 bytes: {}",
+            socket.display()
+        ));
+    }
     let bytes = socket.as_os_str().as_bytes();
     let mut escaped = String::new();
     // Match dbus-daemon's canonical escaping in its printed readiness address.
@@ -748,10 +761,11 @@ mod tests {
         );
         assert!(bus_address(Path::new("relative/bus")).is_err());
         assert!(bus_address(Path::new(OsStr::from_bytes(b"/bad\0socket"))).is_err());
-        // Linux sockaddr_un.sun_path has 108 bytes, including the terminating NUL.
-        assert!(bus_address(Path::new(&format!("/{}", "a".repeat(106)))).is_ok());
-        assert!(bus_address(Path::new(&format!("/{}", "a".repeat(107)))).is_err());
-        for socket in ["bus", super::super::SOCKET_NAME] {
+        // D-Bus uses a portable limit of 99 pathname bytes, excluding NUL.
+        assert!(bus_address(Path::new(&format!("/{}", "a".repeat(98)))).is_ok());
+        assert!(bus_address(Path::new(&format!("/{}", "a".repeat(99)))).is_err());
+        // Linux sockaddr_un.sun_path separately has 108 bytes, including NUL.
+        for socket in [BUS_SOCKET_NAME, super::super::SOCKET_NAME] {
             let runtime = format!("/{}", "a".repeat(105 - socket.len()));
             assert!(validate_socket_path(&Path::new(&runtime).join(socket)).is_ok());
             assert!(validate_socket_path(&Path::new(&format!("{runtime}a")).join(socket)).is_err());
@@ -775,11 +789,10 @@ mod tests {
         let checkout =
             Path::new("/home/runner/work/win10-task-manager-on-linux/win10-task-manager-on-linux");
         let runtime = checkout
-            .join("target/isolated/s-ABCDEF")
-            .join(RUNTIME_DIR_NAME);
-        for socket in ["bus", super::super::SOCKET_NAME] {
-            validate_socket_path(&runtime.join(socket)).unwrap();
-        }
+            .join("target/isolated")
+            .join("A".repeat(SESSION_NAME_LEN));
+        bus_address(&runtime.join(BUS_SOCKET_NAME)).unwrap();
+        validate_socket_path(&runtime.join(super::super::SOCKET_NAME)).unwrap();
     }
 
     fn private_bus_id(session: &PrivateSession) -> String {
@@ -830,14 +843,16 @@ mod tests {
 
     #[test]
     fn real_bus_accepts_percent_escaped_runtime_paths() {
-        let mut session = PrivateSession::allocate().unwrap();
-        // Exercise canonical escaping without exceeding sockaddr_un in CI's long checkout.
-        session.runtime = session.root().join(" ,;%");
-        fs::DirBuilder::new()
-            .mode(0o700)
-            .create(&session.runtime)
+        // Keep the root's length unchanged even when testing escaping on a long checkout.
+        let base = crate::root().join("target/isolated");
+        fs::create_dir_all(&base).unwrap();
+        let prefix = " ,;%";
+        let directory = tempfile::Builder::new()
+            .prefix(prefix)
+            .rand_bytes(SESSION_NAME_LEN - prefix.len())
+            .tempdir_in(base)
             .unwrap();
-        session.address = bus_address(&session.runtime.join("bus")).unwrap();
+        let mut session = PrivateSession::from_directory(directory).unwrap();
         session
             .start_bus(
                 &Cancellation::default(),
@@ -972,20 +987,58 @@ mod tests {
     }
 
     #[test]
+    fn cooperative_group_child() {
+        let Some(root) = std::env::var_os("MC_BENCH_COOPERATIVE_ROOT") else {
+            return;
+        };
+        let root = PathBuf::from(root);
+        let role = std::env::var("MC_BENCH_COOPERATIVE_ROLE").unwrap();
+        assert!(matches!(role.as_str(), "parent" | "child"));
+        let cancellation = Cancellation::install().unwrap();
+        let mut child = (role == "parent").then(|| {
+            // Deliberately inherit the managed parent's process group.
+            Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "bench::session::tests::cooperative_group_child"])
+                .env("MC_BENCH_COOPERATIVE_ROLE", "child")
+                .spawn()
+                .unwrap()
+        });
+        fs::write(root.join(format!("{role}.ready")), b"").unwrap();
+        while !cancellation.is_cancelled() {
+            sleep(POLL_INTERVAL);
+        }
+        if let Some(child) = child.as_mut() {
+            assert!(child.wait().unwrap().success());
+        }
+        OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(root.join("markers"))
+            .unwrap()
+            .write_all(role.as_bytes())
+            .unwrap();
+    }
+
+    #[test]
     fn cooperative_group_gets_term_grace_before_final_kill() {
         let session = PrivateSession::allocate().unwrap();
-        let ready = session.root().join("ready");
         let markers = session.root().join("markers");
-        let mut command = Command::new("/bin/sh");
-        command.args(["-c", "(trap 'printf child >> \"$2\"; exit 0' TERM; : > \"$1.child\"; while :; do sleep 10; done) & trap 'wait; printf parent >> \"$2\"; exit 0' TERM; : > \"$1.parent\"; wait", "cooperative-group"])
-            .arg(&ready).arg(&markers).stdout(Stdio::null()).stderr(Stdio::null());
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .args(["--exact", "bench::session::tests::cooperative_group_child"])
+            .env("MC_BENCH_COOPERATIVE_ROOT", session.root())
+            .env("MC_BENCH_COOPERATIVE_ROLE", "parent")
+            .stdout(Stdio::null());
         let mut child = ManagedChild::spawn(&mut command).unwrap();
         wait_until(|| {
-            ready.with_extension("child").exists() && ready.with_extension("parent").exists()
+            session.root().join("child.ready").exists()
+                && session.root().join("parent.ready").exists()
         });
         child.shutdown().unwrap();
-        assert!(child.status().unwrap().unwrap().success());
-        assert_eq!(fs::read_to_string(markers).unwrap(), "childparent");
+        let status = child.status().unwrap().unwrap();
+        let markers = fs::read_to_string(markers);
+        assert!(status.success(), "status {status}; markers {markers:?}");
+        assert_eq!(markers.unwrap(), "childparent");
         assert!(!Path::new(&format!("/proc/{}", child.id())).exists());
     }
 
