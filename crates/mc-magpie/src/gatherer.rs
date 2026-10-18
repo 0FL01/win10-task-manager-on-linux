@@ -198,27 +198,105 @@ impl Outbox {
         (self.waker)();
     }
 
-    /// Returns the event back if the channel is full.
+    /// Preserves the event and whether delivery failed because the receiver is full or gone.
     #[allow(clippy::result_large_err)]
-    fn send(&self, event: Event) -> Result<(), Event> {
-        let result = match self.events.try_send(event) {
-            Ok(()) => Ok(()),
-            Err(TrySendError::Full(event)) => {
-                if profile::enabled() {
-                    profile::count(Counter::EventFull);
-                } else {
-                    g_warning!(
-                        "TaskManager::Gatherer",
-                        "UI is not draining events, dropping {:?}",
-                        std::mem::discriminant(&event)
-                    );
-                }
-                Err(event)
+    fn send(&self, event: Event) -> Result<(), TrySendError<Event>> {
+        let result = self.events.try_send(event);
+        if let Err(TrySendError::Full(event)) = &result {
+            if profile::enabled() {
+                profile::count(Counter::EventFull);
+            } else if matches!(event, Event::About(_)) {
+                // Live About delivery owns retries; this is not a dropped response.
+                g_debug!("TaskManager::Gatherer", "UI About event channel is full");
+            } else {
+                g_warning!(
+                    "TaskManager::Gatherer",
+                    "UI is not draining events, dropping {:?}",
+                    std::mem::discriminant(event)
+                );
             }
-            Err(TrySendError::Disconnected(event)) => Err(event),
-        };
+        }
         (self.waker)();
         result
+    }
+}
+
+const ABOUT_RETRY: Duration = Duration::from_millis(100);
+
+// There is one retained response per gatherer, so keep it inline rather than allocating a box
+// solely to shrink this single state value.
+#[allow(clippy::large_enum_variant)]
+#[derive(Default)]
+enum AboutDelivery {
+    #[default]
+    Idle,
+    Polling {
+        next: Instant,
+    },
+    Ready {
+        about: About,
+        next: Instant,
+    },
+}
+
+impl AboutDelivery {
+    fn request(&mut self, now: Instant) {
+        if matches!(self, Self::Idle) {
+            *self = Self::Polling { next: now };
+        }
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        match self {
+            Self::Idle => None,
+            Self::Polling { next } | Self::Ready { next, .. } => Some(*next),
+        }
+    }
+
+    /// At most one fetch and one delivery. A completed response is never fetched again while
+    /// delivery is blocked, and each retry delay starts after the attempt finishes.
+    fn service(
+        &mut self,
+        outbox: &Outbox,
+        mut fetch: impl FnMut() -> Option<About>,
+        mut now: impl FnMut() -> Instant,
+    ) -> bool {
+        let Some(next) = self.deadline() else {
+            return true;
+        };
+        if now() < next {
+            return true;
+        }
+
+        let about = match std::mem::take(self) {
+            Self::Polling { .. } => {
+                let _profile = Span::new(Phase::Action);
+                match fetch() {
+                    Some(about) if about.ready != Some(false) => about,
+                    _ => {
+                        *self = Self::Polling {
+                            next: now() + ABOUT_RETRY,
+                        };
+                        return true;
+                    }
+                }
+            }
+            Self::Ready { about, .. } => about,
+            Self::Idle => unreachable!("idle About delivery has no deadline"),
+        };
+
+        match outbox.send(Event::About(about)) {
+            Ok(()) => true,
+            Err(TrySendError::Full(Event::About(about))) => {
+                *self = Self::Ready {
+                    about,
+                    next: now() + ABOUT_RETRY,
+                };
+                true
+            }
+            Err(TrySendError::Disconnected(_)) => false,
+            Err(TrySendError::Full(_)) => unreachable!("only an About event was sent"),
+        }
     }
 }
 
@@ -444,13 +522,50 @@ impl ThreadCtx {
             }
         }
     }
+
+    /// Live-only wait: About retries stay inside this wait, independent of the metrics cadence.
+    /// The private fetch/clock closures allow testing this loop without starting the daemon.
+    fn serve_magpie_until(
+        &self,
+        deadline: Instant,
+        about: &mut AboutDelivery,
+        mut fetch_about: impl FnMut() -> Option<About>,
+        mut handle: impl FnMut(Request),
+        mut now: impl FnMut() -> Instant,
+    ) -> bool {
+        const SLICE: Duration = Duration::from_millis(100);
+
+        loop {
+            if !self.running() {
+                return false;
+            }
+            // Service admitted About work even if the metrics deadline has already expired.
+            if !about.service(&self.outbox, &mut fetch_about, &mut now) || !self.running() {
+                return false;
+            }
+
+            let current = now();
+            if current >= deadline {
+                return true;
+            }
+            let wake_at = about.deadline().map_or(deadline, |next| next.min(deadline));
+            let timeout = wake_at.saturating_duration_since(current).min(SLICE);
+            match self.requests.recv_timeout(timeout) {
+                Ok(Request::RefreshNow) => return true,
+                Ok(Request::AboutSystem) => about.request(now()),
+                Ok(request) => handle(request),
+                Err(RecvTimeoutError::Timeout) => {}
+                Err(RecvTimeoutError::Disconnected) => return false,
+            }
+        }
+    }
 }
 
 fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
     let _profile = Span::new(Phase::Action);
     match request {
-        // Handled by `serve_until`
-        Request::RefreshNow => {}
+        // Handled by the live wait loop.
+        Request::RefreshNow | Request::AboutSystem => {}
         Request::TerminateProcesses(pids) => magpie.terminate_processes(pids),
         Request::KillProcesses(pids) => magpie.kill_processes(pids),
         Request::StartService(id) => magpie.start_service(id),
@@ -469,9 +584,6 @@ fn handle_request(magpie: &Client, outbox: &Outbox, request: Request) {
         Request::SmartData(disk_id) => {
             let data = magpie.smart_data(disk_id.clone());
             let _ = outbox.send(Event::SmartData { disk_id, data });
-        }
-        Request::AboutSystem => {
-            let _ = outbox.send(Event::About(magpie.about()));
         }
         Request::SetHardwareAccess { .. }
         | Request::InstallHardwareService { .. }
@@ -508,7 +620,7 @@ fn gather_from_magpie(ctx: ThreadCtx) {
     let mut trimmer = crate::footprint::Trimmer::new();
     let ready_at = Instant::now();
     let mut startup_refresh = 0;
-    let mut about_pending = false;
+    let mut about = AboutDelivery::default();
     drop(startup);
 
     while ctx.running() {
@@ -592,7 +704,10 @@ fn gather_from_magpie(ctx: ThreadCtx) {
                 known_icons.extend(icons.keys().cloned());
 
                 if !icons.is_empty() {
-                    if let Err(Event::IconsReady(icons)) = ctx.outbox.send(Event::IconsReady(icons))
+                    if let Err(
+                        TrySendError::Full(Event::IconsReady(icons))
+                        | TrySendError::Disconnected(Event::IconsReady(icons)),
+                    ) = ctx.outbox.send(Event::IconsReady(icons))
                     {
                         // Ask again during the next cycle
                         for id in icons.keys() {
@@ -623,13 +738,6 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         ctx.outbox.publish(readings);
         drop(cycle);
 
-        if about_pending {
-            let about = magpie.about();
-            if about.ready != Some(false) {
-                about_pending = ctx.outbox.send(Event::About(about)).is_err();
-            }
-        }
-
         g_debug!(
             "TaskManager::Perf",
             "Read cycle took {:?}",
@@ -641,15 +749,13 @@ fn gather_from_magpie(ctx: ThreadCtx) {
         if Instant::now() > deadline {
             profile::count(Counter::Overrun);
         }
-        if !ctx.serve_until(deadline, |request| {
-            if request == Request::AboutSystem {
-                // About discovery runs on the daemon worker; never hold the metrics socket
-                // behind package-manager/desktop subprocesses. Completion is not dropped.
-                about_pending = true;
-            } else {
-                handle_request(&magpie, &ctx.outbox, request)
-            }
-        }) {
+        if !ctx.serve_magpie_until(
+            deadline,
+            &mut about,
+            || magpie.try_about(),
+            |request| handle_request(&magpie, &ctx.outbox, request),
+            Instant::now,
+        ) {
             break;
         }
     }
@@ -679,6 +785,326 @@ mod startup_tests {
         for _ in 0..10 {
             assert_eq!(startup_deadline(start, &mut next), None);
         }
+    }
+}
+
+#[cfg(test)]
+mod about_delivery_tests {
+    use super::*;
+    use std::cell::Cell;
+
+    const WATCHDOG: Duration = Duration::from_secs(3);
+
+    fn outbox(capacity: usize, waker: Waker) -> (Outbox, Receiver<Event>) {
+        let (events, receiver) = mpsc::sync_channel(capacity);
+        (
+            Outbox {
+                readings: Arc::new(crate::LatestSlot::new()),
+                events,
+                waker,
+            },
+            receiver,
+        )
+    }
+
+    fn context() -> (ThreadCtx, SyncSender<Request>, Receiver<Event>) {
+        let running = Arc::new(AtomicBool::new(true));
+        let (requests, receiver) = mpsc::sync_channel(REQUEST_CAPACITY);
+        let (outbox, events) = outbox(EVENT_CAPACITY, Arc::new(|| {}));
+        (
+            ThreadCtx {
+                requests: receiver,
+                outbox,
+                running: running.clone(),
+                speed: Arc::new(AtomicU64::new(200)),
+                reduced_activity: Arc::new(AtomicBool::new(false)),
+                hardware_control: Arc::new(crate::hardware_access::Control::new(running)),
+                hardware_samples: Arc::new(crate::LatestSlot::new()),
+            },
+            requests,
+            events,
+        )
+    }
+
+    #[test]
+    fn pending_and_error_retry_from_fetch_completion_without_postponement() {
+        let (outbox, events) = outbox(1, Arc::new(|| {}));
+        let start = Instant::now();
+        let current = Cell::new(start);
+        let mut about = AboutDelivery::default();
+        assert_eq!(about.deadline(), None);
+        about.request(start);
+
+        for ready in [Some(false), None] {
+            let completed_at = current.get() + Duration::from_secs(2);
+            assert!(about.service(
+                &outbox,
+                || {
+                    current.set(completed_at);
+                    ready.map(|ready| About {
+                        ready: Some(ready),
+                        ..Default::default()
+                    })
+                },
+                || current.get(),
+            ));
+            let next = completed_at + ABOUT_RETRY;
+            assert_eq!(about.deadline(), Some(next));
+            assert!(events.try_recv().is_err());
+
+            about.request(completed_at + Duration::from_millis(50));
+            assert_eq!(about.deadline(), Some(next));
+            current.set(next - Duration::from_nanos(1));
+            assert!(about.service(&outbox, || panic!("not due"), || current.get()));
+            current.set(next);
+        }
+
+        // A successful legacy response is complete, not an error-shaped default.
+        assert!(about.service(&outbox, || Some(About::default()), || current.get()));
+        let Event::About(delivered) = events.try_recv().unwrap() else {
+            panic!("expected About");
+        };
+        assert_eq!(delivered, About::default());
+        assert_eq!(about.deadline(), None);
+        assert!(about.service(
+            &outbox,
+            || panic!("completed discovery has no timer"),
+            || start + Duration::from_secs(60),
+        ));
+        assert!(events.try_recv().is_err());
+    }
+
+    #[test]
+    fn bounded_backpressure_retains_the_exact_response_and_only_retries_delivery() {
+        let start = Instant::now();
+        let elapsed_ms = Arc::new(AtomicU64::new(0));
+        let waker_time = elapsed_ms.clone();
+        let (outbox, events) = outbox(
+            1,
+            Arc::new(move || {
+                // Delivery completion, including the waker, happens after the fetch finishes.
+                waker_time.fetch_add(40, atomic::Ordering::Relaxed);
+            }),
+        );
+        outbox
+            .events
+            .try_send(Event::IconsReady(HashMap::new()))
+            .unwrap();
+        let mut completed = About {
+            ready: Some(true),
+            ..Default::default()
+        };
+        completed.os_info.name = Some("retained response allocation".into());
+        let expected = completed.clone();
+        let name_pointer = completed.os_info.name.as_ref().unwrap().as_ptr();
+        let mut fetched = Some(completed);
+        let now = || start + Duration::from_millis(elapsed_ms.load(atomic::Ordering::Relaxed));
+        let mut about = AboutDelivery::default();
+        about.request(start);
+        assert!(about.service(
+            &outbox,
+            || {
+                elapsed_ms.store(500, atomic::Ordering::Relaxed);
+                fetched.take()
+            },
+            now,
+        ));
+        let AboutDelivery::Ready {
+            about: retained, ..
+        } = &about
+        else {
+            panic!("full channel must retain completed About");
+        };
+        assert_eq!(retained, &expected);
+        assert_eq!(
+            retained.os_info.name.as_ref().unwrap().as_ptr(),
+            name_pointer
+        );
+        assert_eq!(about.deadline(), Some(start + Duration::from_millis(640)));
+        about.request(start + Duration::from_millis(600));
+        assert_eq!(about.deadline(), Some(start + Duration::from_millis(640)));
+
+        elapsed_ms.store(639, atomic::Ordering::Relaxed);
+        assert!(about.service(&outbox, || panic!("must not refetch"), now));
+        elapsed_ms.store(640, atomic::Ordering::Relaxed);
+        assert!(about.service(&outbox, || panic!("must not refetch"), now));
+        assert_eq!(about.deadline(), Some(start + Duration::from_millis(780)));
+
+        assert!(matches!(events.try_recv(), Ok(Event::IconsReady(_))));
+        elapsed_ms.store(780, atomic::Ordering::Relaxed);
+        assert!(about.service(&outbox, || panic!("must not refetch"), now));
+        let Event::About(delivered) = events.try_recv().unwrap() else {
+            panic!("expected retained About");
+        };
+        assert_eq!(delivered, expected);
+        assert_eq!(
+            delivered.os_info.name.as_ref().unwrap().as_ptr(),
+            name_pointer
+        );
+        assert_eq!(elapsed_ms.load(atomic::Ordering::Relaxed), 820);
+        assert_eq!(about.deadline(), None);
+    }
+
+    #[test]
+    fn disconnected_delivery_stops_without_refetching() {
+        let (outbox, events) = outbox(1, Arc::new(|| {}));
+        outbox
+            .events
+            .try_send(Event::IconsReady(HashMap::new()))
+            .unwrap();
+        let start = Instant::now();
+        let mut about = AboutDelivery::default();
+        about.request(start);
+        assert!(about.service(&outbox, || Some(About::default()), || start));
+        drop(events);
+        assert!(!about.service(
+            &outbox,
+            || panic!("must not refetch"),
+            || start + ABOUT_RETRY,
+        ));
+        assert_eq!(about.deadline(), None);
+    }
+
+    #[test]
+    fn live_about_retries_stay_in_the_same_long_metrics_wait() {
+        let (ctx, requests, events) = context();
+        ctx.outbox.publish(Readings::new());
+        let readings = ctx.outbox.readings.clone();
+        let (waiting, waiting_rx) = mpsc::sync_channel(1);
+        let (attempts, attempts_rx) = mpsc::sync_channel(3);
+        let (actions, actions_rx) = mpsc::sync_channel(1);
+        let (returned, returned_rx) = mpsc::sync_channel(1);
+        let thread = std::thread::spawn(move || {
+            let mut about = AboutDelivery::default();
+            let mut fetches = 0;
+            let mut first_clock = true;
+            let result = ctx.serve_magpie_until(
+                Instant::now() + Duration::from_secs(10),
+                &mut about,
+                || {
+                    fetches += 1;
+                    attempts.try_send(fetches).unwrap();
+                    match fetches {
+                        1 => Some(About {
+                            ready: Some(false),
+                            ..Default::default()
+                        }),
+                        2 => None,
+                        3 => Some(About {
+                            ready: Some(true),
+                            ..Default::default()
+                        }),
+                        _ => panic!("completed About must not be polled"),
+                    }
+                },
+                |request| {
+                    assert_eq!(request, Request::SmartData("probe".into()));
+                    actions.try_send(()).unwrap();
+                },
+                || {
+                    if first_clock {
+                        first_clock = false;
+                        waiting.try_send(()).unwrap();
+                    }
+                    Instant::now()
+                },
+            );
+            returned.send((result, fetches, about.deadline())).unwrap();
+        });
+
+        waiting_rx.recv_timeout(WATCHDOG).unwrap();
+        requests.send(Request::AboutSystem).unwrap();
+        for attempt in 1..=3 {
+            assert_eq!(attempts_rx.recv_timeout(WATCHDOG).unwrap(), attempt);
+            assert!(matches!(
+                returned_rx.try_recv(),
+                Err(mpsc::TryRecvError::Empty)
+            ));
+        }
+        assert!(matches!(
+            events.recv_timeout(WATCHDOG),
+            Ok(Event::About(About {
+                ready: Some(true),
+                ..
+            }))
+        ));
+        assert_eq!(
+            readings.published(),
+            1,
+            "About timers must not publish metrics"
+        );
+        requests.send(Request::SmartData("probe".into())).unwrap();
+        actions_rx.recv_timeout(WATCHDOG).unwrap();
+        requests.send(Request::RefreshNow).unwrap();
+        assert_eq!(returned_rx.recv_timeout(WATCHDOG).unwrap(), (true, 3, None));
+        thread.join().unwrap();
+        assert_eq!(readings.published(), 1);
+    }
+
+    #[test]
+    fn live_wait_observes_stop_without_waiting_for_metrics() {
+        let (ctx, _requests, _events) = context();
+        let running = ctx.running.clone();
+        let (waiting, waiting_rx) = mpsc::sync_channel(1);
+        let (returned, returned_rx) = mpsc::sync_channel(1);
+        let thread = std::thread::spawn(move || {
+            let mut first_clock = true;
+            let result = ctx.serve_magpie_until(
+                Instant::now() + Duration::from_secs(10),
+                &mut AboutDelivery::default(),
+                || panic!("no About request"),
+                |_| panic!("no action request"),
+                || {
+                    if first_clock {
+                        first_clock = false;
+                        waiting.try_send(()).unwrap();
+                    }
+                    Instant::now()
+                },
+            );
+            returned.send(result).unwrap();
+        });
+        waiting_rx.recv_timeout(WATCHDOG).unwrap();
+        running.store(false, atomic::Ordering::Release);
+        assert!(!returned_rx.recv_timeout(WATCHDOG).unwrap());
+        thread.join().unwrap();
+    }
+
+    #[test]
+    fn expired_metrics_deadline_still_services_due_about_once_and_rechecks_stop() {
+        let (ctx, _requests, events) = context();
+        let start = Instant::now();
+        let mut about = AboutDelivery::default();
+        about.request(start);
+        let mut fetches = 0;
+        assert!(ctx.serve_magpie_until(
+            start,
+            &mut about,
+            || {
+                fetches += 1;
+                Some(About {
+                    ready: Some(false),
+                    ..Default::default()
+                })
+            },
+            |_| panic!("expired metrics deadline must not receive actions"),
+            || start,
+        ));
+        assert_eq!(fetches, 1);
+        assert_eq!(about.deadline(), Some(start + ABOUT_RETRY));
+        assert!(events.try_recv().is_err());
+        assert_eq!(ctx.outbox.readings.published(), 0);
+
+        assert!(!ctx.serve_magpie_until(
+            start,
+            &mut about,
+            || {
+                ctx.running.store(false, atomic::Ordering::Release);
+                None
+            },
+            |_| panic!("stopped wait must not receive actions"),
+            || start + ABOUT_RETRY,
+        ));
     }
 }
 

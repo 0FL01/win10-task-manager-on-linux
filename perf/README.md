@@ -131,6 +131,13 @@ thread. Optional `ready` wire fields distinguish pending inventory/identity from
 data; old daemons and recorded fixtures retain their legacy completed behavior. Startup never
 overwrites the user's missing-yet device selection merely because a worker is still running.
 
+With saved Paused, the first partial snapshot is shown immediately and the first completed
+inventory is applied once more, then updates stay paused. Ctrl-held still buffers both, and
+Refresh now can apply a partial snapshot without waiting for discovery. Unpausing ends this
+startup exception. About requests poll the asynchronous cache independently of the metrics
+interval, only while a request is outstanding; a completed result is retained across event-channel
+backpressure without repeating IPC. The 100 ms retry interval is not a hard response deadline.
+
 Three bounded follow-up reads at 100/250/500 ms after connection fill late device/icon caches
 and request short-interval counter deltas; afterwards the configured refresh interval resumes.
 CPU counters are seeded from `/proc/stat` instead of reporting the boot-lifetime average, and

@@ -149,6 +149,16 @@ macro_rules! parse_response_with_err {
     }};
 }
 
+fn parse_about_response(response: Option<ResponseBody>) -> Option<About> {
+    parse_response!(
+        response,
+        ResponseBody::About,
+        AboutResponse::AboutInfo,
+        AboutResponse::Error,
+        Some
+    )
+}
+
 fn random_string<const CAP: usize>() -> ArrayString<CAP> {
     let mut result = ArrayString::new();
     for _ in 0..CAP {
@@ -676,19 +686,13 @@ impl Client {
 }
 
 impl Client {
-    pub fn about(&self) -> About {
+    pub fn try_about(&self) -> Option<About> {
         let mut socket = self.socket.borrow_mut();
 
         let response = make_request(ipc::req_get_about(), &mut socket, self.socket_addr.as_ref())
             .and_then(|response| response.body);
 
-        parse_response!(
-            response,
-            ResponseBody::About,
-            AboutResponse::AboutInfo,
-            AboutResponse::Error,
-            |about: About| about
-        )
+        parse_about_response(response)
     }
 
     pub fn cpu(&self) -> Cpu {
@@ -1181,6 +1185,50 @@ impl Client {
             ServicesResponse::Error,
             |_| {}
         )
+    }
+}
+
+#[cfg(test)]
+mod about_response_tests {
+    use super::*;
+
+    #[test]
+    fn successful_legacy_pending_and_ready_responses_stay_distinct() {
+        // A real legacy protobuf response has no readiness field.
+        let legacy = magpie_types::about::AboutResponse::decode(
+            &[0x0a, 0x06, 0x0a, 0x00, 0x12, 0x00, 0x1a, 0x00][..],
+        )
+        .unwrap();
+        let about = parse_about_response(Some(ResponseBody::About(legacy))).unwrap();
+        assert_eq!(about.ready, None);
+
+        for ready in [false, true] {
+            let about = About {
+                ready: Some(ready),
+                ..Default::default()
+            };
+            let response = magpie_types::about::AboutResponse {
+                response: Some(AboutResponse::AboutInfo(about.clone())),
+            };
+            assert_eq!(
+                parse_about_response(Some(ResponseBody::About(response))),
+                Some(about)
+            );
+        }
+    }
+
+    #[test]
+    fn absent_malformed_and_daemon_error_responses_are_not_successes() {
+        for response in [
+            None,
+            Some(ResponseBody::About(Default::default())),
+            Some(ResponseBody::Cpu(Default::default())),
+            Some(ResponseBody::About(magpie_types::about::AboutResponse {
+                response: Some(AboutResponse::Error(Default::default())),
+            })),
+        ] {
+            assert!(parse_about_response(response).is_none());
+        }
     }
 }
 
