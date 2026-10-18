@@ -166,6 +166,22 @@ mod tests {
     }
 
     #[test]
+    fn inventory_readiness_roundtrips_and_defaults_to_legacy_complete() {
+        let mut reading = crate::synthetic_readings(1, 1);
+        for pending in [false, true] {
+            reading.inventories_pending = pending;
+            let json = serde_json::to_value(&reading).unwrap();
+            let loaded: Readings = serde_json::from_value(json).unwrap();
+            assert_eq!(loaded.inventories_pending, pending);
+        }
+
+        let mut json = serde_json::to_value(reading).unwrap();
+        json.as_object_mut().unwrap().remove("inventories_pending");
+        let loaded: Readings = serde_json::from_value(json).unwrap();
+        assert!(!loaded.inventories_pending);
+    }
+
+    #[test]
     fn legacy_fixture_without_hardware_extensions_loads() {
         let mut json = serde_json::to_value(crate::synthetic_readings(1, 1)).unwrap();
         let root = json.as_object_mut().unwrap();

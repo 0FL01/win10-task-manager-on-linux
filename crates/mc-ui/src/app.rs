@@ -132,6 +132,8 @@ pub struct App {
     have_readings: bool,
     /// Apply the next snapshot even while paused (Refresh now)
     apply_next: bool,
+    /// Saved Paused startup may finish inventory discovery after its first partial snapshot.
+    startup_completion_pending: bool,
     /// `TableView::expanded_version` last written to the settings
     saved_expanded_version: u64,
     /// Text of the open "Create new task" dialog
@@ -203,6 +205,7 @@ impl App {
         }
         // Paused at startup still shows the first snapshot
         let apply_next = config.app_update_paused;
+        let startup_completion_pending = config.app_update_paused;
         let expanded_version = apps.expanded_version;
 
         Self {
@@ -237,6 +240,7 @@ impl App {
             stashed: None,
             have_readings: false,
             apply_next,
+            startup_completion_pending,
             run_task: None,
             reduced: false,
             page_switch: None,
@@ -323,6 +327,25 @@ impl App {
         if let Some(readings) = &mut self.stashed {
             readings.hardware = None;
         }
+    }
+
+    fn ingest_readings(&mut self, incoming: Option<Readings>, held: bool) {
+        if !self.config.app_update_paused {
+            self.startup_completion_pending = false;
+        }
+        let Some(mut readings) = incoming.or_else(|| self.stashed.take()) else {
+            return;
+        };
+        self.sanitize_hardware(&mut readings);
+        let startup_completion = self.startup_completion_pending && !readings.inventories_pending;
+        if held || (self.config.app_update_paused && !self.apply_next && !startup_completion) {
+            self.stashed = Some(readings);
+            return;
+        }
+        self.stashed = None;
+        self.apply_next = false;
+        self.startup_completion_pending &= readings.inventories_pending;
+        self.apply_readings(readings);
     }
 
     fn apply_readings(&mut self, mut readings: Readings) {
@@ -458,18 +481,7 @@ impl App {
 
         let held = ctx.input(|i| i.modifiers.command_only() && i.keys_down.is_empty())
             && ctx.input(|i| i.viewport().focused.unwrap_or(false));
-        let paused = held || (self.config.app_update_paused && !self.apply_next);
-        if let Some(mut readings) = self.magpie.take_readings() {
-            self.sanitize_hardware(&mut readings);
-            if paused {
-                self.stashed = Some(readings);
-            } else {
-                self.apply_next = false;
-                self.apply_readings(readings);
-            }
-        } else if !paused && let Some(readings) = self.stashed.take() {
-            self.apply_readings(readings);
-        }
+        self.ingest_readings(self.magpie.take_readings(), held);
 
         self.icons.poll(ctx);
 
@@ -1309,6 +1321,264 @@ mod tests {
     use egui::{Event, PointerButton, Pos2, RawInput, Rect, vec2};
 
     use super::*;
+
+    const STARTUP_DISK: &str = "disk-nvme0n1";
+
+    fn readings_app(ctx: &Context, paused: bool) -> App {
+        App::new(
+            ctx,
+            AppOptions {
+                source: DataSource::Fixture(vec![], HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config {
+                    app_update_paused: paused,
+                    performance_selected_page: STARTUP_DISK.into(),
+                    ..Default::default()
+                }),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        )
+    }
+
+    fn pending_readings(step: usize) -> Readings {
+        let mut readings = mc_magpie::synthetic_readings(step, 1);
+        readings.inventories_pending = true;
+        readings.disks_info.clear();
+        readings.gpus.clear();
+        readings
+    }
+
+    #[test]
+    fn readings_paused_startup_applies_first_partial_then_one_completed_inventory() {
+        let ctx = Context::default();
+        let mut app = readings_app(&ctx, true);
+        app.ingest_readings(None, false);
+        assert_eq!(app.stats.readings_applied, 0);
+        assert!(app.apply_next);
+        assert!(app.startup_completion_pending);
+
+        app.ingest_readings(Some(pending_readings(0)), false);
+        assert_eq!(app.stats.readings_applied, 1);
+        assert!(app.have_readings());
+        assert!(app.perf.device_index("cpu").is_some());
+        assert!(app.perf.device_index(STARTUP_DISK).is_none());
+        assert_eq!(app.perf.selected, STARTUP_DISK);
+        assert_eq!(app.config.performance_selected_page, STARTUP_DISK);
+        assert!(!app.apply_next);
+        assert!(app.startup_completion_pending);
+        assert!(app.stashed.is_none());
+
+        app.ingest_readings(Some(pending_readings(1)), false);
+        app.ingest_readings(None, false);
+        assert_eq!(app.stats.readings_applied, 1);
+        assert!(app.stashed.as_ref().unwrap().inventories_pending);
+
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(2, 1)), false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(!app.apply_next);
+        assert!(!app.startup_completion_pending);
+        assert!(app.stashed.is_none());
+        assert!(app.perf.device_index(STARTUP_DISK).is_some());
+        assert_eq!(app.perf.selected, STARTUP_DISK);
+        assert_eq!(app.config.performance_selected_page, STARTUP_DISK);
+
+        let mut later = mc_magpie::synthetic_readings(3, 1);
+        later.disks_info.clear();
+        app.ingest_readings(Some(later), false);
+        app.ingest_readings(None, false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(app.stashed.is_some());
+        assert!(app.perf.device_index(STARTUP_DISK).is_some());
+        assert_eq!(app.perf.selected, STARTUP_DISK);
+    }
+
+    #[test]
+    fn readings_completed_empty_inventory_falls_back_and_freezes() {
+        let ctx = Context::default();
+        let mut app = readings_app(&ctx, true);
+        app.ingest_readings(Some(pending_readings(0)), false);
+        let mut completed = pending_readings(1);
+        completed.inventories_pending = false;
+        app.ingest_readings(Some(completed), false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(!app.startup_completion_pending);
+        assert!(!app.apply_next);
+        assert!(app.stashed.is_none());
+        assert!(app.perf.device_index(STARTUP_DISK).is_none());
+        assert_eq!(app.perf.selected, "cpu");
+        assert_eq!(app.config.performance_selected_page, "cpu");
+
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(2, 1)), false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(app.perf.device_index(STARTUP_DISK).is_none());
+        assert_eq!(app.perf.selected, "cpu");
+    }
+
+    #[test]
+    fn readings_held_startup_completion_waits_for_release() {
+        for first_partial in [false, true] {
+            let ctx = Context::default();
+            let mut app = readings_app(&ctx, true);
+            if first_partial {
+                app.ingest_readings(Some(pending_readings(0)), false);
+            }
+            let count = app.stats.readings_applied;
+            let mut completed = mc_magpie::synthetic_readings(1, 1);
+            completed.hardware = Some(mc_magpie::HardwareTelemetry::default());
+            app.ingest_readings(Some(completed), true);
+            app.ingest_readings(None, true);
+            assert_eq!(app.stats.readings_applied, count);
+            assert!(app.startup_completion_pending);
+            assert_eq!(app.apply_next, !first_partial);
+            let stashed = app.stashed.as_ref().unwrap();
+            assert!(!stashed.inventories_pending);
+            assert!(stashed.hardware.is_none());
+
+            app.ingest_readings(None, false);
+            app.ingest_readings(None, false);
+            assert_eq!(app.stats.readings_applied, count + 1);
+            assert!(!app.startup_completion_pending);
+            assert!(!app.apply_next);
+            assert!(app.stashed.is_none());
+            assert!(app.perf.device_index(STARTUP_DISK).is_some());
+            assert_eq!(app.perf.selected, STARTUP_DISK);
+        }
+    }
+
+    #[test]
+    fn readings_refresh_before_completion_retains_permission_until_apply() {
+        for first_partial in [false, true] {
+            let ctx = Context::default();
+            let mut app = readings_app(&ctx, true);
+            if first_partial {
+                app.ingest_readings(Some(pending_readings(0)), false);
+            }
+            let count = app.stats.readings_applied;
+            app.execute(&ctx, Command::RefreshNow);
+            app.ingest_readings(None, false);
+            assert!(app.apply_next);
+            app.ingest_readings(Some(pending_readings(1)), true);
+            assert_eq!(app.stats.readings_applied, count);
+            assert!(app.apply_next);
+
+            app.ingest_readings(None, false);
+            assert_eq!(app.stats.readings_applied, count + 1);
+            assert!(!app.apply_next);
+            assert!(app.startup_completion_pending);
+            assert!(app.stashed.is_none());
+            app.ingest_readings(Some(pending_readings(2)), false);
+            assert_eq!(app.stats.readings_applied, count + 1);
+            app.ingest_readings(Some(mc_magpie::synthetic_readings(3, 1)), false);
+            assert_eq!(app.stats.readings_applied, count + 2);
+            assert!(!app.startup_completion_pending);
+            assert!(app.stashed.is_none());
+            assert_eq!(app.perf.selected, STARTUP_DISK);
+        }
+    }
+
+    #[test]
+    fn readings_refresh_after_completion_applies_stash_once() {
+        let ctx = Context::default();
+        let mut app = readings_app(&ctx, true);
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(0, 1)), false);
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(1, 1)), false);
+        assert_eq!(app.stats.readings_applied, 1);
+        assert!(!app.startup_completion_pending);
+        assert!(app.stashed.is_some());
+
+        app.execute(&ctx, Command::RefreshNow);
+        app.ingest_readings(None, true);
+        assert_eq!(app.stats.readings_applied, 1);
+        assert!(app.apply_next);
+        assert!(app.stashed.is_some());
+        app.ingest_readings(None, false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(!app.apply_next);
+        assert!(app.stashed.is_none());
+
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(2, 1)), false);
+        app.ingest_readings(None, false);
+        assert_eq!(app.stats.readings_applied, 2);
+        assert!(app.stashed.is_some());
+    }
+
+    #[test]
+    fn readings_fresh_supersedes_stash_without_replay() {
+        for paused in [false, true] {
+            let ctx = Context::default();
+            let mut app = readings_app(&ctx, paused);
+            app.ingest_readings(Some(mc_magpie::synthetic_readings(0, 1)), false);
+            let mut stale = mc_magpie::synthetic_readings(1, 1);
+            stale.disks_info.clear();
+            app.ingest_readings(Some(stale), true);
+            assert!(app.stashed.as_ref().unwrap().disks_info.is_empty());
+            if paused {
+                app.execute(&ctx, Command::RefreshNow);
+            }
+            app.ingest_readings(Some(mc_magpie::synthetic_readings(2, 1)), false);
+            assert_eq!(app.stats.readings_applied, 2);
+            assert!(!app.apply_next);
+            assert!(app.stashed.is_none());
+            app.ingest_readings(None, false);
+            assert_eq!(app.stats.readings_applied, 2);
+            assert!(app.perf.device_index(STARTUP_DISK).is_some());
+            assert_eq!(app.perf.selected, STARTUP_DISK);
+        }
+    }
+
+    #[test]
+    fn readings_unpaused_pending_and_unpause_release_stash() {
+        for starts_paused in [false, true] {
+            let ctx = Context::default();
+            let mut app = readings_app(&ctx, starts_paused);
+            if starts_paused {
+                app.ingest_readings(Some(pending_readings(0)), false);
+                app.ingest_readings(Some(pending_readings(1)), false);
+                assert!(app.stashed.is_some());
+                app.config.app_update_paused = false;
+                app.ingest_readings(None, false);
+            } else {
+                app.ingest_readings(Some(pending_readings(0)), false);
+            }
+            let count = if starts_paused { 2 } else { 1 };
+            assert_eq!(app.stats.readings_applied, count);
+            assert!(!app.startup_completion_pending);
+            assert!(!app.apply_next);
+            assert!(app.stashed.is_none());
+            assert!(app.perf.device_index(STARTUP_DISK).is_none());
+            assert_eq!(app.perf.selected, STARTUP_DISK);
+
+            app.config.app_update_paused = true;
+            app.ingest_readings(Some(mc_magpie::synthetic_readings(2, 1)), false);
+            assert_eq!(app.stats.readings_applied, count);
+            assert!(app.stashed.is_some());
+            assert!(app.perf.device_index(STARTUP_DISK).is_none());
+        }
+    }
+
+    #[test]
+    fn readings_unpause_without_readings_closes_startup_exception() {
+        let ctx = Context::default();
+        let mut app = readings_app(&ctx, true);
+        app.ingest_readings(Some(pending_readings(0)), false);
+        assert!(app.startup_completion_pending);
+        assert!(app.stashed.is_none());
+        app.config.app_update_paused = false;
+        app.logic(&ctx);
+        assert!(!app.startup_completion_pending);
+        assert_eq!(app.stats.readings_applied, 1);
+
+        app.config.app_update_paused = true;
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(1, 1)), false);
+        assert_eq!(app.stats.readings_applied, 1);
+        assert!(!app.apply_next);
+        assert!(app.stashed.is_some());
+        assert!(app.perf.device_index(STARTUP_DISK).is_none());
+        assert_eq!(app.perf.selected, STARTUP_DISK);
+        assert_eq!(app.config.performance_selected_page, STARTUP_DISK);
+    }
 
     #[test]
     fn hardware_access_click_reports_pending_and_failed_authorization() {
