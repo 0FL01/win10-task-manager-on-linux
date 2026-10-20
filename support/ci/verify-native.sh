@@ -35,8 +35,9 @@ case $distro in
     debian13|ubuntu26.04)
         apt-get update
         # Minimal Ubuntu images exclude translations unless explicitly included.
+        # Exercise optional hardware access even when the image disables recommendations.
         DEBIAN_FRONTEND=noninteractive apt-get \
-            -o 'Dpkg::Options::=--path-include=/usr/share/locale/*' install -y "$package"
+            -o 'Dpkg::Options::=--path-include=/usr/share/locale/*' install -y "$package" polkitd pkexec
         package_version=$(dpkg-query -W -f='${Version}' taskmanager)
         if [[ $distro == debian13 ]]; then
             expected_version="${version}-1+deb13"

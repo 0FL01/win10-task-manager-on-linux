@@ -49,19 +49,20 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 ## Change Envelope
 - Original PR's 23 paths; corrective changes in mc-ui memory/mem_slots/system/network and tests, mc-core memory tests, app CLI/tests, backend memory reader/tests, po and directly relevant docs.
 - No Cargo dependency, workflow, daemon protocol, service or worker changes.
+- R4 gate-driven expansion: `support/ci/verify-native.sh` and its existing argument tests may explicitly install Debian/Ubuntu optional hardware prerequisites. Run #43 built/installed Ubuntu successfully but failed `test -x /usr/bin/pkexec`; its minimal image did not install package recommendations. Keep all prerequisite probes intact.
 - Generated renders/build outputs stay in ignored target directories; no private fixtures.
 
 ## Current Checkpoint
-- Closes: R4 (and runtime confirmation for R1).
-- Smallest next action: commit corrections and push main; verify the pushed SHA's jobs, artifacts and eligible release.
-- Expected evidence: live/synthetic wgpu/glow renders without opening/modifying saved GUI settings; successful Actions checks/five native builds and published assets.
+- Closes: R4.
+- Smallest next action: explicitly install `polkitd`/`pkexec` in the Debian/Ubuntu verifier, regression-test its install arguments, commit/push and verify the new SHA's jobs/artifacts/release.
+- Expected evidence: unchanged prerequisite probes pass in the minimal Ubuntu image; successful Actions checks/five native builds and published assets.
 - Stop or replan if: PR source differs, a required check reveals a concrete regression, or push/CI access is unavailable after safe alternatives.
 
 ## Current State
-- Resolved: R1–R3; original commit integrated unchanged on `integrate/pr-5-memory`, agreed corrections implemented without dependency/protocol/workflow changes.
+- Resolved: R1–R3; original commit and corrections pushed to main as `03224fe8dba1a7efac73bae172354c28f5603062`; GitHub marks PR #5 merged. No dependency/protocol/workflow changes.
 - Last relevant evidence: full local mandatory gates are green on Rust 1.96.1. Existing timing/hardware/live diagnostic ignores are unchanged. Backend native build prerequisites supplied from a signature-verified Fedora development RPM extracted privately, without a system install.
 - Blocker: none. GitHub CLI is not installed; use Actions tools/HTTP metadata as available.
-- Next: commit/push and monitor CI/release on the integration SHA.
+- Next: repair the observed verifier prerequisite installation and monitor the corrective push's CI/release.
 
 ## Material Decisions
 - 2026-10-20: include original commit without rewriting authorship; changes above it remain separate. Apply agreed occupied-RAM semantics to ordinary launches as well as preview.
@@ -71,6 +72,7 @@ Complete the frozen Required Outcomes using the listed Change Envelope and Prima
 - 2026-10-20: fetched and fast-forwarded original PR commit; no upstream divergence.
 - 2026-10-20: corrected inventory/identity/format/i18n/docs, added focused graph/CLI/ARC/copy regressions; all local gates passed. Confirmed egui intentionally suppresses post-click tooltips until pointer movement, so the copy regression models that interaction instead of changing production behavior.
 - 2026-10-20: `cargo xtask bench-idle` with an ignored Memory-preview smoke adapter passed all four live/synthetic × wgpu/glow runs with matching backend, real frames/readings and no saved-config access/change. This was a launch smoke, not a performance measurement; no adapter-generated benchmark numbers are claimed. The private session intentionally lacks host user-systemd/clipboard services.
+- 2026-10-20: run #43 (`39402714767`, SHA `03224fe`) passed checks, Debian and Fedora; Ubuntu built/installed its package but failed the retained `pkexec` prerequisite probe because the image omits recommended packages. Minimal R4 expansion: explicitly install the already-recommended Debian hardware prerequisites in the verifier, matching existing RPM/Arch policy.
 
 ## Completion
 - Resolved outcomes: pending.

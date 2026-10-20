@@ -57,6 +57,13 @@ class VerifyNativeTests(unittest.TestCase):
         result = self.install_arguments("ubuntu26.04", "apt-get")
         self.assertIn("Dpkg::Options::=--path-include=/usr/share/locale/*", result["args"])
 
+    def test_deb_install_explicitly_includes_optional_hardware_prerequisites(self):
+        for distro in ("debian13", "ubuntu26.04"):
+            with self.subTest(distro=distro):
+                result = self.install_arguments(distro, "apt-get")
+                self.assertIn("polkitd", result["args"])
+                self.assertIn("pkexec", result["args"])
+
     def test_arch_install_preserves_policy_and_whitelists_translations(self):
         result = self.install_arguments("arch", "pacman")
         self.assertEqual(
