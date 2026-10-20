@@ -32,6 +32,23 @@ pub(super) fn known_capacity(slot: &MemoryDevice) -> Option<u64> {
     }
 }
 
+/// A missing record is not an empty slot. Indexed inventories must cover every
+/// expected slot exactly once; old fixtures may omit all indices, but not some.
+pub(super) fn inventory_complete(slots: &[MemoryDevice], max_devices: u64) -> bool {
+    if max_devices == 0 || slots.len() as u64 != max_devices {
+        return false;
+    }
+    let mut indices = std::collections::BTreeSet::new();
+    for slot in slots {
+        if let Some(index) = slot.slot_index
+            && (u64::from(index) >= max_devices || !indices.insert(index))
+        {
+            return false;
+        }
+    }
+    indices.is_empty() || indices.len() == slots.len()
+}
+
 pub(super) fn capacity_label(slot: &MemoryDevice) -> String {
     match known_capacity(slot) {
         Some(0) => i18n("Empty"),
@@ -361,6 +378,35 @@ fn spd_ui(ui: &mut Ui, module: &SpdModule) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn complete_inventory_requires_exact_count_and_consistent_indices() {
+        let mut slots = vec![MemoryDevice::default(); 2];
+        assert!(
+            inventory_complete(&slots, 2),
+            "legacy inventory without indices"
+        );
+        assert!(!inventory_complete(&slots, 0));
+        assert!(!inventory_complete(&slots, 1));
+        assert!(!inventory_complete(&slots, 3));
+        assert!(!inventory_complete(&[], 0));
+        slots[0].slot_index = Some(0);
+        assert!(
+            !inventory_complete(&slots, 2),
+            "mixed legacy/indexed records"
+        );
+        slots[1].slot_index = Some(1);
+        assert!(inventory_complete(&slots, 2));
+        slots.swap(0, 1);
+        assert!(inventory_complete(&slots, 2), "order is not significant");
+        slots[0].slot_index = Some(0);
+        assert!(!inventory_complete(&slots, 2), "duplicate slot");
+        slots[0].slot_index = Some(2);
+        assert!(
+            !inventory_complete(&slots, 2),
+            "missing slot and extra index"
+        );
+    }
+
     #[test]
     fn old_fixture_defaults_preserve_capacity_without_claiming_empty_or_configured() {
         let slot: MemoryDevice = serde_json::from_str(

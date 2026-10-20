@@ -1681,6 +1681,7 @@ fn memory_occupied_preview_renders_at_minimum_and_default_size() {
 #[test]
 fn sidebar_models_elide_and_hover_keeps_complete_identity_and_readings() {
     let mut reading = mc_magpie::synthetic_readings(0, 20);
+    reading.mem_info.max_devices = reading.mem_devices.len() as u64;
     let cpu = "Intel Core i5-14600KF long complete processor model";
     reading.cpu.name = Some(cpu.into());
     for module in &mut reading.mem_devices {
@@ -1750,12 +1751,37 @@ fn memory_capacity_heading_is_compact_and_hover_explains_difference() {
     assert!(text.contains("SO-DIMM DDR5"));
     assert!(text.contains("Outside OS-managed RAM: 1.00 GiB"));
     assert!(text.contains("firmware reservations and early kernel allocations"));
+    let pos = title + egui::vec2(12., 8.);
+    button(&mut h, pos, true);
+    button(&mut h, pos, false);
+    assert!(h.output().platform_output.commands.iter().any(|command| {
+        matches!(command, egui::OutputCommand::CopyText(value) if value == "32 GiB · SO-DIMM DDR5")
+    }));
+    // egui suppresses hover tooltips immediately after a click until the pointer
+    // moves again. Re-hover while the standard copy highlight is still active.
+    h.run_steps(8);
+    h.hover_at(pos + egui::vec2(1., 0.));
+    h.run_steps(2);
+    assert!(h.query_by_label_contains("Copied").is_some());
+    let (_, until) = h.ctx.data(|data| {
+        data.get_temp::<(egui::Id, f64)>(egui::Id::new("metadata-copy-highlight"))
+            .expect("copy starts the single metadata highlight")
+    });
+    h.run_steps(60);
+    assert!(h.ctx.input(|input| input.time) >= until);
+    let text = h
+        .get_by_label_contains("Installed: 32.0 GiB")
+        .value()
+        .unwrap();
+    assert!(text.contains("Click to copy"));
+    assert!(text.contains("firmware reservations and early kernel allocations"));
+    assert!(h.query_by_label_contains("Copied").is_none());
     reading.mem_devices.pop();
     let mut unknown = performance_harness(config, reading, 1.);
     unknown.hover_at(egui::pos2(975., 118.));
     unknown.run_steps(40);
     let text = unknown
-        .get_by_label_contains("Installed capacity is unknown")
+        .get_by_label_contains("Installed capacity cannot be determined reliably")
         .value()
         .unwrap();
     assert!(text.contains("OS-managed RAM: 31.0 GiB"));

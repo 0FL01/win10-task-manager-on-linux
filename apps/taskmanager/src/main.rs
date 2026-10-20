@@ -80,6 +80,11 @@ fn usage() -> ! {
 }
 
 fn parse_args() -> Args {
+    parse_args_from(std::env::args().skip(1))
+}
+
+fn parse_args_from(args: impl IntoIterator<Item = String>) -> Args {
+    let mut it = args.into_iter();
     let mut args = Args {
         fixture: None,
         dump: None,
@@ -91,7 +96,6 @@ fn parse_args() -> Args {
         bench_seconds: None,
         synthetic: None,
     };
-    let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
         match arg.as_str() {
             "--fixture" => args.fixture = it.next().map(PathBuf::from),
@@ -485,4 +489,88 @@ fn main() -> eframe::Result {
             }))
         }),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn args_default_to_normal_launch() {
+        let args = parse_args_from([]);
+        assert!(args.fixture.is_none());
+        assert!(args.dump.is_none());
+        assert!(args.renderer.is_none());
+        assert!(!args.perf_overlay);
+        assert!(!args.no_config);
+        assert!(!args.memory_preview);
+        assert!(args.stats_file.is_none());
+        assert!(args.bench_seconds.is_none());
+        assert!(args.synthetic.is_none());
+    }
+
+    #[test]
+    fn args_memory_preview_implies_no_config_in_either_order() {
+        for flags in [
+            vec!["--memory-preview"],
+            vec!["--no-config", "--memory-preview"],
+            vec!["--memory-preview", "--no-config"],
+        ] {
+            let args = parse_args_from(flags.into_iter().map(str::to_owned));
+            assert!(args.memory_preview);
+            assert!(args.no_config);
+        }
+
+        let args = parse_args_from(["--no-config".to_owned()]);
+        assert!(args.no_config);
+        assert!(!args.memory_preview);
+    }
+
+    #[test]
+    fn args_memory_preview_coexists_with_fixture_and_synthetic_in_either_order() {
+        for flags in [
+            vec!["--memory-preview", "--fixture", "recordings"],
+            vec!["--fixture", "recordings", "--memory-preview"],
+        ] {
+            let args = parse_args_from(flags.into_iter().map(str::to_owned));
+            assert!(args.memory_preview);
+            assert!(args.no_config);
+            assert_eq!(args.fixture, Some(PathBuf::from("recordings")));
+            assert!(args.synthetic.is_none());
+        }
+
+        for flags in [
+            vec!["--memory-preview", "--synthetic", "300"],
+            vec!["--synthetic", "300", "--memory-preview"],
+        ] {
+            let args = parse_args_from(flags.into_iter().map(str::to_owned));
+            assert!(args.memory_preview);
+            assert!(args.no_config);
+            assert_eq!(args.synthetic, Some(300));
+            assert!(args.fixture.is_none());
+        }
+
+        for flags in [
+            vec![
+                "--memory-preview",
+                "--fixture",
+                "recordings",
+                "--synthetic",
+                "300",
+            ],
+            vec![
+                "--synthetic",
+                "300",
+                "--fixture",
+                "recordings",
+                "--memory-preview",
+            ],
+        ] {
+            let args = parse_args_from(flags.into_iter().map(str::to_owned));
+            assert!(args.memory_preview);
+            assert!(args.no_config);
+            assert_eq!(args.fixture, Some(PathBuf::from("recordings")));
+            assert_eq!(args.synthetic, Some(300));
+        }
+    }
 }

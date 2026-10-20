@@ -580,8 +580,83 @@ mod tests {
     }
 
     #[test]
+    fn connected_network_summary_uses_translated_combined_template() {
+        const CHILD: &str = "TASKMANAGER_NETWORK_I18N_TEST";
+        if let Some(root) = std::env::var_os(CHILD) {
+            mc_core::i18n::init(std::path::Path::new(&root));
+            let r = mc_magpie::synthetic_readings(0, 1);
+            let gpu = GpuSnapshot::from_readings(&r, &mut Default::default(), 1000);
+            let mut config = Config::default();
+            let mut page = PerformancePage::new(&config);
+            page.update(&r, &gpu, &mut config);
+            let connection = r.network_connections.values().next().unwrap();
+            let summary = page.devices[page
+                .device_index(&network::page_name(&connection.id))
+                .unwrap()]
+            .summary();
+            let rate = |value| {
+                mc_core::format::to_human_readable_nice(
+                    value,
+                    &mc_core::format::DataType::NetworkBytesPerSecond,
+                )
+            };
+            assert_eq!(
+                summary.info2,
+                format!(
+                    "Send {} / Receive {}",
+                    rate(connection.tx_rate_bytes_ps),
+                    rate(connection.rx_rate_bytes_ps)
+                )
+            );
+            return;
+        }
+        // A dedicated process avoids changing the global catalog or environment
+        // underneath the other (English) UI tests. This is a one-entry GNU MO.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!("../../target/network-i18n-{}", std::process::id()));
+        let messages = root.join("test/LC_MESSAGES");
+        std::fs::create_dir_all(&messages).unwrap();
+        let original = "S: {} · R: {}";
+        let translated = "Send {} / Receive {}";
+        let mut mo = Vec::new();
+        for word in [
+            0x9504_12de_u32,
+            0,
+            1,
+            28,
+            36,
+            0,
+            0,
+            original.len() as u32,
+            44,
+            translated.len() as u32,
+            45 + original.len() as u32,
+        ] {
+            mo.extend(word.to_le_bytes());
+        }
+        mo.extend(original.as_bytes());
+        mo.push(0);
+        mo.extend(translated.as_bytes());
+        mo.push(0);
+        std::fs::write(messages.join("taskmanager.mo"), mo).unwrap();
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "perf::tests::connected_network_summary_uses_translated_combined_template",
+            ])
+            .env(CHILD, &root)
+            .env("LANGUAGE", "test")
+            .env("LC_ALL", "C.UTF-8")
+            .status()
+            .unwrap();
+        std::fs::remove_dir_all(root).unwrap();
+        assert!(status.success());
+    }
+
+    #[test]
     fn sidebar_devices_keep_identity_above_current_readings() {
         let mut r = mc_magpie::synthetic_readings(0, 8);
+        r.mem_info.max_devices = r.mem_devices.len() as u64;
         for module in &mut r.mem_devices {
             module.manufacturer = Some("Example RAM".into());
             module.part_number = Some("DDR5-5600".into());
@@ -639,6 +714,20 @@ mod tests {
             .info1,
             connection.id
         );
+        let connection = r.network_connections.values_mut().next().unwrap();
+        connection.state = mc_magpie::magpie_types::network::ConnectionState::Disconnected as i32;
+        let name = network::page_name(&connection.id);
+        let identity = connection.id.clone();
+        page.update(&r, &gpu, &mut config);
+        let summary = page.devices[page.device_index(&name).unwrap()].summary();
+        assert_eq!(summary.info1, identity);
+        assert!(!summary.info2.contains("S:"));
+        r.network_connections.values_mut().next().unwrap().state =
+            mc_magpie::magpie_types::network::ConnectionState::Connected as i32;
+        page.update(&r, &gpu, &mut config);
+        let summary = page.devices[page.device_index(&name).unwrap()].summary();
+        assert_eq!(summary.info1, identity);
+        assert!(summary.info2.contains("S:") && summary.info2.contains("R:"));
     }
 
     #[test]

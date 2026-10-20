@@ -42,7 +42,7 @@ struct Labels {
     installed: Option<String>,
     reserved: Option<String>,
     capacity_tooltip: String,
-    memory_kind: String,
+    capacity_heading: String,
     committed: String,
     cached: String,
     swap_total: Option<String>,
@@ -213,7 +213,10 @@ fn memory_kind_label(modules: &[mc_magpie::MemoryDevice]) -> String {
     kinds.into_iter().collect::<Vec<_>>().join(" / ")
 }
 
-fn module_model_label(modules: &[mc_magpie::MemoryDevice]) -> String {
+fn module_model_label(modules: &[mc_magpie::MemoryDevice], max_devices: u64) -> String {
+    if !super::mem_slots::inventory_complete(modules, max_devices) {
+        return i18n("Unknown");
+    }
     let known = |value: &str| {
         let value = value.trim();
         !value.is_empty()
@@ -229,9 +232,14 @@ fn module_model_label(modules: &[mc_magpie::MemoryDevice]) -> String {
     };
     let occupied: Vec<_> = modules
         .iter()
-        .filter(|m| !super::mem_slots::slot_is_empty(m) && (m.size > 0 || m.present == Some(true)))
+        .filter(|m| !super::mem_slots::slot_is_empty(m))
         .collect();
-    if occupied.is_empty() {
+    if occupied.is_empty()
+        || occupied.iter().any(|m| {
+            (m.size == 0 && m.present != Some(true))
+                || m.part_number.as_deref().is_none_or(|s| !known(s))
+        })
+    {
         return i18n("Unknown");
     }
     let models: std::collections::BTreeSet<_> = occupied
@@ -240,12 +248,6 @@ fn module_model_label(modules: &[mc_magpie::MemoryDevice]) -> String {
         .collect();
     if models.len() > 1 {
         return i18n("Mixed modules");
-    }
-    if occupied
-        .iter()
-        .any(|m| m.part_number.as_deref().is_none_or(|s| !known(s)))
-    {
-        return i18n("Unknown");
     }
     let manufacturer = occupied[0]
         .manufacturer
@@ -413,14 +415,24 @@ impl DevicePage for MemoryPage {
             .try_fold(0_u64, |sum, module| {
                 sum.checked_add(super::mem_slots::known_capacity(module)?)
             })
-            .filter(|total| *total >= mem.mem_total && *total > 0);
-        let inventory_complete =
-            mem.max_devices > 0 && readings.mem_devices.len() as u64 >= mem.max_devices;
-        l.installed = installed.filter(|_| inventory_complete).map(h);
-        l.reserved = installed
-            .filter(|_| inventory_complete)
-            .map(|total| h(total - mem.mem_total));
-        l.memory_kind = memory_kind_label(&readings.mem_devices);
+            .filter(|total| *total >= mem.mem_total && *total > 0)
+            .filter(|_| {
+                super::mem_slots::inventory_complete(&readings.mem_devices, mem.max_devices)
+            });
+        l.installed = installed.map(h);
+        l.reserved = installed.map(|total| h(total - mem.mem_total));
+        let memory_kind = memory_kind_label(&readings.mem_devices);
+        let capacity = installed.unwrap_or(mem.mem_total);
+        let capacity = if capacity > 0 && capacity.is_multiple_of(1024 * 1024 * 1024) {
+            format!("{} GiB", capacity / (1024 * 1024 * 1024))
+        } else {
+            h(capacity)
+        };
+        l.capacity_heading = if memory_kind.is_empty() {
+            capacity
+        } else {
+            format!("{capacity} · {memory_kind}")
+        };
         l.capacity_tooltip = if let (Some(installed), Some(reserved)) = (&l.installed, &l.reserved)
         {
             i18n_f(
@@ -429,12 +441,12 @@ impl DevicePage for MemoryPage {
             )
         } else {
             i18n_f(
-                "OS-managed RAM: {}\n\nInstalled capacity is unknown because the memory slot inventory is incomplete.",
+                "OS-managed RAM: {}\n\nInstalled capacity cannot be determined reliably from the available memory inventory.",
                 &[&self.total_ram],
             )
         };
-        if !l.memory_kind.is_empty() {
-            l.capacity_tooltip = format!("{}\n\n{}", l.memory_kind, l.capacity_tooltip);
+        if !memory_kind.is_empty() {
+            l.capacity_tooltip = format!("{}\n\n{}", memory_kind, l.capacity_tooltip);
         }
         self.has_swap = mem.swap_total != 0;
         if self.has_swap {
@@ -469,7 +481,7 @@ impl DevicePage for MemoryPage {
             h(mem.mem_total),
             (used as f32 / total as f32 * 100.).round()
         );
-        self.summary.info1 = module_model_label(&readings.mem_devices);
+        self.summary.info1 = module_model_label(&readings.mem_devices, mem.max_devices);
 
         true
     }
@@ -549,18 +561,7 @@ impl DevicePage for MemoryPage {
         }
         PageView {
             title: i18n("Memory"),
-            model: {
-                let capacity = l
-                    .installed
-                    .as_deref()
-                    .unwrap_or(&self.total_ram)
-                    .replace(".0 ", " ");
-                if l.memory_kind.is_empty() {
-                    capacity
-                } else {
-                    format!("{capacity} · {}", l.memory_kind)
-                }
-            },
+            model: l.capacity_heading.clone(),
             model_tooltip: Some(&l.capacity_tooltip),
             panels,
             stats,
@@ -677,19 +678,129 @@ mod tests {
             ..Default::default()
         };
         let mut modules = vec![module("F4-3200"), module("F4-3200")];
-        assert_eq!(module_model_label(&modules), "G.Skill F4-3200");
+        assert_eq!(module_model_label(&modules, 2), "G.Skill F4-3200");
+        assert_eq!(module_model_label(&modules, 3), "Unknown");
+        assert_eq!(module_model_label(&modules, 1), "Unknown");
+        assert_eq!(module_model_label(&modules, 0), "Unknown");
         modules.push(mc_magpie::MemoryDevice {
             present: Some(false),
             ..Default::default()
         });
-        assert_eq!(module_model_label(&modules), "G.Skill F4-3200");
+        assert_eq!(module_model_label(&modules, 3), "G.Skill F4-3200");
+        modules[2].present = None;
+        assert_eq!(module_model_label(&modules, 3), "Unknown");
+        modules[2].present = Some(true);
+        assert_eq!(module_model_label(&modules, 3), "Unknown");
+        modules[2].present = Some(false);
         modules[1].part_number = Some("F4-3600".into());
-        assert_eq!(module_model_label(&modules), "Mixed modules");
+        assert_eq!(module_model_label(&modules, 3), "Mixed modules");
         modules[1].part_number = None;
-        assert_eq!(module_model_label(&modules), "Unknown");
-        assert_eq!(module_model_label(&[]), "Unknown");
+        assert_eq!(module_model_label(&modules, 3), "Unknown");
+        assert_eq!(module_model_label(&[], 0), "Unknown");
         modules[0].part_number = Some("Default string".into());
-        assert_eq!(module_model_label(&modules), "Unknown");
+        assert_eq!(module_model_label(&modules, 3), "Unknown");
+    }
+
+    #[test]
+    fn late_inventory_updates_capacity_and_common_or_mixed_identity() {
+        let mut r = mc_magpie::synthetic_readings(0, 1);
+        r.mem_info.mem_total = 31 * 1024 * 1024 * 1024;
+        r.mem_info.max_devices = 2;
+        for module in &mut r.mem_devices {
+            module.manufacturer = Some("Example".into());
+            module.part_number = Some("DDR5-5600".into());
+        }
+        let modules = std::mem::take(&mut r.mem_devices);
+        let config = Config::default();
+        let env = UpdateEnv::new(&config);
+        let mut page = MemoryPage::new(&r, &config);
+        page.update(&r, &env);
+        assert_eq!(page.summary.info1, "Unknown");
+        assert_eq!(page.win10_view(&config).model, "31 GiB");
+        assert!(page.labels.installed.is_none());
+
+        r.mem_devices = modules;
+        page.update(&r, &env);
+        assert_eq!(page.summary.info1, "Example DDR5-5600");
+        assert_eq!(page.win10_view(&config).model, "32 GiB · SO-DIMM DDR5");
+        assert_eq!(page.labels.installed.as_deref(), Some("32.0 GiB"));
+        r.mem_devices[1].part_number = Some("DDR5-6000".into());
+        page.update(&r, &env);
+        assert_eq!(page.summary.info1, "Mixed modules");
+        r.mem_devices.pop();
+        page.update(&r, &env);
+        assert_eq!(page.summary.info1, "Unknown");
+        assert!(page.labels.installed.is_none());
+        assert_eq!(page.win10_view(&config).model, "31 GiB · SO-DIMM DDR5");
+    }
+
+    #[test]
+    fn installed_capacity_rejects_unknown_contradictory_or_overflowing_totals() {
+        let mut r = mc_magpie::synthetic_readings(0, 1);
+        r.mem_info.max_devices = 2;
+        let original = r.mem_devices.clone();
+        let config = Config::default();
+        let env = UpdateEnv::new(&config);
+        let mut page = MemoryPage::new(&r, &config);
+        for case in 0..8 {
+            r.mem_devices.clone_from(&original);
+            r.mem_info.max_devices = 2;
+            match case {
+                0 => r.mem_devices[1].size = 0,
+                1 => {
+                    r.mem_devices[1].size = 0;
+                    r.mem_devices[1].present = Some(true);
+                }
+                2 => r.mem_devices.push(original[0].clone()),
+                3 => r.mem_info.max_devices = 0,
+                4 => r.mem_devices[0].size = u64::MAX,
+                5 => r.mem_devices[1].size = 1,
+                6 => {
+                    r.mem_devices[0].slot_index = Some(0);
+                    r.mem_devices[1].slot_index = Some(2);
+                }
+                7 => r.mem_devices[0].slot_index = Some(0),
+                _ => unreachable!(),
+            }
+            page.update(&r, &env);
+            assert!(page.labels.installed.is_none(), "case {case}");
+            assert!(page.labels.reserved.is_none(), "case {case}");
+            assert!(
+                page.labels
+                    .capacity_tooltip
+                    .contains("cannot be determined reliably")
+            );
+            assert!(
+                !page
+                    .labels
+                    .capacity_tooltip
+                    .contains("Outside OS-managed RAM:")
+            );
+        }
+        r.mem_devices = original;
+        r.mem_devices[1].present = Some(false);
+        r.mem_info.mem_total = 15 * 1024 * 1024 * 1024;
+        page.update(&r, &env);
+        assert_eq!(page.labels.installed.as_deref(), Some("16.0 GiB"));
+        assert_eq!(page.labels.reserved.as_deref(), Some("1.00 GiB"));
+    }
+
+    #[test]
+    fn heading_formats_capacity_from_bytes_without_string_replacement() {
+        let config = Config::default();
+        let mut r = mc_magpie::synthetic_readings(0, 1);
+        r.mem_devices.clear();
+        let mut page = MemoryPage::new(&r, &config);
+        for (bytes, expected) in [
+            (8 * 1024 * 1024 * 1024, "8 GiB"),
+            (16 * 1024 * 1024 * 1024, "16 GiB"),
+            (32 * 1024 * 1024 * 1024, "32 GiB"),
+            (1536 * 1024 * 1024, "1.50 GiB"),
+        ] {
+            r.mem_info.mem_total = bytes;
+            page.update(&r, &UpdateEnv::new(&config));
+            assert_eq!(page.win10_view(&config).model, expected);
+        }
     }
     #[test]
     fn sidebar_stats_graph_and_process_header_share_physical_occupation() {
@@ -708,6 +819,32 @@ mod tests {
         assert_eq!(page.labels.in_use, "16.0 GiB");
         assert_eq!(page.labels.free, "16.0 GiB");
         assert_eq!(page.labels.cached, "9.00 GiB");
+        assert_eq!(
+            page.usage.groups()[2].datas[0].get_data()[0],
+            (16 * gib) as f32
+        );
+        assert_eq!(
+            page.summary.graph.groups()[1].datas[0].get_data()[0],
+            (16 * gib) as f32
+        );
+        assert!(!page.usage.groups()[0].dataset_settings.visible);
+        assert!(!page.usage.groups()[1].dataset_settings.visible);
+        assert!(page.usage.groups()[2].dataset_settings.visible);
+        assert!(!page.summary.graph.groups()[0].dataset_settings.visible);
+        assert!(page.summary.graph.groups()[1].dataset_settings.visible);
+        r.mem_info.mem_available = 30 * gib;
+        r.mem_info.committed = 100 * gib;
+        r.mem_info.dirty = gib;
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(
+            page.usage.groups()[2].datas[0].get_data()[0],
+            (16 * gib) as f32
+        );
+        assert_eq!(
+            page.summary.graph.groups()[1].datas[0].get_data()[0],
+            (16 * gib) as f32
+        );
+        assert_eq!(page.usage.dataset_max_scale(2), (32 * gib) as f32);
         let view = page.win10_view(&config);
         assert_eq!(view.stats[0][0].0, "Used (incl. cache)");
         assert_eq!(view.stats[0][1].0, "Free");
@@ -715,6 +852,20 @@ mod tests {
         let snapshot = mc_core::gpu::GpuSnapshot::default();
         let totals = mc_core::table::ColumnTotals::from_readings(&r, &snapshot);
         assert_eq!(totals.memory_percent, 50.);
+        r.mem_info.mem_free = u64::MAX;
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(page.usage.groups()[2].datas[0].get_data()[0], 0.);
+        assert_eq!(
+            mc_core::table::ColumnTotals::from_readings(&r, &snapshot).memory_percent,
+            0.
+        );
+        r.mem_info.mem_total = 0;
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(page.summary.graph.groups()[1].datas[0].get_data()[0], 0.);
+        assert_eq!(
+            mc_core::table::ColumnTotals::from_readings(&r, &snapshot).memory_percent,
+            0.
+        );
     }
 
     #[test]

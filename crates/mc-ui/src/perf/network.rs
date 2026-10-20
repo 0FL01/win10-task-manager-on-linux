@@ -224,7 +224,7 @@ impl DevicePage for NetworkPage {
         if c.state() != ConnectionState::Connected {
             self.summary.info2 = i18n_f("{}", &[c.state().as_str_name()]);
         } else {
-            self.summary.info2 = format!("S: {} · R: {}", l.speed_send, l.speed_recv);
+            self.summary.info2 = i18n_f("S: {} · R: {}", &[&l.speed_send, &l.speed_recv]);
         }
         true
     }

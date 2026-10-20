@@ -144,9 +144,20 @@ fn read_zswap_enabled(memory: &mut Memory) {
         });
 }
 
-fn update_zfs_arc_usage(memory: &mut Memory) {
-    const ARCSTATS_PATH: &str = "/proc/spl/kstat/zfs/arcstats";
+const ARCSTATS_PATH: &str = "/proc/spl/kstat/zfs/arcstats";
 
+fn update_zfs_arc_usage(memory: &mut Memory) {
+    let arcstats_reader = match OpenOptions::new().read(true).open(ARCSTATS_PATH) {
+        Ok(f) => BufReader::new(f),
+        Err(err) => {
+            log::info!("Failed to open `{ARCSTATS_PATH}`: {err}");
+            return;
+        }
+    };
+    update_zfs_arc_usage_from_reader(memory, arcstats_reader);
+}
+
+fn update_zfs_arc_usage_from_reader(memory: &mut Memory, mut arcstats_reader: impl BufRead) {
     const LABEL_C_MIN: &str = "c_min ";
     const LABEL_SIZE: &str = "size ";
 
@@ -164,14 +175,6 @@ fn update_zfs_arc_usage(memory: &mut Memory) {
                 .ok()
         })
     }
-
-    let mut arcstats_reader = match OpenOptions::new().read(true).open(ARCSTATS_PATH) {
-        Ok(f) => BufReader::new(f),
-        Err(err) => {
-            log::info!("Failed to open `{ARCSTATS_PATH}`: {err}");
-            return;
-        }
-    };
 
     let mut mem_used = 0u64;
     let mut mem_min = 0u64;
@@ -462,7 +465,56 @@ impl magpie_platform::memory::MemoryCache for MemoryCache {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
+
+    #[test]
+    fn zfs_arc_adjusts_available_by_size_above_minimum_without_changing_free() {
+        for arcstats in ["c_min 4 32\nsize 4 128\n", "size 4 128\nc_min 4 32\n"] {
+            let mut memory = Memory {
+                mem_free: 50,
+                mem_available: 100,
+                ..Default::default()
+            };
+            update_zfs_arc_usage_from_reader(&mut memory, Cursor::new(arcstats));
+            assert_eq!(memory.mem_free, 50);
+            assert_eq!(memory.mem_available, 196);
+        }
+    }
+
+    #[test]
+    fn zfs_arc_below_minimum_or_missing_fields_leaves_available_and_free_unchanged() {
+        for arcstats in [
+            "c_min 4 128\nsize 4 32\n",
+            "c_min 4 128\nsize 4 128\n",
+            "c_min 4 32\n",
+            "size 4 128\n",
+            "",
+        ] {
+            let mut memory = Memory {
+                mem_free: 50,
+                mem_available: 100,
+                ..Default::default()
+            };
+            update_zfs_arc_usage_from_reader(&mut memory, Cursor::new(arcstats));
+            assert_eq!(memory.mem_free, 50);
+            assert_eq!(memory.mem_available, 100);
+        }
+    }
+
+    #[test]
+    fn zfs_arc_available_addition_saturates_without_changing_free() {
+        let mut memory = Memory {
+            mem_free: 50,
+            mem_available: u64::MAX - 5,
+            ..Default::default()
+        };
+        update_zfs_arc_usage_from_reader(&mut memory, Cursor::new("c_min 4 32\nsize 4 128\n"));
+        assert_eq!(memory.mem_free, 50);
+        assert_eq!(memory.mem_available, u64::MAX);
+    }
+
     #[test]
     fn slots_keep_empty_locations_and_do_not_leak_speed_between_modules() {
         let properties="MEMORY_ARRAY_NUM_DEVICES=4\nMEMORY_DEVICE_2_PRESENT=0\nMEMORY_DEVICE_2_LOCATOR=DIMMB1\nMEMORY_DEVICE_0_SIZE=8589934592\nMEMORY_DEVICE_0_SPEED_MTS=3200\nMEMORY_DEVICE_0_CONFIGURED_SPEED_MTS=3600\nMEMORY_DEVICE_0_LOCATOR=DIMMA1\nMEMORY_DEVICE_1_SIZE=8589934592\nMEMORY_DEVICE_1_PART_NUMBER=TEST\n";

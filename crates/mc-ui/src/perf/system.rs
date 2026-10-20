@@ -168,12 +168,13 @@ impl DevicePage for SystemPage {
             .try_fold(0_u64, |total, module| {
                 total.checked_add(known_capacity(module).unwrap_or(0))
             });
-        let complete = readings.mem_info.max_devices > 0
-            && readings.mem_devices.len() as u64 >= readings.mem_info.max_devices
-            && readings
-                .mem_devices
-                .iter()
-                .all(|module| known_capacity(module).is_some());
+        let complete = super::mem_slots::inventory_complete(
+            &readings.mem_devices,
+            readings.mem_info.max_devices,
+        ) && readings
+            .mem_devices
+            .iter()
+            .all(|module| known_capacity(module).is_some());
         let installed = installed.unwrap_or(0);
         rows.push(if installed > 0 {
             (
@@ -321,6 +322,9 @@ mod tests {
         );
         assert!(!page.rows.iter().any(|(key, _)| key == "A2"));
 
+        readings.mem_info.max_devices = 1;
+        page.update(&readings, &UpdateEnv::new(&Config::default()));
+        assert!(!page.rows.iter().any(|(key, _)| key == "Installed memory"));
         readings.mem_info.max_devices = 3;
         page.update(&readings, &UpdateEnv::new(&Config::default()));
         assert!(!page.rows.iter().any(|(key, _)| key == "Installed memory"));

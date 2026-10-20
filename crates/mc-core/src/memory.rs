@@ -97,4 +97,33 @@ mod tests {
             assert!(u.adjusted);
         }
     }
+
+    #[test]
+    fn full_range_counters_preserve_partition_without_overflow() {
+        let counters = [0, 1, 100, u64::MAX];
+        for total in counters {
+            for free in counters {
+                for cached in counters {
+                    for shared in counters {
+                        let mem = Memory {
+                            mem_total: total,
+                            mem_free: free,
+                            cached,
+                            sh_mem: shared,
+                            buffers: 40,
+                            s_reclaimable: u64::MAX,
+                            ..Default::default()
+                        };
+                        let u = MemoryUsage::from_memory(&mem);
+                        let sum = [u.other, u.cache, u.shared, u.buffers, u.free]
+                            .into_iter()
+                            .try_fold(0_u64, u64::checked_add);
+                        assert_eq!(sum, Some(total));
+                        assert_eq!(u.occupied.checked_add(u.free), Some(total));
+                        assert_eq!(u.occupied, total - free.min(total));
+                    }
+                }
+            }
+        }
+    }
 }

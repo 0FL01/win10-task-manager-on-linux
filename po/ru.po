@@ -29,8 +29,8 @@ msgstr "Разные модули"
 msgid "Installed: {}\nOS-managed RAM: {}\nOutside OS-managed RAM: {}\n\nThe difference includes firmware reservations and early kernel allocations."
 msgstr "Установлено: {}\nОбъём для ОС: {}\nВне управления ОС: {}\n\nРазница включает резервирование прошивки и ранние выделения памяти ядром."
 
-msgid "OS-managed RAM: {}\n\nInstalled capacity is unknown because the memory slot inventory is incomplete."
-msgstr "Объём для ОС: {}\n\nУстановленный объём неизвестен: сведения о слотах памяти неполны."
+msgid "OS-managed RAM: {}\n\nInstalled capacity cannot be determined reliably from the available memory inventory."
+msgstr "Объём для ОС: {}\n\nИмеющиеся сведения о памяти не позволяют достоверно определить установленный объём."
 
 msgid "Of used: cache"
 msgstr "Из занятого: кеш"
@@ -53,8 +53,8 @@ msgstr "Вне управляемой ОС памяти:"
 msgid "OS-managed RAM:"
 msgstr "Управляется ОС:"
 
-msgid "{} installed · {} OS"
-msgstr "{} установлено · {} для ОС"
+msgid "S: {} · R: {}"
+msgstr "Отпр.: {} · Получ.: {}"
 
 msgid "Occupied RAM, including cache ({})\n\nTotal minus MemFree. Includes programs, kernel, drivers, shared memory, buffers and cache. Cache is part of this value, not an additional allocation. MemAvailable is a separate estimate of reusable memory."
 msgstr "Занято RAM, включая кеш ({})\n\nВсего минус MemFree. Включает программы, ядро, драйверы, общую память, буферы и кеш. Кеш уже входит в это число. MemAvailable — отдельная оценка памяти, которую можно предоставить новым задачам."

@@ -1,17 +1,18 @@
 # Win10 Task Manager look — clean-room visual specification
 
-Local Memory preview (own design): `docs/memory-preview.md` defines occupied RAM
+Memory accounting (own design): `docs/memory-preview.md` defines occupied RAM
 including cache consistently across the sidebar, graph, statistics and table header.
 Only labels/accounting change; measured geometry and colours remain unchanged.
 
-Local sidebar preview (own design): every device uses the existing three lines for
+Sidebar identities (own design): every device uses the existing three lines for
 type, model/identity, current readings. CPU and RAM gain model lines, network combines
 send/receive on its final line, battery groups list their device models. Mixed RAM
 part numbers show Mixed modules; incomplete identity shows Unknown, never an arbitrary
-single stick. Full unelided identity/readings are available on hover. Row size, fonts
-and colours remain unchanged.
+single stick. Full unelided identity/readings are available on hover. The existing
+two-line (60 px) / three-line (66 px) row sizing rule is preserved; CPU, RAM and
+battery groups now normally use three lines. Fonts and colours remain unchanged.
 
-Memory capacity preview (own design): the top-right model line contains the
+Memory capacity (own design): the top-right model line contains the
 installed capacity, or OS-managed capacity when the installed total is unknown,
 followed by ` · ` and the reported package/technology, e.g. `32 GiB · DIMM DDR4`.
 SODIMM is displayed as SO-DIMM; LPDDR uses its reported type without guessing an X
@@ -269,7 +270,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   label x + max(109, longest label + 12) (12 px black), rows cap top 494 + 18·n; rows that do not
   fit above the footer continue in a further column.
 - Device list texts (own adaptation): CPU "percent speed (temperature)", memory
-  "used/total (percent)" on one line, so these items are 60 px like the reference.
+  "used/total (percent)" on one line. With the model/identity line, CPU and RAM use
+  the existing three-line 66 px row (own design), rather than the reference's 60 px.
 - Footer: "Fewer details" as Processes, then a 16 px own icon at x 120 and link
   "Open Resource Monitor"-style text (ours: none — no external tool; the slot stays empty).
   No horizontal separator in full Performance; footer controls and content retain their anchors.

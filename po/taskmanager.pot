@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 21:52+0300\n"
+"POT-Creation-Date: 2026-10-20 12:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,7 +237,7 @@ msgstr ""
 msgid "Waiting for service installation authorization…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:681 crates/mc-ui/src/perf/mem_slots.rs:322
+#: crates/mc-ui/src/app.rs:681 crates/mc-ui/src/perf/mem_slots.rs:339
 msgid "Reading SPD…"
 msgstr ""
 
@@ -303,11 +303,6 @@ msgstr ""
 msgid "Install hardware monitoring service…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:912
-#, rust-format
-msgid "About {}"
-msgstr ""
-
 #: crates/mc-ui/src/app.rs:920
 msgid "Theme"
 msgstr ""
@@ -321,7 +316,7 @@ msgid "Dark"
 msgstr ""
 
 #: crates/mc-ui/src/app.rs:925 crates/mc-ui/src/perf/system.rs:54
-#: crates/mc-ui/src/perf/system.rs:71 crates/mc-ui/src/perf/system.rs:267
+#: crates/mc-ui/src/perf/system.rs:71 crates/mc-ui/src/perf/system.rs:268
 msgid "System"
 msgstr ""
 
@@ -393,7 +388,7 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1083 crates/mc-ui/src/app.rs:1942
+#: crates/mc-ui/src/app.rs:1083 crates/mc-ui/src/app.rs:1985
 msgid "View"
 msgstr ""
 
@@ -472,13 +467,13 @@ msgstr ""
 msgid "Install service…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1213 crates/mc-ui/src/perf/mem_slots.rs:333
+#: crates/mc-ui/src/app.rs:1213 crates/mc-ui/src/perf/mem_slots.rs:350
 #: crates/mc-ui/src/smart.rs:278 crates/mc-ui/src/smart.rs:352
 msgid "Close"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1899 crates/mc-ui/src/app.rs:1904
-#: crates/mc-ui/src/app.rs:1913 crates/mc-ui/src/app.rs:1934
+#: crates/mc-ui/src/app.rs:1942 crates/mc-ui/src/app.rs:1947
+#: crates/mc-ui/src/app.rs:1956 crates/mc-ui/src/app.rs:1977
 #: crates/mc-ui/src/perf/cpu.rs:520 crates/mc-ui/src/perf/gpu.rs:561
 msgid "Utilization"
 msgstr ""
@@ -500,7 +495,7 @@ msgid "Service Details"
 msgstr ""
 
 #: crates/mc-ui/src/dialogs.rs:171 crates/mc-ui/src/perf/battery.rs:419
-#: crates/mc-ui/src/perf/mod.rs:703
+#: crates/mc-ui/src/perf/mod.rs:792
 msgid "State"
 msgstr ""
 
@@ -555,7 +550,7 @@ msgid "Enabled"
 msgstr ""
 
 #: crates/mc-ui/src/dialogs.rs:250 crates/mc-ui/src/perf/cpu.rs:248
-#: crates/mc-ui/src/perf/memory.rs:589 crates/mc-ui/src/perf/network.rs:187
+#: crates/mc-ui/src/perf/memory.rs:590 crates/mc-ui/src/perf/network.rs:187
 #: crates/mc-ui/src/perf/network.rs:260 crates/mc-ui/src/smart.rs:40
 #: crates/mc-ui/src/smart.rs:117 crates/mc-ui/src/win10/details.rs:139
 msgid "N/A"
@@ -585,9 +580,9 @@ msgstr ""
 #: crates/mc-ui/src/perf/disk.rs:170 crates/mc-ui/src/perf/disk.rs:222
 #: crates/mc-ui/src/perf/disk.rs:291 crates/mc-ui/src/perf/gpu.rs:98
 #: crates/mc-ui/src/perf/gpu.rs:165 crates/mc-ui/src/perf/gpu.rs:451
-#: crates/mc-ui/src/perf/gpu.rs:831 crates/mc-ui/src/perf/mem_slots.rs:42
+#: crates/mc-ui/src/perf/gpu.rs:831 crates/mc-ui/src/perf/mem_slots.rs:59
 #: crates/mc-ui/src/perf/memory.rs:125 crates/mc-ui/src/perf/memory.rs:205
-#: crates/mc-ui/src/perf/memory.rs:235 crates/mc-ui/src/perf/memory.rs:248
+#: crates/mc-ui/src/perf/memory.rs:218 crates/mc-ui/src/perf/memory.rs:243
 #: crates/mc-ui/src/perf/network.rs:43 crates/mc-ui/src/perf/network.rs:121
 #: crates/mc-ui/src/perf/network.rs:186 crates/mc-ui/src/perf/network.rs:305
 #: crates/mc-ui/src/perf/network.rs:306 crates/mc-ui/src/smart.rs:140
@@ -637,7 +632,7 @@ msgstr ""
 msgid "PID"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:408 crates/mc-ui/src/perf/mem_slots.rs:314
+#: crates/mc-ui/src/dialogs.rs:408 crates/mc-ui/src/perf/mem_slots.rs:331
 #: crates/mc-ui/src/smart.rs:200
 msgid "Type"
 msgstr ""
@@ -657,7 +652,7 @@ msgid "CPU"
 msgstr ""
 
 #: crates/mc-ui/src/dialogs.rs:433 crates/mc-ui/src/perf/memory.rs:81
-#: crates/mc-ui/src/perf/memory.rs:551 crates/mc-ui/src/perf/system.rs:164
+#: crates/mc-ui/src/perf/memory.rs:563 crates/mc-ui/src/perf/system.rs:164
 #: crates/mc-ui/src/win10/details.rs:253 crates/mc-ui/src/win10/processes.rs:79
 msgid "Memory"
 msgstr ""
@@ -807,7 +802,7 @@ msgstr ""
 msgid "Copy All"
 msgstr ""
 
-#: crates/mc-ui/src/perf/batteries.rs:62 crates/mc-ui/src/perf/mod.rs:674
+#: crates/mc-ui/src/perf/batteries.rs:62 crates/mc-ui/src/perf/mod.rs:763
 msgid "Batteries"
 msgstr ""
 
@@ -831,7 +826,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: crates/mc-ui/src/perf/batteries.rs:240 crates/mc-ui/src/perf/battery.rs:408
-#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/mod.rs:702
+#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/mod.rs:791
 msgid "Percentage"
 msgstr ""
 
@@ -846,7 +841,7 @@ msgid "{}%"
 msgstr ""
 
 #: crates/mc-ui/src/perf/battery.rs:115 crates/mc-ui/src/perf/battery.rs:347
-#: crates/mc-ui/src/perf/mem_slots.rs:37 crates/mc-ui/src/perf/mem_slots.rs:312
+#: crates/mc-ui/src/perf/mem_slots.rs:54 crates/mc-ui/src/perf/mem_slots.rs:329
 msgid "Empty"
 msgstr ""
 
@@ -898,7 +893,7 @@ msgid "Serial:"
 msgstr ""
 
 #: crates/mc-ui/src/perf/battery.rs:439 crates/mc-ui/src/perf/disk.rs:342
-#: crates/mc-ui/src/perf/memory.rs:515 crates/mc-ui/src/perf/mod.rs:706
+#: crates/mc-ui/src/perf/memory.rs:527 crates/mc-ui/src/perf/mod.rs:795
 msgid "Type:"
 msgstr ""
 
@@ -1481,93 +1476,93 @@ msgid ""
 "limited to remaining total memory. Values shown are the displayed partition."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:48
+#: crates/mc-ui/src/perf/mem_slots.rs:65
 msgid "Configured speed (SMBIOS)"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:50
+#: crates/mc-ui/src/perf/mem_slots.rs:67
 msgid "Speed (SMBIOS)"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:111
+#: crates/mc-ui/src/perf/mem_slots.rs:128
 msgid ""
 "No readable SPD EEPROMs. Enable extended hardware monitoring or check the "
 "kernel SPD driver."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:114
+#: crates/mc-ui/src/perf/mem_slots.rs:131
 msgid "SPD read completed."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:129
+#: crates/mc-ui/src/perf/mem_slots.rs:146
 msgid "Memory slots"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:171
+#: crates/mc-ui/src/perf/mem_slots.rs:188
 msgid "Slot"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:276
+#: crates/mc-ui/src/perf/mem_slots.rs:293
 msgid "Click to view module and read SPD"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:294
+#: crates/mc-ui/src/perf/mem_slots.rs:311
 msgid "Firmware did not expose slot locations."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:297
+#: crates/mc-ui/src/perf/mem_slots.rs:314
 msgid "Additional slots have unknown locations."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:311
+#: crates/mc-ui/src/perf/mem_slots.rs:328
 msgid "Memory module"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:313
+#: crates/mc-ui/src/perf/mem_slots.rs:330
 msgid "Capacity"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:314
-#: crates/mc-ui/src/perf/mem_slots.rs:350
+#: crates/mc-ui/src/perf/mem_slots.rs:331
+#: crates/mc-ui/src/perf/mem_slots.rs:367
 msgid "Form factor"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:314 crates/mc-ui/src/perf/system.rs:74
+#: crates/mc-ui/src/perf/mem_slots.rs:331 crates/mc-ui/src/perf/system.rs:74
 #: crates/mc-ui/src/perf/system.rs:83 crates/mc-ui/src/perf/system.rs:91
 msgid "Manufacturer"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:314
-#: crates/mc-ui/src/perf/mem_slots.rs:352
+#: crates/mc-ui/src/perf/mem_slots.rs:331
+#: crates/mc-ui/src/perf/mem_slots.rs:369
 msgid "Part number"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:314
-#: crates/mc-ui/src/perf/mem_slots.rs:355
+#: crates/mc-ui/src/perf/mem_slots.rs:331
+#: crates/mc-ui/src/perf/mem_slots.rs:372
 msgid "Serial number"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:318
+#: crates/mc-ui/src/perf/mem_slots.rs:335
 msgid "Configured voltage (SMBIOS)"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:319
+#: crates/mc-ui/src/perf/mem_slots.rs:336
 msgid "Ranks (SMBIOS)"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:321
+#: crates/mc-ui/src/perf/mem_slots.rs:338
 msgid ""
 "JEDEC capabilities stored on the module; these are not the currently applied "
 "timings."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:325
+#: crates/mc-ui/src/perf/mem_slots.rs:342
 msgid ""
 "No unique SPD serial match. Choose an EEPROM below; bus addresses do not "
 "identify physical slots."
 msgstr ""
 
-#: crates/mc-ui/src/perf/mem_slots.rs:349
+#: crates/mc-ui/src/perf/mem_slots.rs:366
 msgid "SPD source"
 msgstr ""
 
@@ -1576,55 +1571,55 @@ msgstr ""
 msgid "{} of {}"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:242
+#: crates/mc-ui/src/perf/memory.rs:250
 msgid "Mixed modules"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:312 crates/mc-ui/src/perf/memory.rs:342
+#: crates/mc-ui/src/perf/memory.rs:314 crates/mc-ui/src/perf/memory.rs:344
 msgid "FCLK:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:313 crates/mc-ui/src/perf/memory.rs:343
+#: crates/mc-ui/src/perf/memory.rs:315 crates/mc-ui/src/perf/memory.rs:345
 msgid "MCLK:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:314 crates/mc-ui/src/perf/memory.rs:344
+#: crates/mc-ui/src/perf/memory.rs:316 crates/mc-ui/src/perf/memory.rs:346
 msgid "UCLK:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:325 crates/mc-ui/src/perf/memory.rs:354
+#: crates/mc-ui/src/perf/memory.rs:327 crates/mc-ui/src/perf/memory.rs:356
 msgid "UCLK:MCLK:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:329 crates/mc-ui/src/perf/memory.rs:376
+#: crates/mc-ui/src/perf/memory.rs:331 crates/mc-ui/src/perf/memory.rs:378
 msgid "RAM voltage:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:358
+#: crates/mc-ui/src/perf/memory.rs:360
 msgid "Intel Gear:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:361
+#: crates/mc-ui/src/perf/memory.rs:363
 msgid "Clock source:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:362
+#: crates/mc-ui/src/perf/memory.rs:364
 msgid "Gear source:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:380
+#: crates/mc-ui/src/perf/memory.rs:382
 msgid "Corrected errors (EDAC):"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:384
+#: crates/mc-ui/src/perf/memory.rs:386
 msgid "Uncorrected errors (EDAC):"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:396
+#: crates/mc-ui/src/perf/memory.rs:398
 msgid "Hardware-corrupted memory:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:427
+#: crates/mc-ui/src/perf/memory.rs:439
 #, rust-format
 msgid ""
 "Installed: {}\n"
@@ -1634,16 +1629,16 @@ msgid ""
 "The difference includes firmware reservations and early kernel allocations."
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:432
+#: crates/mc-ui/src/perf/memory.rs:444
 #, rust-format
 msgid ""
 "OS-managed RAM: {}\n"
 "\n"
-"Installed capacity is unknown because the memory slot inventory is "
-"incomplete."
+"Installed capacity cannot be determined reliably from the available memory "
+"inventory."
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:451
+#: crates/mc-ui/src/perf/memory.rs:463
 #, rust-format
 msgid ""
 "Occupied RAM, including cache ({})\n"
@@ -1653,71 +1648,71 @@ msgid ""
 "allocation. MemAvailable is a separate estimate of reusable memory."
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:503
+#: crates/mc-ui/src/perf/memory.rs:515
 msgid "Used (incl. cache)"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:504
+#: crates/mc-ui/src/perf/memory.rs:516
 msgid "Free"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:507
+#: crates/mc-ui/src/perf/memory.rs:519
 msgid "Of used: cache"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:508
+#: crates/mc-ui/src/perf/memory.rs:520
 msgid "Committed"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:512
+#: crates/mc-ui/src/perf/memory.rs:524
 msgid "Speed:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:513
+#: crates/mc-ui/src/perf/memory.rs:525
 msgid "Slots used:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:514
+#: crates/mc-ui/src/perf/memory.rs:526
 msgid "Form factor:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:519
+#: crates/mc-ui/src/perf/memory.rs:531
 msgid "Getting additional memory information failed"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:525
+#: crates/mc-ui/src/perf/memory.rs:537
 msgid "Installed:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:527
+#: crates/mc-ui/src/perf/memory.rs:539
 msgid "Outside OS-managed RAM:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:531
+#: crates/mc-ui/src/perf/memory.rs:543
 msgid "OS-managed RAM:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:532
+#: crates/mc-ui/src/perf/memory.rs:544
 msgid "Available (estimate):"
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:536
+#: crates/mc-ui/src/perf/memory.rs:548
 msgid "RAM occupied (including cache) over "
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:545
+#: crates/mc-ui/src/perf/memory.rs:557
 msgid "Swap usage over "
 msgstr ""
 
-#: crates/mc-ui/src/perf/memory.rs:578
+#: crates/mc-ui/src/perf/memory.rs:579
 msgid "Show Swap Usage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mod.rs:703
+#: crates/mc-ui/src/perf/mod.rs:792
 msgid "Discharging"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mod.rs:706
+#: crates/mc-ui/src/perf/mod.rs:795
 msgid "Mouse"
 msgstr ""
 
@@ -1756,6 +1751,11 @@ msgstr ""
 #: crates/mc-ui/src/perf/network.rs:225
 #, rust-format
 msgid "{}"
+msgstr ""
+
+#: crates/mc-ui/src/perf/network.rs:227
+#, rust-format
+msgid "S: {} · R: {}"
 msgstr ""
 
 #: crates/mc-ui/src/perf/network.rs:240
@@ -1939,19 +1939,19 @@ msgstr ""
 msgid "System UUID"
 msgstr ""
 
-#: crates/mc-ui/src/perf/system.rs:188 crates/mc-ui/src/perf/system.rs:191
+#: crates/mc-ui/src/perf/system.rs:189 crates/mc-ui/src/perf/system.rs:192
 msgid "Usable memory"
 msgstr ""
 
-#: crates/mc-ui/src/perf/system.rs:214
+#: crates/mc-ui/src/perf/system.rs:215
 msgid "Graphics"
 msgstr ""
 
-#: crates/mc-ui/src/perf/system.rs:219
+#: crates/mc-ui/src/perf/system.rs:220
 msgid "Dedicated memory"
 msgstr ""
 
-#: crates/mc-ui/src/perf/system.rs:229
+#: crates/mc-ui/src/perf/system.rs:230
 msgid "Storage"
 msgstr ""
 
@@ -2188,10 +2188,6 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: crates/mc-ui/src/win10/paint.rs:246
-msgid "Copied"
-msgstr ""
-
 #: crates/mc-ui/src/win10/paint.rs:251
 msgid "Click to copy"
 msgstr ""
@@ -2242,11 +2238,6 @@ msgstr ""
 
 #: crates/mc-ui/src/win10/processes.rs:81
 msgid "Disk"
-msgstr ""
-
-#: crates/mc-ui/src/win10/processes.rs:369
-#, rust-format
-msgid "All network interfaces: {}"
 msgstr ""
 
 #: crates/mc-ui/src/win10/processes.rs:626

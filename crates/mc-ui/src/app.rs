@@ -1351,6 +1351,49 @@ mod tests {
     }
 
     #[test]
+    fn initial_memory_config_without_path_is_ephemeral_and_retains_selection() {
+        let ctx = Context::default();
+        let mut app = App::new(
+            &ctx,
+            AppOptions {
+                source: DataSource::Fixture(vec![], HashMap::new()),
+                config_path: None,
+                perf_overlay: false,
+                fonts: Default::default(),
+                initial_config: Some(Config {
+                    window_selected_page: "performance-page".into(),
+                    performance_selected_page: "memory".into(),
+                    ..Default::default()
+                }),
+                always_on_top_mode: AlwaysOnTopMode::Viewport,
+            },
+        );
+
+        let assert_memory_preset = |app: &App| {
+            assert!(app.writer.is_none());
+            assert_eq!(app.page, MainPage::Performance);
+            assert_eq!(app.config.window_selected_page, "performance-page");
+            assert_eq!(app.perf.selected, "memory");
+            assert_eq!(app.config.performance_selected_page, "memory");
+            assert!(!app.config.app_update_paused);
+            assert!(!app.config.window_fewer_details);
+        };
+        assert_memory_preset(&app);
+        assert!(!app.have_readings());
+
+        app.ingest_readings(Some(pending_readings(0)), false);
+        assert_memory_preset(&app);
+        assert!(app.have_readings());
+        assert!(app.perf.device_index("memory").is_some());
+        assert_eq!(app.stats.readings_applied, 1);
+
+        app.ingest_readings(Some(mc_magpie::synthetic_readings(1, 1)), false);
+        assert_memory_preset(&app);
+        assert!(app.perf.device_index("memory").is_some());
+        assert_eq!(app.stats.readings_applied, 2);
+    }
+
+    #[test]
     fn readings_paused_startup_applies_first_partial_then_one_completed_inventory() {
         let ctx = Context::default();
         let mut app = readings_app(&ctx, true);
