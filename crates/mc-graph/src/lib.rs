@@ -316,8 +316,10 @@ impl Graph {
     }
 
     pub fn paint(&mut self, ui: &Ui, rect: Rect) {
-        // Square 1 px border, white background, opaque fill under a light grid, 1 px line; data
-        // and grid live inside the border (`rect` includes it)
+        // Square 1 px border, white background, opaque fill under a light grid, 1 px line; the
+        // grid lives inside the border (`rect` includes it). Data lines run between the centres
+        // of the border pixels, so 0 % and the right drop-off fall on the border instead of
+        // doubling it inside; the fill under them is clipped to the inside.
         let area = rect.shrink(1.);
         let size = area.size();
         if size.x < 1. || size.y < 1. {
@@ -359,6 +361,7 @@ impl Graph {
         };
 
         let origin = area.min.to_vec2();
+        let line_origin = rect.min.to_vec2() + Vec2::splat(0.5);
         let add = |painter: &egui::Painter, shapes: &[Shape], at: Vec2| {
             for shape in shapes {
                 let mut s = shape.clone();
@@ -368,18 +371,9 @@ impl Graph {
         };
 
         let outer = ui.painter_at(rect);
-        let mut frame = vec![];
+        let mut background = vec![];
         pixel_rect(
-            &mut frame,
-            rect,
-            if ui.visuals().dark_mode {
-                mix_white(self.base_color, 0.75)
-            } else {
-                self.base_color
-            },
-        );
-        pixel_rect(
-            &mut frame,
+            &mut background,
             area,
             if ui.visuals().dark_mode {
                 Color32::from_gray(32)
@@ -387,20 +381,45 @@ impl Graph {
                 Color32::WHITE
             },
         );
-        outer.extend(frame);
+        outer.extend(background);
         let painter = ui.painter_at(area);
-        add(&painter, under, origin);
+        add(&painter, under, line_origin);
         add(&painter, grid, origin);
-        add(&painter, data, origin);
+        add(&outer, data, line_origin);
+
+        // The border goes over the data: a line on it blends back to the exact border colour
+        let border_color = if ui.visuals().dark_mode {
+            mix_white(self.base_color, 0.75)
+        } else {
+            self.base_color
+        };
+        let mut border = vec![];
+        for edge in [
+            Rect::from_min_max(rect.min, Pos2::new(rect.max.x, area.min.y)),
+            Rect::from_min_max(Pos2::new(rect.min.x, area.max.y), rect.max),
+            Rect::from_min_max(
+                Pos2::new(rect.min.x, area.min.y),
+                Pos2::new(area.min.x, area.max.y),
+            ),
+            Rect::from_min_max(
+                Pos2::new(area.max.x, area.min.y),
+                Pos2::new(rect.max.x, area.max.y),
+            ),
+        ] {
+            pixel_rect(&mut border, edge, border_color);
+        }
+        outer.extend(border);
     }
 
+    /// `size` is the inside of the border: the grid is built in it, the data in the span between
+    /// the border pixel centres (one pixel wider and taller).
     fn build_shapes(&self, size: Vec2, dark: bool) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
-        let (width, height) = (size.x, size.y);
         let mut grid = vec![];
         if self.grid_visible {
-            self.build_grid(&mut grid, width, height);
+            self.build_grid(&mut grid, size.x, size.y);
         }
 
+        let (width, height) = (size.x + 1., size.y + 1.);
         let mut under = vec![];
         let mut data = vec![];
         for (index, group) in self.groups.iter().enumerate() {
@@ -437,7 +456,8 @@ impl Graph {
             }
         }
         let col_width = width / WIN10_GRID_COLUMNS;
-        let point_spacing = width * self.point_spacing_factor();
+        // Same step as the data, which spans one pixel more (border centre to border centre)
+        let point_spacing = (width + 1.) * self.point_spacing_factor();
         let offset = if col_width > 0. {
             (point_spacing as f64 * -(self.scroll_offset as f64)).rem_euclid(col_width as f64)
                 as f32
