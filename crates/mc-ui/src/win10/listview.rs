@@ -517,10 +517,11 @@ pub fn horizontal_scrollbar(ui: &mut Ui, content: Rect, state: &mut ListState) -
                 } else {
                     d as f32 - 2.
                 };
-            paint::vline(
+            paint::fill(
                 &painter,
                 x,
                 rect.center().y.round() - d as f32,
+                x,
                 rect.center().y.round() + d as f32,
                 pal::TEXT,
             );

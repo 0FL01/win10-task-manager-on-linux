@@ -113,6 +113,78 @@ fn hex(image: &RgbaImage, x: u32, y: u32) -> String {
     format!("#{:02x}{:02x}{:02x}", p[0], p[1], p[2])
 }
 
+#[test]
+fn fractional_rules_and_scroll_arrows_stay_contiguous() {
+    use mc_ui::win10::{listview, metrics as m, paint};
+
+    for ppp in [1., 1.25, 1.5, 1.75, 2.] {
+        let mut h = Harness::builder()
+            .with_size(egui::vec2(240., 240.))
+            .with_pixels_per_point(ppp)
+            .wgpu()
+            .build_ui(|ui| {
+                ui.ctx().set_theme(egui::Theme::Light);
+                paint::fill(ui.painter(), 0., 0., 239., 239., egui::Color32::WHITE);
+                // Processes builds each heat-column separator one 28-point row at a time.
+                for start in [162., 190.] {
+                    paint::vline(ui.painter(), 20., start, start + 27., egui::Color32::RED);
+                    paint::hline(ui.painter(), start, start + 27., 20., egui::Color32::RED);
+                }
+                paint::outline(ui.painter(), 40., 40., 61., 61., egui::Color32::RED);
+                // Exercise both horizontal arrows at all four fractional pixel phases.
+                for phase in 0..4 {
+                    let x = 100. + phase as f32;
+                    let bottom = 90. + phase as f32 * 30.;
+                    listview::horizontal_scrollbar(
+                        ui,
+                        egui::Rect::from_min_max(
+                            egui::pos2(x, bottom - 25.),
+                            egui::pos2(x + 100., bottom),
+                        ),
+                        &mut listview::ListState::new(&[300.]),
+                    );
+                }
+            });
+        h.run_steps(2);
+        let image = h.render().expect("offscreen wgpu render unavailable");
+        let snap = |v: f32| (v * ppp).round() as u32;
+        let line = ppp.round().max(1.) as u32;
+        for along in snap(162.)..snap(218.) {
+            for across in snap(20.)..snap(20.) + line {
+                assert_eq!(hex(&image, across, along), "#ff0000", "vline at {ppp}x");
+                assert_eq!(hex(&image, along, across), "#ff0000", "hline at {ppp}x");
+            }
+        }
+        let (first, end) = (snap(40.), snap(62.));
+        for y in first - 1..=end {
+            for x in first - 1..=end {
+                let inside = x >= first && x < end && y >= first && y < end;
+                let border = inside
+                    && (x < first + line || x >= end - line || y < first + line || y >= end - line);
+                assert_eq!(
+                    hex(&image, x, y),
+                    if border { "#ff0000" } else { "#ffffff" },
+                    "outline ({x},{y}) at {ppp}x"
+                );
+            }
+        }
+        for phase in 0..4 {
+            let phase = phase as f32;
+            let cy = (90. + phase * 30. - m::SCROLLBAR_W / 2.).round();
+            let y = ((cy + 0.5) * ppp).floor() as u32;
+            let left = (100. + phase + m::SCROLL_ARROW_H / 2.).round();
+            let right = (200. + phase - m::SCROLLBAR_W - m::SCROLL_ARROW_H / 2.).round();
+            for (first, last) in [(left - 2., left + 1.), (right - 1., right + 2.)] {
+                let first = ((first + 0.5) * ppp).floor() as u32;
+                let last = ((last + 0.5) * ppp).floor() as u32;
+                for x in first..=last {
+                    assert_eq!(hex(&image, x, y), "#000000", "scroll arrow at {ppp}x");
+                }
+            }
+        }
+    }
+}
+
 /// Left, top and right edge of dark ink (luminance < 170) inside `[x0, y0, x1, y1]`.
 fn ink_box(image: &RgbaImage, region: &[u32]) -> Option<(u32, u32, u32)> {
     let (mut min_x, mut min_y, mut max_x) = (u32::MAX, u32::MAX, 0);

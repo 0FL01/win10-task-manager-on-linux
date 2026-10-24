@@ -57,36 +57,54 @@ fn mesh_rect(painter: &Painter, left: f32, top: f32, right: f32, bottom: f32, co
     painter.add(Shape::mesh(mesh));
 }
 
-/// 1 px line over the inclusive range `x0..=x1` × `y0..=y1` (one of them a single pixel), laid
-/// out in physical pixel cells: one thickness at any scale, and lines that meet at a pixel
-/// meet exactly. Glyphs built row by row use [`fill`], whose edges stay contiguous.
-fn rule(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color32) {
+/// Snap the inclusive span's boundaries independently, keeping only its thickness fixed.
+/// Adjacent spans then share an endpoint at fractional scales. Pixel glyphs use [`fill`].
+fn rule(painter: &Painter, start: f32, end: f32, at: f32, vertical: bool, color: Color32) {
     let color = super::palette::resolve(painter.ctx(), color);
-    if x1 < x0 || y1 < y0 {
+    if end < start {
         return;
     }
     let ppp = painter.ctx().pixels_per_point();
-    let (left, _) = cell(x0, ppp);
-    let (_, right) = cell(x1, ppp);
-    let (top, _) = cell(y0, ppp);
-    let (_, bottom) = cell(y1, ppp);
-    mesh_rect(painter, left, top, right, bottom, color);
+    let start = (start * ppp).round();
+    let end = ((end + 1.) * ppp).round();
+    let (a, b) = cell(at, ppp);
+    if vertical {
+        mesh_rect(painter, a, start, b, end, color);
+    } else {
+        mesh_rect(painter, start, a, end, b, color);
+    }
 }
 
 pub fn hline(painter: &Painter, x0: f32, x1: f32, y: f32, color: Color32) {
-    rule(painter, x0, y, x1, y, color);
+    rule(painter, x0, x1, y, false, color);
 }
 
 pub fn vline(painter: &Painter, x: f32, y0: f32, y1: f32, color: Color32) {
-    rule(painter, x, y0, x, y1, color);
+    rule(painter, y0, y1, x, true, color);
 }
 
 /// 1 px outline of the inclusive rectangle.
 pub fn outline(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color32) {
-    hline(painter, x0, x1, y0, color);
-    hline(painter, x0, x1, y1, color);
-    vline(painter, x0, y0, y1, color);
-    vline(painter, x1, y0, y1, color);
+    if x1 < x0 || y1 < y0 {
+        return;
+    }
+    let color = super::palette::resolve(painter.ctx(), color);
+    let ppp = painter.ctx().pixels_per_point();
+    let (left, top) = ((x0 * ppp).round(), (y0 * ppp).round());
+    let (right, bottom) = (((x1 + 1.) * ppp).round(), ((y1 + 1.) * ppp).round());
+    let line = ppp.round().max(1.);
+    if right - left <= 2. * line || bottom - top <= 2. * line {
+        mesh_rect(painter, left, top, right, bottom, color);
+        return;
+    }
+    for (l, t, r, b) in [
+        (left, top, right, top + line),
+        (left, bottom - line, right, bottom),
+        (left, top + line, left + line, bottom - line),
+        (right - line, top + line, right, bottom - line),
+    ] {
+        mesh_rect(painter, l, t, r, b, color);
+    }
 }
 
 /// Vertical 1 px line whose grey level falls linearly from `top` to `bottom` (truncating, as
