@@ -110,9 +110,22 @@ fn row(
     };
     let (rect, response) = ui.allocate_exact_size(vec2(width, m::POPUP_ITEM_H), sense);
     let painter = ui.painter();
-    let highlighted = enabled && (response.hovered() || response.has_focus());
+    let highlighted = response.hovered() || response.has_focus();
     if highlighted {
-        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), pal::POPUP_HOVER));
+        let fill = if enabled {
+            pal::POPUP_HOVER
+        } else {
+            pal::POPUP_DISABLED_HOVER
+        };
+        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), fill));
+    }
+    if mark != Mark::None {
+        // A checked item sits on a highlight-coloured square in the mark column
+        painter.rect_filled(
+            egui::Rect::from_min_size(rect.min, vec2(m::POPUP_MARK_BOX, m::POPUP_ITEM_H)),
+            0.,
+            pal::resolve(ui.ctx(), pal::POPUP_HOVER),
+        );
     }
     let ink = if enabled {
         pal::TEXT
@@ -140,7 +153,7 @@ fn row(
             Align::Max,
         );
     }
-    let cx = rect.left() + 13.;
+    let cx = rect.left() + m::POPUP_MARK_X;
     let ink = pal::resolve(ui.ctx(), ink);
     let cy = rect.center().y;
     match mark {
@@ -220,6 +233,8 @@ pub fn separator(ui: &mut Ui) {
 pub fn submenu(ui: &mut Ui, label: &str, content: impl FnOnce(&mut Ui)) {
     let response = row(ui, label, "", Mark::None, true, true);
     SubMenu::new().show(ui, &response, |ui| {
+        // The submenu popup gets egui's spacing, not the menu style: rows touch as in the parent
+        ui.spacing_mut().item_spacing = vec2(0., 0.);
         ui.set_min_width(m::POPUP_MIN_W);
         content(ui)
     });

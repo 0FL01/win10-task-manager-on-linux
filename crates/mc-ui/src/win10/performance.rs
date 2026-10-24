@@ -343,6 +343,19 @@ impl PerformanceView {
 
         if let Some(pos) = self.menu {
             let mut open = true;
+            // "View" lists the shown devices by their sidebar heading, as in the reference
+            let views: Vec<(String, String)> = perf
+                .shown_names(cx.config)
+                .into_iter()
+                .filter_map(|name| {
+                    let heading = perf.devices[perf.device_index(&name)?]
+                        .summary()
+                        .heading
+                        .clone();
+                    Some((name, heading))
+                })
+                .collect();
+            let selected = perf.selected.clone();
             let device = &mut perf.devices[index];
             menu::context(ui, Id::new("perf-menu"), pos, &mut open, |ui| {
                 if let Some(slot) = self.menu_slot {
@@ -354,6 +367,13 @@ impl PerformanceView {
                 if menu::check(ui, &i18n("Graph summary view"), perf.summary_mode) {
                     cx.send(Command::ToggleSummaryMode);
                 }
+                menu::submenu(ui, &i18n("View"), |ui| {
+                    for (name, heading) in &views {
+                        if menu::radio(ui, heading, *name == selected) {
+                            cx.send(Command::SelectDevice(name.clone()));
+                        }
+                    }
+                });
                 menu::separator(ui);
                 if menu::item(
                     ui,

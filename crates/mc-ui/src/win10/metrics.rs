@@ -64,6 +64,9 @@ pub const MENU_LINE_2_Y: f32 = 51.;
 /// Drop-down menus (own design)
 pub const POPUP_ITEM_H: f32 = 22.;
 pub const POPUP_TEXT_X: f32 = 33.;
+/// Check/radio column: a square as tall as the item at its left edge, the mark centred in it
+pub const POPUP_MARK_BOX: f32 = 22.;
+pub const POPUP_MARK_X: f32 = 11.;
 pub const POPUP_MIN_W: f32 = 200.;
 /// Space after the label (room for the submenu chevron) and between label and shortcut
 pub const POPUP_TEXT_RIGHT_PAD: f32 = 40.;

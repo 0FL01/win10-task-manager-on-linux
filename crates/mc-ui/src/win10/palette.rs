@@ -42,6 +42,8 @@ pub const POPUP_BG: Color32 = rgb(0xf2f2f2);
 pub const POPUP_BORDER: Color32 = rgb(0xcccccc);
 pub const POPUP_HOVER: Color32 = rgb(0x91c9f7);
 pub const POPUP_SEPARATOR: Color32 = rgb(0xd7d7d7);
+/// Hovered disabled menu item
+pub const POPUP_DISABLED_HOVER: Color32 = rgb(0xe4e4e4);
 pub const DISABLED_TEXT: Color32 = rgb(0x838383);
 
 /// own: caption buttons

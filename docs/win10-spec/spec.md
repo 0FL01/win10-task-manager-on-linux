@@ -125,8 +125,11 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - Hover/open (own design): `#e5f3ff` fill, `#cce8ff` border.
 - Lines: `#f2f2f2` at y 50, `#f0f0f0` at y 51.
 - Drop-down menus (own design): background `#f2f2f2`, 1 px border `#cccccc`, 2 px inner margin,
-  shadow offset 2/2 blur 4 (black 19 %), item height 22, text at item left + 33 (check/radio column
-  centred at + 13), hover fill `#91c9f7`, separators `#d7d7d7` (7 px tall, from + 28), submenu
+  shadow offset 2/2 blur 4 (black 19 %), item height 22, text at item left + 33, hover fill
+  `#91c9f7`, disabled item hover `#e4e4e4`; a checked or selected item has a 22×22 `#91c9f7`
+  square at the item's left edge with the mark centred at + 11 (measured on the reference
+  context menu); submenus use the same rows, margins and frame; separators `#d7d7d7` (7 px tall,
+  from + 28), submenu
   chevron at right − 12, shortcuts right-aligned at right − 24. Width = widest item (text at
   + 33, then 40 px, or 32 px + shortcut + 24 px), minimum 200. Submenus open to the right of the
   parent (to the left near the window edge), first item level with the parent item.
@@ -279,6 +282,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   dashed; Network "Send" dashed / "Receive" solid, as our graph draws them) has a bar in the
   device colour at the column x: 2 px wide, 40 px from the label cap top; dashed as 3 px dashes
   with 3 px gaps starting at the cap top. Label and value move 8 px right (ink at +9).
+- Graph context menu (as in the reference): the device's own items, separator, "Graph summary
+  view", "View ›" (the shown devices by sidebar heading, the current one selected; choosing one
+  switches the page), separator, "Copy  Ctrl+C".
 - Key/value block: labels x 442 (12 px `#707070`; or 24 px right of the statistics), values at
   label x + max(109, longest label + 12) (12 px black), rows cap top 494 + 18·n; rows that do not
   fit above the footer continue in a further column.
