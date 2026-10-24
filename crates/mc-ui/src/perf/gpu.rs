@@ -164,7 +164,10 @@ impl GpuPage {
     pub fn new(gpu: &Gpu, config: &Config) -> Self {
         let device_name = gpu.device_name.clone().unwrap_or_else(|| i18n("Unknown"));
         let mut summary = SummaryGraph::percent(COLOR, i18n_f("GPU {}", &["0"]));
-        *summary.graph.groups_mut() = vec![missing_group(100.)];
+        // A new group starts at the minimum length; the sidebar graph shows 60 samples
+        let mut group = missing_group(100.);
+        group.update_data_points(DEFAULT_DATA_POINTS as usize);
+        *summary.graph.groups_mut() = vec![group];
         summary.info1 = device_name.clone();
         Self {
             name: page_name(&gpu.id),
