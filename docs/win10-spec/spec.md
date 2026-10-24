@@ -87,8 +87,9 @@ this document, never the screenshots.
   scrolls at a maximum height of 400 px.
 
 ## Typography (Segoe UI metrics; we ship Open Sans, own choice, see below)
-Own design: the bundled Open Sans variable font at width 90 (its advances then match Segoe UI);
-weights Regular 400, Light 300, Semilight 350, Semibold 600. Its line is ~0.4 px taller (font metrics: 16.3 vs 16.0 px at 12 px).
+Own design: the bundled Open Sans variable font at its original width 100 (wider than Segoe UI;
+width 90 would match its advances); weights Regular 400, Light 300, Semilight 350, Semibold 600.
+Its line is ~0.4 px taller (font metrics: 16.3 vs 16.0 px at 12 px).
 | role | size px | weight | colour |
 |---|---|---|---|
 | body / table cells / menu / tabs / title / footer / key-value | 12 (cap height 9) | Regular | `#000000` |

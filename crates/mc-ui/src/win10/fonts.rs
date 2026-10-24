@@ -20,8 +20,8 @@
 
 //! Fonts of the Win10-style interface: the bundled Open Sans variable font (SIL OFL 1.1,
 //! `assets/fonts/OFL.txt`; own choice, denser than the metric-compatible Selawik under egui's
-//! grayscale rendering, narrowed on its width axis to Segoe UI's advances). Segoe UI, when installed, the system sans-serif and egui's bundled
-//! fonts follow as fallbacks for glyphs Open Sans does not cover.
+//! grayscale rendering, at its original width). Segoe UI, when installed, the system sans-serif
+//! and egui's bundled fonts follow as fallbacks for glyphs Open Sans does not cover.
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
@@ -136,8 +136,8 @@ impl Fonts {
         }
         fallback.extend(egui_proportional);
 
-        // Weight axis values of Regular, Light, Semilight and Semibold; width 90 % matches
-        // Segoe UI's advances, so text widths and positions stay those of the spec
+        // Weight axis values of Regular, Light, Semilight and Semibold; the width axis stays at
+        // its default 100 (90 would match Segoe UI's advances)
         let weights = [400., 300., 350., 600.];
         let names = ["regular", LIGHT, SEMILIGHT, SEMIBOLD];
         let mut chains = vec![];
@@ -146,7 +146,7 @@ impl Fonts {
                 &mut fonts,
                 &format!("open-sans-{name}"),
                 FontData::from_static(OPEN_SANS).tweak(FontTweak {
-                    coords: VariationCoords::new([("wght", weight), ("wdth", 90.)]),
+                    coords: VariationCoords::new([("wght", weight)]),
                     ..Default::default()
                 }),
             )];
