@@ -270,7 +270,11 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - labels 12 px `#707070` cap top 494 / 545 / 596;
   - values 20 px black cap top 515 / 566 / 617;
   - columns x 240 / 313 (row 1), 240 / 310 / 372 (row 2), 240 (row 3).
-- Statistic columns: next column x = previous x + max(label, value width) + 21.
+- Statistic columns: next column x = previous x + max(label, value width) + 21. Own design
+  instead of the measured per-value width: each statistic reserves the width of the widest value
+  of its kind (numbers with a unit or fraction as four digits, unit prefix "M"), and columns are
+  aligned across rows as a table (column k takes the widest entry of column k when the row fits),
+  so columns and the key/value block no longer move as readings change.
 - Key/value block: labels x 442 (12 px `#707070`; or 24 px right of the statistics), values at
   label x + max(109, longest label + 12) (12 px black), rows cap top 494 + 18·n; rows that do not
   fit above the footer continue in a further column.
