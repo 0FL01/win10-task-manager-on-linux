@@ -128,7 +128,8 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   shadow offset 2/2 blur 4 (black 19 %), item height 22, text at item left + 33, hover fill
   `#91c9f7`, disabled item hover `#e4e4e4`; a checked or selected item has a 22×22 `#91c9f7`
   square at the item's left edge with the mark centred at + 11 (measured on the reference
-  context menu); submenus use the same rows, margins and frame; separators `#d7d7d7` (7 px tall,
+  context menu); submenus use the same rows, margins and frame, overlap the parent (their border
+  5 px left of the parent's), and their parent item stays highlighted while open; separators `#d7d7d7` (7 px tall,
   from + 28), submenu
   chevron at right − 12, shortcuts right-aligned at right − 24. Width = widest item (text at
   + 33, then 40 px, or 32 px + shortcut + 24 px), minimum 200. Submenus open to the right of the

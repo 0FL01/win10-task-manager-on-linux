@@ -67,6 +67,9 @@ pub const POPUP_TEXT_X: f32 = 33.;
 /// Check/radio column: a square as tall as the item at its left edge, the mark centred in it
 pub const POPUP_MARK_BOX: f32 = 22.;
 pub const POPUP_MARK_X: f32 = 11.;
+/// How far a submenu's anchor stops short of the parent row: its border lands 5 px left of the
+/// parent's border (measured on the reference)
+pub const POPUP_SUBMENU_OVERLAP: f32 = 8.;
 pub const POPUP_MIN_W: f32 = 200.;
 /// Space after the label (room for the submenu chevron) and between label and shortcut
 pub const POPUP_TEXT_RIGHT_PAD: f32 = 40.;
