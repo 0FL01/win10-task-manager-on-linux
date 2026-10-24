@@ -189,15 +189,16 @@ impl Font {
         }
     }
 
-    /// Distance from the top of a laid-out row to the top of capital letters.
+    /// Distance from the top of a laid-out row to the top of capital letters, measured on the
+    /// bundled Open Sans so capitals land where the spec puts them.
     pub fn cap_offset(self) -> f32 {
         match self {
-            Font::Body | Font::BodyStrong => 3.,
+            Font::Body | Font::BodyStrong => 4.,
             Font::Summary => 5.,
-            Font::Title => 8.,
-            Font::Model => 5.,
-            Font::Caption => 3.,
-            Font::StatValue => 6.,
+            Font::Title => 10.,
+            Font::Model => 7.,
+            Font::Caption => 5.,
+            Font::StatValue => 7.,
             Font::DeviceName => 4.,
         }
     }

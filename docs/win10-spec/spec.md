@@ -89,7 +89,10 @@ this document, never the screenshots.
 ## Typography (Segoe UI metrics; we ship Open Sans, own choice, see below)
 Own design: the bundled Open Sans variable font at its original width 100 (wider than Segoe UI;
 width 90 would match its advances); weights Regular 400, Light 300, Semilight 350, Semibold 600.
-Its line is ~0.4 px taller (font metrics: 16.3 vs 16.0 px at 12 px).
+Cap tops stay where the spec puts them: the row-to-cap offsets are measured on Open Sans (12 px
+4, 16 px 5, 28 px 10, 18 px 7, 11 px 5, 20 px 7, 15 px 4). Its rows are taller (12 px: 16 instead
+of 14) and wider (~9 %); tabs grow with their labels, so the tab probes use the Open Sans tab
+edges (Processes 3–71, Performance 71–154, Details 154–208, Services 208–263).
 | role | size px | weight | colour |
 |---|---|---|---|
 | body / table cells / menu / tabs / title / footer / key-value | 12 (cap height 9) | Regular | `#000000` |

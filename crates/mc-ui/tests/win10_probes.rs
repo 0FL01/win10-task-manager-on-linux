@@ -2162,7 +2162,11 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
             _ => None,
         })
         .unwrap();
-    assert_eq!(in_use.y, 500., "stats start at 498, caption at 503");
+    assert_eq!(
+        in_use.y + mc_ui::win10::paint::Font::Body.cap_offset(),
+        503.,
+        "stats start at 498, caption at 503"
+    );
     assert_eq!(hex(&initial, 241, 418), "#8b12ae", "swap bar top");
     assert_eq!(hex(&initial, 241, 437), "#8b12ae", "swap bar bottom");
 
@@ -2267,7 +2271,9 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     assert!(
         h.output().shapes.iter().any(|shape| {
             matches!(&shape.shape, egui::Shape::Text(text)
-            if text.galley.job.text == "Memory" && text.pos == egui::pos2(238., 95.))
+            if text.galley.job.text == "Memory"
+                && text.pos + egui::vec2(0., mc_ui::win10::paint::Font::Title.cap_offset())
+                    == egui::pos2(238., 103.))
         }),
         "resize restores the title's unscrolled position"
     );
@@ -2521,9 +2527,10 @@ fn memory_module_height_follows_last_stats_row_and_empty_slots_are_grey() {
             })
             .unwrap()
     };
-    let top = at("Used (incl. cache)").y + 3.;
-    let bottom =
-        at("Of used: cache").y + 3. + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
+    let cap = mc_ui::win10::paint::Font::Body.cap_offset();
+    let top = at("Used (incl. cache)").y + cap;
+    let bottom = at("Of used: cache").y + cap + 21. + 14.
+        - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
     let start = at("Memory slots").x;
     let image = h.render().unwrap();
     let m = &mc_ui::win10::metrics::MEMORY_SLOT_DRAW_W;
