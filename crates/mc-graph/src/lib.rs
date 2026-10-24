@@ -319,8 +319,17 @@ impl Graph {
         // Square 1 px border, white background, opaque fill under a light grid, 1 px line; the
         // grid lives inside the border (`rect` includes it). Data lines run between the centres
         // of the border pixels, so 0 % and the right drop-off fall on the border instead of
-        // doubling it inside; the fill under them is clipped to the inside.
-        let area = rect.shrink(1.);
+        // doubling it inside; the fill under them is clipped to the inside. The border is whole
+        // physical pixels (fractional scales would otherwise smear it over two), and so is the
+        // line, so it covers the border exactly.
+        let pixels_per_point = ui.ctx().pixels_per_point();
+        let snap = |v: f32| (v * pixels_per_point).round() / pixels_per_point;
+        let rect = Rect::from_min_max(
+            Pos2::new(snap(rect.min.x), snap(rect.min.y)),
+            Pos2::new(snap(rect.max.x), snap(rect.max.y)),
+        );
+        let border = pixels_per_point.round().max(1.) / pixels_per_point;
+        let area = rect.shrink(border);
         let size = area.size();
         if size.x < 1. || size.y < 1. {
             return;
@@ -329,13 +338,13 @@ impl Graph {
         let key = CacheKey {
             generation: self.generation,
             size,
-            pixels_per_point: ui.ctx().pixels_per_point(),
+            pixels_per_point,
             dark: ui.visuals().dark_mode,
         };
 
         let rebuild = !matches!(&self.cache, Some((k, ..)) if *k == key);
         if rebuild {
-            let (mut under, mut grid, data) = self.build_shapes(size, key.dark);
+            let (mut under, mut grid, data) = self.build_shapes(size, border, key.dark);
             if key.dark {
                 // Own dark adaptation: preserve device hue and geometry, replace white mixes.
                 let adapt = |shapes: &mut Vec<Shape>, ratio: f32| {
@@ -361,7 +370,7 @@ impl Graph {
         };
 
         let origin = area.min.to_vec2();
-        let line_origin = rect.min.to_vec2() + Vec2::splat(0.5);
+        let line_origin = rect.min.to_vec2() + Vec2::splat(border / 2.);
         let add = |painter: &egui::Painter, shapes: &[Shape], at: Vec2| {
             for shape in shapes {
                 let mut s = shape.clone();
@@ -412,14 +421,19 @@ impl Graph {
     }
 
     /// `size` is the inside of the border: the grid is built in it, the data in the span between
-    /// the border pixel centres (one pixel wider and taller).
-    fn build_shapes(&self, size: Vec2, dark: bool) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
+    /// the border centres (one `border` wider and taller), with lines as thick as the border.
+    fn build_shapes(
+        &self,
+        size: Vec2,
+        border: f32,
+        dark: bool,
+    ) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
         let mut grid = vec![];
         if self.grid_visible {
-            self.build_grid(&mut grid, size.x, size.y);
+            self.build_grid(&mut grid, size.x, size.y, border);
         }
 
-        let (width, height) = (size.x + 1., size.y + 1.);
+        let (width, height) = (size.x + border, size.y + border);
         let mut under = vec![];
         let mut data = vec![];
         for (index, group) in self.groups.iter().enumerate() {
@@ -434,7 +448,14 @@ impl Graph {
                         self.base_color
                     }
                 });
-            self.build_group(&mut under, &mut data, group, stroke_color, width, height);
+            self.build_group(
+                &mut under,
+                &mut data,
+                group,
+                stroke_color,
+                Vec2::new(width, height),
+                border,
+            );
         }
 
         (under, grid, data)
@@ -442,7 +463,7 @@ impl Graph {
 
     /// Grid inside the border: rows at `ceil(k · (h + 1) / 10)` from the top border
     /// (measured on the reference), columns every width/6 scrolling with the data.
-    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32) {
+    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32, border: f32) {
         let color = mix_white(self.base_color, WIN10_GRID_MIX);
         let span = height + 1.;
         for k in 1..WIN10_GRID_ROWS {
@@ -456,8 +477,8 @@ impl Graph {
             }
         }
         let col_width = width / WIN10_GRID_COLUMNS;
-        // Same step as the data, which spans one pixel more (border centre to border centre)
-        let point_spacing = (width + 1.) * self.point_spacing_factor();
+        // Same step as the data, which spans one border more (border centre to border centre)
+        let point_spacing = (width + border) * self.point_spacing_factor();
         let offset = if col_width > 0. {
             (point_spacing as f64 * -(self.scroll_offset as f64)).rem_euclid(col_width as f64)
                 as f32
@@ -484,15 +505,15 @@ impl Graph {
         out: &mut Vec<Shape>,
         group: &DatasetGroup,
         stroke_color: Color32,
-        width: f32,
-        height: f32,
+        size: Vec2,
+        stroke_width: f32,
     ) {
+        let (width, height) = (size.x, size.y);
         let Some(series) = group.geometry(width, height, self.point_spacing_factor()) else {
             return;
         };
 
         let settings = &group.dataset_settings;
-        let stroke_width = 1.;
 
         let baseline = match settings.fill {
             FillingSettings::FillToBottom | FillingSettings::None => height,
@@ -679,7 +700,7 @@ mod tests {
         g.set_group_colors(colors.to_vec());
 
         for dark in [false, true] {
-            let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), dark);
+            let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), 1., dark);
             let strokes: Vec<Color32> = data
                 .iter()
                 .map(|shape| match shape {
@@ -740,7 +761,7 @@ mod tests {
         g.add_data_point(vec![vec![10.]]);
         g.add_data_point(vec![vec![50.]]);
         assert!(g.group_colors.is_empty());
-        let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), false);
+        let (_, _, data) = g.build_shapes(Vec2::new(200., 100.), 1., false);
         assert!(matches!(
             &data[0],
             Shape::Path(path)
@@ -787,7 +808,7 @@ mod tests {
     #[test]
     fn shapes_cover_fill_and_line() {
         let g = graph_with(&[10., 50., 90.]);
-        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), false);
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), 1., false);
         assert!(!grid.is_empty());
         assert!(under.iter().any(|s| matches!(s, Shape::Mesh(_))));
         assert!(data.iter().any(|s| matches!(s, Shape::Path(_))));
@@ -798,7 +819,7 @@ mod tests {
         let mut g = graph_with(&[10., 50.]);
         g.set_data_visible(0, false);
         g.set_grid_visible(false);
-        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), false);
+        let (under, grid, data) = g.build_shapes(Vec2::new(200., 100.), 1., false);
         assert!(under.is_empty() && grid.is_empty() && data.is_empty());
     }
 
@@ -831,7 +852,7 @@ mod tests {
         // Reference: graph border rows 151 and 305, grid rows at 167, 182, …, 290
         let g = graph_with(&[0.5; 10]);
         let mut grid = vec![];
-        g.build_grid(&mut grid, 378., 153.);
+        g.build_grid(&mut grid, 378., 153., 1.);
         let rows: Vec<f32> = grid
             .iter()
             .filter_map(|s| match s {
@@ -849,7 +870,7 @@ mod tests {
     fn win10_fill_goes_under_the_grid() {
         let mut g = graph_with(&[0.2, 0.4, 0.6]);
         g.set_fill(Color32::LIGHT_BLUE);
-        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.), false);
+        let (under, _, data) = g.build_shapes(Vec2::new(200., 100.), 1., false);
         assert!(!under.is_empty());
         assert!(data.iter().all(|s| !matches!(s, Shape::Mesh(_))));
     }
