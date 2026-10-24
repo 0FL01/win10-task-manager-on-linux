@@ -8,6 +8,18 @@ Task Manager is based on [Mission Center](https://missioncenter.io/): it uses th
 backend (magpie, shipped as `missioncenter-magpie`) and code from the Mission Center project by the Mission Center
 Developers. The user interface is written from scratch with egui; see [Based on Mission Center](#based-on-mission-center).
 
+## Screenshots
+
+The familiar layout, in light and dark. Click a screenshot to view it at full size.
+
+| Light theme | Dark theme |
+| :---: | :---: |
+| **Performance**<br>[![Performance tab with per-thread CPU graphs in the light theme](docs/screenshots/performance-light.png)](docs/screenshots/performance-light.png) | **Performance**<br>[![Performance tab with per-thread CPU graphs in the dark theme](docs/screenshots/performance-dark.png)](docs/screenshots/performance-dark.png) |
+| **Processes**<br>[![Processes tab with per-process resource usage in the light theme](docs/screenshots/processes-light.png)](docs/screenshots/processes-light.png) | **Processes**<br>[![Processes tab with per-process resource usage in the dark theme](docs/screenshots/processes-dark.png)](docs/screenshots/processes-dark.png) |
+
+Captured from the actual egui interface using synthetic demo data, not live system readings.
+Choose your theme in **View → Theme → Light / Dark / System**.
+
 ## Features
 
 * Monitor overall or per-thread CPU usage
