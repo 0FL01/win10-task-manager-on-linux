@@ -344,7 +344,7 @@ impl Graph {
 
         let rebuild = !matches!(&self.cache, Some((k, ..)) if *k == key);
         if rebuild {
-            let (mut under, mut grid, data) = self.build_shapes(size, border, key.dark);
+            let (mut under, mut grid, data) = self.build_shapes(size, pixels_per_point, key.dark);
             if key.dark {
                 // Own dark adaptation: preserve device hue and geometry, replace white mixes.
                 let adapt = |shapes: &mut Vec<Shape>, ratio: f32| {
@@ -421,18 +421,19 @@ impl Graph {
     }
 
     /// `size` is the inside of the border: the grid is built in it, the data in the span between
-    /// the border centres (one `border` wider and taller), with lines as thick as the border.
+    /// the border centres (one border wider and taller), with lines as thick as the border.
     fn build_shapes(
         &self,
         size: Vec2,
-        border: f32,
+        pixels_per_point: f32,
         dark: bool,
     ) -> (Vec<Shape>, Vec<Shape>, Vec<Shape>) {
         let mut grid = vec![];
         if self.grid_visible {
-            self.build_grid(&mut grid, size.x, size.y, border);
+            self.build_grid(&mut grid, size.x, size.y, pixels_per_point);
         }
 
+        let border = pixels_per_point.round().max(1.) / pixels_per_point;
         let (width, height) = (size.x + border, size.y + border);
         let mut under = vec![];
         let mut data = vec![];
@@ -463,22 +464,32 @@ impl Graph {
 
     /// Grid inside the border: rows at `ceil(k · (h + 1) / 10)` from the top border
     /// (measured on the reference), columns every width/6 scrolling with the data.
-    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32, border: f32) {
+    /// Built in physical pixels so every line is `round(scale)` pixels thick at any scale.
+    fn build_grid(&self, out: &mut Vec<Shape>, width: f32, height: f32, pixels_per_point: f32) {
         let color = mix_white(self.base_color, WIN10_GRID_MIX);
-        let span = height + 1.;
+        let line = pixels_per_point.round().max(1.);
+        let (width, height) = (
+            (width * pixels_per_point).round(),
+            (height * pixels_per_point).round(),
+        );
+        let mut add = |x: f32, y: f32, w: f32, h: f32| {
+            pixel_rect(
+                out,
+                Rect::from_min_size(Pos2::new(x, y), Vec2::new(w, h)) / pixels_per_point,
+                color,
+            );
+        };
+
+        let span = height + line;
         for k in 1..WIN10_GRID_ROWS {
-            let y = (k as f32 * span / WIN10_GRID_ROWS as f32).ceil() - 1.;
-            if y >= 0. && y < height {
-                pixel_rect(
-                    out,
-                    Rect::from_min_size(Pos2::new(0., y), Vec2::new(width, 1.)),
-                    color,
-                );
+            let y = (k as f32 * span / WIN10_GRID_ROWS as f32).ceil() - line;
+            if y >= 0. && y + line <= height {
+                add(0., y, width, line);
             }
         }
         let col_width = width / WIN10_GRID_COLUMNS;
         // Same step as the data, which spans one border more (border centre to border centre)
-        let point_spacing = (width + border) * self.point_spacing_factor();
+        let point_spacing = (width + line) * self.point_spacing_factor();
         let offset = if col_width > 0. {
             (point_spacing as f64 * -(self.scroll_offset as f64)).rem_euclid(col_width as f64)
                 as f32
@@ -488,12 +499,8 @@ impl Graph {
         let mut x = offset;
         while x < width {
             let px = x.floor();
-            if px >= 0. {
-                pixel_rect(
-                    out,
-                    Rect::from_min_size(Pos2::new(px, 0.), Vec2::new(1., height)),
-                    color,
-                );
+            if px >= 0. && px + line <= width {
+                add(px, 0., line, height);
             }
             x += col_width;
         }
