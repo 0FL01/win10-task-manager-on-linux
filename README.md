@@ -178,9 +178,17 @@ Disabling monitoring revokes a permanent grant or ends the temporary helper. Sta
 sampling never ask for a password. The GUI and magpie stay unprivileged.
 Available sources and installation details are in [hardware monitoring](docs/hardware-monitoring.md).
 
-### Wireless mouse batteries
+### Peripheral batteries
 
-Performance's existing Battery pages show peripherals reported by UPower/sysfs. In addition,
+Performance's existing Battery pages combine UPower with readable batteries from
+`/sys/class/power_supply`, even when UPower is running but omits a device (for example an
+Xbox Bluetooth controller). Sysfs-only devices are discovered and refreshed each battery
+cycle, deduplicated by their native path and removed when disconnected or unreadable.
+An actual `0%` remains zero; invalid/missing percentages are not invented. This path needs
+neither root nor additional hidraw permissions. Gaming inputs are classified by their input
+capabilities, not a model-name guess; peripheral batteries never borrow laptop SMBIOS capacity.
+
+In addition,
 host-side magpie reads Logitech mice paired with a Logi Bolt receiver (`046d:c548`, interface
 `02`) when they support HID++ Unified Battery (`0x1004`) with an exact percentage. This covers
 MX Master 3S without a running or installed Solaar. Other receiver families and proprietary
