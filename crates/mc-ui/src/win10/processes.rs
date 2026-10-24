@@ -699,21 +699,11 @@ fn expander(painter: &egui::Painter, x: f32, top: f32, expanded: bool) {
     for r in 0..9 {
         let d = (r.min(8 - r)) as f32;
         if expanded {
-            paint::hline(
-                painter,
-                x - 2. + r as f32,
-                x - 2. + r as f32,
-                top + 11. + d,
-                pal::EXPANDER,
-            );
+            let (px, py) = (x - 2. + r as f32, top + 11. + d);
+            paint::fill(painter, px, py, px, py, pal::EXPANDER);
         } else {
-            paint::hline(
-                painter,
-                x + 1. + d,
-                x + 1. + d,
-                top + 9. + r as f32,
-                pal::EXPANDER,
-            );
+            let (px, py) = (x + 1. + d, top + 9. + r as f32);
+            paint::fill(painter, px, py, px, py, pal::EXPANDER);
         }
     }
 }

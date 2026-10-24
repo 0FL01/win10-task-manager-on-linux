@@ -1304,11 +1304,13 @@ fn graph_panels_ui(
                     x0 + paint::text_width(&painter, &caption, Font::Caption) + m::GPU_DROPDOWN_GAP;
                 for row in 0..m::GPU_DROPDOWN_H {
                     let row = row as f32;
-                    paint::hline(
+                    let y = band_top + m::GPU_DROPDOWN_DY + row;
+                    paint::fill(
                         &painter,
                         arrow_x + row,
+                        y,
                         arrow_x + m::GPU_DROPDOWN_W - 1. - row,
-                        band_top + m::GPU_DROPDOWN_DY + row,
+                        y,
                         pal::LABEL,
                     );
                 }

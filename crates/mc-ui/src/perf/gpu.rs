@@ -164,7 +164,10 @@ impl GpuPage {
     pub fn new(gpu: &Gpu, config: &Config) -> Self {
         let device_name = gpu.device_name.clone().unwrap_or_else(|| i18n("Unknown"));
         let mut summary = SummaryGraph::percent(COLOR, i18n_f("GPU {}", &["0"]));
-        *summary.graph.groups_mut() = vec![missing_group(100.)];
+        // A new group starts at the minimum length; the sidebar graph shows 60 samples
+        let mut group = missing_group(100.);
+        group.update_data_points(DEFAULT_DATA_POINTS as usize);
+        *summary.graph.groups_mut() = vec![group];
         summary.info1 = device_name.clone();
         Self {
             name: page_name(&gpu.id),
@@ -930,9 +933,15 @@ mod tests {
     #[test]
     fn normalized_usage_and_unknown_capacity_are_preserved() {
         let (mut page, config, readings, snapshot) = setup();
+        let values = page.summary.graph.groups()[0].datas[0].get_data();
+        assert_eq!(values.len(), DEFAULT_DATA_POINTS as usize);
+        assert!(values.iter().all(|value| value.is_nan()));
         feed(&mut page, &config, &readings, &snapshot);
         assert_eq!(page.summary.heading, i18n_f("GPU {}", &["0"]));
-        assert_eq!(page.summary.graph.groups()[0].datas[0].get_data()[0], 37.);
+        let values = page.summary.graph.groups()[0].datas[0].get_data();
+        assert_eq!(values.len(), DEFAULT_DATA_POINTS as usize);
+        assert_eq!(values[0], 37.);
+        assert!(values[1..].iter().all(|value| value.is_nan()));
         let view = page.win10_view(&config);
         assert_eq!(view.panels.len(), 3); // The legacy 1/2 defaults do not duplicate the main graphs.
         assert_eq!(view.panels[2].right, "—");
