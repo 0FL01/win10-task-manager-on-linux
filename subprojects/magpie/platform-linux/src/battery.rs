@@ -21,11 +21,10 @@
 use crate::{async_runtime, sync, system_bus, util::stream_has_contents};
 use magpie_platform::battery::{Battery, HistoryPoint};
 
-use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::task::{Context, Poll};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
@@ -47,13 +46,15 @@ struct UPowerData {
     objpath: ObjectPath<'static>,
 }
 
+type Devices = HashMap<String, (Option<UPowerData>, bool)>;
+
 pub struct BatteryCache {
     batteries: Vec<Battery>,
     hidpp: hidpp::Collector,
     published: Vec<Battery>,
 
     upower: Option<UPowerProxy<'static>>,
-    devices: HashMap<String, (Option<UPowerData>, bool)>,
+    devices: Devices,
 
     denylist: HashSet<String>,
 
@@ -61,16 +62,14 @@ pub struct BatteryCache {
     devices_stream: Option<(DeviceAddedStream, DeviceRemovedStream)>,
 }
 
-fn read_from_sysfs(name: &str, appendix: &str) -> Option<String> {
-    let path = format!("{}{}/{}", BAT_BASE_DIR, name, &appendix);
+fn read_from_sysfs(root: &Path, name: &str, appendix: &str) -> Option<String> {
+    let path = root.join(name).join(appendix);
     match read_to_string(path) {
         Ok(c) => Some(c.trim().to_string()),
         Err(e) => {
             log::info!(
-                "Could not read file: `{}{}/{}`: {}",
-                BAT_BASE_DIR,
-                name,
-                appendix,
+                "Could not read file: `{}`: {}",
+                root.join(name).join(appendix).display(),
                 e
             );
             None
@@ -151,8 +150,8 @@ macro_rules! get_upower_value {
 }
 
 macro_rules! get_sysfs_value {
-    ($name:ident, $file_name:literal, $typ:ty, $zero:expr, $math:tt) => {
-        read_from_sysfs(&$name, $file_name)
+    ($root:ident, $name:ident, $file_name:expr, $typ:ty, $zero:expr, $math:tt) => {
+        read_from_sysfs($root, &$name, $file_name)
             .and_then(|x| parse_str(x))
             .and_then(|x: $typ| {
                 if $zero {
@@ -165,6 +164,7 @@ macro_rules! get_sysfs_value {
 }
 
 async fn new_battery(
+    root: &Path,
     name: String,
     device_upower: &mut Option<UPowerData>,
     sysfs_exists: bool,
@@ -179,7 +179,7 @@ async fn new_battery(
             }
         }
     } else if sysfs_exists {
-        if let Some(v) = read_from_sysfs(&name, "type") {
+        if let Some(v) = read_from_sysfs(root, &name, "type") {
             kind = match &*v {
                 "Mains" | "Unknown" => return None,
                 "Battery" => Some(BatteryType::Battery as i32),
@@ -206,19 +206,19 @@ async fn new_battery(
     if sysfs_exists {
         macro_rules! set_sysfs_value {
             ($e:ident, $typ:ty, $math:tt) => {
-                $e = get_sysfs_value!(name, "$e", $typ, true, $math);
+                $e = get_sysfs_value!(root, name, stringify!($e), $typ, true, $math);
             };
             ($e:ident, $i:literal, $typ:ty, $math:tt) => {
-                $e = get_sysfs_value!(name, $i, $typ, true, $math);
+                $e = get_sysfs_value!(root, name, $i, $typ, true, $math);
             };
         }
 
         let div_k = |x| x / 1000;
         let div_m = |x| x / 1_000_000.;
 
-        vendor = read_from_sysfs(&name, "manufacturer");
-        model = read_from_sysfs(&name, "model_name");
-        serial = read_from_sysfs(&name, "serial_number");
+        vendor = read_from_sysfs(root, &name, "manufacturer");
+        model = read_from_sysfs(root, &name, "model_name");
+        serial = read_from_sysfs(root, &name, "serial_number");
 
         set_sysfs_value!(energy_full, u32, div_k);
         set_sysfs_value!(energy_full_design, u32, div_k);
@@ -235,7 +235,7 @@ async fn new_battery(
             None
         };
 
-        technology = match read_from_sysfs(&name, "technology") {
+        technology = match read_from_sysfs(root, &name, "technology") {
             Some(v) => match v.as_str() {
                 "Li-poly" => Some(2),
                 "Unknown" => None,
@@ -282,9 +282,19 @@ async fn new_battery(
                 .unwrap_or(0),
         )
     } else {
-        (None, 0)
+        (sysfs_power_supply(root, &name), 0)
     };
-    let design_capacity = crate::smbios::design_capacity_mwh();
+    if device_upower.is_none() && power_supply == Some(false) {
+        // Device batteries are not laptop batteries. Only classify a game controller when
+        // the associated input device actually exposes joystick/gamepad buttons.
+        kind = sysfs_device_kind(&root.join(&name));
+    }
+    let design_capacity =
+        if power_supply != Some(false) && kind == Some(BatteryType::Battery as i32) {
+            crate::smbios::design_capacity_mwh()
+        } else {
+            None
+        };
     let mut battery = Battery {
         name,
         vendor,
@@ -307,7 +317,7 @@ async fn new_battery(
         ..Battery::default()
     };
 
-    if !update_battery(&mut battery, device_upower, sysfs_exists, true).await {
+    if !update_battery(root, &mut battery, device_upower, sysfs_exists, true).await {
         return None;
     }
 
@@ -315,14 +325,23 @@ async fn new_battery(
 }
 
 async fn update_battery(
+    root: &Path,
     battery: &mut Battery,
     device: &mut Option<UPowerData>,
     sysfs_exists: bool,
     mut update_upower: bool,
 ) -> bool {
+    if sysfs_exists
+        && device.is_none()
+        && (!root.join(&battery.name).is_dir()
+            || read_from_sysfs(root, &battery.name, "present").as_deref() == Some("0"))
+    {
+        return false;
+    }
     battery.percentage = {
-        let parsed: std::option::Option<f32> =
-            read_from_sysfs(&battery.name, "capacity").and_then(parse_str);
+        let parsed: std::option::Option<f32> = read_from_sysfs(root, &battery.name, "capacity")
+            .and_then(parse_str)
+            .filter(|value: &f32| value.is_finite() && (0. ..=100.).contains(value));
         if let Some(v) = parsed {
             if let Some(device_upower) = device {
                 if update_upower {
@@ -334,6 +353,9 @@ async fn update_battery(
                 }
             }
             v / 100.
+        } else if device.is_none() {
+            // Do not retain stale sysfs-only readings or turn an unknown value into 0%.
+            return false;
         } else if update_upower {
             if let Some(device_upower) = device {
                 let v = device_upower.device.percentage().await.ok();
@@ -371,10 +393,10 @@ async fn update_battery(
         let name = &battery.name;
         macro_rules! set_sysfs_value {
             ($e:ident, $typ:ty, $zero:expr, $math:tt) => {
-                set_sysfs_value!($e, "$e", $typ, $zero, $math);
+                set_sysfs_value!($e, stringify!($e), $typ, $zero, $math);
             };
-            ($e:ident, $i:literal, $typ:ty, $zero:expr, $math:tt) => {
-                battery.$e = get_sysfs_value!(name, $i, $typ, $zero, $math);
+            ($e:ident, $i:expr, $typ:ty, $zero:expr, $math:tt) => {
+                battery.$e = get_sysfs_value!(root, name, $i, $typ, $zero, $math);
             };
         }
 
@@ -392,7 +414,7 @@ async fn update_battery(
 
         set_sysfs_value!(charge_cycles, "cycle_count", u32, false, nothing);
 
-        battery.state = read_from_sysfs(&battery.name, "status").and_then(|v| match v.as_str() {
+        battery.state = read_from_sysfs(root, &battery.name, "status").and_then(|v| match v.as_str() {
             "Charging" => Some(1),
             "Discharging" => Some(2),
             "Empty" => Some(3),
@@ -408,7 +430,7 @@ async fn update_battery(
 
         if bit_set(battery.charge_threshold_supported, 2) {
             // second bit is HW charge controll support
-            if let Some(s) = read_from_sysfs(&battery.name, "charge_types") {
+            if let Some(s) = read_from_sysfs(root, &battery.name, "charge_types") {
                 if let Some((_, s)) = s.split_once('[') {
                     if let Some((s, _)) = s.split_once(']') {
                         battery.charge_threshold_enabled = s == "Long_Life"
@@ -518,51 +540,114 @@ async fn update_battery(
     true
 }
 
-impl BatteryCache {
-    async fn update_batteries(&mut self) {
-        let Some(upower) = &self.upower else {
-            log::info!("UPower not available, using sysfs instead");
+fn sysfs_power_supply(root: &Path, name: &str) -> Option<bool> {
+    match read_from_sysfs(root, name, "scope").as_deref() {
+        Some("Device") => Some(false),
+        Some("System") => Some(true),
+        _ => None,
+    }
+}
 
-            let paths = match fs::read_dir(BAT_BASE_DIR) {
-                Ok(paths) => paths,
-                Err(e) => {
-                    log::warn!("Could not read /sys/class/power_supply directory: {e}");
-                    return;
-                }
-            };
-
-            for path in paths.filter_map(|x| x.ok()).map(|x| x.path()) {
-                if path.is_dir() {
-                    let name = {
-                        if let Some(v) = path.file_name() {
-                            v.display().to_string()
-                        } else {
-                            "unknown".into()
-                        }
-                    };
-                    if let Entry::Vacant(e) = self.devices.entry(name) {
-                        if let Some(battery) = new_battery(e.key().clone(), &mut None, true).await {
-                            e.insert((None, true));
-                            self.batteries.push(battery);
-                        } else {
-                            self.denylist.insert(e.key().clone());
-                        }
-                    }
-                }
-            }
-            return;
+fn sysfs_device_kind(path: &Path) -> Option<i32> {
+    let device = fs::canonicalize(path)
+        .ok()?
+        .parent()?
+        .parent()?
+        .join("input");
+    for input in fs::read_dir(device).ok()?.flatten() {
+        let Ok(keys) = read_to_string(input.path().join("capabilities/key")) else {
+            continue;
         };
+        // Linux sysfs bitmaps are machine-word groups, printed most significant first.
+        let words: Vec<_> = keys.split_whitespace().rev().collect();
+        if (0x120..0x140).any(|bit| {
+            words
+                .get(bit / usize::BITS as usize)
+                .and_then(|word| usize::from_str_radix(word, 16).ok())
+                .is_some_and(|word| word & (1 << (bit % usize::BITS as usize)) != 0)
+        }) {
+            return Some(BatteryType::GamingInput as i32);
+        }
+    }
+    None
+}
 
-        match upower.enumerate_devices().await {
-            Ok(devices_upower) => {
-                for device in devices_upower {
-                    self.add_battery_upower(device.into()).await;
-                }
-            }
-            Err(e) => {
-                log::warn!("Could not get UPower Devices: {e}")
+fn native_name(root: &Path, native: &str) -> String {
+    let path = Path::new(native);
+    if path.is_absolute() {
+        if let Some(name) = path.file_name() {
+            let candidate = root.join(name);
+            if fs::canonicalize(&candidate)
+                .ok()
+                .zip(fs::canonicalize(path).ok())
+                .is_some_and(|(a, b)| a == b)
+            {
+                return name.to_string_lossy().into_owned();
             }
         }
+    }
+    native.to_owned()
+}
+
+/// The kernel may expose HID batteries that an otherwise functional UPower omits.
+/// Reconcile every battery refresh: no UPower signal is generated for these devices.
+async fn supplement_sysfs(root: &Path, devices: &mut Devices, batteries: &mut Vec<Battery>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    let mut paths: Vec<PathBuf> = entries.flatten().map(|entry| entry.path()).collect();
+    paths.sort();
+    for path in paths {
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !devices.contains_key(name)
+            && path.is_dir()
+            && read_from_sysfs(root, name, "type").as_deref() == Some("Battery")
+        {
+            if let Some(battery) = new_battery(root, name.to_owned(), &mut None, true).await {
+                devices.insert(name.to_owned(), (None, true));
+                batteries.push(battery);
+            }
+        }
+    }
+}
+
+async fn refresh_entries(root: &Path, devices: &mut Devices, batteries: &mut Vec<Battery>) {
+    let mut index = 0;
+    while index < batteries.len() {
+        let battery = &mut batteries[index];
+        let keep = if let Some((device, sysfs_exists)) = devices.get_mut(&battery.name) {
+            update_battery(root, battery, device, *sysfs_exists, false).await
+        } else {
+            false
+        };
+        if keep {
+            index += 1;
+        } else {
+            devices.remove(&batteries.remove(index).name);
+        }
+    }
+}
+
+impl BatteryCache {
+    async fn update_batteries(&mut self) {
+        if let Some(upower) = &self.upower {
+            match upower.enumerate_devices().await {
+                Ok(devices_upower) => {
+                    for device in devices_upower {
+                        self.add_battery_upower(device.into()).await;
+                    }
+                }
+                Err(e) => log::warn!("Could not get UPower Devices: {e}"),
+            }
+        }
+        supplement_sysfs(
+            Path::new(BAT_BASE_DIR),
+            &mut self.devices,
+            &mut self.batteries,
+        )
+        .await;
     }
 
     async fn add_battery_upower(&mut self, objpath: ObjectPath<'static>) {
@@ -581,7 +666,13 @@ impl BatteryCache {
         let Some(name) = device.native_path().await.ok() else {
             return;
         };
-        if self.devices.contains_key(&name) || self.denylist.contains(&name) {
+        let name = native_name(Path::new(BAT_BASE_DIR), &name);
+        if self
+            .devices
+            .get(&name)
+            .is_some_and(|(device, _)| device.is_some())
+            || self.denylist.contains(&name)
+        {
             return;
         }
 
@@ -594,7 +685,17 @@ impl BatteryCache {
             objpath,
         });
 
-        if let Some(battery) = new_battery(name.clone(), &mut device, sysfs_exists).await {
+        if let Some(battery) = new_battery(
+            Path::new(BAT_BASE_DIR),
+            name.clone(),
+            &mut device,
+            sysfs_exists,
+        )
+        .await
+        {
+            // UPower may discover a previously sysfs-only device later. Upgrade its data
+            // source instead of keeping two copies or discarding the fallback prematurely.
+            self.batteries.retain(|entry| entry.name != name);
             self.devices.insert(name, (device, sysfs_exists));
             self.batteries.push(battery);
         } else {
@@ -692,23 +793,11 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                         }
                     }
                 })
-            } else {
-                if Instant::now()
-                    .duration_since(self.last_full_update)
-                    .as_secs()
-                    >= 30
-                {
-                    out = DevChange::Sysfs
-                }
             }
             out
         };
         match update_full {
             DevChange::None => (),
-            DevChange::Sysfs => sync!(rt, async {
-                self.update_batteries().await;
-                self.last_full_update = Instant::now();
-            }),
             DevChange::UPowerAdd(dev) => sync!(rt, async { self.add_battery_upower(dev).await }),
             DevChange::UPowerRemove(dev) => sync!(rt, async {
                 self.devices.retain(|name, upowerstuff| {
@@ -722,16 +811,23 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
                 })
             }),
         }
-        self.batteries.retain_mut(|battery: &mut Battery| {
-            sync!(rt, async {
-                let (device, sysfs_exists) = self.devices.get_mut(&battery.name).unwrap();
-                if !update_battery(battery, device, *sysfs_exists, false).await {
-                    self.devices.remove(&battery.name); // remove entry in case of dbus, but don't blacklist in case of reconnect
-                    false
-                } else {
-                    true
-                }
-            })
+        sync!(rt, async {
+            if self.devices_stream.is_none() && self.last_full_update.elapsed().as_secs() >= 30 {
+                self.update_batteries().await;
+                self.last_full_update = Instant::now();
+            }
+            supplement_sysfs(
+                Path::new(BAT_BASE_DIR),
+                &mut self.devices,
+                &mut self.batteries,
+            )
+            .await;
+            refresh_entries(
+                Path::new(BAT_BASE_DIR),
+                &mut self.devices,
+                &mut self.batteries,
+            )
+            .await;
         });
         self.hidpp.merge(&self.batteries, &mut self.published);
     }
@@ -743,7 +839,221 @@ impl magpie_platform::battery::BatteryCache for BatteryCache {
 
 enum DevChange<'a> {
     None,
-    Sysfs,
     UPowerAdd(ObjectPath<'a>),
     UPowerRemove(ObjectPath<'a>),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use magpie_platform::battery::BatteryCache as _;
+
+    struct Fixture(PathBuf);
+
+    impl Fixture {
+        fn new() -> Self {
+            static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+            let path = std::env::temp_dir().join(format!(
+                "magpie-battery-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            ));
+            fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+
+        fn battery(&self, name: &str, value: &str) -> PathBuf {
+            let path = self.0.join(name);
+            fs::create_dir_all(&path).unwrap();
+            for (key, value) in [
+                ("type", "Battery"),
+                ("scope", "Device"),
+                ("present", "1"),
+                ("capacity", value),
+                ("status", "Discharging"),
+                ("model_name", "Example Wireless Controller"),
+            ] {
+                fs::write(path.join(key), value).unwrap();
+            }
+            path
+        }
+    }
+
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn sysfs_supplements_existing_inventory_updates_and_removes_disconnected_devices() {
+        let fixture = Fixture::new();
+        let path = fixture.battery("hid-controller-battery", "52");
+        let mut devices = Devices::new();
+        let mut batteries = vec![Battery {
+            name: "upower-only-device".into(),
+            ..Default::default()
+        }];
+        let rt = async_runtime();
+        sync!(rt, async {
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries.len(), 2);
+            let battery = &batteries[1];
+            assert_eq!(battery.percentage, 0.52);
+            assert_eq!(battery.state, Some(2));
+            assert_eq!(battery.power_supply, Some(false));
+            assert_eq!(battery.energy_full_design, None); // Not the laptop's SMBIOS battery.
+            assert_ne!(battery.kind, Some(BatteryType::Battery as i32));
+            // An existing entry with this exact native name (including a UPower-backed
+            // one) wins; supplementing does not replace its metadata or duplicate it.
+            batteries[1].vendor = Some("existing source".into());
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries.len(), 2);
+            assert_eq!(batteries[1].vendor.as_deref(), Some("existing source"));
+            fs::write(path.join("capacity"), "0").unwrap();
+            assert!(update_battery(&fixture.0, &mut batteries[1], &mut None, true, false).await);
+            assert_eq!(batteries[1].percentage, 0.);
+            batteries.remove(0); // The discovery-only sentinel has no D-Bus proxy in this fixture.
+            fs::remove_dir_all(&path).unwrap();
+            refresh_entries(&fixture.0, &mut devices, &mut batteries).await;
+            assert!(batteries.is_empty());
+            assert!(devices.is_empty());
+            fixture.battery("hid-controller-battery", "87");
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries.len(), 1);
+            assert_eq!(batteries[0].percentage, 0.87);
+        });
+    }
+
+    #[test]
+    fn invalid_absent_and_temporarily_unreadable_sysfs_batteries_are_not_stale_or_zero() {
+        let fixture = Fixture::new();
+        let path = fixture.battery("hid-controller", "101");
+        let mut devices = Devices::new();
+        let mut batteries = Vec::new();
+        let rt = async_runtime();
+        sync!(rt, async {
+            let mains = fixture.0.join("AC");
+            fs::create_dir(&mains).unwrap();
+            fs::write(mains.join("type"), "Mains").unwrap();
+            fs::write(mains.join("capacity"), "100").unwrap();
+            for value in ["101", "-1", "NaN", "inf", "Unknown"] {
+                fs::write(path.join("capacity"), value).unwrap();
+                supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+                assert!(batteries.is_empty());
+            }
+            fs::write(path.join("capacity"), "100").unwrap();
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries[0].percentage, 1.);
+            fs::write(path.join("present"), "0").unwrap();
+            refresh_entries(&fixture.0, &mut devices, &mut batteries).await;
+            assert!(batteries.is_empty());
+            fs::write(path.join("present"), "1").unwrap();
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            fs::remove_file(path.join("capacity")).unwrap();
+            refresh_entries(&fixture.0, &mut devices, &mut batteries).await;
+            assert!(batteries.is_empty());
+            fs::write(path.join("capacity"), "75").unwrap();
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries[0].percentage, 0.75);
+            fs::write(path.join("energy_full"), "2400000").unwrap();
+            fs::write(path.join("voltage_now"), "3000000").unwrap();
+            devices.clear();
+            batteries.clear();
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            assert_eq!(batteries.len(), 1); // Never add the mains adapter.
+            assert_eq!(batteries[0].energy_full, Some(2400));
+            assert_eq!(batteries[0].voltage, Some(3.));
+        });
+    }
+
+    #[test]
+    fn exact_native_path_deduplication_and_input_capabilities_not_model_guesses() {
+        let fixture = Fixture::new();
+        let root = fixture.0.join("class");
+        fs::create_dir(&root).unwrap();
+        let controller = fixture.0.join("device/power_supply/hid-controller");
+        fs::create_dir_all(&controller).unwrap();
+        let keys = fixture.0.join("device/input/input1/capabilities");
+        fs::create_dir_all(&keys).unwrap();
+        let mut words = vec![0_usize; 0x130 / usize::BITS as usize + 1];
+        words[0x130 / usize::BITS as usize] = 1 << (0x130 % usize::BITS as usize);
+        let bitmap = words
+            .iter()
+            .rev()
+            .map(|word| format!("{word:x}"))
+            .collect::<Vec<_>>()
+            .join(" ");
+        fs::write(keys.join("key"), bitmap).unwrap();
+        let alias = root.join("hid-controller");
+        std::os::unix::fs::symlink(&controller, &alias).unwrap();
+        assert_eq!(
+            sysfs_device_kind(&alias),
+            Some(BatteryType::GamingInput as i32)
+        );
+        fs::write(keys.join("key"), "0").unwrap();
+        assert_eq!(sysfs_device_kind(&alias), None);
+        assert_eq!(
+            native_name(&root, controller.to_str().unwrap()),
+            "hid-controller"
+        );
+        assert_eq!(native_name(&root, "hid-controller"), "hid-controller");
+        assert_eq!(
+            native_name(&root, "/other/hid-controller"),
+            "/other/hid-controller"
+        );
+    }
+
+    #[test]
+    fn same_model_different_native_paths_are_distinct_devices() {
+        let fixture = Fixture::new();
+        fixture.battery("hid-controller-one", "25");
+        fixture.battery("hid-controller-two", "75");
+        let mut devices = Devices::new();
+        let mut batteries = Vec::new();
+        let rt = async_runtime();
+        sync!(rt, async {
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+            supplement_sysfs(&fixture.0, &mut devices, &mut batteries).await;
+        });
+        assert_eq!(batteries.len(), 2);
+        assert_eq!(batteries[0].model, batteries[1].model);
+        assert_eq!(batteries[0].percentage, 0.25);
+        assert_eq!(batteries[1].percentage, 0.75);
+    }
+
+    #[test]
+    #[ignore = "requires a connected Xbox controller exported by sysfs but omitted by UPower"]
+    fn host_xbox_battery_with_upower_available() {
+        let rt = async_runtime();
+        let _runtime = rt.enter(); // zbus signal streams also need the runtime during Drop.
+        let mut cache = BatteryCache::new();
+        assert!(cache.upower.is_some());
+        cache.refresh();
+        assert_eq!(
+            cache
+                .cached_entries()
+                .iter()
+                .filter(|b| b.model.as_deref() == Some("Xbox Wireless Controller"))
+                .count(),
+            1
+        );
+        let battery = cache
+            .cached_entries()
+            .iter()
+            .find(|b| b.model.as_deref() == Some("Xbox Wireless Controller"))
+            .unwrap();
+        let expected: f32 = read_from_sysfs(Path::new(BAT_BASE_DIR), &battery.name, "capacity")
+            .unwrap()
+            .parse()
+            .unwrap();
+        assert_eq!(battery.percentage * 100., expected);
+        assert_eq!(battery.power_supply, Some(false));
+        assert_eq!(battery.kind, Some(BatteryType::GamingInput as i32));
+        println!(
+            "Xbox battery: {}%, gaming input, peripheral; UPower available",
+            expected
+        );
+    }
 }

@@ -846,6 +846,105 @@ fn system_metadata_copies_full_values_and_system_theme_follows_desktop() {
 
 /// Original battery design, not historical Win10 pixel measurements.
 #[test]
+fn mixed_battery_sources_keep_independent_charge_and_state() {
+    use mc_magpie::magpie_types::battery::Battery;
+    let mut readings = mc_magpie::synthetic_series(30, 20);
+    for reading in &mut readings {
+        let laptop = &mut reading.batteries[0];
+        laptop.vendor = None;
+        laptop.model = Some("Laptop battery (SIMULATED)".into());
+        laptop.percentage = 0.78;
+        laptop.energy = Some(46_800);
+        laptop.state = Some(2);
+        reading.batteries.extend([
+            Battery {
+                name: "01-bluetooth-headphones".into(),
+                model: Some("Bluetooth headphones (SIMULATED)".into()),
+                kind: Some(19),
+                power_supply: Some(false),
+                percentage: 0.65,
+                state: Some(1),
+                ..Default::default()
+            },
+            Battery {
+                name: "02-bluetooth-speaker".into(),
+                model: Some("Bluetooth speaker (SIMULATED)".into()),
+                kind: Some(18),
+                power_supply: Some(false),
+                percentage: 0.34,
+                state: Some(2),
+                ..Default::default()
+            },
+            Battery {
+                name: "03-bluetooth-gamepad".into(),
+                model: Some("Xbox controller (SIMULATED)".into()),
+                kind: Some(12),
+                power_supply: Some(false),
+                percentage: 0.50,
+                state: Some(2),
+                ..Default::default()
+            },
+        ]);
+    }
+    let output =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/battery-mixed-preview");
+    mc_magpie::write_fixture_dir(&output.join("fixtures"), &readings, &HashMap::new()).unwrap();
+    let images = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&images).unwrap();
+    for (width, height, theme, suffix) in [
+        (1030, 705, mc_core::config::Theme::Light, "light"),
+        (1030, 705, mc_core::config::Theme::Dark, "dark"),
+        (760, 540, mc_core::config::Theme::Light, "minimum"),
+    ] {
+        let mut h = performance_harness(
+            Config {
+                performance_selected_page: "battery".into(),
+                performance_sidebar_order: "battery;cpu;memory;system".into(),
+                window_width: width,
+                window_height: height,
+                theme,
+                ..Default::default()
+            },
+            readings[0].clone(),
+            1.,
+        );
+        for (model, kind, percentage, state) in [
+            (
+                "Laptop battery (SIMULATED)",
+                "Battery",
+                "78%",
+                "Discharging",
+            ),
+            (
+                "Bluetooth headphones (SIMULATED)",
+                "Headphones",
+                "65%",
+                "Charging",
+            ),
+            (
+                "Bluetooth speaker (SIMULATED)",
+                "Speakers",
+                "34%",
+                "Discharging",
+            ),
+            (
+                "Xbox controller (SIMULATED)",
+                "Gaming Input",
+                "50%",
+                "Discharging",
+            ),
+        ] {
+            h.get_by_label_contains(&format!("{model} — {kind}: {percentage}, {state}"));
+        }
+        h.render()
+            .unwrap()
+            .save(images.join(format!("mixed-battery-sources-{suffix}.png")))
+            .unwrap();
+    }
+}
+
+/// Original battery design, not historical Win10 pixel measurements.
+#[test]
 fn performance_batteries_cards_theme_and_dpi() {
     use mc_magpie::magpie_types::battery::Battery;
     let mut reading = mc_magpie::synthetic_readings(0, 1);
