@@ -153,6 +153,9 @@ pub(super) fn line_ink(painter: &Painter, from: (f32, f32), to: (f32, f32), colo
     );
 }
 
+/// Cap height of the bundled Open Sans in ems (1462 / 2048 units).
+const CAP_HEIGHT: f32 = 1462. / 2048.;
+
 /// Text roles of the interface (docs/win10-spec/spec.md, "Typography").
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Font {
@@ -189,17 +192,17 @@ impl Font {
         }
     }
 
-    /// Distance from the top of a laid-out row to the top of capital letters, measured on the
-    /// bundled Open Sans so capitals land where the spec puts them.
+    /// Distance from the top of a laid-out row to the top of capital letters at scale 1, measured
+    /// on the bundled Open Sans (`text` derives it from the row at other scales).
     pub fn cap_offset(self) -> f32 {
         match self {
-            Font::Body | Font::BodyStrong => 4.,
+            Font::Body | Font::BodyStrong => 3.,
             Font::Summary => 5.,
             Font::Title => 10.,
             Font::Model => 7.,
-            Font::Caption => 5.,
+            Font::Caption => 4.,
             Font::StatValue => 7.,
-            Font::DeviceName => 4.,
+            Font::DeviceName => 5.,
         }
     }
 }
@@ -223,7 +226,20 @@ pub fn text(
         Align::Center => x - width / 2.,
         Align::Max => x - width,
     };
-    let pos = Pos2::new(left.round(), (cap_top - font.cap_offset()).round());
+    // Put the capitals on the physical pixel row of `cap_top`. The baseline comes from the laid
+    // out row (egui snaps it per scale) and the hinted cap height is whole pixels, so this holds
+    // at fractional scales too; at scale 1 it equals `cap_top - cap_offset()`.
+    let ppp = painter.ctx().pixels_per_point();
+    let baseline = galley
+        .rows
+        .first()
+        .and_then(|row| row.row.glyphs.first())
+        .map_or(font.cap_offset() + font.id().size * CAP_HEIGHT, |glyph| {
+            glyph.pos.y
+        });
+    let cap_px = (font.id().size * CAP_HEIGHT * ppp).round();
+    let top = ((cap_top * ppp).round() - (baseline * ppp).round() + cap_px) / ppp;
+    let pos = Pos2::new((left * ppp).round() / ppp, top);
     let rect = Rect::from_min_size(pos, galley.size());
     painter.galley(pos, galley, color);
     rect

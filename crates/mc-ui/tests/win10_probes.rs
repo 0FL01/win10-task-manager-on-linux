@@ -2223,8 +2223,19 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
                 _ => None,
             })
             .unwrap();
+        // The row may end in empty leading below the clip (Open Sans rows are taller than
+        // Segoe's); its start and every inked pixel must be inside
+        let bottom = (text.pos.y + text.galley.size().y).ceil() as u32;
+        let ink_bottom = (text.pos.y as u32..bottom.min(scrolled.height()))
+            .rev()
+            .find(|&y| {
+                (text.pos.x as u32..(text.pos.x + text.galley.size().x).ceil() as u32)
+                    .any(|x| scrolled.get_pixel(x, y)[0] < 160)
+            });
         assert!(
-            clip.contains(text.pos) && clip.contains(text.pos + text.galley.size()),
+            clip.contains(text.pos)
+                && clip.right() >= text.pos.x + text.galley.size().x
+                && ink_bottom.is_some_and(|y| (y as f32) < clip.bottom()),
             "{label} is inside the page clip"
         );
         assert!(
