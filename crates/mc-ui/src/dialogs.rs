@@ -572,7 +572,7 @@ fn about_app(ctx: &Context, cx: &mut Cx) -> bool {
             for line in [
                 "egui https://github.com/emilk/egui",
                 "NVTOP https://github.com/Syllo/nvtop",
-                "Selawik (SIL OFL 1.1)",
+                "Open Sans (SIL OFL 1.1)",
                 i18n("And many more... Thank you all!").as_str(),
             ] {
                 dialog::caption(ui, line);

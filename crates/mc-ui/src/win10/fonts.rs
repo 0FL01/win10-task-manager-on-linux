@@ -18,19 +18,18 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-//! Fonts of the Win10-style interface: Segoe UI when installed, otherwise the bundled Selawik
-//! (SIL OFL 1.1, `assets/fonts/OFL.txt`), which is metric-compatible. The system sans-serif and
-//! egui's bundled fonts follow as fallbacks for scripts Selawik does not cover.
+//! Fonts of the Win10-style interface: the bundled Open Sans variable font (SIL OFL 1.1,
+//! `assets/fonts/OFL.txt`; own choice, denser than the metric-compatible Selawik under egui's
+//! grayscale rendering, narrowed on its width axis to Segoe UI's advances). Segoe UI, when installed, the system sans-serif and egui's bundled
+//! fonts follow as fallbacks for glyphs Open Sans does not cover.
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
+use egui::epaint::text::{FontTweak, VariationCoords};
 use egui::{FontData, FontDefinitions, FontFamily};
 
-const SELAWIK: &[u8] = include_bytes!("../../assets/fonts/selawk.ttf");
-const SELAWIK_LIGHT: &[u8] = include_bytes!("../../assets/fonts/selawkl.ttf");
-const SELAWIK_SEMILIGHT: &[u8] = include_bytes!("../../assets/fonts/selawksl.ttf");
-const SELAWIK_SEMIBOLD: &[u8] = include_bytes!("../../assets/fonts/selawksb.ttf");
+const OPEN_SANS: &[u8] = include_bytes!("../../assets/fonts/OpenSans-Variable.ttf");
 
 /// Named font families besides `Proportional` (= Regular) and `Monospace`.
 pub const LIGHT: &str = "light";
@@ -137,11 +136,20 @@ impl Fonts {
         }
         fallback.extend(egui_proportional);
 
-        let bundled = [SELAWIK, SELAWIK_LIGHT, SELAWIK_SEMILIGHT, SELAWIK_SEMIBOLD];
+        // Weight axis values of Regular, Light, Semilight and Semibold; width 90 % matches
+        // Segoe UI's advances, so text widths and positions stay those of the spec
+        let weights = [400., 300., 350., 600.];
         let names = ["regular", LIGHT, SEMILIGHT, SEMIBOLD];
         let mut chains = vec![];
-        for ((name, bytes), segoe) in names.iter().zip(bundled).zip(&self.segoe) {
-            let mut chain = vec![];
+        for ((name, weight), segoe) in names.iter().zip(weights).zip(&self.segoe) {
+            let mut chain = vec![insert(
+                &mut fonts,
+                &format!("open-sans-{name}"),
+                FontData::from_static(OPEN_SANS).tweak(FontTweak {
+                    coords: VariationCoords::new([("wght", weight), ("wdth", 90.)]),
+                    ..Default::default()
+                }),
+            )];
             if let Some(bytes) = segoe.as_deref().and_then(read_static) {
                 chain.push(insert(
                     &mut fonts,
@@ -149,11 +157,6 @@ impl Fonts {
                     FontData::from_static(bytes),
                 ));
             }
-            chain.push(insert(
-                &mut fonts,
-                &format!("selawik-{name}"),
-                FontData::from_static(bytes),
-            ));
             chain.extend(fallback.iter().cloned());
             chains.push(chain);
         }

@@ -18,5 +18,5 @@ package() {
     install -Dm644 "${TASKMANAGER_ROOT}/COPYING" \
         "${pkgdir}/usr/share/licenses/taskmanager/COPYING"
     install -Dm644 "${TASKMANAGER_ROOT}/crates/mc-ui/assets/fonts/OFL.txt" \
-        "${pkgdir}/usr/share/licenses/taskmanager/Selawik-OFL.txt"
+        "${pkgdir}/usr/share/licenses/taskmanager/OpenSans-OFL.txt"
 }

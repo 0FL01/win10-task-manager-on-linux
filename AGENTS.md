@@ -9,9 +9,9 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `crates/mc-graph/` — egui time-series graph on top of `mc-graph-core`; `GraphStyle::Win10`.
 - `crates/mc-ui/` — egui UI, depends on egui only:
   - `app.rs` shell (state, data intake, commands);
-  - `win10/` the Win10 look: `palette`/`metrics` (all numbers from the spec), `fonts` (Selawik/Segoe UI), `paint` (pixel-exact helpers), `chrome` (CSD title bar, menu bar, tabs, footer), `menu`, `listview`/`flatlist`, tabs `processes`, `performance`, `details`, `services`, and `style`/`dialog` for standard egui widgets;
+  - `win10/` the Win10 look: `palette`/`metrics` (all numbers from the spec), `fonts` (Open Sans), `paint` (pixel-exact helpers), `chrome` (CSD title bar, menu bar, tabs, footer), `menu`, `listview`/`flatlist`, tabs `processes`, `performance`, `details`, `services`, and `style`/`dialog` for standard egui widgets;
   - `perf/` device models (`DevicePage::win10_view`), `table.rs` (process/service tree view state), `dialogs.rs`, `smart.rs`. There is no settings window: options live in the View/Options menus and context menus; everything else is fixed.
-- `crates/mc-ui/assets/fonts/` — bundled Selawik (SIL OFL 1.1, `OFL.txt`).
+- `crates/mc-ui/assets/fonts/` — bundled Open Sans variable font (SIL OFL 1.1, `OFL.txt`).
 - `crates/mc-ui/assets/icons/` — SVGs carried from Mission Center, embedded by the egui UI.
 - `apps/taskmanager/` — eframe binary `taskmanager` (app id `io.github.taskmanager.TaskManager`, settings `~/.config/taskmanager/config.toml`, copied once from `~/.config/missioncenter/`) (`--fixture`, `--synthetic`, `--dump-readings`, `--renderer wgpu|glow`, `--perf-overlay`, `--bench-seconds`).
 - `xtask/` — dev/packaging tasks (`cargo xtask help`).

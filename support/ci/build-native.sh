@@ -100,7 +100,7 @@ case $distro in
             "$package_root/usr/share/doc/taskmanager/copyright"
         install -m644 "$root/COPYING" "$package_root/usr/share/doc/taskmanager/COPYING"
         install -m644 "$root/crates/mc-ui/assets/fonts/OFL.txt" \
-            "$package_root/usr/share/doc/taskmanager/Selawik-OFL.txt"
+            "$package_root/usr/share/doc/taskmanager/OpenSans-OFL.txt"
         dpkg-deb --build --root-owner-group "$package_root" \
             "$output/taskmanager_${package_version}_amd64.deb"
         ;;

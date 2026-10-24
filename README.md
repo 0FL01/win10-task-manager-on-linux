@@ -342,8 +342,7 @@ version.
 Please see COPYING file in the root of this repository for the complete license text. Alternatively see
 [the official license](https://www.gnu.org/licenses/gpl-3.0.html) as written by the Free Software Foundation.
 
-The bundled Selawik font is licensed under the SIL Open Font License 1.1, see `crates/mc-ui/assets/fonts/OFL.txt`; if
-Segoe UI is installed, it is used instead. Windows is a trademark of Microsoft Corporation; Task Manager is not
+The bundled Open Sans font is licensed under the SIL Open Font License 1.1, see `crates/mc-ui/assets/fonts/OFL.txt`. Windows is a trademark of Microsoft Corporation; Task Manager is not
 affiliated with or endorsed by Microsoft, and contains no Microsoft code, fonts or image files.
 
 The application icon (`data/icons/hicolor/*/apps/io.github.taskmanager.TaskManager.png`) is a fan-made redraw
