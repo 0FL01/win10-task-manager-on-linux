@@ -588,6 +588,7 @@ impl DevicePage for CpuPage {
             model: self.cpu_name.clone(),
             panels,
             stats,
+            stat_legends: vec![],
             info,
             composition: None,
             swap_compression: None,

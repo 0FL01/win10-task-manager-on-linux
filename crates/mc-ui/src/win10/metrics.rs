@@ -108,6 +108,12 @@ pub const GPU_MEMORY_MIN_H: f32 = 52.;
 pub const GPU_AUX_MIN_H: f32 = 52.;
 pub const GPU_PANEL_GAP: f32 = 24.;
 pub const GPU_INFO_GAP: f32 = 24.;
+/// Legend bar left of a statistic that names a graph series: 2 px wide, 40 px from the label's
+/// cap top, text origin 8 px right of the column (ink at +9); dashed series as 3 px dashes with 3 px gaps
+pub const STAT_LEGEND_W: f32 = 2.;
+pub const STAT_LEGEND_H: f32 = 40.;
+pub const STAT_LEGEND_TEXT_DX: f32 = 8.;
+pub const STAT_LEGEND_DASH: f32 = 3.;
 pub const GPU_COMPACT_INSET: f32 = 12.;
 
 /// Own Unix Performance adaptation: thin disk transfer strip and memory composition.

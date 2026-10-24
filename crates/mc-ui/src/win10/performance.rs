@@ -21,7 +21,7 @@
 //! Performance tab: device list with mini graphs and the Win10 device page
 //! (docs/win10-spec/spec.md, "Performance tab").
 
-use egui::{Align, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
+use egui::{Align, Color32, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
 use mc_core::i18n::i18n;
 use mc_core::sidebar::DeviceType;
 use mc_graph::Graph;
@@ -30,7 +30,7 @@ use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
 use crate::perf::batteries::{BatteriesView, BatteryCard};
-use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage};
+use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage, StatLegend};
 use mc_magpie::magpie_types::battery::BatteryType;
 
 /// Reference device list width (separator at content left + 211); the separator can be dragged
@@ -95,6 +95,24 @@ fn widest_value(value: &str) -> String {
         }
     }
     out
+}
+
+/// Legend bar of a statistic naming a graph series (measured on the reference): solid or dashed
+/// like the series, from the label's cap top.
+fn stat_legend(painter: &egui::Painter, x: f32, cap: f32, style: StatLegend, color: Color32) {
+    let right = x + m::STAT_LEGEND_W - 1.;
+    let bottom = cap + m::STAT_LEGEND_H - 1.;
+    match style {
+        StatLegend::Solid => paint::fill(painter, x, cap, right, bottom, color),
+        StatLegend::Dashed => {
+            let mut y = cap;
+            while y <= bottom {
+                let end = (y + m::STAT_LEGEND_DASH - 1.).min(bottom);
+                paint::fill(painter, x, y, right, end, color);
+                y += 2. * m::STAT_LEGEND_DASH;
+            }
+        }
+    }
 }
 
 /// Width a statistic reserves: its label, its value and the widest value of the same kind.
@@ -1477,12 +1495,27 @@ fn page_ui(
     let stats_h = stats_height(view.stats.len());
     let stats_top = (content.bottom() - PANEL_GAP - stats_h).round();
     let mut stats_right = gx0;
+    let legend = |r: usize, c: usize| {
+        view.stat_legends
+            .iter()
+            .find(|(at, _)| *at == (r, c))
+            .map(|&(_, style)| style)
+    };
     let mut widths: Vec<Vec<f32>> = view
         .stats
         .iter()
-        .map(|row| {
+        .enumerate()
+        .map(|(r, row)| {
             row.iter()
-                .map(|(label, value)| stat_width(&painter, label, value))
+                .enumerate()
+                .map(|(c, (label, value))| {
+                    let indent = if legend(r, c).is_some() {
+                        m::STAT_LEGEND_TEXT_DX
+                    } else {
+                        0.
+                    };
+                    indent + stat_width(&painter, label, value)
+                })
                 .collect()
         })
         .collect();
@@ -1490,11 +1523,26 @@ fn page_ui(
     for (r, (row, widths)) in view.stats.iter().zip(&widths).enumerate() {
         let cap = stats_top + 5. + STAT_PITCH * r as f32;
         let mut x = gx0;
-        for ((label, value), &w) in row.iter().zip(widths) {
-            paint::text(&painter, x, cap, label, Font::Body, pal::LABEL, Align::Min);
+        for (c, ((label, value), &w)) in row.iter().zip(widths).enumerate() {
+            let text_x = match legend(r, c) {
+                Some(style) => {
+                    stat_legend(&painter, x, cap, style, colors.line);
+                    x + m::STAT_LEGEND_TEXT_DX
+                }
+                None => x,
+            };
             paint::text(
                 &painter,
-                x,
+                text_x,
+                cap,
+                label,
+                Font::Body,
+                pal::LABEL,
+                Align::Min,
+            );
+            paint::text(
+                &painter,
+                text_x,
                 cap + STAT_VALUE_DY,
                 value,
                 Font::StatValue,

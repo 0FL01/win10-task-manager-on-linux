@@ -749,6 +749,7 @@ impl DevicePage for GpuPage {
             model: self.device_name.clone(),
             panels,
             stats: self.stats.clone(),
+            stat_legends: vec![],
             info: self.info.clone(),
             composition: None,
             swap_compression: None,

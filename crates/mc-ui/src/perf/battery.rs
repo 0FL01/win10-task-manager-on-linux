@@ -469,6 +469,7 @@ impl DevicePage for BatteryPage {
             model: self.model.clone(),
             panels,
             stats,
+            stat_legends: vec![],
             info,
             composition: None,
             swap_compression: None,

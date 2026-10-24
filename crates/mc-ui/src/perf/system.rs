@@ -269,6 +269,7 @@ impl DevicePage for SystemPage {
             model: self.summary.info1.clone(),
             panels: vec![],
             stats: vec![],
+            stat_legends: vec![],
             info: self.rows.clone(),
             composition: None,
             swap_compression: None,

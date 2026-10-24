@@ -275,6 +275,10 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   of its kind (numbers with a unit or fraction as four digits, unit prefix "M"), and columns are
   aligned across rows as a table (column k takes the widest entry of column k when the row fits),
   so columns and the key/value block no longer move as readings change.
+- Statistic legend: a statistic naming a graph series (Disk "Read speed" solid / "Write speed"
+  dashed; Network "Send" dashed / "Receive" solid, as our graph draws them) has a bar in the
+  device colour at the column x: 2 px wide, 40 px from the label cap top; dashed as 3 px dashes
+  with 3 px gaps starting at the cap top. Label and value move 8 px right (ink at +9).
 - Key/value block: labels x 442 (12 px `#707070`; or 24 px right of the statistics), values at
   label x + max(109, longest label + 12) (12 px black), rows cap top 494 + 18·n; rows that do not
   fit above the footer continue in a further column.
