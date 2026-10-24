@@ -250,7 +250,12 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Graph area (CPU per-core grid, 2×2 example): cells x 241–620 and 625–1004, y 151–305 and
   310–465; gap 4 px between borders.
   - Each graph: 1 px border in the device colour, background `#ffffff`, fill device fill colour,
-    line 1 px device colour (anti-aliased, blends into the fill).
+    line 1 px device colour (anti-aliased, blends into the fill). Own design: the line runs
+    between the centres of the border pixels (0 % and the right edge lie on the border), the
+    border is painted over it, and the fill under the line is clipped to the interior. At
+    fractional scales the border edges snap to physical pixels and the border and line are
+    `round(scale)` physical pixels thick; grid lines are placed in physical pixels with the same
+    thickness.
   - Grid: device colour mixed into white at 16 % (CPU → `#d9eaf4`). Rows at
     `ceil(border_top + k·(border_bottom − border_top)/10)` (2×2 cell: y 167, 182, 198, 213, 228,
     244, 259, 275, 290). Vertical lines: own approximation, every interior width / 6 (10 s of
@@ -343,6 +348,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 
 - Keep the 1030×705 default, 760×540 minimum and 211-point default device list; restored
   user window/list sizes are not reset. All sizes below are logical points and scale with DPI.
+- Fractional scales (own design): 1 px lines, outlines and separators start on a physical pixel
+  and are `round(scale)` physical pixels thick; filled areas and glyphs drawn pixel by pixel
+  keep their exact edges, so they stay contiguous.
 - Disk transfer rate is a 66-point strip; Active time receives the remaining graph height.
   Retain the three Unix statistic rows and existing metadata. At the default/minimum/tall
   (1030×785) sizes the upper graph is respectively 211/46/291 points high.

@@ -342,14 +342,9 @@ pub fn chevron(
         } else {
             y + rows as f32 - 1. - r
         };
-        paint::hline(painter, x + r, x + r, row_y, color);
-        paint::hline(
-            painter,
-            x + width - 1. - r,
-            x + width - 1. - r,
-            row_y,
-            color,
-        );
+        paint::fill(painter, x + r, row_y, x + r, row_y, color);
+        let right = x + width - 1. - r;
+        paint::fill(painter, right, row_y, right, row_y, color);
     }
 }
 
@@ -522,10 +517,11 @@ pub fn horizontal_scrollbar(ui: &mut Ui, content: Rect, state: &mut ListState) -
                 } else {
                     d as f32 - 2.
                 };
-            paint::vline(
+            paint::fill(
                 &painter,
                 x,
                 rect.center().y.round() - d as f32,
+                x,
                 rect.center().y.round() + d as f32,
                 pal::TEXT,
             );
@@ -711,7 +707,7 @@ fn arrow(painter: &egui::Painter, cx: f32, top: f32, up: bool) {
             top + 4. - r as f32
         };
         for &(a, b) in spans.iter() {
-            paint::hline(painter, cx + a, cx + b, y, pal::SCROLL_ARROW);
+            paint::fill(painter, cx + a, y, cx + b, y, pal::SCROLL_ARROW);
         }
     }
 }
