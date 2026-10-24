@@ -348,6 +348,9 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 
 - Keep the 1030×705 default, 760×540 minimum and 211-point default device list; restored
   user window/list sizes are not reset. All sizes below are logical points and scale with DPI.
+- Fractional scales (own design): 1 px lines, outlines and separators start on a physical pixel
+  and are `round(scale)` physical pixels thick; filled areas and glyphs drawn pixel by pixel
+  keep their exact edges, so they stay contiguous.
 - Disk transfer rate is a 66-point strip; Active time receives the remaining graph height.
   Retain the three Unix statistic rows and existing metadata. At the default/minimum/tall
   (1030×785) sizes the upper graph is respectively 211/46/291 points high.

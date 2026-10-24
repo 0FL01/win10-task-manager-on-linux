@@ -40,20 +40,53 @@ pub fn fill(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color3
     painter.add(Shape::mesh(mesh));
 }
 
+/// Physical pixel cell of logical pixel `v`: it starts at the rounded position and is
+/// `round(scale)` pixels long, so 1 px lines keep one thickness at fractional scales.
+fn cell(v: f32, ppp: f32) -> (f32, f32) {
+    let start = (v * ppp).round();
+    (start, start + ppp.round().max(1.))
+}
+
+fn mesh_rect(painter: &Painter, left: f32, top: f32, right: f32, bottom: f32, color: Color32) {
+    let ppp = painter.ctx().pixels_per_point();
+    let mut mesh = Mesh::default();
+    mesh.add_colored_rect(
+        Rect::from_min_max(pos2(left / ppp, top / ppp), pos2(right / ppp, bottom / ppp)),
+        color,
+    );
+    painter.add(Shape::mesh(mesh));
+}
+
+/// 1 px line over the inclusive range `x0..=x1` × `y0..=y1` (one of them a single pixel), laid
+/// out in physical pixel cells: one thickness at any scale, and lines that meet at a pixel
+/// meet exactly. Glyphs built row by row use [`fill`], whose edges stay contiguous.
+fn rule(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color32) {
+    let color = super::palette::resolve(painter.ctx(), color);
+    if x1 < x0 || y1 < y0 {
+        return;
+    }
+    let ppp = painter.ctx().pixels_per_point();
+    let (left, _) = cell(x0, ppp);
+    let (_, right) = cell(x1, ppp);
+    let (top, _) = cell(y0, ppp);
+    let (_, bottom) = cell(y1, ppp);
+    mesh_rect(painter, left, top, right, bottom, color);
+}
+
 pub fn hline(painter: &Painter, x0: f32, x1: f32, y: f32, color: Color32) {
-    fill(painter, x0, y, x1, y, color);
+    rule(painter, x0, y, x1, y, color);
 }
 
 pub fn vline(painter: &Painter, x: f32, y0: f32, y1: f32, color: Color32) {
-    fill(painter, x, y0, x, y1, color);
+    rule(painter, x, y0, x, y1, color);
 }
 
 /// 1 px outline of the inclusive rectangle.
 pub fn outline(painter: &Painter, x0: f32, y0: f32, x1: f32, y1: f32, color: Color32) {
     hline(painter, x0, x1, y0, color);
     hline(painter, x0, x1, y1, color);
-    vline(painter, x0, y0 + 1., y1 - 1., color);
-    vline(painter, x1, y0 + 1., y1 - 1., color);
+    vline(painter, x0, y0, y1, color);
+    vline(painter, x1, y0, y1, color);
 }
 
 /// Vertical 1 px line whose grey level falls linearly from `top` to `bottom` (truncating, as
@@ -69,7 +102,18 @@ pub fn vgradient(painter: &Painter, x: f32, y0: f32, y1: f32, top: Color32, bott
             c(top.g(), bottom.g()),
             c(top.b(), bottom.b()),
         );
-        hline(painter, x, x, y, color);
+        // Rows stay contiguous, the column keeps the line thickness
+        let ppp = painter.ctx().pixels_per_point();
+        let (left, right) = cell(x, ppp);
+        let color = super::palette::resolve(painter.ctx(), color);
+        mesh_rect(
+            painter,
+            left,
+            (y * ppp).round(),
+            right,
+            ((y + 1.) * ppp).round(),
+            color,
+        );
         y += 1.;
     }
 }
