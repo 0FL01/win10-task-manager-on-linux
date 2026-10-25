@@ -275,10 +275,12 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - values 20 px black cap top 515 / 566 / 617;
   - columns x 240 / 313 (row 1), 240 / 310 / 372 (row 2), 240 (row 3).
 - Statistic columns: next column x = previous x + max(label, value width) + 21. Own design
-  instead of the measured per-value width: each statistic reserves the width of the widest value
-  of its kind (numbers with a unit or fraction as four digits, unit prefix "M"), and columns are
+  instead of the measured per-value width: each statistic reserves a common numeric width
+  template (numbers with a unit or fraction as at least four digits, unit prefix "M"), and columns are
   aligned across rows as a table (column k takes the widest entry of column k when the row fits),
-  so columns and the key/value block no longer move as readings change.
+  reducing movement of columns and the key/value block during ordinary numeric and unit changes.
+  Larger digit counts and transitions between missing, numeric and localized textual values can
+  still change their widths.
 - Statistic legend: a statistic naming a graph series (Disk "Read speed" solid / "Write speed"
   dashed; Network "Send" dashed / "Receive" solid, as our graph draws them) has a bar in the
   device colour at the column x: 2 px wide, 40 px from the label cap top; dashed as 3 px dashes

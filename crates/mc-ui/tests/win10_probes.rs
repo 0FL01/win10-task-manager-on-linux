@@ -746,6 +746,19 @@ fn dark_close_glyph_and_menu_text_keep_foreground_ink() {
         .expect("View menu renders the Theme item");
     h.hover_at(theme_text.center());
     h.run_steps(3);
+    let light_text = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "Light" => {
+                Some(egui::Rect::from_min_size(text.pos, text.galley.size()))
+            }
+            _ => None,
+        })
+        .expect("Theme submenu renders the Light item");
+    h.hover_at(light_text.center());
+    h.run_steps(3);
     let menu = h.render().unwrap();
     assert_eq!(
         hex(
@@ -1519,10 +1532,11 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
         h.run_steps(1);
     }
     h.run_steps(4);
-    for label in ["Change Top Graph To", "Graph summary view", "Copy"] {
+    for label in ["Change Top Graph To", "Graph summary view", "View", "Copy"] {
         assert!(
             h.output().shapes.iter().any(|shape| {
-                matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == label)
+                matches!(&shape.shape, egui::Shape::Text(text)
+                    if text.galley.job.text == label && text.pos.y > cpu1.y)
             }),
             "CPU context menu is missing {label}"
         );
@@ -1531,11 +1545,58 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
         .unwrap()
         .save(out.join("win10-performance-cpu-hover-menu.png"))
         .unwrap();
+    let view_text = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "View" && text.pos.y > cpu1.y => {
+                Some(egui::Rect::from_min_size(text.pos, text.galley.size()))
+            }
+            _ => None,
+        })
+        .expect("context-menu View row, not the top menubar");
+    h.hover_at(view_text.center());
+    h.run_steps(4);
+    let memory_text = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text)
+                if text.galley.job.text == "Memory" && text.pos.x > view_text.right() =>
+            {
+                Some(egui::Rect::from_min_size(text.pos, text.galley.size()))
+            }
+            _ => None,
+        })
+        .expect("View submenu renders the Memory device");
+    click(&mut h, memory_text.center());
+    h.run_steps(4);
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "memory",
+        "context-menu View switches the performance device"
+    );
     h.key_press(egui::Key::Escape);
     h.run_steps(4);
     assert!(!h.output().shapes.iter().any(|shape| {
         matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == "Graph summary view")
     }));
+    h.key_press(egui::Key::F1);
+    h.run_steps(4);
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "cpu"
+    );
 
     h.hover_at(cpu0);
     h.run_steps(40); // Start a fresh primary-click sequence after the secondary click.
@@ -1545,7 +1606,7 @@ fn performance_cpu_hover_preserves_menu_and_summary() {
     assert_eq!(h.ctx.content_rect().size(), egui::vec2(400., 380.));
     let summary_cpu0 = egui::pos2(60., 60.);
     h.hover_at(summary_cpu0);
-    h.run_steps(40);
+    h.run_steps(50); // Device switching expires the grace period; allow the initial 0.6 s delay.
     assert!(h.query_by_label("CPU 0").is_some(), "CPU hover in summary");
     let summary_offset = h.get_by_label("CPU 0").rect().min - summary_cpu0;
     assert!(
@@ -2004,6 +2065,8 @@ fn performance_memory_swap_block_and_visibility() {
 
 #[test]
 fn performance_disk_transfer_strip_and_graph_hover() {
+    use mc_ui::win10::{metrics as m, paint::Font};
+
     let mut h = performance_harness(
         Config {
             performance_selected_page: "disk-nvme0n1".into(),
@@ -2059,6 +2122,52 @@ fn performance_disk_transfer_strip_and_graph_hover() {
             "#ffffff",
             "{name} strip ends before stats"
         );
+        let [read, write, active, response] = [
+            "Read speed",
+            "Write speed",
+            "Active time",
+            "Avg. response time",
+        ]
+        .map(|label| {
+            h.output()
+                .shapes
+                .iter()
+                .find_map(|shape| match &shape.shape {
+                    egui::Shape::Text(text) if text.galley.job.text == label => Some(text.pos),
+                    _ => None,
+                })
+                .unwrap_or_else(|| panic!("{name} disk statistic is missing {label}"))
+        });
+        assert_eq!(read.y, write.y, "{name} transfer labels share a row");
+        for (label, text, column, dashed) in [
+            ("Read speed", read, active, false),
+            ("Write speed", write, response, true),
+        ] {
+            assert_eq!(
+                text.x - m::STAT_LEGEND_TEXT_DX,
+                column.x,
+                "{name} {label} text is indented from its aligned column origin"
+            );
+            let x = (text.x - m::STAT_LEGEND_TEXT_DX) as i32;
+            let y = (text.y + Font::Body.cap_offset()) as i32;
+            // Include the white rim: exactly 2 px wide and 40 px tall, with Write 3 on/3 off.
+            for dy in -1..=40 {
+                for dx in -1..=2 {
+                    let expected =
+                        if (0..2).contains(&dx) && (0..40).contains(&dy) && (!dashed || dy % 6 < 3)
+                        {
+                            "#4da60c"
+                        } else {
+                            "#ffffff"
+                        };
+                    assert_eq!(
+                        hex(&image, (x + dx) as u32, (y + dy) as u32),
+                        expected,
+                        "{name} {label} legend offset ({dx},{dy})"
+                    );
+                }
+            }
+        }
 
         if name == "default" {
             h.hover_at(egui::pos2(300., 200.));

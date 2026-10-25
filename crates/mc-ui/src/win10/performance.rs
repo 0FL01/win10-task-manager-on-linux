@@ -55,9 +55,9 @@ const INFO_X: f32 = 441.;
 const INFO_VALUE_DX: f32 = 109.;
 const INFO_PITCH: f32 = 18.;
 
-/// The widest value of the same kind as `value` (own design): numbers with a unit or a fraction
-/// become four digits (formatting keeps them under 1024), other integers at least three, and a
-/// unit prefix becomes "M", so a statistic keeps its width as readings change.
+/// Width template for common numeric statistics (own design): numbers with a unit or a fraction
+/// reserve at least four digits, other integers at least three, and a unit prefix becomes "M".
+/// Larger digit counts and changes between missing, numeric and textual values can still grow.
 fn widest_value(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 4);
     let mut chars = value.chars().peekable();
@@ -115,7 +115,7 @@ fn stat_legend(painter: &egui::Painter, x: f32, cap: f32, style: StatLegend, col
     }
 }
 
-/// Width a statistic reserves: its label, its value and the widest value of the same kind.
+/// Width a statistic reserves: its label, its value and a common numeric width template.
 fn stat_width(painter: &egui::Painter, label: &str, value: &str) -> f32 {
     paint::text_width(painter, label, Font::Body)
         .max(paint::text_width(painter, value, Font::StatValue))
@@ -1836,4 +1836,27 @@ fn swap_block_height(view: &PageView<'_>) -> f32 {
 
 fn stats_height(rows: usize) -> f32 {
     5. + STAT_PITCH * (rows.max(1) - 1) as f32 + STAT_VALUE_DY + 14.
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn common_numeric_widths_align_only_when_they_fit() {
+        for value in ["64 KiB/s", "1.38 MiB/s", "1023 MiB/s"] {
+            assert_eq!(widest_value(value), "0000 MiB/s");
+        }
+        assert_eq!(widest_value("01:02:03:04"), "00:00:00:00");
+
+        let original = vec![vec![40., 20.], vec![20., 30.]];
+        let mut widths = original.clone();
+        let room = 40. + STAT_COLUMN_GAP + 30.;
+        align_columns(&mut widths, room);
+        assert_eq!(widths, vec![vec![40., 30.], vec![40., 30.]]);
+
+        let mut widths = original.clone();
+        align_columns(&mut widths, room - 1.);
+        assert_eq!(widths, original);
+    }
 }

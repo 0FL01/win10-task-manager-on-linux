@@ -117,14 +117,24 @@ fn row(
         } else {
             pal::POPUP_DISABLED_HOVER
         };
-        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), fill));
+        paint::fill(
+            painter,
+            rect.left(),
+            rect.top(),
+            rect.right() - 1.,
+            rect.bottom() - 1.,
+            fill,
+        );
     }
     if mark != Mark::None {
         // A checked item sits on a highlight-coloured square in the mark column
-        painter.rect_filled(
-            egui::Rect::from_min_size(rect.min, vec2(m::POPUP_MARK_BOX, m::POPUP_ITEM_H)),
-            0.,
-            pal::resolve(ui.ctx(), pal::POPUP_HOVER),
+        paint::fill(
+            painter,
+            rect.left(),
+            rect.top(),
+            rect.left() + m::POPUP_MARK_BOX - 1.,
+            rect.bottom() - 1.,
+            pal::POPUP_HOVER,
         );
     }
     let ink = if enabled {
@@ -248,10 +258,9 @@ pub fn submenu(ui: &mut Ui, label: &str, content: impl FnOnce(&mut Ui)) {
         })
         .is_some();
     if open {
-        ui.painter().set(
-            highlight,
-            egui::Shape::rect_filled(response.rect, 0., pal::resolve(ui.ctx(), pal::POPUP_HOVER)),
-        );
+        let mut mesh = egui::Mesh::default();
+        mesh.add_colored_rect(response.rect, pal::resolve(ui.ctx(), pal::POPUP_HOVER));
+        ui.painter().set(highlight, egui::Shape::mesh(mesh));
     }
 }
 
@@ -318,7 +327,9 @@ mod tests {
                 context(ui, Id::new("test-menu"), at, &mut open, |ui| {
                     item(ui, "Copy", "Ctrl+C", true);
                     submenu(ui, "Change graph to", |ui| {
+                        let first_top = ui.cursor().top();
                         radio(ui, "Overall utilization", true);
+                        assert_eq!(ui.cursor().top() - first_top, m::POPUP_ITEM_H);
                         radio(ui, "Logical processors", false);
                     });
                 });
