@@ -110,9 +110,22 @@ fn row(
     };
     let (rect, response) = ui.allocate_exact_size(vec2(width, m::POPUP_ITEM_H), sense);
     let painter = ui.painter();
-    let highlighted = enabled && (response.hovered() || response.has_focus());
+    let highlighted = response.hovered() || response.has_focus();
     if highlighted {
-        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), pal::POPUP_HOVER));
+        let fill = if enabled {
+            pal::POPUP_HOVER
+        } else {
+            pal::POPUP_DISABLED_HOVER
+        };
+        painter.rect_filled(rect, 0., pal::resolve(ui.ctx(), fill));
+    }
+    if mark != Mark::None {
+        // A checked item sits on a highlight-coloured square in the mark column
+        painter.rect_filled(
+            egui::Rect::from_min_size(rect.min, vec2(m::POPUP_MARK_BOX, m::POPUP_ITEM_H)),
+            0.,
+            pal::resolve(ui.ctx(), pal::POPUP_HOVER),
+        );
     }
     let ink = if enabled {
         pal::TEXT
@@ -140,7 +153,7 @@ fn row(
             Align::Max,
         );
     }
-    let cx = rect.left() + 13.;
+    let cx = rect.left() + m::POPUP_MARK_X;
     let ink = pal::resolve(ui.ctx(), ink);
     let cy = rect.center().y;
     match mark {
@@ -216,13 +229,30 @@ pub fn separator(ui: &mut Ui) {
     );
 }
 
-/// Item opening a submenu on hover.
+/// Item opening a submenu on hover. As in the reference, the submenu overlaps the parent menu
+/// (its border 5 px left of the parent's) and the item stays highlighted while it is open.
 pub fn submenu(ui: &mut Ui, label: &str, content: impl FnOnce(&mut Ui)) {
+    let highlight = ui.painter().add(egui::Shape::Noop);
     let response = row(ui, label, "", Mark::None, true, true);
-    SubMenu::new().show(ui, &response, |ui| {
-        ui.set_min_width(m::POPUP_MIN_W);
-        content(ui)
-    });
+    // egui places the submenu `gap` (border + margin + 2 = 5 px) right of the anchor; anchoring
+    // it short of the row's right edge makes the overlap. Hovering still uses the whole row.
+    let mut anchor = response.clone();
+    anchor.interact_rect.max.x -= m::POPUP_SUBMENU_OVERLAP;
+    let open = SubMenu::new()
+        .show(ui, &anchor, |ui| {
+            // The submenu popup gets egui's spacing, not the menu style: rows touch as in the
+            // parent
+            ui.spacing_mut().item_spacing = vec2(0., 0.);
+            ui.set_min_width(m::POPUP_MIN_W);
+            content(ui)
+        })
+        .is_some();
+    if open {
+        ui.painter().set(
+            highlight,
+            egui::Shape::rect_filled(response.rect, 0., pal::resolve(ui.ctx(), pal::POPUP_HOVER)),
+        );
+    }
 }
 
 /// Context menu at `pos`; `open` turns false when it closes.
@@ -314,8 +344,9 @@ mod tests {
         let submenu = submenu.expect("submenu opens on hover");
         assert!(parent.width() < 300., "content-sized menu: {parent:?}");
         assert!(submenu.width() < 300., "content-sized submenu: {submenu:?}");
+        // Overlaps the parent as in the reference: its border 5 px left of the parent's
         assert!(
-            submenu.left() >= parent.right() - 1.,
+            (submenu.left() - (parent.right() - 6.)).abs() <= 1.,
             "{parent:?} {submenu:?}"
         );
         assert!(

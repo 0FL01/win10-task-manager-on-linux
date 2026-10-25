@@ -167,6 +167,13 @@ impl<'a> GraphPanel<'a> {
     }
 }
 
+/// Line style of the graph series a statistic names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StatLegend {
+    Solid,
+    Dashed,
+}
+
 /// Everything a Win10 performance page shows (docs/win10-spec/spec.md, "Performance tab").
 pub struct PageView<'a> {
     pub title: String,
@@ -175,6 +182,8 @@ pub struct PageView<'a> {
     pub panels: Vec<GraphPanel<'a>>,
     /// Rows of label/value statistic blocks
     pub stats: Vec<Vec<(String, String)>>,
+    /// Legend bars of statistics that name a graph series, by (row, column)
+    pub stat_legends: Vec<((usize, usize), StatLegend)>,
     /// Key/value rows right of the statistics
     pub info: Vec<(String, String)>,
     pub composition: Option<&'a mem_composition::MemComposition>,

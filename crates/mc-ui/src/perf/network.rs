@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use super::{GraphPanel, PageView, over};
+use super::{GraphPanel, PageView, StatLegend, over};
 use egui::Ui;
 use mc_core::config::Config;
 use mc_core::format::{DataType, to_human_readable_nice};
@@ -282,6 +282,7 @@ impl DevicePage for NetworkPage {
                 &mut self.graph,
             )],
             stats,
+            stat_legends: vec![((0, 0), StatLegend::Dashed), ((0, 1), StatLegend::Solid)],
             info,
             composition: None,
             swap_compression: None,

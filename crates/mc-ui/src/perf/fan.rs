@@ -224,6 +224,7 @@ impl DevicePage for FanPage {
             model: self.temp_name.clone(),
             panels,
             stats,
+            stat_legends: vec![],
             info: vec![],
             composition: None,
             swap_compression: None,

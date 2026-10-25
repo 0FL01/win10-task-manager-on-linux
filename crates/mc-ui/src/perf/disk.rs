@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use super::{GraphPanel, PageView, over};
+use super::{GraphPanel, PageView, StatLegend, over};
 use egui::Ui;
 use mc_core::config::Config;
 use mc_core::format::{DataType, to_human_readable_nice};
@@ -384,6 +384,7 @@ impl DevicePage for DiskPage {
             model: self.model.clone(),
             panels,
             stats,
+            stat_legends: vec![((1, 0), StatLegend::Solid), ((1, 1), StatLegend::Dashed)],
             info,
             composition: None,
             swap_compression: None,

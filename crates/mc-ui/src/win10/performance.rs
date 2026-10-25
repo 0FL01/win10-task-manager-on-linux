@@ -21,7 +21,7 @@
 //! Performance tab: device list with mini graphs and the Win10 device page
 //! (docs/win10-spec/spec.md, "Performance tab").
 
-use egui::{Align, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
+use egui::{Align, Color32, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
 use mc_core::i18n::i18n;
 use mc_core::sidebar::DeviceType;
 use mc_graph::Graph;
@@ -30,7 +30,7 @@ use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
 use crate::perf::batteries::{BatteriesView, BatteryCard};
-use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage};
+use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage, StatLegend};
 use mc_magpie::magpie_types::battery::BatteryType;
 
 /// Reference device list width (separator at content left + 211); the separator can be dragged
@@ -54,6 +54,99 @@ const STAT_COLUMN_GAP: f32 = 21.;
 const INFO_X: f32 = 441.;
 const INFO_VALUE_DX: f32 = 109.;
 const INFO_PITCH: f32 = 18.;
+
+/// The widest value of the same kind as `value` (own design): numbers with a unit or a fraction
+/// become four digits (formatting keeps them under 1024), other integers at least three, and a
+/// unit prefix becomes "M", so a statistic keeps its width as readings change.
+fn widest_value(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 4);
+    let mut chars = value.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c.is_ascii_digit() {
+            let after_colon = out.ends_with(':');
+            let (mut digits, mut fraction) = (1, false);
+            while let Some(&next) = chars.peek() {
+                match next {
+                    '0'..='9' => digits += 1,
+                    '.' | ',' => fraction = true,
+                    _ => break,
+                }
+                chars.next();
+            }
+            // Clock-like fields ("01:02:03:04") keep their digits; a number with a unit
+            // ("138 KiB/s", "1.38 MiB/s") or a fraction takes four, plain counts three
+            let mut ahead = chars.clone();
+            let unit = ahead.next() == Some(' ') && ahead.next().is_some_and(char::is_alphabetic);
+            let digits = match chars.peek() {
+                Some(':') => digits,
+                _ if after_colon => digits,
+                _ if fraction || unit => digits.max(4),
+                _ => digits.max(3),
+            };
+            out.extend(std::iter::repeat_n('0', digits));
+        } else if out.ends_with(' ') && matches!(c, 'K' | 'k' | 'M' | 'G' | 'T' | 'P') {
+            out.push('M');
+        } else if out.ends_with(' ') && matches!(c, 'B' | 'b' | 'H' | 'W' | 'V') {
+            // No prefix yet, a larger value will get one
+            out.push('M');
+            out.push(c);
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+/// Legend bar of a statistic naming a graph series (measured on the reference): solid or dashed
+/// like the series, from the label's cap top.
+fn stat_legend(painter: &egui::Painter, x: f32, cap: f32, style: StatLegend, color: Color32) {
+    let right = x + m::STAT_LEGEND_W - 1.;
+    let bottom = cap + m::STAT_LEGEND_H - 1.;
+    match style {
+        StatLegend::Solid => paint::fill(painter, x, cap, right, bottom, color),
+        StatLegend::Dashed => {
+            let mut y = cap;
+            while y <= bottom {
+                let end = (y + m::STAT_LEGEND_DASH - 1.).min(bottom);
+                paint::fill(painter, x, y, right, end, color);
+                y += 2. * m::STAT_LEGEND_DASH;
+            }
+        }
+    }
+}
+
+/// Width a statistic reserves: its label, its value and the widest value of the same kind.
+fn stat_width(painter: &egui::Painter, label: &str, value: &str) -> f32 {
+    paint::text_width(painter, label, Font::Body)
+        .max(paint::text_width(painter, value, Font::StatValue))
+        .max(paint::text_width(
+            painter,
+            &widest_value(value),
+            Font::StatValue,
+        ))
+}
+
+/// Aligns statistic rows as a table (own design): column k of every row takes the widest
+/// entry of column k, unless that row would no longer fit in `room`.
+fn align_columns(widths: &mut [Vec<f32>], room: f32) {
+    let columns = widths.iter().map(Vec::len).max().unwrap_or(0);
+    let max: Vec<f32> = (0..columns)
+        .map(|k| {
+            widths
+                .iter()
+                .filter_map(|row| row.get(k))
+                .fold(0., |a: f32, &b| a.max(b))
+        })
+        .collect();
+    for row in widths {
+        let aligned = &max[..row.len()];
+        let span =
+            aligned.iter().sum::<f32>() + row.len().saturating_sub(1) as f32 * STAT_COLUMN_GAP;
+        if span <= room {
+            row.copy_from_slice(aligned);
+        }
+    }
+}
 
 pub fn device_colors(kind: DeviceType) -> pal::DeviceColors {
     match kind {
@@ -250,6 +343,19 @@ impl PerformanceView {
 
         if let Some(pos) = self.menu {
             let mut open = true;
+            // "View" lists the shown devices by their sidebar heading, as in the reference
+            let views: Vec<(String, String)> = perf
+                .shown_names(cx.config)
+                .into_iter()
+                .filter_map(|name| {
+                    let heading = perf.devices[perf.device_index(&name)?]
+                        .summary()
+                        .heading
+                        .clone();
+                    Some((name, heading))
+                })
+                .collect();
+            let selected = perf.selected.clone();
             let device = &mut perf.devices[index];
             menu::context(ui, Id::new("perf-menu"), pos, &mut open, |ui| {
                 if let Some(slot) = self.menu_slot {
@@ -261,6 +367,13 @@ impl PerformanceView {
                 if menu::check(ui, &i18n("Graph summary view"), perf.summary_mode) {
                     cx.send(Command::ToggleSummaryMode);
                 }
+                menu::submenu(ui, &i18n("View"), |ui| {
+                    for (name, heading) in &views {
+                        if menu::radio(ui, heading, *name == selected) {
+                            cx.send(Command::SelectDevice(name.clone()));
+                        }
+                    }
+                });
                 menu::separator(ui);
                 if menu::item(
                     ui,
@@ -642,9 +755,7 @@ fn battery_page_ui(
             let mut line = vec![];
             let mut width = 0.;
             for (column, (label, value)) in entries.iter().enumerate() {
-                let entry_w = paint::text_width(ui.painter(), label, Font::Body)
-                    .max(paint::text_width(ui.painter(), value, Font::StatValue))
-                    .min(room);
+                let entry_w = stat_width(ui.painter(), label, value).min(room);
                 if !line.is_empty() && width + entry_w > room {
                     stat_rows.push(line);
                     line = vec![];
@@ -655,6 +766,16 @@ fn battery_page_ui(
             }
             if !line.is_empty() {
                 stat_rows.push(line);
+            }
+        }
+        let mut widths: Vec<Vec<f32>> = stat_rows
+            .iter()
+            .map(|line| line.iter().map(|entry| entry.2).collect())
+            .collect();
+        align_columns(&mut widths, room);
+        for (line, widths) in stat_rows.iter_mut().zip(widths) {
+            for (entry, width) in line.iter_mut().zip(widths) {
+                entry.2 = width;
             }
         }
         detail_h = m::BATTERY_DETAIL_HEADING_H
@@ -894,11 +1015,7 @@ fn gpu_page_ui(
         let mut line = vec![];
         let mut width = 0.;
         for entry in row {
-            let entry_w = paint::text_width(&painter, &entry.0, Font::Body).max(paint::text_width(
-                &painter,
-                &entry.1,
-                Font::StatValue,
-            ));
+            let entry_w = stat_width(&painter, &entry.0, &entry.1);
             if !line.is_empty() && width + entry_w > room {
                 stat_rows.push(line);
                 line = vec![];
@@ -909,6 +1026,16 @@ fn gpu_page_ui(
         }
         if !line.is_empty() {
             stat_rows.push(line);
+        }
+    }
+    let mut widths: Vec<Vec<f32>> = stat_rows
+        .iter()
+        .map(|line| line.iter().map(|entry| entry.1).collect())
+        .collect();
+    align_columns(&mut widths, room);
+    for (line, widths) in stat_rows.iter_mut().zip(widths) {
+        for (entry, width) in line.iter_mut().zip(widths) {
+            entry.1 = width;
         }
     }
     let heights: Vec<f32> = view
@@ -1388,25 +1515,60 @@ fn page_ui(
     let stats_h = stats_height(view.stats.len());
     let stats_top = (content.bottom() - PANEL_GAP - stats_h).round();
     let mut stats_right = gx0;
-    for (r, row) in view.stats.iter().enumerate() {
+    let legend = |r: usize, c: usize| {
+        view.stat_legends
+            .iter()
+            .find(|(at, _)| *at == (r, c))
+            .map(|&(_, style)| style)
+    };
+    let mut widths: Vec<Vec<f32>> = view
+        .stats
+        .iter()
+        .enumerate()
+        .map(|(r, row)| {
+            row.iter()
+                .enumerate()
+                .map(|(c, (label, value))| {
+                    let indent = if legend(r, c).is_some() {
+                        m::STAT_LEGEND_TEXT_DX
+                    } else {
+                        0.
+                    };
+                    indent + stat_width(&painter, label, value)
+                })
+                .collect()
+        })
+        .collect();
+    align_columns(&mut widths, gx1 + 1. - gx0);
+    for (r, (row, widths)) in view.stats.iter().zip(&widths).enumerate() {
         let cap = stats_top + 5. + STAT_PITCH * r as f32;
         let mut x = gx0;
-        for (label, value) in row {
-            paint::text(&painter, x, cap, label, Font::Body, pal::LABEL, Align::Min);
+        for (c, ((label, value), &w)) in row.iter().zip(widths).enumerate() {
+            let text_x = match legend(r, c) {
+                Some(style) => {
+                    stat_legend(&painter, x, cap, style, colors.line);
+                    x + m::STAT_LEGEND_TEXT_DX
+                }
+                None => x,
+            };
             paint::text(
                 &painter,
-                x,
+                text_x,
+                cap,
+                label,
+                Font::Body,
+                pal::LABEL,
+                Align::Min,
+            );
+            paint::text(
+                &painter,
+                text_x,
                 cap + STAT_VALUE_DY,
                 value,
                 Font::StatValue,
                 pal::TEXT,
                 Align::Min,
             );
-            let w = paint::text_width(&painter, label, Font::Body).max(paint::text_width(
-                &painter,
-                value,
-                Font::StatValue,
-            ));
             stats_right = stats_right.max(x + w);
             x += (w + STAT_COLUMN_GAP).round();
         }
