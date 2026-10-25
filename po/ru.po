@@ -56,14 +56,14 @@ msgstr "Управляется ОС:"
 msgid "S: {} · R: {}"
 msgstr "Отпр.: {} · Получ.: {}"
 
-msgid "Occupied RAM, including cache ({})\n\nTotal minus MemFree. Includes programs, kernel, drivers, shared memory, buffers and cache. Cache is part of this value, not an additional allocation. MemAvailable is a separate estimate of reusable memory."
-msgstr "Занято RAM, включая кеш ({})\n\nВсего минус MemFree. Включает программы, ядро, драйверы, общую память, буферы и кеш. Кеш уже входит в это число. MemAvailable — отдельная оценка памяти, которую можно предоставить новым задачам."
+msgid "In use ({})\n\nMemTotal minus MemAvailable. MemAvailable estimates memory available without swapping, including reclaimable cache and buffers. If MemAvailable exceeds MemTotal, MemFree is used instead. Cached is shown separately and must not be added to In use."
+msgstr "Используется ({})\n\nMemTotal минус MemAvailable. MemAvailable оценивает память, доступную без подкачки, включая освобождаемые кеш и буферы. Если MemAvailable превышает MemTotal, вместо него используется MemFree. Кеш показан отдельно и не должен прибавляться к используемой памяти."
 
 msgid "Other: {}\nCache: {}\nShared: {}\nBuff: {}\nFree: {}"
 msgstr "Прочее: {}\nКеш: {}\nОбщая: {}\nБуферы: {}\nСвободно: {}"
 
-msgid "Other ({})\n\nPrograms, kernel and other memory outside Cache, Shared and Buff. All four non-free sections together equal Used (incl. cache). MemAvailable is a separate estimate, not a section of this bar."
-msgstr "Прочее ({})\n\nПрограммы, ядро и другая память за исключением Кеша, Общей памяти и Буферов. Все четыре несвободных раздела вместе равны «Занято (вкл. кеш)». MemAvailable — отдельная оценка, а не раздел этой полосы."
+msgid "Other ({})\n\nPrograms, kernel and other memory outside Cache, Shared and Buff. All four non-free sections together equal physically occupied RAM (MemTotal minus MemFree), not the primary In use value. MemAvailable is an estimate, not a section of this bar."
+msgstr "Прочее ({})\n\nПрограммы, ядро и другая память за исключением Кеша, Общей памяти и Буферов. Все четыре несвободных раздела вместе равны физически занятой RAM (MemTotal минус MemFree), а не основному показателю «Используется». MemAvailable — оценка, а не раздел этой полосы."
 
 msgid "Free ({})\n\nUnoccupied physical memory (MemFree). Cache, including ZFS ARC, is not free memory."
 msgstr "Свободно ({})\n\nНезанятая физическая память (MemFree). Кеш, включая ZFS ARC, не является свободной памятью."

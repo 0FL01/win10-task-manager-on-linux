@@ -809,7 +809,7 @@ impl ColumnTotals {
     pub fn from_readings(readings: &Readings, gpu: &GpuSnapshot) -> Self {
         let mem = &readings.mem_info;
         let mem_total = mem.mem_total.max(1);
-        let memory_used = crate::memory::MemoryUsage::from_memory(mem).occupied;
+        let memory_used = crate::memory::MemoryUsage::from_memory(mem).in_use;
 
         let drive_percent = readings
             .disks_info

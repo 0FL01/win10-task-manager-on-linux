@@ -2,13 +2,17 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-//! Physical RAM accounting: everything except MemFree is occupied, including cache.
+//! Available-based RAM usage and a separate, disjoint physical composition.
 use mc_magpie::Memory;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct MemoryUsage {
     pub total: u64,
     pub free: u64,
+    /// Memory available without swapping, falling back to bounded MemFree if invalid.
+    pub available: u64,
+    /// Headline RAM usage: total minus available memory.
+    pub in_use: u64,
     pub occupied: u64,
     /// Disjoint components of occupied RAM, in composition-bar order.
     pub other: u64,
@@ -21,6 +25,11 @@ pub struct MemoryUsage {
 impl MemoryUsage {
     pub fn from_memory(mem: &Memory) -> Self {
         let free = mem.mem_free.min(mem.mem_total);
+        let available = if mem.mem_available <= mem.mem_total {
+            mem.mem_available
+        } else {
+            free
+        };
         let occupied = mem.mem_total - free;
         let shared = mem.sh_mem.min(occupied);
         let buffers = mem.buffers.min(occupied - shared);
@@ -32,6 +41,8 @@ impl MemoryUsage {
         Self {
             total: mem.mem_total,
             free,
+            available,
+            in_use: mem.mem_total - available,
             occupied,
             other: occupied - shared - buffers - cache,
             cache,
@@ -56,7 +67,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn occupied_includes_cache_and_does_not_depend_on_available() {
+    fn in_use_tracks_available_while_occupied_includes_cache() {
         let mut mem = Memory {
             mem_total: 3200,
             mem_free: 1600,
@@ -68,6 +79,9 @@ mod tests {
             ..Default::default()
         };
         let usage = MemoryUsage::from_memory(&mem);
+        assert_eq!(usage.available, 2600);
+        assert_eq!(usage.in_use, 600);
+        assert_eq!(usage.in_use + usage.available, usage.total);
         assert_eq!(usage.occupied, 1600);
         assert_eq!(usage.cache, 980);
         assert_eq!(
@@ -76,15 +90,27 @@ mod tests {
         );
         assert_eq!(usage.occupied + usage.free, usage.total);
         mem.mem_available = 3000;
-        assert_eq!(MemoryUsage::from_memory(&mem), usage);
+        assert_eq!(
+            MemoryUsage::from_memory(&mem),
+            MemoryUsage {
+                available: 3000,
+                in_use: 200,
+                ..usage
+            }
+        );
     }
 
     #[test]
     fn inconsistent_or_unknown_counters_remain_a_bounded_partition() {
-        for (total, free, cached) in [(0, 42, 100), (100, 150, 200), (100, 20, u64::MAX)] {
+        for (total, free, cached, available) in [
+            (0, 42, 100, 1),
+            (100, 150, 200, 101),
+            (100, 20, u64::MAX, 101),
+        ] {
             let mem = Memory {
                 mem_total: total,
                 mem_free: free,
+                mem_available: available,
                 cached,
                 sh_mem: 30,
                 buffers: 40,
@@ -94,6 +120,9 @@ mod tests {
             let u = MemoryUsage::from_memory(&mem);
             assert_eq!(u.other + u.cache + u.shared + u.buffers + u.free, total);
             assert_eq!(u.occupied + u.free, total);
+            assert_eq!(u.available, u.free);
+            assert_eq!(u.in_use, u.occupied);
+            assert_eq!(u.in_use + u.available, total);
             assert!(u.adjusted);
         }
     }
@@ -121,6 +150,7 @@ mod tests {
                         assert_eq!(sum, Some(total));
                         assert_eq!(u.occupied.checked_add(u.free), Some(total));
                         assert_eq!(u.occupied, total - free.min(total));
+                        assert_eq!(u.in_use.checked_add(u.available), Some(total));
                     }
                 }
             }

@@ -1,7 +1,8 @@
 # Win10 Task Manager look — clean-room visual specification
 
-Memory accounting (own design): `docs/memory-preview.md` defines occupied RAM
-including cache consistently across the sidebar, graph, statistics and table header.
+Memory accounting (own design): `docs/memory-preview.md` defines In use as
+`MemTotal - MemAvailable` consistently across the sidebar, graph, statistics and table header.
+The physical composition is separate and includes cache in its non-free total.
 Only labels/accounting change; measured geometry and colours remain unchanged.
 
 Sidebar identities (own design): every device uses the existing three lines for
@@ -389,11 +390,11 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
 - Memory composition is always shown in the full page, after RAM and optional Swap graph and
   before the swap block, with a caption and a 52-point square bar. Segments use existing memory fill/line,
   Free stays white, boundaries are cumulative and zero-width segments have no artificial width.
-- The disjoint draw order is Used / Cache / Shared / Buff / Free: Shared = Shmem, Buff = Buffers,
-  Cache = max(Cached − Shmem, 0) + SReclaimable, Free = collector-reported MemFree, Used = remainder.
-  Free may include reclaimable ZFS ARC. Free → Shared → Buff → Cache are limited to remaining
+- The disjoint draw order is Other / Cache / Shared / Buff / Free: Shared = Shmem, Buff = Buffers,
+  Cache = max(Cached − Shmem, 0) + SReclaimable, Free = raw MemFree, Other = remainder.
+  Reclaimable ZFS ARC adjusts availability, not Free. Free → Shared → Buff → Cache are limited to remaining
   MemTotal for inconsistent counters, with a tooltip note; zero total is unavailable.
-  Used differs from existing MemAvailable-based In use, Cache from the raw Cached card.
+  The non-free total differs from MemAvailable-based In use; the Cached card uses the same bounded Cache value.
   Every region tooltip explains its volume and includes all five values, including invisible ones.
 - Swap block (own design): after composition, caption "Swap usage" with
   "used / total (percent%)" on the right (graph-caption style), a 20-point bar drawn like

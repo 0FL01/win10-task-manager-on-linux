@@ -30,7 +30,7 @@ use crate::win10::{paint, palette};
 #[derive(Default)]
 pub struct MemComposition {
     total: u64,
-    // Draw order; Free, Shared, Buff and Cache are clamped before Used is derived.
+    // Draw order; Free, Shared, Buff and Cache are clamped before Other is derived.
     bytes: [u64; 5],
     tooltips: [String; 5],
 }
@@ -71,7 +71,7 @@ impl MemComposition {
         self.tooltips = [
             i18n_f(
                 n_(
-                    "Other ({})\n\nPrograms, kernel and other memory outside Cache, Shared and Buff. All four non-free sections together equal Used (incl. cache). MemAvailable is a separate estimate, not a section of this bar.",
+                    "Other ({})\n\nPrograms, kernel and other memory outside Cache, Shared and Buff. All four non-free sections together equal physically occupied RAM (MemTotal minus MemFree), not the primary In use value. MemAvailable is an estimate, not a section of this bar.",
                 ),
                 &[&values[0]],
             ),

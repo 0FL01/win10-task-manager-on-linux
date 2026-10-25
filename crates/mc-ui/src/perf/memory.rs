@@ -289,7 +289,7 @@ impl DevicePage for MemoryPage {
         let h = |v: u64| to_human_readable_nice(v as f32, &DataType::MemoryBytes);
 
         let accounting = mc_core::memory::MemoryUsage::from_memory(mem);
-        let used = accounting.occupied;
+        let used = accounting.in_use;
 
         self.usage.set_all_datasets_max_scale(mem.mem_total as f32);
         self.usage.add_data_point(vec![
@@ -406,7 +406,7 @@ impl DevicePage for MemoryPage {
         }
         l.in_use = h(used);
         l.free = h(accounting.free);
-        l.available = h(mem.mem_available);
+        l.available = h(accounting.available);
         l.committed = h(mem.committed);
         l.cached = h(accounting.cache);
         let installed = readings
@@ -460,7 +460,7 @@ impl DevicePage for MemoryPage {
         }
         l.usage_tooltip = i18n_f(
             n_(
-                "Occupied RAM, including cache ({})\n\nTotal minus MemFree. Includes programs, kernel, drivers, shared memory, buffers and cache. Cache is part of this value, not an additional allocation. MemAvailable is a separate estimate of reusable memory.",
+                "In use ({})\n\nMemTotal minus MemAvailable. MemAvailable estimates memory available without swapping, including reclaimable cache and buffers. If MemAvailable exceeds MemTotal, MemFree is used instead. Cached is shown separately and must not be added to In use.",
             ),
             &[&l.in_use],
         );
@@ -512,12 +512,12 @@ impl DevicePage for MemoryPage {
         let l = &self.labels;
         let stats = vec![
             vec![
-                (i18n("Used (incl. cache)"), l.in_use.clone()),
-                (i18n("Free"), l.free.clone()),
+                (i18n("In use"), l.in_use.clone()),
+                (i18n("Available"), l.available.clone()),
             ],
             vec![
-                (i18n("Of used: cache"), l.cached.clone()),
                 (i18n("Committed"), l.committed.clone()),
+                (i18n("Cached"), l.cached.clone()),
             ],
         ];
         let mut info = vec![
@@ -541,13 +541,9 @@ impl DevicePage for MemoryPage {
             ));
         }
         info.push((i18n("OS-managed RAM:"), self.total_ram.clone()));
-        info.push((i18n("Available (estimate):"), l.available.clone()));
         let show_swap = config.performance_page_memory_swap_visible && self.has_swap;
         let mut panels = vec![GraphPanel::single(
-            over(
-                n_("RAM occupied (including cache) over "),
-                &self.max_duration,
-            ),
+            over(n_("Memory usage over "), &self.max_duration),
             self.max_graph_ram.clone(),
             &mut self.usage,
         )];
@@ -595,11 +591,11 @@ impl DevicePage for MemoryPage {
 
     {}
 
-    Used (incl. cache): {}
+    In use:         {}
     Free:           {}
     Available:      {}
     Committed:      {}
-    Of used: cache: {}
+    Cached:         {}
     Swap total:     {}
     Swap used:      {}
     Swap free:      {}
@@ -804,7 +800,7 @@ mod tests {
         }
     }
     #[test]
-    fn sidebar_stats_graph_and_process_header_share_physical_occupation() {
+    fn sidebar_stats_graph_and_process_header_share_available_based_usage() {
         let mut r = mc_magpie::synthetic_readings(0, 1);
         let gib = 1024 * 1024 * 1024;
         r.mem_info.mem_total = 32 * gib;
@@ -816,49 +812,78 @@ mod tests {
         let config = Config::default();
         let mut page = MemoryPage::new(&r, &config);
         page.update(&r, &UpdateEnv::new(&config));
-        assert_eq!(page.summary.info2, "16.0 GiB/32.0 GiB (50%)");
-        assert_eq!(page.labels.in_use, "16.0 GiB");
+        assert_eq!(page.summary.info2, "6.00 GiB/32.0 GiB (19%)");
+        assert_eq!(page.labels.in_use, "6.00 GiB");
         assert_eq!(page.labels.free, "16.0 GiB");
+        assert_eq!(page.labels.available, "26.0 GiB");
         assert_eq!(page.labels.cached, "9.00 GiB");
         assert_eq!(
             page.usage.groups()[2].datas[0].get_data()[0],
-            (16 * gib) as f32
+            (6 * gib) as f32
         );
         assert_eq!(
             page.summary.graph.groups()[1].datas[0].get_data()[0],
-            (16 * gib) as f32
+            (6 * gib) as f32
         );
         assert!(!page.usage.groups()[0].dataset_settings.visible);
         assert!(!page.usage.groups()[1].dataset_settings.visible);
         assert!(page.usage.groups()[2].dataset_settings.visible);
         assert!(!page.summary.graph.groups()[0].dataset_settings.visible);
         assert!(page.summary.graph.groups()[1].dataset_settings.visible);
+        let snapshot = mc_core::gpu::GpuSnapshot::default();
+        assert_eq!(
+            mc_core::table::ColumnTotals::from_readings(&r, &snapshot).memory_percent,
+            18.75
+        );
         r.mem_info.mem_available = 30 * gib;
         r.mem_info.committed = 100 * gib;
         r.mem_info.dirty = gib;
         page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(page.summary.info2, "2.00 GiB/32.0 GiB (6%)");
+        assert_eq!(page.labels.in_use, "2.00 GiB");
+        assert_eq!(page.labels.available, "30.0 GiB");
+        assert_eq!(
+            page.usage.groups()[2].datas[0].get_data()[0],
+            (2 * gib) as f32
+        );
+        assert_eq!(
+            page.summary.graph.groups()[1].datas[0].get_data()[0],
+            (2 * gib) as f32
+        );
+        assert_eq!(page.usage.dataset_max_scale(2), (32 * gib) as f32);
+        let view = page.win10_view(&config);
+        assert_eq!(view.stats[0][0], ("In use".into(), "2.00 GiB".into()));
+        assert_eq!(view.stats[0][1], ("Available".into(), "30.0 GiB".into()));
+        assert_eq!(view.stats[1][0].0, "Committed");
+        assert_eq!(view.stats[1][1].0, "Cached");
+        assert!(view.panels[0].tooltips[0].contains("MemTotal minus MemAvailable"));
+        let summary = page.data_summary();
+        assert!(summary.contains("In use:         2.00 GiB\n"));
+        assert!(summary.contains("Available:      30.0 GiB\n"));
+        assert!(summary.contains("Cached:         9.00 GiB\n"));
+        let totals = mc_core::table::ColumnTotals::from_readings(&r, &snapshot);
+        assert_eq!(totals.memory_percent, 6.25);
+        r.mem_info.mem_free = u64::MAX;
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(
+            page.usage.groups()[2].datas[0].get_data()[0],
+            (2 * gib) as f32
+        );
+        assert_eq!(
+            mc_core::table::ColumnTotals::from_readings(&r, &snapshot).memory_percent,
+            6.25
+        );
+        r.mem_info.mem_free = 16 * gib;
+        r.mem_info.mem_available = u64::MAX;
+        page.update(&r, &UpdateEnv::new(&config));
+        assert_eq!(page.labels.available, "16.0 GiB");
         assert_eq!(
             page.usage.groups()[2].datas[0].get_data()[0],
             (16 * gib) as f32
         );
         assert_eq!(
-            page.summary.graph.groups()[1].datas[0].get_data()[0],
-            (16 * gib) as f32
-        );
-        assert_eq!(page.usage.dataset_max_scale(2), (32 * gib) as f32);
-        let view = page.win10_view(&config);
-        assert_eq!(view.stats[0][0].0, "Used (incl. cache)");
-        assert_eq!(view.stats[0][1].0, "Free");
-        assert!(view.panels[0].tooltips[0].contains("Total minus MemFree"));
-        let snapshot = mc_core::gpu::GpuSnapshot::default();
-        let totals = mc_core::table::ColumnTotals::from_readings(&r, &snapshot);
-        assert_eq!(totals.memory_percent, 50.);
-        r.mem_info.mem_free = u64::MAX;
-        page.update(&r, &UpdateEnv::new(&config));
-        assert_eq!(page.usage.groups()[2].datas[0].get_data()[0], 0.);
-        assert_eq!(
             mc_core::table::ColumnTotals::from_readings(&r, &snapshot).memory_percent,
-            0.
+            50.
         );
         r.mem_info.mem_total = 0;
         page.update(&r, &UpdateEnv::new(&config));

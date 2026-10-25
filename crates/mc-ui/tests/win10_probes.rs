@@ -1826,7 +1826,7 @@ fn performance_memory_composition_regions_and_ram_hover() {
 }
 
 #[test]
-fn memory_occupied_preview_renders_at_minimum_and_default_size() {
+fn memory_in_use_preview_renders_at_minimum_and_default_size() {
     for (width, height, theme, suffix) in [
         (1030, 705, mc_core::config::Theme::Light, "light"),
         (760, 540, mc_core::config::Theme::Light, "minimum"),
@@ -1845,7 +1845,7 @@ fn memory_occupied_preview_renders_at_minimum_and_default_size() {
             reading,
             1.,
         );
-        for label in ["Used (incl. cache)", "Free", "Of used: cache"] {
+        for label in ["In use", "Available", "Committed", "Cached"] {
             assert!(
                 h.output().shapes.iter().any(|s| matches!(&s.shape,
                 egui::Shape::Text(t) if t.galley.job.text == label)),
@@ -1853,11 +1853,12 @@ fn memory_occupied_preview_renders_at_minimum_and_default_size() {
             );
         }
         assert_eq!(expected.occupied + expected.free, expected.total);
+        assert_eq!(expected.in_use + expected.available, expected.total);
         let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
         std::fs::create_dir_all(&out).unwrap();
         h.render()
             .unwrap()
-            .save(out.join(format!("memory-occupied-preview-{suffix}.png")))
+            .save(out.join(format!("memory-in-use-preview-{suffix}.png")))
             .unwrap();
     }
 }
@@ -2316,9 +2317,7 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         .shapes
         .iter()
         .find_map(|shape| match &shape.shape {
-            egui::Shape::Text(text) if text.galley.job.text == "Used (incl. cache)" => {
-                Some(text.pos)
-            }
+            egui::Shape::Text(text) if text.galley.job.text == "In use" => Some(text.pos),
             _ => None,
         })
         .unwrap();
@@ -2332,7 +2331,7 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
 
     h.hover_at(egui::pos2(300., 350.));
     h.run_steps(40);
-    assert!(h.query_by_label_contains("Used (").is_some());
+    assert!(h.query_by_label_contains("Other (").is_some());
     h.event(egui::Event::MouseWheel {
         unit: egui::MouseWheelUnit::Point,
         delta: egui::vec2(0., -132.),
@@ -2341,13 +2340,13 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     });
     h.run_steps(40);
     assert!(
-        h.query_by_label_contains("Used (").is_none(),
+        h.query_by_label_contains("Other (").is_none(),
         "scrolled bar no longer under cursor"
     );
     h.hover_at(egui::pos2(300., 76.));
     h.run_steps(40);
     assert!(
-        h.query_by_label_contains("Used (").is_none(),
+        h.query_by_label_contains("Other (").is_none(),
         "no tooltip outside the clipped page"
     );
     let scrolled = h.render().expect("offscreen wgpu render unavailable");
@@ -2366,8 +2365,8 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
         "scrolled composition bottom"
     );
     for label in [
-        "Used (incl. cache)",
-        "Of used: cache",
+        "In use",
+        "Cached",
         "zram · RAM compression",
         "zswap · Compressed cache",
         zswap_detail.as_str(),
@@ -2547,8 +2546,8 @@ fn check_memory_slot_module(unknown_capacity: bool) {
         modifiers: egui::Modifiers::NONE,
     });
     h.run_steps(3);
-    // Open Sans elides "Empty" in compact cells; the tooltip must retain the full value.
-    for label in ["A1", "A2", "Em…", "Memory slots"] {
+    // The shorter statistics leave room for the full empty-slot caption.
+    for label in ["A1", "A2", "Empty", "Memory slots"] {
         assert!(
             h.output().shapes.iter().any(|shape| {
                 matches!(&shape.shape, egui::Shape::Text(text)
@@ -2718,9 +2717,9 @@ fn memory_module_height_follows_last_stats_row_and_empty_slots_are_grey() {
             .unwrap()
     };
     let cap = mc_ui::win10::paint::Font::Body.cap_offset();
-    let top = at("Used (incl. cache)").y + cap;
-    let bottom = at("Of used: cache").y + cap + 21. + 14.
-        - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
+    let top = at("In use").y + cap;
+    let bottom =
+        at("Committed").y + cap + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
     let start = at("Memory slots").x;
     let image = h.render().unwrap();
     let m = &mc_ui::win10::metrics::MEMORY_SLOT_DRAW_W;
