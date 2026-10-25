@@ -115,39 +115,90 @@ fn hex(image: &RgbaImage, x: u32, y: u32) -> String {
 
 #[test]
 fn fractional_rules_and_scroll_arrows_stay_contiguous() {
-    use mc_ui::win10::{listview, metrics as m, paint};
+    use mc_ui::win10::{
+        fonts, listview, metrics as m,
+        paint::{self, Font},
+    };
 
+    let roles = [
+        Font::Body,
+        Font::BodyStrong,
+        Font::Summary,
+        Font::Title,
+        Font::Model,
+        Font::Caption,
+        Font::StatValue,
+        Font::DeviceName,
+    ];
     for ppp in [1., 1.25, 1.5, 1.75, 2.] {
         let mut h = Harness::builder()
-            .with_size(egui::vec2(240., 240.))
+            .with_size(egui::vec2(360., 240.))
             .with_pixels_per_point(ppp)
             .wgpu()
-            .build_ui(|ui| {
-                ui.ctx().set_theme(egui::Theme::Light);
-                paint::fill(ui.painter(), 0., 0., 239., 239., egui::Color32::WHITE);
-                // Processes builds each heat-column separator one 28-point row at a time.
-                for start in [162., 190.] {
-                    paint::vline(ui.painter(), 20., start, start + 27., egui::Color32::RED);
-                    paint::hline(ui.painter(), start, start + 27., 20., egui::Color32::RED);
-                }
-                paint::outline(ui.painter(), 40., 40., 61., 61., egui::Color32::RED);
-                // Exercise both horizontal arrows at all four fractional pixel phases.
-                for phase in 0..4 {
-                    let x = 100. + phase as f32;
-                    let bottom = 90. + phase as f32 * 30.;
-                    listview::horizontal_scrollbar(
-                        ui,
-                        egui::Rect::from_min_max(
-                            egui::pos2(x, bottom - 25.),
-                            egui::pos2(x + 100., bottom),
-                        ),
-                        &mut listview::ListState::new(&[300.]),
-                    );
-                }
-            });
+            .build_ui_state(
+                |ui, fonts: &mut Option<egui::FontDefinitions>| {
+                    if let Some(fonts) = fonts.take() {
+                        ui.ctx().set_fonts(fonts);
+                        return;
+                    }
+                    ui.ctx().set_theme(egui::Theme::Light);
+                    paint::fill(ui.painter(), 0., 0., 359., 239., egui::Color32::WHITE);
+                    // Processes builds each heat-column separator one 28-point row at a time.
+                    for start in [162., 190.] {
+                        paint::vline(ui.painter(), 20., start, start + 27., egui::Color32::RED);
+                        paint::hline(ui.painter(), start, start + 27., 20., egui::Color32::RED);
+                    }
+                    paint::outline(ui.painter(), 40., 40., 61., 61., egui::Color32::RED);
+                    // Exercise both horizontal arrows at all four fractional pixel phases.
+                    for phase in 0..4 {
+                        let x = 100. + phase as f32;
+                        let bottom = 90. + phase as f32 * 30.;
+                        ui.push_id(phase, |ui| {
+                            listview::horizontal_scrollbar(
+                                ui,
+                                egui::Rect::from_min_max(
+                                    egui::pos2(x, bottom - 25.),
+                                    egui::pos2(x + 100., bottom),
+                                ),
+                                &mut listview::ListState::new(&[300.]),
+                            );
+                        });
+                    }
+                    for (i, font) in roles.iter().copied().enumerate() {
+                        paint::text(
+                            ui.painter(),
+                            260.,
+                            10. + i as f32 * 28.,
+                            "H",
+                            font,
+                            egui::Color32::BLACK,
+                            egui::Align::Min,
+                        );
+                    }
+                },
+                Some(fonts::Fonts::default().definitions()),
+            );
         h.run_steps(2);
         let image = h.render().expect("offscreen wgpu render unavailable");
         let snap = |v: f32| (v * ppp).round() as u32;
+        for (i, font) in roles.iter().enumerate() {
+            let cap_top = 10. + i as f32 * 28.;
+            let (_, top, _) = ink_box(
+                &image,
+                &[
+                    snap(250.),
+                    snap(cap_top - 2.),
+                    snap(330.),
+                    snap(cap_top + 24.),
+                ],
+            )
+            .expect("bundled font has visible capital ink");
+            assert!(
+                top.abs_diff(snap(cap_top)) <= 1,
+                "{font:?} capital starts at {top}, expected {} at {ppp}x",
+                snap(cap_top)
+            );
+        }
         let line = ppp.round().max(1.) as u32;
         for along in snap(162.)..snap(218.) {
             for across in snap(20.)..snap(20.) + line {
@@ -2271,7 +2322,11 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
             _ => None,
         })
         .unwrap();
-    assert_eq!(in_use.y, 500., "stats start at 498, caption at 503");
+    assert_eq!(
+        in_use.y + mc_ui::win10::paint::Font::Body.cap_offset(),
+        503.,
+        "stats start at 498, caption at 503"
+    );
     assert_eq!(hex(&initial, 241, 418), "#8b12ae", "swap bar top");
     assert_eq!(hex(&initial, 241, 437), "#8b12ae", "swap bar bottom");
 
@@ -2328,8 +2383,11 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
                 _ => None,
             })
             .unwrap();
+        // Empty row leading may extend below the clip, but the unclipped glyph bounds may not.
         assert!(
-            clip.contains(text.pos) && clip.contains(text.pos + text.galley.size()),
+            clip.contains(text.pos)
+                && clip.right() >= text.pos.x + text.galley.size().x
+                && clip.contains_rect(text.visual_bounding_rect()),
             "{label} is inside the page clip"
         );
         assert!(
@@ -2376,7 +2434,9 @@ fn performance_memory_minimum_overflow_scroll_and_reset() {
     assert!(
         h.output().shapes.iter().any(|shape| {
             matches!(&shape.shape, egui::Shape::Text(text)
-            if text.galley.job.text == "Memory" && text.pos == egui::pos2(238., 95.))
+            if text.galley.job.text == "Memory"
+                && text.pos + egui::vec2(0., mc_ui::win10::paint::Font::Title.cap_offset())
+                    == egui::pos2(238., 103.))
         }),
         "resize restores the title's unscrolled position"
     );
@@ -2487,14 +2547,41 @@ fn check_memory_slot_module(unknown_capacity: bool) {
         modifiers: egui::Modifiers::NONE,
     });
     h.run_steps(3);
-    for label in ["A1", "A2", "Empty", "Memory slots"] {
-        assert!(h.output().shapes.iter().any(|shape| matches!(&shape.shape,egui::Shape::Text(text) if text.galley.job.text == label && shape.clip_rect.contains(text.pos))), "{label} visible");
+    // Open Sans elides "Empty" in compact cells; the tooltip must retain the full value.
+    for label in ["A1", "A2", "Em…", "Memory slots"] {
+        assert!(
+            h.output().shapes.iter().any(|shape| {
+                matches!(&shape.shape, egui::Shape::Text(text)
+                    if text.galley.job.text == label
+                        && shape.clip_rect.contains_rect(text.visual_bounding_rect()))
+            }),
+            "{label} visible"
+        );
     }
     if unknown_capacity {
         assert!(h.output().shapes.iter().any(|shape| {
             matches!(&shape.shape, egui::Shape::Text(text) if text.galley.job.text == "Unknown" && shape.clip_rect.contains(text.pos))
         }));
     }
+    let empty_slot = h
+        .output()
+        .shapes
+        .iter()
+        .find_map(|shape| match &shape.shape {
+            egui::Shape::Text(text) if text.galley.job.text == "A2" => {
+                Some(text.visual_bounding_rect().center())
+            }
+            _ => None,
+        })
+        .unwrap();
+    h.hover_at(empty_slot - egui::vec2(0., mc_ui::win10::metrics::MEMORY_SLOT_LABEL_H));
+    h.run_steps(60);
+    assert!(
+        h.query_by_label("DIMMA2\nEmpty · DIMM\nClick to view module and read SPD")
+            .is_some()
+    );
+    h.remove_cursor();
+    h.run_steps(2);
     h.render()
         .unwrap()
         .save(
@@ -2630,9 +2717,10 @@ fn memory_module_height_follows_last_stats_row_and_empty_slots_are_grey() {
             })
             .unwrap()
     };
-    let top = at("Used (incl. cache)").y + 3.;
-    let bottom =
-        at("Of used: cache").y + 3. + 21. + 14. - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
+    let cap = mc_ui::win10::paint::Font::Body.cap_offset();
+    let top = at("Used (incl. cache)").y + cap;
+    let bottom = at("Of used: cache").y + cap + 21. + 14.
+        - mc_ui::win10::metrics::MEMORY_SLOT_FOOTER_RESERVE;
     let start = at("Memory slots").x;
     let image = h.render().unwrap();
     let m = &mc_ui::win10::metrics::MEMORY_SLOT_DRAW_W;

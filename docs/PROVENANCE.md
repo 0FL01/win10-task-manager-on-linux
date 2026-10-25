@@ -98,7 +98,7 @@ rendering. The graph-widget GTK renderer and its submodule are no longer part of
 The removed `rust-gui-silver-bullet/` experiment served as a reference during the GUI port.
 The following is the entire original `LICENSES.md`, preserved verbatim. Its paths, fonts and
 licensing statements describe that historical experiment, not the contents or license of the
-current Task Manager application. Current bundled Selawik notices are in
+current Task Manager application. Current bundled Open Sans notices are in
 `crates/mc-ui/assets/fonts/OFL.txt`.
 
 ```markdown

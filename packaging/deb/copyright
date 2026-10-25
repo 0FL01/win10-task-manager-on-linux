@@ -16,10 +16,10 @@ License: GPL-3.0-or-later
  /usr/share/common-licenses/GPL-3.
 
 Files: crates/mc-ui/assets/fonts/*
-Copyright: 2015 Microsoft Corporation
+Copyright: 2020 The Open Sans Project Authors
 License: OFL-1.1
- Selawik is distributed under the SIL Open Font License 1.1. The complete license
- text is installed as /usr/share/doc/taskmanager/Selawik-OFL.txt.
+ Open Sans is distributed under the SIL Open Font License 1.1. The complete license
+ text is installed as /usr/share/doc/taskmanager/OpenSans-OFL.txt.
 
 Files: usr/lib/taskmanager/gpu/*.so.* usr/lib/taskmanager/gpu/manifest.json
 Copyright: See the corresponding bundled library notices

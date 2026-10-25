@@ -12,7 +12,7 @@ Name:           taskmanager
 Version:        %{?mc_version}%{!?mc_version:1.2.0}
 Release:        %{?mc_release}%{!?mc_release:14}%{?dist}
 Summary:        Task Manager: processes, performance and services
-# Selawik, libdrm, libudev and the Fedora libgcc runtime closure.
+# Open Sans, libdrm, libudev and the Fedora libgcc runtime closure.
 License:        GPL-3.0-or-later AND OFL-1.1 AND MIT AND LGPL-2.1-or-later AND (GPL-3.0-or-later WITH GCC-exception-3.1)
 URL:            https://github.com/0FL01/win10-task-manager-on-linux
 
@@ -81,7 +81,7 @@ test -d "%{stagedir}/usr/bin" || { echo "stagedir is not set or empty: %{stagedi
 python3 "%{srcroot}/support/bundle-gpu-libs.py" --verify --dest "%{stagedir}/usr/lib/taskmanager/gpu" --binary "%{stagedir}/usr/bin/missioncenter-magpie"
 "%{stagedir}/usr/bin/missioncenter-magpie" --test
 cp -p "%{srcroot}/COPYING" .
-cp -p "%{srcroot}/crates/mc-ui/assets/fonts/OFL.txt" Selawik-OFL.txt
+cp -p "%{srcroot}/crates/mc-ui/assets/fonts/OFL.txt" OpenSans-OFL.txt
 
 %build
 
@@ -90,7 +90,7 @@ mkdir -p %{buildroot}
 cp -a %{stagedir}/. %{buildroot}/
 
 %files
-%license COPYING Selawik-OFL.txt
+%license COPYING OpenSans-OFL.txt
 %{_bindir}/taskmanager
 %{_bindir}/missioncenter-magpie
 %{_prefix}/libexec/taskmanager-hardware

@@ -86,7 +86,15 @@ this document, never the screenshots.
   including unmatched EEPROM choices. There is no separate Read SPD button. Modal metadata
   scrolls at a maximum height of 400 px.
 
-## Typography (Segoe UI metrics; we ship Selawik, prefer Segoe UI if installed)
+## Typography (Segoe UI metrics; we ship Open Sans, own choice, see below)
+Own design: the bundled Open Sans variable font at its original width 100 (wider than Segoe UI;
+width 90 would match its advances); weights Regular 400, Light 300, Semilight 350, Semibold 600.
+Cap tops stay where the spec puts them: the row-to-cap offsets at scale 1 are measured on Open
+Sans (12 px 3, 16 px 5, 28 px 10, 18 px 7, 11 px 4, 20 px 7, 15 px 5); at other scales the cap top
+is placed on the physical pixel row of the spec value from the laid-out baseline and the hinted
+cap height (1462/2048 em). Its rows are taller (12 px: 16 instead
+of 14) and wider (~9 %); tabs grow with their labels, so the tab probes use the Open Sans tab
+edges (Processes 3–71, Performance 71–154, Details 154–208, Services 208–263).
 | role | size px | weight | colour |
 |---|---|---|---|
 | body / table cells / menu / tabs / title / footer / key-value | 12 (cap height 9) | Regular | `#000000` |

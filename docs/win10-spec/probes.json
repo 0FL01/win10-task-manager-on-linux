@@ -331,10 +331,10 @@
     "frame": true
    },
    {
-    "x": 170,
+    "x": 158,
     "y": 60,
     "color": "#ffffff",
-    "what": "selected tab (Details) fill",
+    "what": "selected tab (Details) fill, left of the label (own: Open Sans tab widths)",
     "frame": true
    },
    {
@@ -345,10 +345,10 @@
     "frame": true
    },
    {
-    "x": 30,
+    "x": 6,
     "y": 66,
     "color": "#f0f0f0",
-    "what": "unselected tab (Processes) fill",
+    "what": "unselected tab (Processes) fill, left of the label (own: Open Sans tab widths)",
     "frame": true
    },
    {
@@ -467,14 +467,14 @@
    },
    {
     "region": [
-     66,
+     71,
      57,
-     144,
+     154,
      75
     ],
-    "x": 73,
+    "x": 79,
     "y": 62,
-    "what": "Performance tab label"
+    "what": "Performance tab label (own: Open Sans tab widths)"
    },
    {
     "region": [
@@ -514,14 +514,14 @@
    },
    {
     "region": [
-     66,
+     70,
      55,
-     144,
+     158,
      75
     ],
-    "x": 73,
+    "x": 79,
     "y": 60,
-    "what": "selected tab label"
+    "what": "selected tab label (own: Open Sans tab widths)"
    }
   ],
   "details": [],
