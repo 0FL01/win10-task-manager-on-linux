@@ -641,6 +641,8 @@ fn apply_nvml_sensors(gpu: &mut Gpu, sensors: &nvml::Sensors) {
     // Native fields were validity-gated in this collection. Supplement absent
     // fields without carrying measurements across inventory/driver generations.
     gpu.temperature_c = gpu.temperature_c.or(sensors.temperature_c);
+    gpu.memory_temperature_c = gpu.memory_temperature_c.or(sensors.memory_temperature_c);
+    gpu.hotspot_temperature_c = gpu.hotspot_temperature_c.or(sensors.hotspot_temperature_c);
     gpu.power_draw_watts = gpu.power_draw_watts.or(sensors.power_draw_watts);
     gpu.max_power_draw_watts = gpu.max_power_draw_watts.or(sensors.max_power_draw_watts);
     gpu.clock_speed_mhz = gpu.clock_speed_mhz.or(sensors.clock_speed_mhz);
@@ -1214,6 +1216,11 @@ impl magpie_platform::gpus::GpuCache for GpuCache {
                 .sysfs_device
                 .as_deref()
                 .and_then(crate::hardware::gpu_voltage);
+            (gpu.memory_temperature_c, gpu.hotspot_temperature_c) = device
+                .sysfs_device
+                .as_deref()
+                .map(crate::hardware::gpu_temperatures)
+                .unwrap_or_default();
             let native = self.devices.values().any(|native| native.id == device.id);
             let mut driver = self.metadata.get(&device.id).cloned().unwrap_or_default();
             let mut memory = memory_info(device, gpu, &driver);

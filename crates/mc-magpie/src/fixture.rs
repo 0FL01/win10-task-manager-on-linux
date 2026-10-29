@@ -201,12 +201,17 @@ mod tests {
             root["mem_info"].as_object_mut().unwrap().remove(key);
         }
         for gpu in root["gpus"].as_object_mut().unwrap().values_mut() {
-            gpu.as_object_mut().unwrap().remove("voltage_v");
+            for key in ["voltage_v", "hotspot_temperature_c", "memory_temperature_c"] {
+                gpu.as_object_mut().unwrap().remove(key);
+            }
         }
         let reading: Readings = serde_json::from_value(json).unwrap();
         assert!(reading.hardware.is_none());
         assert!(reading.smart_data.is_empty());
         assert!(reading.cpu.logical_cpus.is_empty());
         assert!(reading.mem_info.corrected_errors.is_none());
+        assert!(reading.gpus.values().all(|gpu| {
+            gpu.hotspot_temperature_c.is_none() && gpu.memory_temperature_c.is_none()
+        }));
     }
 }

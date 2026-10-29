@@ -38,6 +38,11 @@ struct State {
 
 fn series(no_network: bool) -> Vec<mc_magpie::Readings> {
     let mut series = mc_magpie::synthetic_series(20, 120);
+    for r in &mut series {
+        let gpu = r.gpus.get_mut("0000:01:00.0").unwrap();
+        gpu.hotspot_temperature_c = Some(68.);
+        gpu.memory_temperature_c = Some(62.);
+    }
     if no_network {
         for r in &mut series {
             r.network_unavailable = true;
@@ -130,7 +135,7 @@ fn render(
     }
     std::thread::sleep(std::time::Duration::from_millis(300));
     harness.run_steps(8);
-    if name == "gpu-performance" || name == "gpu-integrated-performance" {
+    if name.starts_with("gpu-performance") || name == "gpu-integrated-performance" {
         for _ in 0..22 {
             std::thread::sleep(std::time::Duration::from_millis(100));
             harness.run_steps(1);
@@ -164,6 +169,19 @@ fn render(
     if name == "gpu-summary" {
         harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::M);
         harness.run_steps(2);
+    }
+    if name.starts_with("gpu-performance") {
+        // Bring the actual temperature statistics into view, including at minimum height.
+        harness.input_mut().events.extend([
+            egui::Event::PointerMoved(egui::pos2(size.0 - 100., size.1 / 2.)),
+            egui::Event::MouseWheel {
+                unit: egui::MouseWheelUnit::Point,
+                delta: egui::vec2(0., -300.),
+                phase: egui::TouchPhase::Move,
+                modifiers: Default::default(),
+            },
+        ]);
+        harness.run_steps(8);
     }
 
     let image = harness.render().expect("offscreen wgpu render unavailable");
@@ -247,6 +265,13 @@ fn gpu_views_render_with_engine_choices_and_memory() {
         None,
     );
     render("gpu-summary", "performance-page", (400., 380.), 1., None);
+    render(
+        "gpu-performance-min",
+        "performance-page",
+        (760., 540.),
+        1.,
+        None,
+    );
     render(
         "gpu-integrated-performance",
         "performance-page",

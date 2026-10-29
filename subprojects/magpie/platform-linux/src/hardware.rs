@@ -60,6 +60,37 @@ pub fn gpu_voltage(device: &Path) -> Option<f32> {
     None
 }
 
+/// Device-bound (VRAM, hottest-die) temperatures, separate from the ordinary GPU sensor.
+pub fn gpu_temperatures(device: &Path) -> (Option<f32>, Option<f32>) {
+    let Ok(entries) = std::fs::read_dir(device.join("hwmon")) else {
+        return (None, None);
+    };
+    for entry in entries.flatten() {
+        let sensor = entry.path();
+        let driver = std::fs::read_to_string(sensor.join("name")).unwrap_or_default();
+        let temperature = |channel: &str, label: &str| {
+            let actual = std::fs::read_to_string(sensor.join(format!("{channel}_label"))).ok()?;
+            if actual.trim() != label {
+                return None;
+            }
+            number::<i64>(sensor.join(format!("{channel}_input")))
+                .map(|millidegrees| millidegrees as f32 / 1000.)
+        };
+        match driver.trim() {
+            "amdgpu" => {
+                return (
+                    temperature("temp3", "mem"),
+                    temperature("temp2", "junction"),
+                );
+            }
+            // xe's temp2/pkg is a package reading, not a hottest-die sensor.
+            "xe" => return (temperature("temp3", "vram"), None),
+            _ => {}
+        }
+    }
+    (None, None)
+}
+
 /// Standard hwmon frequency inputs are in Hz. Only explicitly labelled counters are accepted.
 pub fn clock_mhz(root: &Path, labels: &[&str]) -> Option<f32> {
     let mut values = Vec::new();
@@ -182,6 +213,63 @@ mod tests {
         assert_eq!(clock_mhz(dir.path(), &["FCLK"]), Some(1800.));
         assert_eq!(clock_mhz(dir.path(), &["MCLK"]), None);
     }
+
+    #[test]
+    fn gpu_temperatures_use_signed_millidegrees_and_fail_independently() {
+        let dir = TempDir::new();
+        assert_eq!(gpu_temperatures(dir.path()), (None, None));
+        let sensor = dir.path().join("hwmon/hwmon37");
+        std::fs::create_dir_all(&sensor).unwrap();
+        for (name, value) in [
+            ("name", "amdgpu\n"),
+            ("temp2_label", "junction\n"),
+            ("temp2_input", "112500\n"),
+            ("temp3_label", "mem\n"),
+            ("temp3_input", "0\n"),
+        ] {
+            std::fs::write(sensor.join(name), value).unwrap();
+        }
+        assert_eq!(gpu_temperatures(dir.path()), (Some(0.), Some(112.5)));
+        std::fs::write(sensor.join("temp2_input"), "-1250").unwrap();
+        std::fs::write(sensor.join("temp3_input"), "not a temperature").unwrap();
+        assert_eq!(gpu_temperatures(dir.path()), (None, Some(-1.25)));
+        std::fs::remove_file(sensor.join("temp2_input")).unwrap();
+        std::fs::write(sensor.join("temp3_input"), "63500").unwrap();
+        assert_eq!(gpu_temperatures(dir.path()), (Some(63.5), None));
+        std::fs::create_dir(sensor.join("temp2_input")).unwrap();
+        assert_eq!(gpu_temperatures(dir.path()), (Some(63.5), None));
+        std::fs::write(sensor.join("temp3_label"), "vram").unwrap();
+        assert_eq!(gpu_temperatures(dir.path()), (None, None));
+    }
+
+    #[test]
+    fn gpu_temperatures_stay_with_the_device_and_known_driver_labels() {
+        let dir = TempDir::new();
+        let amd = dir.path().join("amd");
+        let intel = dir.path().join("intel");
+        for (device, driver, memory_label) in [(&amd, "amdgpu", "mem"), (&intel, "xe", "vram")] {
+            let sensor = device.join("hwmon/hwmon21");
+            std::fs::create_dir_all(&sensor).unwrap();
+            for (name, value) in [
+                ("name", driver),
+                ("temp2_label", "pkg"),
+                ("temp2_input", "80000"),
+                ("temp3_label", memory_label),
+                ("temp3_input", "45000"),
+            ] {
+                std::fs::write(sensor.join(name), value).unwrap();
+            }
+        }
+        assert_eq!(gpu_temperatures(&intel), (Some(45.), None));
+        assert_eq!(gpu_temperatures(&amd), (Some(45.), None)); // pkg is not junction.
+        std::fs::write(amd.join("hwmon/hwmon21/temp2_label"), "junction").unwrap();
+        std::fs::write(amd.join("hwmon/hwmon21/name"), "k10temp").unwrap();
+        assert_eq!(gpu_temperatures(&amd), (None, None));
+        std::fs::remove_file(intel.join("hwmon/hwmon21/temp3_input")).unwrap();
+        assert_eq!(gpu_temperatures(&intel), (None, None)); // No other-device fallback.
+        assert_eq!(gpu_temperatures(dir.path()), (None, None));
+    }
+
     #[test]
     fn edac_totals_do_not_double_count_dimms_or_invent_zero() {
         let dir = TempDir::new();

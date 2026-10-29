@@ -559,14 +559,23 @@ impl DevicePage for GpuPage {
             .dedicated_total_bytes
             .zip(memory.shared_total_bytes)
             .and_then(|(dedicated, shared)| dedicated.checked_add(shared));
+        let mut primary_stats = vec![
+            (i18n("Utilization"), percent(utilization)),
+            (
+                i18n("GPU temperature"),
+                temperature.map_or_else(|| "—".into(), |value| format!("{value:.0} °C")),
+            ),
+        ];
+        for (label, value) in [
+            (n_("GPU hotspot"), device.hotspot_temperature_c),
+            (n_("VRAM temperature"), device.memory_temperature_c),
+        ] {
+            if let Some(value) = value {
+                primary_stats.push((i18n(label), format!("{value:.0} °C")));
+            }
+        }
         self.stats = vec![
-            vec![
-                (i18n("Utilization"), percent(utilization)),
-                (
-                    i18n("Temperature"),
-                    temperature.map_or_else(|| "—".into(), |value| format!("{value:.0} °C")),
-                ),
-            ],
+            primary_stats,
             vec![(
                 i18n("Dedicated GPU memory"),
                 self.memory_pair(dedicated_used, memory.dedicated_total_bytes),
@@ -917,6 +926,8 @@ mod tests {
                 version: Some("test-version".into()),
                 ..DriverInfo::default()
             },
+            hotspot_temperature_c: None,
+            memory_temperature_c: None,
             epoch: 1,
             sequence: 1,
             age_ms: 0,
@@ -951,6 +962,45 @@ mod tests {
         assert!(copy.contains("37%"));
         assert!(copy.contains("test-kernel-driver"));
         assert!(!copy.contains("WDDM"));
+    }
+
+    #[test]
+    fn optional_temperatures_reflow_and_copy_independently_of_utilization() {
+        let (mut page, config, readings, mut snapshot) = setup();
+        snapshot.devices.get_mut("test-adapter").unwrap().usage = GpuUsage {
+            state: TelemetryState::Stale,
+            ..GpuUsage::default()
+        };
+        for (hotspot, memory, expected) in [
+            (
+                Some(68.),
+                Some(62.),
+                vec![
+                    (i18n("GPU hotspot"), "68 °C".into()),
+                    (i18n("VRAM temperature"), "62 °C".into()),
+                ],
+            ),
+            (Some(68.), None, vec![(i18n("GPU hotspot"), "68 °C".into())]),
+            (
+                None,
+                Some(62.),
+                vec![(i18n("VRAM temperature"), "62 °C".into())],
+            ),
+            (None, None, vec![]),
+        ] {
+            let device = snapshot.devices.get_mut("test-adapter").unwrap();
+            device.sequence += 1;
+            device.hotspot_temperature_c = hotspot;
+            device.memory_temperature_c = memory;
+            feed(&mut page, &config, &readings, &snapshot);
+            let view = page.win10_view(&config);
+            assert_eq!(view.stats[0][0], (i18n("Utilization"), "—".into()));
+            assert_eq!(view.stats[0][1], (i18n("GPU temperature"), "—".into()));
+            assert_eq!(view.stats[0][2..], expected);
+            let copy = page.data_summary();
+            assert_eq!(copy.contains(&i18n("GPU hotspot")), hotspot.is_some());
+            assert_eq!(copy.contains(&i18n("VRAM temperature")), memory.is_some());
+        }
     }
 
     #[test]

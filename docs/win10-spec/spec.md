@@ -440,6 +440,11 @@ typefaces, grid and one-pixel paint helpers; the following geometry is our own a
   busiest measured engine; group rows deduplicate shared clients before per-engine sums.
   Unknown/stale values are `—`, graph gaps are NaN, and partial counters show the plain
   value with the reason in the tooltip. NVML overall utilization is never mislabeled as 3D/Compute.
+- The first GPU statistics row is Utilization, GPU temperature, GPU hotspot, VRAM temperature.
+  Hotspot and VRAM temperature are independently omitted when unavailable or stale (an exception
+  to the `—` rule); GPU temperature keeps its existing missing-value behavior. Whole statistics
+  wrap with the existing width-aware flow. New temperatures use collection freshness, not the
+  availability of utilization/process counters; they do not add graphs or sidebar values.
 - Engine labels use the Windows names (3D, Copy, Compute, Video Encode, Video Decode). amdgpu
   engines that exist in the hardware (IP discovery) are listed before first use; from VCN 4 the
   driver runs encode and decode on one queue, shown as one "Video Encode/Decode" engine with that

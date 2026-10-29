@@ -143,6 +143,8 @@ pub struct GpuDevice {
     pub engines: Vec<EngineTelemetry>,
     pub memory: MemoryTelemetry,
     pub driver: DriverInfo,
+    pub hotspot_temperature_c: Option<f32>,
+    pub memory_temperature_c: Option<f32>,
     pub epoch: u64,
     pub sequence: u64,
     pub age_ms: u64,
@@ -197,6 +199,8 @@ impl GpuSnapshot {
             let index = indices.adapters[id];
             let mut device = GpuDevice {
                 index,
+                hotspot_temperature_c: gpu.hotspot_temperature_c.filter(|value| value.is_finite()),
+                memory_temperature_c: gpu.memory_temperature_c.filter(|value| value.is_finite()),
                 ..Default::default()
             };
             if let Some(telemetry) = &gpu.telemetry {
@@ -209,6 +213,11 @@ impl GpuSnapshot {
                 let repeated = indices.samples.insert(id.clone(), sample) == Some(sample);
                 let stale =
                     repeated || telemetry.sample_age_ms > interval_ms.saturating_mul(2).max(1);
+                // Counter failures do not invalidate independently acquired temperatures.
+                if stale {
+                    device.hotspot_temperature_c = None;
+                    device.memory_temperature_c = None;
+                }
                 let failed = matches!(
                     telemetry.state(),
                     TelemetryState::Stale | TelemetryState::DriverUnavailable
@@ -758,9 +767,13 @@ mod tests {
     #[test]
     fn stale_and_recycled_processes_never_receive_old_values() {
         let mut r = readings();
+        r.gpus.get_mut("a").unwrap().hotspot_temperature_c = Some(73.);
+        r.gpus.get_mut("a").unwrap().memory_temperature_c = Some(65.);
         r.running_processes.get_mut(&10).unwrap().start_time_ticks = Some(999);
         let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.processes[&10].usage.percent, None);
+        assert_eq!(snapshot.devices["a"].hotspot_temperature_c, Some(73.));
+        assert_eq!(snapshot.devices["a"].memory_temperature_c, Some(65.));
         r.gpus
             .get_mut("a")
             .unwrap()
@@ -771,14 +784,60 @@ mod tests {
         let snapshot = checked_snapshot(&r, &mut GpuIndices::default());
         assert_eq!(snapshot.usage.percent, None);
         assert_eq!(snapshot.devices["a"].usage.state, TelemetryState::Stale);
+        assert_eq!(snapshot.devices["a"].hotspot_temperature_c, None);
+        assert_eq!(snapshot.devices["a"].memory_temperature_c, None);
         assert_eq!(snapshot.processes[&20].usage.percent, None);
         assert_eq!(snapshot.processes[&20].memory, None);
-        let r = readings();
+        let mut r = readings();
+        r.gpus.get_mut("a").unwrap().hotspot_temperature_c = Some(73.);
+        r.gpus.get_mut("a").unwrap().memory_temperature_c = Some(65.);
         let mut indices = GpuIndices::default();
         checked_snapshot(&r, &mut indices);
         let repeated = checked_snapshot(&r, &mut indices);
         assert_eq!(repeated.processes[&20].usage.state, TelemetryState::Stale);
         assert_eq!(repeated.devices["a"].usage.percent, None);
+        assert_eq!(repeated.devices["a"].hotspot_temperature_c, None);
+        assert_eq!(repeated.devices["a"].memory_temperature_c, None);
+        r.gpus
+            .get_mut("a")
+            .unwrap()
+            .telemetry
+            .as_mut()
+            .unwrap()
+            .sequence += 1;
+        let fresh = checked_snapshot(&r, &mut indices);
+        assert_eq!(fresh.devices["a"].hotspot_temperature_c, Some(73.));
+        assert_eq!(fresh.devices["a"].memory_temperature_c, Some(65.));
+    }
+
+    #[test]
+    fn temperatures_are_independent_gauges_not_utilization_counters() {
+        let mut r = readings();
+        let mut indices = GpuIndices::default();
+        for state in [
+            TelemetryState::Unsupported,
+            TelemetryState::Stale,
+            TelemetryState::DriverUnavailable,
+        ] {
+            let gpu = r.gpus.get_mut("a").unwrap();
+            gpu.hotspot_temperature_c = Some(105.);
+            gpu.memory_temperature_c = Some(0.);
+            let telemetry = gpu.telemetry.as_mut().unwrap();
+            telemetry.sequence += 1;
+            telemetry.state = state as i32;
+            let snapshot = checked_snapshot(&r, &mut indices);
+            assert_eq!(snapshot.devices["a"].hotspot_temperature_c, Some(105.));
+            assert_eq!(snapshot.devices["a"].memory_temperature_c, Some(0.));
+        }
+        let gpu = r.gpus.get_mut("a").unwrap();
+        gpu.hotspot_temperature_c = Some(f32::NAN);
+        gpu.telemetry = None;
+        // Legacy observations have no sample identity; each intake is still valid.
+        for _ in 0..2 {
+            let snapshot = checked_snapshot(&r, &mut indices);
+            assert_eq!(snapshot.devices["a"].hotspot_temperature_c, None);
+            assert_eq!(snapshot.devices["a"].memory_temperature_c, Some(0.));
+        }
     }
 
     #[test]

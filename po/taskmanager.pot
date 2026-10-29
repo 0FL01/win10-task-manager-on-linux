@@ -475,7 +475,8 @@ msgstr ""
 
 #: crates/mc-ui/src/app.rs:1942 crates/mc-ui/src/app.rs:1947
 #: crates/mc-ui/src/app.rs:1956 crates/mc-ui/src/app.rs:1977
-#: crates/mc-ui/src/perf/cpu.rs:520 crates/mc-ui/src/perf/gpu.rs:564
+#: crates/mc-ui/src/perf/cpu.rs:520 crates/mc-ui/src/perf/gpu.rs:563
+#: crates/mc-ui/src/perf/gpu.rs:997
 msgid "Utilization"
 msgstr ""
 
@@ -969,7 +970,7 @@ msgstr ""
 msgid "Up time"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cpu.rs:513 crates/mc-ui/src/perf/gpu.rs:566
+#: crates/mc-ui/src/perf/cpu.rs:513
 msgid "Temperature"
 msgstr ""
 
@@ -1301,7 +1302,21 @@ msgstr ""
 msgid "_Clock Speeds"
 msgstr ""
 
-#: crates/mc-ui/src/perf/gpu.rs:571 crates/mc-ui/src/win10/details.rs:256
+#: crates/mc-ui/src/perf/gpu.rs:565 crates/mc-ui/src/perf/gpu.rs:998
+msgid "GPU temperature"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:570 crates/mc-ui/src/perf/gpu.rs:979
+#: crates/mc-ui/src/perf/gpu.rs:983 crates/mc-ui/src/perf/gpu.rs:1001
+msgid "GPU hotspot"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:571 crates/mc-ui/src/perf/gpu.rs:980
+#: crates/mc-ui/src/perf/gpu.rs:987 crates/mc-ui/src/perf/gpu.rs:1002
+msgid "VRAM temperature"
+msgstr ""
+
+#: crates/mc-ui/src/perf/gpu.rs:580 crates/mc-ui/src/win10/details.rs:256
 #: crates/mc-ui/src/win10/processes.rs:86
 msgid "Dedicated GPU memory"
 msgstr ""

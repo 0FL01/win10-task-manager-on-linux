@@ -5,7 +5,7 @@
 //! Optional NVML supplementation, including devices absent from NVTOP's fixed
 //! startup inventory. Every sample resolves its handle by PCI identity afresh.
 use std::collections::HashMap;
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{c_char, c_int, c_ulong, c_void, CStr, CString};
 use std::path::Path;
 
 use magpie_platform::gpus::{
@@ -26,6 +26,8 @@ type GetUtilization = unsafe extern "C" fn(Handle, *mut Utilization) -> Status;
 type GetVideoUtilization = unsafe extern "C" fn(Handle, *mut u32, *mut u32) -> Status;
 type GetUnsigned = unsafe extern "C" fn(Handle, *mut u32) -> Status;
 type GetUnsignedParameter = unsafe extern "C" fn(Handle, u32, *mut u32) -> Status;
+type GetFieldValues = unsafe extern "C" fn(Handle, c_int, *mut FieldValue) -> Status;
+type GetTemperatureV = unsafe extern "C" fn(Handle, *mut TemperatureV1) -> Status;
 type GetProcessesV1 = unsafe extern "C" fn(Handle, *mut u32, *mut ProcessV1) -> Status;
 type GetProcessesV2 = unsafe extern "C" fn(Handle, *mut u32, *mut ProcessV2) -> Status;
 type GetProcessUtilization =
@@ -79,8 +81,54 @@ struct MemoryV2 {
     used: u64,
 }
 
+// Official nvmlValue_t / nvmlFieldValue_t ABI. The unsigned-long member is
+// native-sized, not an alias for unsigned int or unsigned long long.
+#[repr(C)]
+union Value {
+    double: f64,
+    signed_int: c_int,
+    unsigned_int: u32,
+    unsigned_long: c_ulong,
+    unsigned_long_long: u64,
+    signed_long_long: i64,
+    unsigned_short: u16,
+}
+
+impl Default for Value {
+    fn default() -> Self {
+        Self {
+            unsigned_long_long: 0,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct FieldValue {
+    field_id: u32,
+    scope_id: u32,
+    timestamp: i64,
+    latency_usec: i64,
+    value_type: u32,
+    nvml_return: Status,
+    value: Value,
+}
+
+// nvmlTemperature_v1_t, not the legacy GetTemperature output ABI.
+#[repr(C)]
+#[derive(Default)]
+struct TemperatureV1 {
+    version: u32,
+    sensor_type: u32,
+    temperature: c_int,
+}
+
 fn memory_v2_version() -> u32 {
     std::mem::size_of::<MemoryV2>() as u32 | (2 << 24)
+}
+
+fn temperature_v1_version() -> u32 {
+    std::mem::size_of::<TemperatureV1>() as u32 | (1 << 24)
 }
 
 #[derive(Debug)]
@@ -107,6 +155,8 @@ struct Api {
     encode: Option<GetVideoUtilization>,
     decode: Option<GetVideoUtilization>,
     temperature: Option<GetUnsignedParameter>,
+    field_values: Option<GetFieldValues>,
+    temperature_v: Option<GetTemperatureV>,
     power: Option<GetUnsigned>,
     power_limit: Option<GetUnsigned>,
     clock: Option<GetUnsignedParameter>,
@@ -135,6 +185,8 @@ pub(super) struct Sample {
 #[derive(Default)]
 pub(super) struct Sensors {
     pub temperature_c: Option<f32>,
+    pub memory_temperature_c: Option<f32>,
+    pub hotspot_temperature_c: Option<f32>,
     pub power_draw_watts: Option<f32>,
     pub max_power_draw_watts: Option<f32>,
     pub clock_speed_mhz: Option<u32>,
@@ -352,6 +404,14 @@ impl Nvml {
                     .get::<GetUnsignedParameter>(b"nvmlDeviceGetTemperature\0")
                     .ok()
                     .map(|s| *s),
+                field_values: library
+                    .get::<GetFieldValues>(b"nvmlDeviceGetFieldValues\0")
+                    .ok()
+                    .map(|s| *s),
+                temperature_v: library
+                    .get::<GetTemperatureV>(b"nvmlDeviceGetTemperatureV\0")
+                    .ok()
+                    .map(|s| *s),
                 power: library
                     .get::<GetUnsigned>(b"nvmlDeviceGetPowerUsage\0")
                     .ok()
@@ -505,7 +565,44 @@ impl Api {
             pcie_lanes: scalar(self.pcie_lanes)?,
             max_pcie_gen: scalar(self.max_pcie_gen)?,
             max_pcie_lanes: scalar(self.max_pcie_lanes)?,
+            memory_temperature_c: self.memory_temperature(handle)?,
+            hotspot_temperature_c: self.hotspot_temperature(handle)?,
         })
+    }
+
+    fn memory_temperature(&self, handle: Handle) -> Result<Option<f32>, TelemetryState> {
+        let Some(query) = self.field_values else {
+            return Ok(None);
+        };
+        let mut field = FieldValue {
+            field_id: 82, // NVML_FI_DEV_MEMORY_TEMP, unsigned-int degrees Celsius.
+            nvml_return: 3,
+            ..Default::default()
+        };
+        let status = unsafe { query(handle, 1, &mut field) };
+        // NVML_VALUE_TYPE_UNSIGNED_INT is the only accepted field-82 payload.
+        if !extra_temperature_available(status)?
+            || !extra_temperature_available(field.nvml_return)?
+            || field.value_type != 1
+        {
+            return Ok(None);
+        }
+        // Query every collection. The timestamp is ABI data, not a documented
+        // historical-buffer cursor like the unrelated process-utilization API.
+        Ok(Some(unsafe { field.value.unsigned_int } as f32))
+    }
+
+    fn hotspot_temperature(&self, handle: Handle) -> Result<Option<f32>, TelemetryState> {
+        let Some(query) = self.temperature_v else {
+            return Ok(None);
+        };
+        let mut value = TemperatureV1 {
+            version: temperature_v1_version(),
+            sensor_type: 1, // NVML_TEMPERATURE_GPU_MAX (NVML v615+ hottest die).
+            ..Default::default()
+        };
+        let status = unsafe { query(handle, &mut value) };
+        Ok(extra_temperature_available(status)?.then_some(value.temperature as f32))
     }
 
     fn memory(&self, handle: Handle) -> Result<Memory, TelemetryState> {
@@ -688,6 +785,17 @@ fn optional_sensor(
     }
 }
 
+fn extra_temperature_available(status: Status) -> Result<bool, TelemetryState> {
+    match status {
+        0 => Ok(true),
+        // Explicit NVML initialization/driver/device loss still invalidates the
+        // whole sample. NOT_FOUND (6) here can mean only a missing field/sensor.
+        1 | 9 | 15 => Err(TelemetryState::DriverUnavailable),
+        // Includes unsupported selector/version, permission and missing APIs.
+        _ => Ok(false),
+    }
+}
+
 /// Bounded retries and allocations even if the driver's inventory changes while
 /// it fills the array. A failed query is never converted into an empty/idle list.
 fn query_array<T: Default + Clone>(
@@ -770,6 +878,12 @@ mod tests {
         memory_status: Status,
         sample_status: Status,
         sensor_statuses: [Status; 12],
+        field_values_status: Status,
+        memory_temperature_status: Status,
+        memory_temperature_wrong_type: bool,
+        memory_temperature_c: u32,
+        hotspot_temperature_status: Status,
+        hotspot_temperature_c: c_int,
         sensor_calls: Vec<(usize, usize)>,
         samples: Vec<ProcessUtilization>,
         entries: Vec<ProcessV2>,
@@ -833,6 +947,41 @@ mod tests {
             return 2;
         }
         sensor(handle, out, 0, 50 + handle as u32)
+    }
+    unsafe extern "C" fn field_values(
+        handle: Handle,
+        count: c_int,
+        out: *mut FieldValue,
+    ) -> Status {
+        if count != 1 || (*out).field_id != 82 || (*out).scope_id != 0 {
+            return 2;
+        }
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.sensor_calls.push((handle as usize, 12));
+            (*out).timestamp = 123; // The same conversion timestamp may recur.
+            (*out).latency_usec = 5;
+            (*out).nvml_return = mock.memory_temperature_status;
+            (*out).value_type = u32::from(!mock.memory_temperature_wrong_type);
+            (*out).value = Value {
+                unsigned_int: mock.memory_temperature_c,
+            };
+            mock.field_values_status
+        })
+    }
+    unsafe extern "C" fn temperature_v(handle: Handle, out: *mut TemperatureV1) -> Status {
+        if (*out).version != 0x0100_000c {
+            return 25;
+        }
+        if (*out).sensor_type != 1 {
+            return 2;
+        }
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.sensor_calls.push((handle as usize, 13));
+            (*out).temperature = mock.hotspot_temperature_c;
+            mock.hotspot_temperature_status
+        })
     }
     unsafe extern "C" fn power(handle: Handle, out: *mut u32) -> Status {
         sensor(handle, out, 1, 12_345 + handle as u32 * 1000)
@@ -911,6 +1060,8 @@ mod tests {
             encode: Some(video),
             decode: Some(video),
             temperature: Some(temperature),
+            field_values: Some(field_values),
+            temperature_v: Some(temperature_v),
             power: Some(power),
             power_limit: Some(power_limit),
             clock: Some(clock),
@@ -976,6 +1127,8 @@ mod tests {
             let mut mock = mock.borrow_mut();
             mock.present = true;
             mock.generation = 1;
+            mock.memory_temperature_c = 74;
+            mock.hotspot_temperature_c = 105;
         });
         let first = api.sample("0000:01:00.0", 0).unwrap();
         assert_eq!(first.overall, Ok(10.));
@@ -984,6 +1137,8 @@ mod tests {
         let mut gpu = magpie_platform::gpus::Gpu::default();
         super::super::apply_nvml_sensors(&mut gpu, &first.sensors);
         assert_eq!(gpu.temperature_c, Some(51.));
+        assert_eq!(gpu.memory_temperature_c, Some(74.));
+        assert_eq!(gpu.hotspot_temperature_c, Some(105.));
         assert_eq!(gpu.power_draw_watts, Some(13.345));
         assert_eq!(gpu.max_power_draw_watts, Some(150.));
         assert_eq!(gpu.clock_speed_mhz, Some(501));
@@ -1002,24 +1157,145 @@ mod tests {
             let mut mock = mock.borrow_mut();
             mock.present = true;
             mock.generation = 2;
+            mock.memory_temperature_c = 76;
+            mock.hotspot_temperature_c = 110;
         });
         let next = api.sample("0000:01:00.0", 0).unwrap();
         assert_eq!(next.overall, Ok(20.));
         super::super::clear_dynamic(&mut gpu);
         super::super::apply_nvml_sensors(&mut gpu, &next.sensors);
         assert_eq!(gpu.temperature_c, Some(52.));
+        assert_eq!(gpu.memory_temperature_c, Some(76.));
+        assert_eq!(gpu.hotspot_temperature_c, Some(110.));
         assert_eq!(gpu.power_draw_watts, Some(14.345));
         assert_eq!(gpu.clock_speed_mhz, Some(502));
         assert_eq!(gpu.memory_speed_mhz, Some(7002));
         MOCK.with(|mock| {
             assert_eq!(mock.borrow().lookups, 4);
             assert_eq!(mock.borrow().queried_handles, [1, 2]);
-            assert_eq!(mock.borrow().sensor_calls.len(), 24);
+            assert_eq!(mock.borrow().sensor_calls.len(), 28);
             for (index, &(handle, key)) in mock.borrow().sensor_calls.iter().enumerate() {
-                assert_eq!(handle, index / 12 + 1);
-                assert_eq!(key, index % 12);
+                assert_eq!(handle, index / 14 + 1);
+                assert_eq!(key, index % 14);
             }
         });
+    }
+
+    #[test]
+    fn extra_temperatures_check_abi_statuses_types_and_clear_failed_readings() {
+        assert_eq!(std::mem::size_of::<Value>(), 8);
+        assert_eq!(std::mem::size_of::<FieldValue>(), 40);
+        assert_eq!(std::mem::offset_of!(FieldValue, timestamp), 8);
+        assert_eq!(std::mem::offset_of!(FieldValue, value_type), 24);
+        assert_eq!(std::mem::offset_of!(FieldValue, nvml_return), 28);
+        assert_eq!(std::mem::offset_of!(FieldValue, value), 32);
+        assert_eq!(temperature_v1_version(), 0x0100_000c);
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.present = true;
+            mock.generation = 1;
+            mock.hotspot_temperature_c = -5;
+        });
+        let mut api = api();
+        let mut gpu = magpie_platform::gpus::Gpu::default();
+        let first = api.sample("0000:01:00.0", 0).unwrap();
+        super::super::apply_nvml_sensors(&mut gpu, &first.sensors);
+        assert_eq!(gpu.memory_temperature_c, Some(0.));
+        assert_eq!(gpu.hotspot_temperature_c, Some(-5.));
+        for status in [3, 4, 6] {
+            MOCK.with(|mock| mock.borrow_mut().memory_temperature_status = status);
+            let sample = api.sample("0000:01:00.0", 0).unwrap();
+            super::super::clear_dynamic(&mut gpu);
+            super::super::apply_nvml_sensors(&mut gpu, &sample.sensors);
+            assert_eq!(gpu.memory_temperature_c, None);
+            assert_eq!(gpu.hotspot_temperature_c, Some(-5.));
+            assert_eq!(gpu.temperature_c, Some(51.));
+            assert_eq!(sample.overall, Ok(10.));
+        }
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.memory_temperature_status = 0;
+            mock.memory_temperature_wrong_type = true;
+        });
+        let wrong_type = api.sample("0000:01:00.0", 0).unwrap();
+        assert_eq!(wrong_type.sensors.memory_temperature_c, None);
+        assert_eq!(wrong_type.sensors.hotspot_temperature_c, Some(-5.));
+        MOCK.with(|mock| mock.borrow_mut().memory_temperature_wrong_type = false);
+        for status in [2, 3, 4, 25] {
+            MOCK.with(|mock| mock.borrow_mut().hotspot_temperature_status = status);
+            let sample = api.sample("0000:01:00.0", 0).unwrap();
+            super::super::clear_dynamic(&mut gpu);
+            super::super::apply_nvml_sensors(&mut gpu, &sample.sensors);
+            assert_eq!(gpu.memory_temperature_c, Some(0.));
+            assert_eq!(gpu.hotspot_temperature_c, None);
+            assert_eq!(gpu.power_draw_watts, Some(13.345));
+        }
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.hotspot_temperature_status = 0;
+            mock.field_values_status = 4;
+        });
+        let failed_call = api.sample("0000:01:00.0", 0).unwrap();
+        assert_eq!(failed_call.sensors.memory_temperature_c, None);
+        assert_eq!(failed_call.sensors.hotspot_temperature_c, Some(-5.));
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.field_values_status = 0;
+            mock.memory_temperature_c = 85;
+        });
+        let current = api.sample("0000:01:00.0", 999).unwrap();
+        // Re-query even when the NVML field's conversion timestamp is unchanged.
+        assert_eq!(current.sensors.memory_temperature_c, Some(85.));
+        api.field_values = None;
+        api.temperature_v = None;
+        let missing = api.sample("0000:01:00.0", 999).unwrap();
+        super::super::clear_dynamic(&mut gpu);
+        super::super::apply_nvml_sensors(&mut gpu, &missing.sensors);
+        assert_eq!(gpu.memory_temperature_c, None);
+        assert_eq!(gpu.hotspot_temperature_c, None);
+        assert_eq!(gpu.temperature_c, Some(51.));
+    }
+
+    #[test]
+    fn extra_temperature_device_loss_invalidates_the_whole_sample() {
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.present = true;
+            mock.generation = 1;
+        });
+        let api = api();
+        let mut gpu = magpie_platform::gpus::Gpu::default();
+        let first = api.sample("0000:01:00.0", 0).unwrap();
+        super::super::apply_nvml_sensors(&mut gpu, &first.sensors);
+        assert_eq!(gpu.memory_temperature_c, Some(0.));
+        assert_eq!(gpu.hotspot_temperature_c, Some(0.));
+        MOCK.with(|mock| mock.borrow_mut().memory_temperature_status = 15);
+        assert!(matches!(
+            api.sample("0000:01:00.0", 0),
+            Err(TelemetryState::DriverUnavailable)
+        ));
+        super::super::clear_dynamic(&mut gpu); // The caller's device-loss path.
+        assert_eq!(gpu.memory_temperature_c, None);
+        assert_eq!(gpu.hotspot_temperature_c, None);
+        assert_eq!(gpu.power_draw_watts, None);
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.memory_temperature_status = 0;
+            mock.field_values_status = 9;
+        });
+        assert!(matches!(
+            api.sample("0000:01:00.0", 0),
+            Err(TelemetryState::DriverUnavailable)
+        ));
+        MOCK.with(|mock| {
+            let mut mock = mock.borrow_mut();
+            mock.field_values_status = 0;
+            mock.hotspot_temperature_status = 15;
+        });
+        assert!(matches!(
+            api.sample("0000:01:00.0", 0),
+            Err(TelemetryState::DriverUnavailable)
+        ));
     }
 
     #[test]

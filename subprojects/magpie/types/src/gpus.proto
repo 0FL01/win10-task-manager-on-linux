@@ -83,6 +83,8 @@ message Gpu {
   map<uint32, Process> processes = 33;
   optional GpuTelemetry telemetry = 34;
   optional float voltage_v = 35;
+  optional float memory_temperature_c = 36;
+  optional float hotspot_temperature_c = 37;
 }
 
 // Unknown is deliberately not equivalent to an observed idle value.
