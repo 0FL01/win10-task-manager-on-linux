@@ -147,6 +147,8 @@ pub struct Config {
     pub performance_sidebar_width: i32,
     pub performance_sidebar_hidden_graphs: String,
     pub performance_sidebar_device_overrides: String,
+    /// Cooling page: the "Stopped" fans disclosure is expanded
+    pub performance_cooling_stopped_expanded: bool,
 
     /// Layout defaults already applied to this file (see [`Config::migrate_layout`]). Missing in
     /// files written before the Win10 interface, hence the field-level default of 0.
@@ -198,6 +200,7 @@ impl Default for Config {
             performance_sidebar_width: 211,
             performance_sidebar_hidden_graphs: String::new(),
             performance_sidebar_device_overrides: String::new(),
+            performance_cooling_stopped_expanded: false,
             layout_version: LAYOUT_VERSION,
         }
     }

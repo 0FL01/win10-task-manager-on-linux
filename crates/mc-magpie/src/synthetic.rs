@@ -25,7 +25,7 @@ use std::collections::HashMap;
 
 use magpie_types::battery::{Battery, HistoryPoint};
 use magpie_types::disks::{Disk, DiskKind, PartitionInfo, SmartInterface};
-use magpie_types::fan::Fan;
+use magpie_types::fan::{Fan, HwmonChip, TemperatureSensor};
 use magpie_types::gpus::{ApiVersion, Gpu};
 use magpie_types::memory::{Memory, MemoryDevice, SwapDevice, ZramStats};
 use magpie_types::network::{Connection, ConnectionKind, ConnectionState, WirelessConnection};
@@ -225,16 +225,98 @@ pub fn synthetic_readings(step: usize, process_count: usize) -> Readings {
     );
     r.gpus = gpus;
 
-    r.fans = vec![Fan {
-        fan_label: Some("cpu_fan".into()),
-        temp_name: Some("k10temp".into()),
-        fan_index: 1,
-        hwmon_index: 2,
-        rpm: wave(step, 21., 0., 1200., 3200.) as u32,
-        temp_amount: Some(323_150),
-        pwm_percent: Some(wave(step, 21., 0., 0.3, 0.8)),
-        max_rpm: None,
-    }];
+    let chip = |hwmon_index: u32, name: &str| HwmonChip {
+        hwmon_index,
+        name: Some(name.into()),
+        ..Default::default()
+    };
+    let board = chip(4, "nct6687");
+    let gpu = HwmonChip {
+        pci_slot: Some("0000:01:00.0".into()),
+        ..chip(1, "amdgpu")
+    };
+    let fan = |chip: &HwmonChip, index: u32, label: Option<&str>, rpm: f32, pwm: Option<f32>| Fan {
+        fan_label: label.map(Into::into),
+        fan_index: index,
+        hwmon_index: chip.hwmon_index,
+        rpm: rpm as u32,
+        pwm_percent: pwm,
+        chip: Some(chip.clone()),
+        rpm_valid: Some(true),
+        ..Default::default()
+    };
+    r.fans = vec![
+        fan(
+            &board,
+            1,
+            Some("CPU Fan"),
+            wave(step, 21., 0., 700., 1400.),
+            Some(wave(step, 21., 0., 0.15, 0.45)),
+        ),
+        fan(&board, 2, Some("Pump Fan"), 0., Some(1.)),
+        fan(
+            &board,
+            3,
+            Some("System Fan #1"),
+            wave(step, 27., 1., 650., 900.),
+            Some(0.3),
+        ),
+        fan(&board, 4, Some("System Fan #2"), 0., Some(0.6)),
+        Fan {
+            max_rpm: Some(3300),
+            ..fan(
+                &gpu,
+                1,
+                None,
+                wave(step, 17., 2., 0., 1600.),
+                Some(wave(step, 17., 2., 0., 0.45)),
+            )
+        },
+    ];
+    let temp =
+        |chip: &HwmonChip, index: u32, label: Option<&str>, celsius: f32| TemperatureSensor {
+            temp_index: index,
+            chip: Some(chip.clone()),
+            label: label.map(Into::into),
+            input_millicelsius: Some((celsius * 1000.) as i32),
+            ..Default::default()
+        };
+    let nvme = HwmonChip {
+        device_model: Some("Synthetic NVMe SSD".into()),
+        ..chip(0, "nvme")
+    };
+    r.temperatures = vec![
+        temp(&nvme, 1, Some("Composite"), wave(step, 40., 0., 38., 46.)),
+        TemperatureSensor {
+            // Drivers report nonsense limits; they must not become a meaningful bar
+            max_millicelsius: Some(65_262_000),
+            ..temp(&nvme, 2, Some("Sensor 1"), 44.)
+        },
+        TemperatureSensor {
+            crit_millicelsius: Some(110_000),
+            ..temp(&gpu, 1, Some("edge"), wave(step, 17., 2., 34., 62.))
+        },
+        TemperatureSensor {
+            crit_millicelsius: Some(110_000),
+            ..temp(&gpu, 2, Some("junction"), wave(step, 17., 2., 38., 78.))
+        },
+        temp(
+            &chip(2, "k10temp"),
+            1,
+            Some("Tctl"),
+            wave(step, 21., 0., 45., 72.),
+        ),
+        temp(&chip(3, "r8169_0_2a00:00"), 1, None, 41.),
+        temp(&board, 1, Some("CPU"), wave(step, 21., 0., 44., 70.)),
+        temp(&board, 2, Some("System"), 36.5),
+        temp(&board, 3, Some("VRM MOS"), wave(step, 33., 1., 40., 52.)),
+        // A real zero reading stays visible
+        temp(&board, 7, Some("M2_1"), 0.),
+        TemperatureSensor {
+            input_millicelsius: None,
+            ..temp(&board, 8, Some("AUX"), 0.)
+        },
+    ];
 
     r.batteries = vec![Battery {
         name: "BAT0".into(),

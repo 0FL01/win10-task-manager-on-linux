@@ -18,242 +18,182 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use super::{GraphPanel, PageView, over};
-use mc_core::config::Config;
-use mc_core::i18n::n_;
-use mc_core::i18n::{i18n, i18n_f};
-use mc_core::sidebar::DeviceType;
-use mc_graph::{DatasetGroup, FillingSettings, Graph, ScalingSettings};
-use mc_magpie::{Fan, Readings};
+//! One fan of the Cooling page: its own speed/PWM history and details. Fans carry no
+//! temperature: hwmon fan and temperature channels sharing a number are unrelated.
 
-use super::cpu::{TEMPERATURE_HIGH_WATERMARK, TEMPERATURE_LOW_WATERMARK};
-use super::{DevicePage, MK_TO_0_C, SummaryGraph, UpdateEnv};
+use super::{GraphPanel, PageView, StatLegend, over};
+use mc_core::i18n::{i18n, i18n_f, n_};
+use mc_graph::{DatasetGroup, FillingSettings, Graph, ScalingSettings};
+use mc_magpie::Fan;
+
 const COLOR: egui::Color32 = crate::win10::palette::FAN.line;
 
-pub fn page_name(fan: &Fan) -> String {
-    format!("fan-{}-{}", fan.hwmon_index, fan.fan_index)
+/// Stable identity within a session: hwmon device, driver and channel.
+pub fn key(fan: &Fan) -> String {
+    let chip = fan.chip.as_ref().and_then(|c| c.name.as_deref());
+    format!(
+        "fan:{}-{}-{}",
+        fan.hwmon_index,
+        chip.unwrap_or_default(),
+        fan.fan_index
+    )
 }
 
-fn temp_c(milli_k: u32) -> f32 {
-    (milli_k as i32 + MK_TO_0_C) as f32 / 1000.
+/// `None` when the reading is unknown; a legacy daemon cannot report validity.
+pub fn rpm(fan: &Fan) -> Option<u32> {
+    (fan.rpm_valid != Some(false)).then_some(fan.rpm)
 }
 
-pub struct FanPage {
-    name: String,
-    hwmon_index: u32,
-    fan_index: u32,
-    index: Option<usize>,
-    summary: SummaryGraph,
-    speed_graph: Graph,
-    temp_graph: Graph,
+/// The driver's label, otherwise the channel ("Fan 1").
+pub fn label(fan: &Fan) -> String {
+    fan.fan_label
+        .clone()
+        .unwrap_or_else(|| i18n_f("Fan {}", &[&fan.fan_index.to_string()]))
+}
+
+pub fn pwm_label(pwm: Option<f32>) -> String {
+    pwm.map(|p| i18n_f(n_("{}%"), &[&format!("{:.0}", p * 100.)]))
+        .unwrap_or_default()
+}
+
+pub fn rpm_label(rpm: Option<u32>) -> String {
+    rpm.map(|rpm| i18n_f("{} RPM", &[&rpm.to_string()]))
+        .unwrap_or_else(|| "—".into())
+}
+
+pub struct FanEntry {
+    key: String,
     title: String,
-    temp_name: String,
-    has_pwm: bool,
-    has_temp: bool,
+    chip: String,
+    channel: String,
+    speed_graph: Graph,
     max_rpm: Option<u32>,
+    has_pwm: bool,
     speed: String,
     pwm: String,
-    temp: String,
     speed_max_y: String,
-    temp_max_y: String,
-    max_duration: String,
 }
 
-impl FanPage {
-    pub fn new(fan: &Fan, config: &Config) -> Self {
-        let mut summary = SummaryGraph::new(COLOR, i18n("Fan"));
-        let mut s = DatasetGroup::new();
-        s.dataset_settings.scaling_settings = ScalingSettings::StickyUp;
-        summary.graph.add_dataset(s);
-
-        let mut temp_graph = Graph::new();
-        temp_graph.set_base_color(COLOR);
-        let mut t = DatasetGroup::new();
-        t.dataset_settings.scaling_settings = ScalingSettings::StickyUpDown;
-        t.dataset_settings.high_watermark = TEMPERATURE_HIGH_WATERMARK;
-        t.dataset_settings.low_watermark = TEMPERATURE_LOW_WATERMARK;
-        temp_graph.add_dataset(t);
-
+impl FanEntry {
+    pub fn new(fan: &Fan) -> Self {
         let mut speed_graph = Graph::new();
         speed_graph.set_base_color(COLOR);
-        let mut rpm = DatasetGroup::new();
+        let mut rpm = DatasetGroup::new_with_fill(f32::NAN);
         rpm.dataset_settings.scaling_settings = ScalingSettings::StickyUp;
-        let mut pwm = DatasetGroup::new();
+        let mut pwm = DatasetGroup::new_with_fill(f32::NAN);
         pwm.dataset_settings.dashed = true;
         pwm.dataset_settings.fill = FillingSettings::None;
         pwm.dataset_settings.high_watermark = 1.;
         speed_graph.add_dataset(rpm);
         speed_graph.add_dataset(pwm);
-
-        let mut speed_max_y = String::new();
-        if let Some(max) = fan.max_rpm {
-            speed_max_y = max.to_string();
-            speed_graph.set_dataset_scaling(0, ScalingSettings::Fixed);
-            speed_graph.set_dataset_max_scale(0, max as f32);
-        }
-
         Self {
-            name: page_name(fan),
-            hwmon_index: fan.hwmon_index,
-            fan_index: fan.fan_index,
-            index: None,
-            summary,
+            key: key(fan),
+            title: String::new(),
+            chip: String::new(),
+            channel: format!("fan{}", fan.fan_index),
             speed_graph,
-            temp_graph,
-            title: i18n("Fan"),
-            temp_name: fan.temp_name.clone().unwrap_or_default(),
-            has_pwm: fan.pwm_percent.is_some(),
-            has_temp: fan.temp_amount.is_some(),
-            max_rpm: fan.max_rpm,
+            max_rpm: None,
+            has_pwm: false,
             speed: String::new(),
             pwm: String::new(),
-            temp: String::new(),
-            speed_max_y,
-            temp_max_y: String::new(),
-            max_duration: super::max_duration(config),
+            speed_max_y: String::new(),
         }
     }
-}
 
-impl DevicePage for FanPage {
-    fn name(&self) -> &str {
-        &self.name
+    pub fn key(&self) -> &str {
+        &self.key
     }
 
-    fn device_type(&self) -> DeviceType {
-        DeviceType::Fan
-    }
-
-    fn summary(&self) -> &SummaryGraph {
-        &self.summary
-    }
-
-    fn summary_mut(&mut self) -> &mut SummaryGraph {
-        &mut self.summary
-    }
-
-    fn set_index(&mut self, index: Option<usize>) {
-        self.index = index;
-        self.summary.heading = match index {
-            Some(i) => i18n_f("Fan {}", &[&i.to_string()]),
-            None => i18n("Fan"),
+    pub fn update(&mut self, fan: &Fan, chip_title: &str) {
+        self.title = label(fan);
+        self.chip = chip_title.to_owned();
+        let rpm = rpm(fan);
+        self.speed = rpm_label(rpm);
+        self.has_pwm |= fan.pwm_percent.is_some();
+        self.pwm = match fan.pwm_percent {
+            Some(p) => pwm_label(Some(p)),
+            None => "—".into(),
         };
-    }
-
-    fn update(&mut self, readings: &Readings, env: &UpdateEnv) -> bool {
-        let Some(fan) = readings
-            .fans
-            .iter()
-            .find(|f| f.hwmon_index == self.hwmon_index && f.fan_index == self.fan_index)
-        else {
-            return false;
-        };
-        self.max_duration = env.max_duration.clone();
-
-        self.title = match (&fan.fan_label, self.index) {
-            (Some(label), _) => label.clone(),
-            (None, Some(i)) => i18n_f("Fan {}", &[&i.to_string()]),
-            (None, None) => i18n("Fan"),
-        };
-        self.speed = i18n_f("{} RPM", &[&fan.rpm.to_string()]);
-        self.pwm = i18n_f(
-            n_("{}%"),
-            &[&format!("{:.0}", fan.pwm_percent.unwrap_or(0.) * 100.)],
-        );
-        let temp = fan.temp_amount.map(temp_c);
-        if let Some(t) = temp {
-            self.temp = i18n_f("{} °C", &[&format!("{t:.1}")]);
-            self.temp_graph.add_data_point(vec![vec![t]]);
-            self.temp_max_y = format!("{} °C", self.temp_graph.dataset_max_scale(0));
+        // The reported maximum may appear or change while the daemon rescans.
+        if fan.max_rpm != self.max_rpm {
+            self.max_rpm = fan.max_rpm;
+            let scaling = match self.max_rpm {
+                Some(_) => ScalingSettings::Fixed,
+                None => ScalingSettings::StickyUp,
+            };
+            self.speed_graph.set_dataset_scaling(0, scaling);
+            if let Some(max) = self.max_rpm {
+                self.speed_graph.set_dataset_max_scale(0, max as f32);
+            }
         }
         self.speed_graph.add_data_point(vec![
-            vec![fan.rpm as f32],
-            vec![fan.pwm_percent.unwrap_or(0.)],
+            vec![rpm.map_or(f32::NAN, |rpm| rpm as f32)],
+            vec![fan.pwm_percent.unwrap_or(f32::NAN)],
         ]);
-        if self.max_rpm.is_none() {
-            self.speed_max_y = i18n_f(
-                n_("{} RPM"),
-                &[&self.speed_graph.dataset_max_scale(0).to_string()],
-            );
-        }
-
-        self.summary
-            .graph
-            .add_data_point(vec![vec![fan.rpm as f32]]);
-        self.summary.info1 = fan
-            .fan_label
-            .clone()
-            .or_else(|| fan.temp_name.clone())
-            .unwrap_or_default();
-        let temp_str = temp.map(|t| format!(" ({t:.0} °C)")).unwrap_or_default();
-        self.summary.info2 = match fan.pwm_percent {
-            Some(p) => format!("{:.0}%{temp_str}", p * 100.),
-            None => format!("{} RPM{temp_str}", fan.rpm),
-        };
-        true
+        self.speed_max_y = i18n_f(
+            "{} RPM",
+            &[&self.speed_graph.dataset_max_scale(0).round().to_string()],
+        );
     }
 
-    fn set_grid_offset(&mut self, offset: u32) -> bool {
-        self.speed_graph.set_grid_offset(offset) | self.temp_graph.set_grid_offset(offset)
+    pub fn set_grid_offset(&mut self, offset: u32) -> bool {
+        self.speed_graph.set_grid_offset(offset)
     }
 
-    fn win10_view(&mut self, _config: &Config) -> PageView<'_> {
-        let mut first = vec![(i18n("Fan Speed"), self.speed.clone())];
+    pub fn detail_view(&mut self, max_duration: &str) -> PageView<'_> {
+        let mut stats = vec![(i18n("Fan Speed"), self.speed.clone())];
+        let mut stat_legends = vec![((0, 0), StatLegend::Solid)];
         if self.has_pwm {
-            first.push((i18n("PWM Percentage"), self.pwm.clone()));
+            stats.push((i18n("PWM Percentage"), self.pwm.clone()));
+            stat_legends.push(((0, 1), StatLegend::Dashed));
         }
-        let mut stats = vec![first];
-        if self.has_temp {
-            stats.push(vec![(i18n("Current Temperature"), self.temp.clone())]);
-        }
-        let mut panels = vec![GraphPanel::single(
-            over(n_("Fan speed over "), &self.max_duration),
-            self.speed_max_y.clone(),
-            &mut self.speed_graph,
-        )];
-        if self.has_temp {
-            panels.push(GraphPanel::single(
-                over(n_("Temperature over "), &self.max_duration),
-                self.temp_max_y.clone(),
-                &mut self.temp_graph,
+        let mut info = vec![(i18n("Sensor:"), format!("{} · {}", self.chip, self.channel))];
+        if let Some(max) = self.max_rpm {
+            info.push((
+                i18n("Maximum speed:"),
+                i18n_f("{} RPM", &[&max.to_string()]),
             ));
         }
         PageView {
             model_tooltip: None,
             title: self.title.clone(),
-            model: self.temp_name.clone(),
-            panels,
-            stats,
-            stat_legends: vec![],
-            info: vec![],
+            model: self.title.clone(),
+            panels: vec![GraphPanel::single(
+                over(n_("Fan speed over "), max_duration),
+                self.speed_max_y.clone(),
+                &mut self.speed_graph,
+            )],
+            stats: vec![stats],
+            stat_legends,
+            info,
             composition: None,
             swap_compression: None,
         }
     }
 
-    fn data_summary(&self) -> String {
+    pub fn data_summary(&self) -> String {
         let unsupported = i18n("Unsupported");
-        let or = |v: &str, shown: bool| {
-            if shown && !v.is_empty() {
-                v.to_owned()
-            } else {
-                unsupported.clone()
-            }
-        };
         format!(
             r#"Fan
 
     {}
-    {}
+    {} · {}
 
     Speed:               {}
     PWM Percentage:      {}
-    Current Temperature: {}"#,
+    Maximum speed:       {}"#,
             self.title,
-            self.temp_name,
-            or(&self.speed, true),
-            or(&self.pwm, self.has_pwm),
-            or(&self.temp, self.has_temp),
+            self.chip,
+            self.channel,
+            self.speed,
+            if self.has_pwm {
+                self.pwm.clone()
+            } else {
+                unsupported.clone()
+            },
+            self.max_rpm
+                .map(|max| i18n_f("{} RPM", &[&max.to_string()]))
+                .unwrap_or(unsupported),
         )
     }
 }

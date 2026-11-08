@@ -22,7 +22,7 @@ use std::time::Instant;
 
 use prost::Message;
 
-use magpie_platform::fan::{FanList, FansResponse, FansResponseKind};
+use magpie_platform::fan::{FansResponse, FansResponseKind};
 use magpie_platform::ipc::{Response, ResponseBody};
 
 use crate::{data_cache, nng};
@@ -35,7 +35,7 @@ pub fn handle_request() -> nng::Buffer {
 
     let response = Response {
         body: Some(ResponseBody::Fans(FansResponse {
-            response: Some(FansResponseKind::Fans(FanList { fans })),
+            response: Some(FansResponseKind::Fans(fans)),
         })),
     };
     response.encoded_len();

@@ -2739,3 +2739,196 @@ fn memory_module_height_follows_last_stats_row_and_empty_slots_are_grey() {
         )
         .unwrap();
 }
+
+/// Original consolidated-cooling design, not historical Win10 pixel measurements.
+#[test]
+fn performance_cooling_groups_stopped_fans_and_details() {
+    use egui_kittest::kittest::NodeT;
+    use mc_ui::win10::palette::COOLING_SERIES;
+    let reading = mc_magpie::synthetic_readings(0, 1);
+    let config = Config {
+        performance_selected_page: "fan-4-1".into(),
+        performance_sidebar_order: "cpu;fan-4-1;fan-1-1;memory;system".into(),
+        window_width: 1200,
+        window_height: 820,
+        app_update_interval: 2,
+        ..Default::default()
+    };
+    let mut h = performance_harness(config, reading, 1.);
+    for _ in 0..100 {
+        h.run_steps(1);
+        if h.state().as_ref().unwrap().stats.readings_applied >= 3 {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert!(h.state().as_ref().unwrap().stats.readings_applied >= 3);
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = true);
+    h.run_steps(2);
+    assert_eq!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_selected_page,
+        "cooling",
+        "legacy per-fan selection migrates to the group"
+    );
+    assert_eq!(
+        h.output()
+            .shapes
+            .iter()
+            .filter(|s| matches!(&s.shape,
+                egui::Shape::Text(t) if t.galley.job.text == "Cooling"))
+            .count(),
+        2,
+        "one sidebar row plus the page title"
+    );
+    let fans = ["CPU Fan —", "System Fan #1 —", "Fan 1 —"]
+        .map(|name| h.get_by_label_contains(name).rect());
+    assert!(
+        fans.iter()
+            .all(|card| card.width() >= 224. && card.height() == 96.)
+    );
+    assert!(
+        h.query_by_label_contains("Pump Fan —").is_none(),
+        "stopped fans start collapsed"
+    );
+    let sensor = h.get_by_label_contains("Tctl —").rect();
+    assert_eq!(sensor.height(), 64.);
+    assert!(sensor.width() >= 152.);
+
+    let light = h.render().unwrap();
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    light
+        .save(out.join("win10-performance-cooling-light.png"))
+        .unwrap();
+    // The card legend and the overview line share one ink
+    let legend = |image: &RgbaImage, card: egui::Rect| {
+        image
+            .get_pixel(card.right() as u32 - 20, card.top() as u32 + 19)
+            .0[..3]
+            .to_vec()
+    };
+    let inks: Vec<_> = fans.iter().map(|card| legend(&light, *card)).collect();
+    for ink in &inks {
+        let pair = COOLING_SERIES
+            .iter()
+            .find(|pair| pair[0].to_array()[..3] == ink[..])
+            .unwrap_or_else(|| panic!("{ink:?} is not a series ink"));
+        assert!(
+            h.output()
+                .shapes
+                .iter()
+                .any(|s| matches!(&s.shape, egui::Shape::Path(path)
+                    if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(c) if c == pair[0]))),
+            "{ink:?} is drawn as an overview line"
+        );
+    }
+    assert_eq!(
+        inks.iter().collect::<std::collections::HashSet<_>>().len(),
+        3
+    );
+
+    let stopped = h.get_by_label("Stopped (2)").rect().center();
+    click(&mut h, stopped);
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label("Stopped (2)")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    assert!(
+        h.state()
+            .as_ref()
+            .unwrap()
+            .config()
+            .performance_cooling_stopped_expanded
+    );
+    assert_eq!(h.get_by_label_contains("Pump Fan —").rect().height(), 96.);
+
+    let cpu = h.get_by_label_contains("CPU Fan —").rect().center();
+    click(&mut h, cpu);
+    h.run_steps(2);
+    assert_eq!(
+        h.get_by_label_contains("CPU Fan —")
+            .accesskit_node()
+            .data()
+            .is_expanded(),
+        Some(true)
+    );
+    assert_eq!(
+        h.ctx.content_rect().size(),
+        egui::vec2(1200., 820.),
+        "card clicks never enter summary"
+    );
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-cooling-expanded.png"))
+        .unwrap();
+
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.theme = mc_core::config::Theme::Dark);
+    h.run_steps(2);
+    let dark = h.render().unwrap();
+    dark.save(out.join("win10-performance-cooling-dark.png"))
+        .unwrap();
+    let fans = ["CPU Fan —", "System Fan #1 —", "Fan 1 —"]
+        .map(|name| h.get_by_label_contains(name).rect());
+    // The open detail pushes later groups below the window
+    for (card, light_ink) in fans
+        .iter()
+        .zip(&inks)
+        .filter(|(card, _)| card.bottom() < 820.)
+    {
+        let pair = COOLING_SERIES
+            .iter()
+            .find(|pair| pair[0].to_array()[..3] == light_ink[..])
+            .unwrap();
+        assert_eq!(legend(&dark, *card), pair[1].to_array()[..3].to_vec());
+    }
+    drop(h);
+
+    // The whole page at once: expanded stopped fans and a sensor's details
+    let config = Config {
+        performance_selected_page: "cooling".into(),
+        performance_cooling_stopped_expanded: true,
+        window_width: 1200,
+        window_height: 1500,
+        ..Default::default()
+    };
+    let mut h = performance_harness(config, mc_magpie::synthetic_readings(0, 1), 1.);
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = true);
+    h.run_steps(2);
+    assert!(
+        h.query_by_label_contains("Pump Fan —").is_some(),
+        "persisted expansion"
+    );
+    let edge = h.get_by_label_contains("edge —").rect().center();
+    click(&mut h, edge);
+    h.run_steps(2);
+    for text in ["Critical limit:", "Current Temperature"] {
+        assert!(
+            h.output()
+                .shapes
+                .iter()
+                .any(|s| matches!(&s.shape, egui::Shape::Text(t) if t.galley.job.text == text)),
+            "{text} in the sensor details"
+        );
+    }
+    h.render()
+        .unwrap()
+        .save(out.join("win10-performance-cooling-full.png"))
+        .unwrap();
+}

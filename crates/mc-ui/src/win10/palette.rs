@@ -146,6 +146,21 @@ pub const BATTERY_SERIES: [[Color32; 2]; 8] = [
     [FAN.line, rgb(0xb67bcc)],
 ];
 
+/// Own cooling overview series, [Light, Dark]. Fan cards use these exact inks as their legend.
+pub const COOLING_SERIES: [[Color32; 2]; 8] = [
+    [FAN.line, rgb(0xb67bcc)],
+    [CPU.line, rgb(0x49a8dc)],
+    [NETWORK.line, rgb(0xd2935d)],
+    [rgb(0x008b88), rgb(0x56c3bf)],
+    [rgb(0xbb4c4c), rgb(0xee9191)],
+    [DISK.line, rgb(0x88c651)],
+    [MEMORY.line, rgb(0xba65d3)],
+    [BATTERY.line, rgb(0x74bd86)],
+];
+/// Own: a temperature at or above the driver's high (`max`) or critical (`crit`) limit.
+pub const COOLING_HIGH: Color32 = rgb(0xc27c0e);
+pub const COOLING_CRITICAL: Color32 = SUMMARY_ALERT;
+
 /// Own dark adaptation. Light constants remain the measured reference palette. Resolution is
 /// per egui context (including offscreen renders), never process-global.
 pub fn resolve(ctx: &egui::Context, color: Color32) -> Color32 {
@@ -182,6 +197,7 @@ pub fn dark(color: Color32) -> Color32 {
         c if c == NETWORK.line => rgb(0xd2935d),
         c if c == FAN.line => rgb(0xb67bcc),
         c if c == BATTERY.line => rgb(0x74bd86),
+        COOLING_HIGH => rgb(0xe3a33d),
         _ if HEAT_LEVELS.contains(&color) => {
             let index = HEAT_LEVELS
                 .iter()

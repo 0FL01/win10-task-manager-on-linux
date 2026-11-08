@@ -22,16 +22,48 @@ syntax = "proto2";
 
 package magpie.fan;
 
+// The hwmon device a channel belongs to. Absent fields are unknown, never guessed.
+message HwmonChip {
+  required uint32 hwmon_index = 1;
+  // Driver name from hwmon `name`, e.g. `nct6687`, `amdgpu`, `nvme`
+  optional string name = 2;
+  // Canonical sysfs path of the hwmon `device`
+  optional string device_path = 3;
+  // Nearest PCI ancestor address of the device
+  optional string pci_slot = 4;
+  // DRM card owned by the device (`card1`), which is how GPUs are identified
+  optional string drm_card = 5;
+  // Model reported by the device itself (NVMe controllers)
+  optional string device_model = 6;
+}
+
 message Fan {
   optional string fan_label = 1;
+  // Deprecated: fans and temperatures share no channel relationship. Never set.
   optional string temp_name = 2;
   required uint32 fan_index = 3;
   required uint32 hwmon_index = 4;
 
+  // Meaningful only when `rpm_valid` is not false
   required uint32 rpm = 5;
+  // Deprecated: see `temp_name`. Never set.
   optional uint32 temp_amount = 6;
   optional float pwm_percent = 7;
   optional uint32 max_rpm = 8;
+  optional HwmonChip chip = 9;
+  // False when the input is unreadable or faulted. Absent: legacy daemon.
+  optional bool rpm_valid = 10;
+}
+
+// An independent hwmon `tempN_input` channel
+message TemperatureSensor {
+  required uint32 temp_index = 1;
+  optional HwmonChip chip = 2;
+  optional string label = 3;
+  // Millidegrees Celsius; absent when unreadable or faulted
+  optional sint32 input_millicelsius = 4;
+  optional sint32 max_millicelsius = 5;
+  optional sint32 crit_millicelsius = 6;
 }
 
 message FansRequest {}
@@ -39,6 +71,9 @@ message FansRequest {}
 message FansResponse {
   message FanList {
     repeated Fan fans = 1;
+    repeated TemperatureSensor temperatures = 2;
+    // False until the first inventory completed; absent from legacy daemons
+    optional bool ready = 3;
   }
 
   oneof response {

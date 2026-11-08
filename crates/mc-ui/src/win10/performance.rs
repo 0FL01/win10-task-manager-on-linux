@@ -22,7 +22,7 @@
 //! (docs/win10-spec/spec.md, "Performance tab").
 
 use egui::{Align, Color32, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
-use mc_core::i18n::i18n;
+use mc_core::i18n::{i18n, i18n_f};
 use mc_core::sidebar::DeviceType;
 use mc_graph::Graph;
 
@@ -30,6 +30,8 @@ use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
 use crate::perf::batteries::{BatteriesView, BatteryCard};
+use crate::perf::cooling::{ChipGroup, CoolingView, FanCard, SensorCard};
+use crate::perf::temperature::Level;
 use crate::perf::{GraphPanel, GraphTile, PageView, PerformancePage, StatLegend};
 use mc_magpie::magpie_types::battery::BatteryType;
 
@@ -155,7 +157,7 @@ pub fn device_colors(kind: DeviceType) -> pal::DeviceColors {
         DeviceType::Disk => pal::DISK,
         DeviceType::Network { .. } => pal::NETWORK,
         DeviceType::Gpu => pal::GPU,
-        DeviceType::Fan => pal::FAN,
+        DeviceType::Cooling => pal::FAN,
         DeviceType::Battery => pal::BATTERY,
     }
 }
@@ -177,6 +179,9 @@ pub struct PerformanceView {
     memory_size: egui::Vec2,
     battery_scroll: listview::ListState,
     battery_selected: Option<String>,
+    cooling_scroll: listview::ListState,
+    /// Transient: the card whose details are open (`fan:…` or `temp:…`)
+    cooling_selected: Option<String>,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
 }
@@ -253,6 +258,20 @@ impl PerformanceView {
                     )
                 })
                 .unwrap_or_default()
+        } else if kind == DeviceType::Cooling && !perf.summary_mode {
+            let view =
+                perf.devices[index].win10_cooling_view(cx.config, self.cooling_selected.as_deref());
+            match view {
+                Some(view) => cooling_page_ui(
+                    ui,
+                    page,
+                    view,
+                    &mut self.cooling_scroll,
+                    &mut self.cooling_selected,
+                    &mut cx.config.performance_cooling_stopped_expanded,
+                ),
+                None => GraphResponse::default(),
+            }
         } else {
             let view = perf.devices[index].win10_view(cx.config);
             if kind == DeviceType::System {
@@ -534,6 +553,20 @@ impl PerformanceView {
                     (graph.center().y - m::BATTERY_SIDEBAR_SIZE[1] / 2.).round(),
                 );
                 battery_glyph(&painter, origin, m::BATTERY_SIDEBAR_OUTLINE);
+            } else if kind == DeviceType::Cooling {
+                let scale = m::COOLING_SIDEBAR_SCALE;
+                let size = (m::FAN_GLYPH_SIZE - 1.) * scale + 1.;
+                let origin = pos2(
+                    (graph.center().x - size / 2.).round(),
+                    (graph.center().y - size / 2.).round(),
+                );
+                let scaled: Vec<_> = m::FAN_GLYPH
+                    .iter()
+                    .map(|&([x0, y0], [x1, y1])| {
+                        ([x0 * scale, y0 * scale], [x1 * scale, y1 * scale])
+                    })
+                    .collect();
+                battery_glyph(&painter, origin, &scaled);
             } else {
                 summary.graph.paint(&child, graph);
             }
@@ -608,14 +641,29 @@ fn battery_glyph(painter: &egui::Painter, origin: Pos2, segments: &[([f32; 2], [
     }
 }
 
-fn battery_card_ui(ui: &mut Ui, rect: Rect, card: &BatteryCard, selected: bool) -> egui::Response {
-    let response = ui.interact(rect, Id::new(("battery-card", &card.key)), Sense::click());
+/// Responsive card grid (own design): as many columns of at least `min_w` as fit in `room`.
+fn card_grid(room: f32, min_w: f32, gap: f32) -> (usize, f32) {
+    let columns = ((room + gap) / (min_w + gap)).floor().max(1.) as usize;
+    let card_w = ((room - (columns - 1) as f32 * gap) / columns as f32).floor();
+    (columns, card_w)
+}
+
+/// Height of `count` cards laid out in `columns`.
+fn grid_height(count: usize, columns: usize, card_h: f32, gap: f32) -> f32 {
+    let rows = count.div_ceil(columns.max(1));
+    rows as f32 * card_h + rows.saturating_sub(1) as f32 * gap
+}
+
+/// A selectable, focusable card of the consolidated battery and cooling pages: hover/selection
+/// fill and outline, with its expanded state exposed to accessibility.
+fn card_frame(ui: &mut Ui, rect: Rect, id: Id, selected: bool, label: &str) -> egui::Response {
+    let response = ui.interact(rect, id, Sense::click());
     response.widget_info(|| {
         egui::WidgetInfo::selected(
             egui::WidgetType::CollapsingHeader,
             ui.is_enabled(),
             selected,
-            &card.accessible_label,
+            label,
         )
     });
     ui.ctx()
@@ -644,6 +692,52 @@ fn battery_card_ui(ui: &mut Ui, rect: Rect, card: &BatteryCard, selected: bool) 
                 pal::HEADER_SEPARATOR_FLAT
             },
         );
+    }
+    response
+}
+
+/// Outlined legend bar in an already-resolved ink, filled to `fraction`.
+fn ink_bar(
+    painter: &egui::Painter,
+    left: f32,
+    right: f32,
+    y: f32,
+    h: f32,
+    ink: Color32,
+    fraction: Option<f32>,
+) {
+    let bottom = y + h - 1.;
+    for (from, to) in [
+        ((left, y), (right - 1., y)),
+        ((left, bottom), (right - 1., bottom)),
+        ((left, y), (left, bottom)),
+        ((right - 1., y), (right - 1., bottom)),
+    ] {
+        paint::line_ink(painter, from, to, ink);
+    }
+    if let Some(fraction) = fraction.filter(|f| *f > 0.) {
+        let mut fill = egui::Mesh::default();
+        fill.add_colored_rect(
+            Rect::from_min_max(
+                pos2(left + 2., y + 2.),
+                pos2(left + 2. + (right - left - 4.) * fraction, bottom - 1.),
+            ),
+            ink,
+        );
+        painter.add(egui::Shape::mesh(fill));
+    }
+}
+
+fn battery_card_ui(ui: &mut Ui, rect: Rect, card: &BatteryCard, selected: bool) -> egui::Response {
+    let response = card_frame(
+        ui,
+        rect,
+        Id::new(("battery-card", &card.key)),
+        selected,
+        &card.accessible_label,
+    );
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
         let segments = match card.kind {
             BatteryType::Bat | BatteryType::Ups => m::BATTERY_GLYPH,
             BatteryType::Mouse => m::BATTERY_MOUSE_GLYPH,
@@ -693,29 +787,275 @@ fn battery_card_ui(ui: &mut Ui, rect: Rect, card: &BatteryCard, selected: bool) 
         );
         // Already-resolved ink: exactly the same pair element as Graph's group strokes.
         let ink = card.colors[usize::from(ui.ctx().theme() == egui::Theme::Dark)];
-        let y = rect.top() + m::BATTERY_CARD_BAR_DY;
-        let bottom = y + m::BATTERY_CARD_BAR_H - 1.;
-        for (from, to) in [
-            ((left, y), (right - 1., y)),
-            ((left, bottom), (right - 1., bottom)),
-            ((left, y), (left, bottom)),
-            ((right - 1., y), (right - 1., bottom)),
-        ] {
-            paint::line_ink(painter, from, to, ink);
-        }
-        if let Some(percentage) = card.percentage.filter(|p| *p > 0.) {
-            let mut fill = egui::Mesh::default();
-            fill.add_colored_rect(
-                Rect::from_min_max(
-                    pos2(left + 2., y + 2.),
-                    pos2(left + 2. + (right - left - 4.) * percentage, bottom - 1.),
-                ),
-                ink,
-            );
-            painter.add(egui::Shape::mesh(fill));
-        }
+        ink_bar(
+            painter,
+            left,
+            right,
+            rect.top() + m::BATTERY_CARD_BAR_DY,
+            m::BATTERY_CARD_BAR_H,
+            ink,
+            card.percentage,
+        );
     }
     response.on_hover_text(&card.accessible_label)
+}
+
+/// Statistic rows of a child detail, flowed into `room`, and the whole block's height.
+struct DetailLayout {
+    stat_rows: Vec<Vec<(usize, usize, f32)>>,
+    height: f32,
+}
+
+fn detail_layout(painter: &egui::Painter, detail: &PageView<'_>, room: f32) -> DetailLayout {
+    // Established flowing statistic typography; indices, not another device-data model.
+    let mut stat_rows = vec![];
+    for (row, entries) in detail.stats.iter().enumerate() {
+        let mut line = vec![];
+        let mut width = 0.;
+        for (column, (label, value)) in entries.iter().enumerate() {
+            let entry_w = stat_width(painter, label, value).min(room);
+            if !line.is_empty() && width + entry_w > room {
+                stat_rows.push(line);
+                line = vec![];
+                width = 0.;
+            }
+            line.push((row, column, entry_w));
+            width += entry_w + STAT_COLUMN_GAP;
+        }
+        if !line.is_empty() {
+            stat_rows.push(line);
+        }
+    }
+    let mut widths: Vec<Vec<f32>> = stat_rows
+        .iter()
+        .map(|line| line.iter().map(|entry| entry.2).collect())
+        .collect();
+    align_columns(&mut widths, room);
+    for (line, widths) in stat_rows.iter_mut().zip(widths) {
+        for (entry, width) in line.iter_mut().zip(widths) {
+            entry.2 = width;
+        }
+    }
+    let height = m::BATTERY_DETAIL_HEADING_H
+        + detail.panels.len() as f32 * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP)
+        + stat_rows.len() as f32 * STAT_PITCH
+        + m::BATTERY_SECTION_GAP
+        + detail.info.len() as f32 * INFO_PITCH
+        + m::BATTERY_SECTION_GAP;
+    DetailLayout { stat_rows, height }
+}
+
+/// A selected child's heading, graphs, statistics and key/value rows from `y` down.
+#[allow(clippy::too_many_arguments)]
+fn detail_ui(
+    child: &mut Ui,
+    mut detail: PageView<'_>,
+    layout: &DetailLayout,
+    gx0: f32,
+    gx1: f32,
+    y: f32,
+    colors: pal::DeviceColors,
+    out: &mut GraphResponse,
+) {
+    let painter = child.painter().clone();
+    let room = (gx1 - gx0 + 1.).max(1.);
+    let model = paint::elide(&painter, &detail.model, Font::Model, room);
+    paint::text(
+        &painter,
+        gx0,
+        y + 6.,
+        &model,
+        Font::Model,
+        pal::TEXT,
+        Align::Min,
+    );
+    paint::copy_value(
+        child,
+        Rect::from_min_max(pos2(gx0, y), pos2(gx1 + 1., y + 25.)),
+        &detail.model,
+    );
+    let mut cursor = y + m::BATTERY_DETAIL_HEADING_H;
+    if !detail.panels.is_empty() {
+        let heights = vec![m::BATTERY_DETAIL_GRAPH_H; detail.panels.len()];
+        let graph_response = child
+            .push_id("battery-detail", |ui| {
+                graph_panels_ui(
+                    ui,
+                    gx0,
+                    gx1,
+                    cursor + 13.,
+                    &mut detail.panels,
+                    &[],
+                    &heights,
+                    colors,
+                )
+            })
+            .inner;
+        out.double_clicked |= graph_response.double_clicked;
+        out.menu = out.menu.or(graph_response.menu);
+        cursor += heights.len() as f32 * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP);
+    }
+    for row in &layout.stat_rows {
+        let mut x = gx0;
+        for &(source_row, source_column, width) in row {
+            let (label, value) = &detail.stats[source_row][source_column];
+            let label = paint::elide(&painter, label, Font::Body, width);
+            let value = paint::elide(&painter, value, Font::StatValue, width);
+            paint::text(
+                &painter,
+                x,
+                cursor + 5.,
+                &label,
+                Font::Body,
+                pal::LABEL,
+                Align::Min,
+            );
+            paint::text(
+                &painter,
+                x,
+                cursor + 5. + STAT_VALUE_DY,
+                &value,
+                Font::StatValue,
+                pal::TEXT,
+                Align::Min,
+            );
+            x += width + STAT_COLUMN_GAP;
+        }
+        cursor += STAT_PITCH;
+    }
+    cursor += m::BATTERY_SECTION_GAP;
+    let label_w = detail
+        .info
+        .iter()
+        .map(|(label, _)| paint::text_width(&painter, label, Font::Body))
+        .fold(0., f32::max)
+        .min(room * 0.6);
+    let value_x = gx0 + INFO_VALUE_DX.max(label_w + 12.);
+    for (label, value) in &detail.info {
+        let short_label = paint::elide(&painter, label, Font::Body, label_w);
+        let short_value = paint::elide(&painter, value, Font::Body, gx1 + 1. - value_x);
+        paint::text(
+            &painter,
+            gx0,
+            cursor,
+            &short_label,
+            Font::Body,
+            pal::LABEL,
+            Align::Min,
+        );
+        paint::text(
+            &painter,
+            value_x,
+            cursor,
+            &short_value,
+            Font::Body,
+            pal::TEXT,
+            Align::Min,
+        );
+        paint::copy_value(
+            child,
+            Rect::from_min_max(pos2(value_x, cursor - 3.), pos2(gx1 + 1., cursor + 12.)),
+            value,
+        );
+        cursor += INFO_PITCH;
+    }
+}
+
+/// Scrolls a keyboard-focused control fully into the page.
+fn reveal(ui: &Ui, scroll: &mut listview::ListState, rect: Rect, page: Rect, total_h: f32) {
+    let before = scroll.offset;
+    if rect.top() < page.top() {
+        scroll.offset -= page.top() - rect.top();
+    } else if rect.bottom() > page.bottom() {
+        scroll.offset += rect.bottom() - page.bottom();
+    }
+    scroll.offset = scroll
+        .offset
+        .clamp(0., (total_h - page.height()).max(0.))
+        .round();
+    if scroll.offset != before {
+        ui.ctx().request_repaint();
+    }
+}
+
+/// Click toggles a card's details; right click opens the page menu; focus reveals the card.
+#[allow(clippy::too_many_arguments)]
+fn card_response(
+    ui: &Ui,
+    response: &egui::Response,
+    key: &str,
+    selected: &mut Option<String>,
+    scroll: &mut listview::ListState,
+    page: Rect,
+    total_h: f32,
+    out: &mut GraphResponse,
+) {
+    out.suppress_summary |= response.contains_pointer() || response.clicked();
+    if response.clicked() {
+        *selected = if selected.as_deref() == Some(key) {
+            None
+        } else {
+            Some(key.to_owned())
+        };
+        ui.ctx().request_repaint();
+    }
+    if response.secondary_clicked() {
+        out.menu = response.interact_pointer_pos().map(|pos| (pos, None));
+    }
+    if response.gained_focus() {
+        reveal(ui, scroll, response.rect, page, total_h);
+    }
+}
+
+/// The page's own vertical scroll: wheel, clamping and the scrollbar lane.
+fn scrolled_page(
+    ui: &mut Ui,
+    page: Rect,
+    salt: &str,
+    scroll: &mut listview::ListState,
+    total_h: f32,
+) -> Ui {
+    if ui.rect_contains_pointer(page) {
+        scroll.offset -= wheel_delta(ui);
+    }
+    scroll.offset = scroll
+        .offset
+        .clamp(0., (total_h - page.height()).max(0.))
+        .round();
+    let mut child = ui.new_child(egui::UiBuilder::new().id_salt(salt).max_rect(page));
+    child.set_clip_rect(page.intersect(ui.clip_rect()));
+    let track = Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
+    listview::scrollbar(
+        &mut child,
+        track,
+        scroll,
+        INFO_PITCH,
+        total_h,
+        page.height(),
+    );
+    child
+}
+
+/// Page title and right-aligned model, as on every performance page.
+fn page_heading(painter: &egui::Painter, page: Rect, gx1: f32, top: f32, view: &PageView<'_>) {
+    paint::text(
+        painter,
+        page.left() + TITLE_X - LIST_W - 1.,
+        top + TITLE_CAP,
+        &view.title,
+        Font::Title,
+        pal::TEXT,
+        Align::Min,
+    );
+    paint::text(
+        painter,
+        gx1 + 1.,
+        top + MODEL_CAP,
+        &view.model,
+        Font::Model,
+        pal::TEXT,
+        Align::Max,
+    );
 }
 
 fn battery_page_ui(
@@ -734,101 +1074,27 @@ fn battery_page_ui(
     let gx0 = page.left() + GRAPH_X - LIST_W - 1.;
     let gx1 = page.right() - RIGHT_INSET;
     let room = (gx1 - gx0 + 1.).max(1.);
-    let columns = ((room + m::BATTERY_CARD_GAP) / (m::BATTERY_CARD_MIN_W + m::BATTERY_CARD_GAP))
-        .floor()
-        .max(1.) as usize;
-    let card_w = ((room - (columns - 1) as f32 * m::BATTERY_CARD_GAP) / columns as f32).floor();
-    let rows = view.cards.len().div_ceil(columns);
+    let (columns, card_w) = card_grid(room, m::BATTERY_CARD_MIN_W, m::BATTERY_CARD_GAP);
     let graph_h = (page.height() * 0.5)
         .clamp(m::BATTERY_GRAPH_MIN_H, m::BATTERY_GRAPH_MAX_H)
         .round();
     let cards_y = GRAPH_TOP + graph_h + m::BATTERY_SECTION_GAP;
-    let cards_h =
-        rows as f32 * m::BATTERY_CARD_H + rows.saturating_sub(1) as f32 * m::BATTERY_CARD_GAP;
+    let cards_h = grid_height(
+        view.cards.len(),
+        columns,
+        m::BATTERY_CARD_H,
+        m::BATTERY_CARD_GAP,
+    );
     let details_y = cards_y + cards_h + m::BATTERY_SECTION_GAP;
-
-    // Established flowing statistic typography; indices, not another device-data model.
-    let mut stat_rows = vec![];
-    let mut detail_h = 0.;
-    if let Some(detail) = &view.detail {
-        for (row, entries) in detail.stats.iter().enumerate() {
-            let mut line = vec![];
-            let mut width = 0.;
-            for (column, (label, value)) in entries.iter().enumerate() {
-                let entry_w = stat_width(ui.painter(), label, value).min(room);
-                if !line.is_empty() && width + entry_w > room {
-                    stat_rows.push(line);
-                    line = vec![];
-                    width = 0.;
-                }
-                line.push((row, column, entry_w));
-                width += entry_w + STAT_COLUMN_GAP;
-            }
-            if !line.is_empty() {
-                stat_rows.push(line);
-            }
-        }
-        let mut widths: Vec<Vec<f32>> = stat_rows
-            .iter()
-            .map(|line| line.iter().map(|entry| entry.2).collect())
-            .collect();
-        align_columns(&mut widths, room);
-        for (line, widths) in stat_rows.iter_mut().zip(widths) {
-            for (entry, width) in line.iter_mut().zip(widths) {
-                entry.2 = width;
-            }
-        }
-        detail_h = m::BATTERY_DETAIL_HEADING_H
-            + detail.panels.len() as f32
-                * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP)
-            + stat_rows.len() as f32 * STAT_PITCH
-            + m::BATTERY_SECTION_GAP
-            + detail.info.len() as f32 * INFO_PITCH
-            + m::BATTERY_SECTION_GAP;
-    }
-    let total_h = details_y + detail_h;
-    if ui.rect_contains_pointer(page) {
-        scroll.offset -= wheel_delta(ui);
-    }
-    scroll.offset = scroll
-        .offset
-        .clamp(0., (total_h - page.height()).max(0.))
-        .round();
-    let mut child = ui.new_child(
-        egui::UiBuilder::new()
-            .id_salt("battery-performance-page")
-            .max_rect(page),
-    );
-    child.set_clip_rect(page.intersect(ui.clip_rect()));
-    let track = Rect::from_min_max(pos2(page.right() - m::SCROLLBAR_W, page.top()), page.max);
-    listview::scrollbar(
-        &mut child,
-        track,
-        scroll,
-        INFO_PITCH,
-        total_h,
-        page.height(),
-    );
+    let layout = view
+        .detail
+        .as_ref()
+        .map(|detail| detail_layout(ui.painter(), detail, room));
+    let total_h = details_y + layout.as_ref().map_or(0., |layout| layout.height);
+    let mut child = scrolled_page(ui, page, "battery-performance-page", scroll, total_h);
     let top = page.top() - scroll.offset;
     let painter = child.painter().clone();
-    paint::text(
-        &painter,
-        page.left() + TITLE_X - LIST_W - 1.,
-        top + TITLE_CAP,
-        &view.overview.title,
-        Font::Title,
-        pal::TEXT,
-        Align::Min,
-    );
-    paint::text(
-        &painter,
-        gx1 + 1.,
-        top + MODEL_CAP,
-        &view.overview.model,
-        Font::Model,
-        pal::TEXT,
-        Align::Max,
-    );
+    page_heading(&painter, page, gx1, top, &view.overview);
     let mut out = child
         .push_id("battery-overview", |ui| {
             graph_panels_ui(
@@ -861,136 +1127,526 @@ fn battery_page_ui(
             card,
             selected.as_deref() == Some(&card.key),
         );
-        out.suppress_summary |= response.contains_pointer() || response.clicked();
-        if response.clicked() {
-            *selected = if selected.as_deref() == Some(&card.key) {
-                None
-            } else {
-                Some(card.key.clone())
-            };
-            child.ctx().request_repaint();
-        }
-        if response.secondary_clicked() {
-            out.menu = response.interact_pointer_pos().map(|pos| (pos, None));
-        }
-        if response.gained_focus() {
-            let before = scroll.offset;
-            if rect.top() < page.top() {
-                scroll.offset -= page.top() - rect.top();
-            } else if rect.bottom() > page.bottom() {
-                scroll.offset += rect.bottom() - page.bottom();
+        card_response(
+            &child, &response, &card.key, selected, scroll, page, total_h, &mut out,
+        );
+    }
+    if let (Some(detail), Some(layout)) = (view.detail, layout) {
+        detail_ui(
+            &mut child,
+            detail,
+            &layout,
+            gx0,
+            gx1,
+            top + details_y,
+            pal::BATTERY,
+            &mut out,
+        );
+    }
+    out
+}
+
+/// Vertical flow of the cooling page, in page coordinates before scrolling.
+enum CoolingItem {
+    Heading(f32, String),
+    Chip(f32, String),
+    /// Card rectangle, stopped section, group and card index
+    Fan(Rect, bool, usize, usize),
+    Sensor(Rect, usize, usize),
+    Stopped(f32),
+    Detail(f32),
+}
+
+/// Builds the cooling page's vertical flow; the open detail follows its card's chip group.
+struct CoolingFlow<'a> {
+    gx0: f32,
+    room: f32,
+    items: Vec<CoolingItem>,
+    /// Selected key and its detail block height, until placed
+    detail: Option<(&'a str, f32)>,
+}
+
+impl CoolingFlow<'_> {
+    /// Lays out chip groups as card grids from `y`; returns the end.
+    fn grid<T>(
+        &mut self,
+        groups: &[ChipGroup<T>],
+        (min_w, card_h): (f32, f32),
+        mut y: f32,
+        key_of: impl Fn(&T) -> &str,
+        card: impl Fn(Rect, usize, usize) -> CoolingItem,
+    ) -> f32 {
+        let (columns, card_w) = card_grid(self.room, min_w, m::COOLING_CARD_GAP);
+        for (g, group) in groups.iter().enumerate() {
+            self.items.push(CoolingItem::Chip(y, group.title.clone()));
+            y += m::COOLING_CHIP_H;
+            for index in 0..group.cards.len() {
+                let rect = Rect::from_min_size(
+                    pos2(
+                        self.gx0 + (index % columns) as f32 * (card_w + m::COOLING_CARD_GAP),
+                        y + (index / columns) as f32 * (card_h + m::COOLING_CARD_GAP),
+                    ),
+                    vec2(card_w, card_h),
+                );
+                self.items.push(card(rect, g, index));
             }
-            scroll.offset = scroll
-                .offset
-                .clamp(0., (total_h - page.height()).max(0.))
-                .round();
-            if scroll.offset != before {
-                child.ctx().request_repaint();
+            y += grid_height(group.cards.len(), columns, card_h, m::COOLING_CARD_GAP)
+                + m::COOLING_CARD_GAP;
+            if let Some((key, height)) = self.detail
+                && group.cards.iter().any(|card| key_of(card) == key)
+            {
+                self.items.push(CoolingItem::Detail(y));
+                y += height;
+                self.detail = None;
             }
+        }
+        y
+    }
+}
+
+fn fan_card_ui(ui: &mut Ui, rect: Rect, card: &FanCard, selected: bool) -> egui::Response {
+    let response = card_frame(
+        ui,
+        rect,
+        Id::new(("cooling-fan-card", &card.key)),
+        selected,
+        &card.accessible_label,
+    );
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
+        let ink_color = if card.stopped { pal::LABEL } else { pal::TEXT };
+        let pad = m::BATTERY_CARD_PAD;
+        battery_glyph(painter, rect.min + vec2(pad, pad), m::FAN_GLYPH);
+        let left = rect.left() + pad;
+        let right = rect.right() - pad;
+        let dark = usize::from(ui.ctx().theme() == egui::Theme::Dark);
+        let series = card.colors.map(|colors| colors[dark]);
+        // Series legend beside the name, so it survives a card without a bar
+        let name_right = match series {
+            Some(ink) => {
+                let y = rect.top() + m::BATTERY_CARD_NAME_DY + 3.;
+                for dy in 0..3 {
+                    paint::line_ink(
+                        painter,
+                        (right - m::FAN_GLYPH_SIZE, y + dy as f32),
+                        (right - 1., y + dy as f32),
+                        ink,
+                    );
+                }
+                right - m::FAN_GLYPH_SIZE - m::BATTERY_CARD_NAME_GAP
+            }
+            None => right,
+        };
+        let name_x = left + m::FAN_GLYPH_SIZE + m::BATTERY_CARD_NAME_GAP;
+        let name = paint::elide(painter, &card.name, Font::Body, name_right - name_x);
+        paint::text(
+            painter,
+            name_x,
+            rect.top() + m::BATTERY_CARD_NAME_DY,
+            &name,
+            Font::Body,
+            ink_color,
+            Align::Min,
+        );
+        paint::text(
+            painter,
+            left,
+            rect.top() + m::COOLING_FAN_RPM_DY,
+            &card.rpm_label,
+            Font::StatValue,
+            ink_color,
+            Align::Min,
+        );
+        if !card.pwm_label.is_empty() {
+            let pwm_x = left
+                + paint::text_width(painter, &card.rpm_label, Font::StatValue)
+                + m::BATTERY_CARD_PAD;
+            let pwm = paint::elide(
+                painter,
+                &format!("{} {}", i18n("PWM"), card.pwm_label),
+                Font::Body,
+                right - pwm_x,
+            );
+            paint::text(
+                painter,
+                right,
+                rect.top() + m::COOLING_FAN_PWM_DY,
+                &pwm,
+                Font::Body,
+                pal::LABEL,
+                Align::Max,
+            );
+        }
+        if card.bar.is_some() {
+            let ink = series.unwrap_or_else(|| pal::resolve(ui.ctx(), pal::LABEL));
+            ink_bar(
+                painter,
+                left,
+                right,
+                rect.top() + m::COOLING_FAN_BAR_DY,
+                m::BATTERY_CARD_BAR_H,
+                ink,
+                card.bar,
+            );
         }
     }
-    if let Some(mut detail) = view.detail {
-        let y = top + details_y;
-        let model = paint::elide(&painter, &detail.model, Font::Model, room);
+    let tooltip = if card.bar_tooltip.is_empty() {
+        card.accessible_label.clone()
+    } else {
+        format!("{}\n{}", card.accessible_label, card.bar_tooltip)
+    };
+    response.on_hover_text(tooltip)
+}
+
+fn sensor_card_ui(ui: &mut Ui, rect: Rect, card: &SensorCard, selected: bool) -> egui::Response {
+    let response = card_frame(
+        ui,
+        rect,
+        Id::new(("cooling-sensor-card", &card.key)),
+        selected,
+        &card.accessible_label,
+    );
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
+        let left = rect.left() + m::COOLING_SENSOR_PAD;
+        let right = rect.right() - m::COOLING_SENSOR_PAD;
+        let name = paint::elide(painter, &card.name, Font::Body, right - left);
         paint::text(
-            &painter,
-            gx0,
-            y + 6.,
-            &model,
-            Font::Model,
+            painter,
+            left,
+            rect.top() + m::COOLING_SENSOR_NAME_DY,
+            &name,
+            Font::Body,
+            pal::LABEL,
+            Align::Min,
+        );
+        paint::text(
+            painter,
+            left,
+            rect.top() + m::COOLING_SENSOR_VALUE_DY,
+            &card.value_label,
+            Font::StatValue,
             pal::TEXT,
             Align::Min,
         );
-        paint::copy_value(
-            &mut child,
-            Rect::from_min_max(pos2(gx0, y), pos2(gx1 + 1., y + 25.)),
-            &detail.model,
-        );
-        let mut cursor = y + m::BATTERY_DETAIL_HEADING_H;
-        if !detail.panels.is_empty() {
-            let heights = vec![m::BATTERY_DETAIL_GRAPH_H; detail.panels.len()];
-            let graph_response = child
-                .push_id("battery-detail", |ui| {
-                    graph_panels_ui(
-                        ui,
-                        gx0,
-                        gx1,
-                        cursor + 13.,
-                        &mut detail.panels,
-                        &[],
-                        &heights,
-                        pal::BATTERY,
-                    )
-                })
-                .inner;
-            out.double_clicked |= graph_response.double_clicked;
-            out.menu = out.menu.or(graph_response.menu);
-            cursor +=
-                heights.len() as f32 * (13. + m::BATTERY_DETAIL_GRAPH_H + m::BATTERY_SECTION_GAP);
+        let (ink, state) = match card.level {
+            Level::Normal => (pal::FAN.line, None),
+            Level::High => (pal::COOLING_HIGH, Some(i18n("High"))),
+            Level::Critical => (pal::COOLING_CRITICAL, Some(i18n("Critical"))),
+        };
+        if let Some(state) = state {
+            let value_right =
+                left + paint::text_width(painter, &card.value_label, Font::StatValue) + 8.;
+            let state = paint::elide(painter, &state, Font::Body, right - value_right);
+            paint::text(
+                painter,
+                right,
+                rect.top() + m::COOLING_SENSOR_VALUE_DY + 6.,
+                &state,
+                Font::Body,
+                ink,
+                Align::Max,
+            );
         }
-        for row in &stat_rows {
-            let mut x = gx0;
-            for &(source_row, source_column, width) in row {
-                let (label, value) = &detail.stats[source_row][source_column];
-                let label = paint::elide(&painter, label, Font::Body, width);
-                let value = paint::elide(&painter, value, Font::StatValue, width);
+        if let Some(fraction) = card.bar {
+            let y = rect.top() + m::COOLING_SENSOR_BAR_DY;
+            let bottom = y + m::COOLING_SENSOR_BAR_H - 1.;
+            paint::fill(
+                painter,
+                left,
+                y,
+                right - 1.,
+                bottom,
+                pal::HEADER_SEPARATOR_FLAT,
+            );
+            let filled = left + ((right - left) * fraction).round() - 1.;
+            if fraction > 0. {
+                paint::fill(painter, left, y, filled.max(left), bottom, ink);
+            }
+        }
+    }
+    response.on_hover_text(&card.accessible_label)
+}
+
+/// "Stopped (N)" disclosure: a focusable row toggling the dimmed stopped-fan cards.
+fn stopped_row_ui(
+    ui: &mut Ui,
+    rect: Rect,
+    count: usize,
+    names: &str,
+    expanded: bool,
+) -> egui::Response {
+    let label = i18n_f("Stopped ({})", &[&count.to_string()]);
+    let response = ui.interact(rect, Id::new("cooling-stopped"), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(egui::WidgetType::CollapsingHeader, ui.is_enabled(), &label)
+    });
+    ui.ctx()
+        .accesskit_node_builder(response.id, |node| node.set_expanded(expanded));
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
+        if response.hovered() {
+            paint::fill(
+                painter,
+                rect.left(),
+                rect.top(),
+                rect.right() - 1.,
+                rect.bottom() - 1.,
+                pal::HOVER,
+            );
+        }
+        if response.has_focus() {
+            paint::outline(
+                painter,
+                rect.left(),
+                rect.top(),
+                rect.right() - 1.,
+                rect.bottom() - 1.,
+                pal::BUTTON_HOVER_BORDER,
+            );
+        }
+        let cx = (rect.left() + m::COOLING_CHEVRON_W / 2.).round();
+        let cy = (rect.center().y).round();
+        if expanded {
+            paint::line(painter, (cx - 4., cy - 2.), (cx, cy + 2.), pal::LABEL);
+            paint::line(painter, (cx, cy + 2.), (cx + 4., cy - 2.), pal::LABEL);
+        } else {
+            paint::line(painter, (cx - 2., cy - 4.), (cx + 2., cy), pal::LABEL);
+            paint::line(painter, (cx + 2., cy), (cx - 2., cy + 4.), pal::LABEL);
+        }
+        let x = rect.left() + m::COOLING_CHEVRON_W + 4.;
+        let cap = rect.top() + m::COOLING_STOPPED_CAP;
+        paint::text(painter, x, cap, &label, Font::Body, pal::TEXT, Align::Min);
+        let names_x = x + paint::text_width(painter, &label, Font::Body) + 12.;
+        let names = paint::elide(painter, names, Font::Body, rect.right() - 8. - names_x);
+        paint::text(
+            painter,
+            names_x,
+            cap,
+            &names,
+            Font::Body,
+            pal::LABEL,
+            Align::Min,
+        );
+    }
+    response.on_hover_text(names)
+}
+
+fn cooling_page_ui(
+    ui: &mut Ui,
+    page: Rect,
+    mut view: CoolingView<'_>,
+    scroll: &mut listview::ListState,
+    selected: &mut Option<String>,
+    expanded: &mut bool,
+) -> GraphResponse {
+    let shown = |key: &str| {
+        let has = |groups: &[ChipGroup<FanCard>]| {
+            groups
+                .iter()
+                .any(|g| g.cards.iter().any(|card| card.key == key))
+        };
+        has(view.fans)
+            || (*expanded && has(view.stopped))
+            || view
+                .sensors
+                .iter()
+                .any(|g| g.cards.iter().any(|card| card.key == key))
+    };
+    if selected.as_deref().is_some_and(|key| !shown(key)) {
+        *selected = None;
+        view.detail = None;
+    }
+    let gx0 = page.left() + GRAPH_X - LIST_W - 1.;
+    let gx1 = page.right() - RIGHT_INSET;
+    let room = (gx1 - gx0 + 1.).max(1.);
+    let has_graph = !view.overview.panels.is_empty();
+    let graph_h = (page.height() * m::COOLING_GRAPH_SHARE)
+        .clamp(m::COOLING_GRAPH_MIN_H, m::COOLING_GRAPH_MAX_H)
+        .round();
+    let layout = view
+        .detail
+        .as_ref()
+        .map(|detail| detail_layout(ui.painter(), detail, room));
+    let mut flow = CoolingFlow {
+        gx0,
+        room,
+        items: vec![],
+        detail: selected
+            .as_deref()
+            .zip(layout.as_ref().map(|layout| layout.height)),
+    };
+    let fan_card = (m::COOLING_FAN_CARD_MIN_W, m::COOLING_FAN_CARD_H);
+    fn fan_key(card: &FanCard) -> &str {
+        &card.key
+    }
+    let mut y = if has_graph {
+        GRAPH_TOP + graph_h + m::COOLING_SECTION_GAP
+    } else {
+        GRAPH_TOP - 13.
+    };
+    if !view.fans.is_empty() || view.stopped_count > 0 {
+        flow.items.push(CoolingItem::Heading(y, i18n("Fans")));
+        y += m::COOLING_HEADING_H;
+        y = flow.grid(view.fans, fan_card, y, fan_key, |rect, g, i| {
+            CoolingItem::Fan(rect, false, g, i)
+        });
+        if view.stopped_count > 0 {
+            flow.items.push(CoolingItem::Stopped(y));
+            y += m::COOLING_STOPPED_H + m::COOLING_CARD_GAP;
+            if *expanded {
+                y = flow.grid(view.stopped, fan_card, y, fan_key, |rect, g, i| {
+                    CoolingItem::Fan(rect, true, g, i)
+                });
+            }
+        }
+        y += m::COOLING_SECTION_GAP - m::COOLING_CARD_GAP;
+    }
+    if !view.sensors.is_empty() {
+        flow.items
+            .push(CoolingItem::Heading(y, i18n("Temperatures")));
+        y += m::COOLING_HEADING_H;
+        y = flow.grid(
+            view.sensors,
+            (m::COOLING_SENSOR_CARD_MIN_W, m::COOLING_SENSOR_CARD_H),
+            y,
+            |card: &SensorCard| -> &str { &card.key },
+            CoolingItem::Sensor,
+        );
+    }
+    let items = flow.items;
+    let total_h = y + m::COOLING_SECTION_GAP;
+
+    let mut child = scrolled_page(ui, page, "cooling-performance-page", scroll, total_h);
+    let top = page.top() - scroll.offset;
+    let painter = child.painter().clone();
+    page_heading(&painter, page, gx1, top, &view.overview);
+    let mut out = if has_graph {
+        child
+            .push_id("cooling-overview", |ui| {
+                graph_panels_ui(
+                    ui,
+                    gx0,
+                    gx1,
+                    top + GRAPH_TOP,
+                    &mut view.overview.panels,
+                    &[],
+                    &[graph_h],
+                    pal::FAN,
+                )
+            })
+            .inner
+    } else {
+        GraphResponse::default()
+    };
+
+    let mut detail = view.detail.take();
+    for item in items {
+        match item {
+            CoolingItem::Heading(y, text) => {
+                let text = paint::elide(&painter, &text, Font::Model, room);
                 paint::text(
                     &painter,
-                    x,
-                    cursor + 5.,
-                    &label,
-                    Font::Body,
-                    pal::LABEL,
-                    Align::Min,
-                );
-                paint::text(
-                    &painter,
-                    x,
-                    cursor + 5. + STAT_VALUE_DY,
-                    &value,
-                    Font::StatValue,
+                    gx0,
+                    top + y + m::COOLING_HEADING_CAP,
+                    &text,
+                    Font::Model,
                     pal::TEXT,
                     Align::Min,
                 );
-                x += width + STAT_COLUMN_GAP;
             }
-            cursor += STAT_PITCH;
-        }
-        cursor += m::BATTERY_SECTION_GAP;
-        let label_w = detail
-            .info
-            .iter()
-            .map(|(label, _)| paint::text_width(&painter, label, Font::Body))
-            .fold(0., f32::max)
-            .min(room * 0.6);
-        let value_x = gx0 + INFO_VALUE_DX.max(label_w + 12.);
-        for (label, value) in &detail.info {
-            let short_label = paint::elide(&painter, label, Font::Body, label_w);
-            let short_value = paint::elide(&painter, value, Font::Body, gx1 + 1. - value_x);
-            paint::text(
-                &painter,
-                gx0,
-                cursor,
-                &short_label,
-                Font::Body,
-                pal::LABEL,
-                Align::Min,
-            );
-            paint::text(
-                &painter,
-                value_x,
-                cursor,
-                &short_value,
-                Font::Body,
-                pal::TEXT,
-                Align::Min,
-            );
-            paint::copy_value(
-                &mut child,
-                Rect::from_min_max(pos2(value_x, cursor - 3.), pos2(gx1 + 1., cursor + 12.)),
-                value,
-            );
-            cursor += INFO_PITCH;
+            CoolingItem::Chip(y, title) => {
+                let cap = top + y + m::COOLING_CHIP_CAP;
+                let title = paint::elide(&painter, &title, Font::Body, room);
+                let end = paint::text(
+                    &painter,
+                    gx0,
+                    cap,
+                    &title,
+                    Font::Body,
+                    pal::LABEL,
+                    Align::Min,
+                )
+                .right();
+                let rule = (end + 8.).round();
+                if rule < gx1 {
+                    paint::hline(&painter, rule, gx1, cap + 4., pal::HEADER_SEPARATOR_FLAT);
+                }
+            }
+            CoolingItem::Fan(rect, stopped, g, index) => {
+                let groups = if stopped { view.stopped } else { view.fans };
+                let card = &groups[g].cards[index];
+                let rect = rect.translate(vec2(0., top));
+                // Offscreen cards stay registered for keyboard focus, as on the battery page.
+                let response = fan_card_ui(
+                    &mut child,
+                    rect,
+                    card,
+                    selected.as_deref() == Some(&card.key),
+                );
+                card_response(
+                    &child, &response, &card.key, selected, scroll, page, total_h, &mut out,
+                );
+            }
+            CoolingItem::Sensor(rect, g, index) => {
+                let card = &view.sensors[g].cards[index];
+                let rect = rect.translate(vec2(0., top));
+                let response = sensor_card_ui(
+                    &mut child,
+                    rect,
+                    card,
+                    selected.as_deref() == Some(&card.key),
+                );
+                card_response(
+                    &child, &response, &card.key, selected, scroll, page, total_h, &mut out,
+                );
+            }
+            CoolingItem::Stopped(y) => {
+                let rect = Rect::from_min_max(
+                    pos2(gx0, top + y),
+                    pos2(gx1 + 1., top + y + m::COOLING_STOPPED_H),
+                );
+                let response = stopped_row_ui(
+                    &mut child,
+                    rect,
+                    view.stopped_count,
+                    view.stopped_names,
+                    *expanded,
+                );
+                out.suppress_summary |= response.contains_pointer() || response.clicked();
+                if response.clicked() {
+                    *expanded = !*expanded;
+                    let hides_selection = selected.as_deref().is_some_and(|key| {
+                        view.stopped
+                            .iter()
+                            .any(|g| g.cards.iter().any(|card| card.key == key))
+                    });
+                    if !*expanded && hides_selection {
+                        *selected = None;
+                    }
+                    child.ctx().request_repaint();
+                }
+                if response.secondary_clicked() {
+                    out.menu = response.interact_pointer_pos().map(|pos| (pos, None));
+                }
+                if response.gained_focus() {
+                    reveal(&child, scroll, response.rect, page, total_h);
+                }
+            }
+            CoolingItem::Detail(y) => {
+                if let (Some(detail), Some(layout)) = (detail.take(), &layout) {
+                    detail_ui(
+                        &mut child,
+                        detail,
+                        layout,
+                        gx0,
+                        gx1,
+                        top + y,
+                        pal::FAN,
+                        &mut out,
+                    );
+                }
+            }
         }
     }
     out

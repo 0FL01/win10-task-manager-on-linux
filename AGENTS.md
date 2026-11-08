@@ -10,14 +10,14 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - `crates/mc-ui/` — egui UI, depends on egui only:
   - `app.rs` shell (state, data intake, commands);
   - `win10/` the Win10 look: `palette`/`metrics` (all numbers from the spec), `fonts` (Open Sans), `paint` (pixel-exact helpers), `chrome` (CSD title bar, menu bar, tabs, footer), `menu`, `listview`/`flatlist`, tabs `processes`, `performance`, `details`, `services`, and `style`/`dialog` for standard egui widgets;
-  - `perf/` device models (`DevicePage::win10_view`), `table.rs` (process/service tree view state), `dialogs.rs`, `smart.rs`. There is no settings window: options live in the View/Options menus and context menus; everything else is fixed.
+  - `perf/` device models (`DevicePage::win10_view`; consolidated `batteries` and `cooling` group pages own keyed children), `table.rs` (process/service tree view state), `dialogs.rs`, `smart.rs`. There is no settings window: options live in the View/Options menus and context menus; everything else is fixed.
 - `crates/mc-ui/assets/fonts/` — bundled Open Sans variable font (SIL OFL 1.1, `OFL.txt`).
 - `crates/mc-ui/assets/icons/` — SVGs carried from Mission Center, embedded by the egui UI.
 - `apps/taskmanager/` — eframe binary `taskmanager` (app id `io.github.taskmanager.TaskManager`, settings `~/.config/taskmanager/config.toml`, copied once from `~/.config/missioncenter/`) (`--fixture`, `--synthetic`, `--dump-readings`, `--renderer wgpu|glow`, `--perf-overlay`, `--bench-seconds`).
 - `xtask/` — dev/packaging tasks (`cargo xtask help`).
 - `docs/port-spec/` — frozen historical GTK specs (msgids, formats, behaviours); source-history links are in their headers.
 - `docs/win10-spec/` — clean-room visual spec (`spec.md`) and pixel probes (`probes.json`); `tools/measure_refs.py` reproduces the measurements from local screenshots in `references/` (git-ignored, never committed).
-- `subprojects/magpie` — tracked backend sources, separate Cargo workspace; GPU collectors are in `platform-linux/src/gpus/`. Only its nested `platform-linux/crates/app-rummage` is a required submodule.
+- `subprojects/magpie` — tracked backend sources, separate Cargo workspace; GPU collectors are in `platform-linux/src/gpus/`; hwmon fans and temperature sensors in `platform-linux/src/fan/`. Only its nested `platform-linux/crates/app-rummage` is a required submodule.
 - `support/bundle-gpu-libs.py` — private GPU ABI staging/verification; daemon-only relative RUNPATH, no redistributed NVIDIA driver or global loader override.
 - `po/` — gettext translations (Weblate); `data/` — icons, desktop/metainfo.
 

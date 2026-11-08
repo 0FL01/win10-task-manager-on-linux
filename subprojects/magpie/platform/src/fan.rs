@@ -25,6 +25,8 @@ use parking_lot::Mutex;
 use rayon::ThreadPool;
 
 pub type Fan = types::fan::Fan;
+pub type HwmonChip = types::fan::HwmonChip;
+pub type TemperatureSensor = types::fan::TemperatureSensor;
 
 pub type FanList = types::fan::fans_response::FanList;
 pub type FansResponseKind = types::fan::fans_response::Response;
@@ -38,6 +40,7 @@ pub trait FanCache {
         Self: Sized;
     fn refresh(&mut self);
     fn cached_entries(&self) -> &[Fan];
+    fn cached_temperatures(&self) -> &[TemperatureSensor];
 }
 
 pub struct FanHandler<FC>
@@ -45,7 +48,8 @@ where
     FC: FanCache,
 {
     pub(crate) fan: Mutex<FC>,
-    pub(crate) local_cache: Mutex<Vec<Fan>>,
+    /// Fans and temperatures are published together, as one coherent snapshot.
+    pub(crate) local_cache: Mutex<FanList>,
     refreshing: AtomicBool,
 }
 
@@ -66,7 +70,11 @@ where
         let _profile = Span::new(Phase::Init(Domain::Fans));
         Self {
             fan: Mutex::new(FC::new()),
-            local_cache: Mutex::new(Vec::new()),
+            local_cache: Mutex::new(FanList {
+                fans: Vec::new(),
+                temperatures: Vec::new(),
+                ready: Some(false),
+            }),
             refreshing: AtomicBool::new(false),
         }
     }
@@ -77,8 +85,12 @@ where
         fan.refresh();
         drop(refresh);
         let mut publish = Span::new(Phase::Publish(Domain::Fans));
-        publish.items(fan.cached_entries().len());
-        *self.local_cache.lock() = fan.cached_entries().to_vec();
+        publish.items(fan.cached_entries().len() + fan.cached_temperatures().len());
+        *self.local_cache.lock() = FanList {
+            fans: fan.cached_entries().to_vec(),
+            temperatures: fan.cached_temperatures().to_vec(),
+            ready: Some(true),
+        };
     }
 
     pub fn refresh_async(&'static self, thread_pool: &ThreadPool) {

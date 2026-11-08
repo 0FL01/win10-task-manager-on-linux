@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::client::{
     App, Battery, Client, Connection, Cpu, Disk, ErrorEjectFailed, Fan, Gpu, Memory, MemoryDevice,
-    Process, Service, SmartData,
+    Process, Service, SmartData, TemperatureSensor,
 };
 use crate::log_compat::{g_critical, g_debug, g_warning};
 use crate::profile::{self, Counter, Phase, Span};
@@ -64,6 +64,9 @@ pub struct Readings {
     pub network_connections: HashMap<String, Connection>,
     pub gpus: HashMap<String, Gpu>,
     pub fans: Vec<Fan>,
+    /// hwmon temperature channels, independent of fans
+    #[serde(default)]
+    pub temperatures: Vec<TemperatureSensor>,
     pub batteries: Vec<Battery>,
 
     pub running_apps: HashMap<String, App>,
@@ -101,6 +104,7 @@ impl Readings {
             network_connections: Default::default(),
             gpus: HashMap::new(),
             fans: vec![],
+            temperatures: vec![],
             batteries: vec![],
 
             running_apps: HashMap::new(),
@@ -681,7 +685,15 @@ fn gather_from_magpie(ctx: ThreadCtx) {
             Network,
             magpie.network_connections()
         );
-        readings.fans = timed!("Fans info", Fans, magpie.fans_info());
+        match timed!("Fans info", Fans, magpie.fans_snapshot()) {
+            Some(cooling) => {
+                readings.inventories_pending |= cooling.ready == Some(false);
+                readings.fans = cooling.fans;
+                readings.temperatures = cooling.temperatures;
+            }
+            // A failed request keeps the inventory, but its values are no longer current
+            None => mark_cooling_unknown(&mut readings),
+        }
         readings.batteries = timed!("Batteries info", Batteries, magpie.batteries_info());
 
         if !reduced {
@@ -763,6 +775,17 @@ fn gather_from_magpie(ctx: ThreadCtx) {
 
 /// Three bounded startup follow-ups fill independently collected device/icon caches and collect
 /// short-interval counter deltas. There is no startup polling after the half-second warmup.
+fn mark_cooling_unknown(readings: &mut Readings) {
+    for fan in &mut readings.fans {
+        fan.rpm = 0;
+        fan.rpm_valid = Some(false);
+        fan.pwm_percent = None;
+    }
+    for sensor in &mut readings.temperatures {
+        sensor.input_millicelsius = None;
+    }
+}
+
 fn startup_deadline(ready_at: Instant, next: &mut usize) -> Option<Instant> {
     let offset = [100, 250, 500].get(*next)?;
     *next += 1;

@@ -22,6 +22,32 @@ window sizes. Left-click copies the complete value, including text shortened on 
 | SSD remaining endurance | NVMe `max(0, 100 − Percentage Used)`; ATA only interpreted `ssd-life-left`/`percent-lifetime-remain` normalized attributes. Not an overall health guarantee; available spare and arbitrary raw attribute IDs are not treated as life remaining. |
 | System | Existing OS/kernel/desktop information, readable DMI motherboard/BIOS fields, CPU, memory modules, sorted GPUs and storage. Helper adds system/board serial and UUID. Empty firmware placeholders are filtered. |
 
+## Fans and temperature sensors (Cooling page)
+
+The magpie fan collector inventories every `/sys/class/hwmon/hwmon*` device once and rescans
+at most every 10 seconds (hotplugged USB controllers or GPUs appear without a restart); values
+are read on every refresh. Only exact `fan<N>_input` / `temp<N>_input` channels count, gaps in
+the numbering are kept, and a channel whose input cannot be read at discovery is skipped.
+
+- **No fan/temperature pairing.** A `tempN` channel is not the temperature of `fanN`; the old
+  collector paired them by number and showed unrelated sensors (a pump with the "System" probe,
+  a fan with an absent `M2_1` reading 0 °C). The legacy `temp_name`/`temp_amount` fan fields
+  stay in the protocol but are no longer filled and the UI ignores them.
+- **Fans**: RPM (`rpm_valid = false` when unreadable or `fanN_fault` reports 1, never shown as
+  0), PWM duty `pwmN/255` when in range, `fanN_max` when positive, `fanN_label`.
+- **Temperatures**: signed millidegrees Celsius from `tempN_input`, `tempN_max`/`tempN_crit`
+  when they fit the wire type, `tempN_label`. Faulted or unreadable inputs are unknown; a real
+  `0` is shown as `0.0 °C`. The page draws limit bars only for limits in (0, 200] °C because
+  drivers publish placeholders (NVMe `Sensor 1/2` report ~65262 °C).
+- **Device identity** comes from the hwmon `device` link: canonical path, nearest PCI address,
+  the owned DRM card (`card1`, which is how GPUs are identified) and a device-reported
+  `model` (NVMe controllers). The GUI names a group after a GPU only on an exact DRM card or
+  PCI slot match; nothing is guessed from labels.
+- A failed IPC request keeps the inventory but marks every value unknown for that sample. An
+  older daemon provides fans only and cannot distinguish an unreadable fan from 0 RPM.
+- Per-driver override files in `<config>/fans/<driver>/` and a complete virtual hwmon
+  directory `<config>/hwmon0` (replacing discovery) keep working for testing.
+
 Automatic SMART lives in the magpie backend, not the GUI. The daemon keeps one automatic
 UDisks2 read (`auth.no_user_interaction`) queued or running at a time on its existing thread
 pool, bounded by a 10-second deadline and without holding inventory or cache locks. A success

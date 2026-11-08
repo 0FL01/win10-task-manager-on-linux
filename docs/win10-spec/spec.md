@@ -254,7 +254,7 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   - Disk `#4da60c` / `#eff7e9` (fill own value);
   - Network `#a54d05` / `#fcf3eb` (fill own value);
   - GPU `#117dbb` / `#f1f6fa` (own: same as CPU);
-  - Fan `#813d9c`, Battery `#3b8f4e` (own), fills at 7 % alpha over white.
+  - Cooling `#813d9c`, Battery `#3b8f4e` (own), fills at 7 % alpha over white.
 - Page:
   - Title "CPU": x 238, cap top 103 (28 px Light).
   - Device model right-aligned to x 1004, cap top 111 (18 px).
@@ -369,6 +369,56 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   whose every member was explicitly hidden. A visible group includes every current child.
   Removing the last child uses ordinary selection fallback; return does not steal selection.
   This is a saved-preference fold, not preservation of individual hidden cards.
+
+### Consolidated cooling (own design, not measured Win10 material)
+
+- Every hwmon fan and temperature channel shares one sidebar/page key `cooling`, heading
+  **Cooling**. Sub-lines: `{spinning}/{total} fans · {n} sensors` (parts omitted when empty)
+  and `Max {hottest °C} · {fastest RPM}`; the hover text names the hottest sensor and lists
+  stopped fans. The page exists while at least one fan or sensor is present. Legacy per-fan
+  keys `fan-<hwmon>-<index>` fold into `cooling` exactly like the battery migration
+  (selection, first position, Show/Hide).
+- Fans and temperatures are independent: a fan never shows a temperature, even when a
+  `tempN` shares its channel number (the old pairing showed unrelated sensors).
+- Sidebar graphic: the 16×16 card fan glyph at scale 2 (31×31), neutral `LABEL` ink, centred
+  in the 60×40/46 slot. Glyph paths (local 16×16): frame `(1,0)–(14,0)`, `(1,15)–(14,15)`,
+  `(0,1)–(0,14)`, `(15,1)–(15,14)`; hub `(6,6)–(9,9)`; four blades, each a triangle from a hub
+  corner: `(9,6),(11,2),(13,4)`; `(9,9),(13,11),(11,13)`; `(6,9),(4,13),(2,11)`;
+  `(6,6),(2,4),(4,2)`.
+- Overview graph "Fan speed over …": one unfilled line per fan on one shared absolute RPM
+  axis (no per-fan normalisation, PWM never stands in for RPM). The axis starts at
+  1000 RPM and only grows, in 500 RPM steps, to the highest valid reading; the right caption
+  shows it. Stopped (0 RPM) and unknown samples are gaps. A fan's colour is assigned the first
+  time it spins and kept while it is present. Original Light/Dark pairs, shared by line and
+  card legend: `#813d9c/#b67bcc`, `#117dbb/#49a8dc`, `#a54d05/#d2935d`, `#008b88/#56c3bf`,
+  `#bb4c4c/#ee9191`, `#4da60c/#88c651`, `#8b12ae/#ba65d3`, `#3b8f4e/#74bd86`. Overview height
+  38 % of the page, rounded and clamped to 160–260; no graph without fans.
+- Flow below the graph (24 points gap): section heading (Model font, 32-point block), then
+  per reporting device a chip header (Body `LABEL`, 24-point block, flat separator rule to the
+  right) and its card grid (gap 12, columns as for batteries). Chip headers read
+  `Motherboard · <driver>` for Super-I/O/board EC drivers (`nct*`, `it87*`, `f71*`, `w83*`,
+  `asus*`, `gigabyte*`…), `CPU · <driver>` for `k10temp`/`coretemp`/`zenpower`,
+  `<GPU name> · <driver>` when the hwmon device owns the DRM card (or PCI slot) of a GPU,
+  `<model> · <driver>` when the device reports a model (NVMe), else the driver name.
+  Order: motherboard, CPU, GPU, other devices with a model, the rest; then hwmon index.
+- **Fans**: cards min width 224, height 96, 12-point padding; fan glyph and label (driver
+  label, else `Fan N`) at cap top +15; a 16×3 series legend right-aligned on the label row;
+  RPM in StatValue at +42 (`—` when unreadable); `PWM n%` Body `LABEL` right-aligned at +48;
+  a 6-point legend bar at +74 showing PWM duty, otherwise RPM/reported maximum, otherwise
+  none. Fans reporting a valid 0 RPM are collected after all groups behind one focusable
+  disclosure row (28 points): chevron, `Stopped (N)` and the names in `LABEL`. Expanded, they
+  show as dimmed cards (`LABEL` text and bar) grouped by device; the state is saved
+  (`performance-cooling-stopped-expanded`). Unknown speed is not stopped.
+- **Temperatures**: cards min width 152, height 64, 10-point padding: label (driver label,
+  else `tempN`, unchanged) Body `LABEL` at +10, value StatValue at +28 (`0.0 °C` stays
+  visible; unreadable or faulted is `—`). A 4-point bar at +52 shows the reading relative to
+  the driver's critical, else high, limit, only when that limit is in (0, 200] °C. At/above
+  high the bar and a right-aligned `High` use `#c27c0e` (dark `#e3a33d`); at/above critical
+  `Critical` and the summary alert red.
+- Cards are disclosure controls like battery cards. A selected card's details open below its
+  own chip group: heading, a 120-point graph (fan: RPM plus dashed PWM; sensor: temperature),
+  statistics and `Sensor:`/limit rows. Collapsing the stopped section closes a stopped fan's
+  details. Graph summary shows only the overview; Copy concatenates every fan and sensor.
 
 ### Unix Performance parity (own adaptation, not historical pixel probes)
 

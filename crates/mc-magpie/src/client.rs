@@ -44,7 +44,7 @@ use magpie_types::disks::disks_response_error::Error;
 pub use magpie_types::disks::{Disk, DiskKind, ErrorEjectFailed, SmartData};
 use magpie_types::fan::fans_response;
 use magpie_types::fan::fans_response::FanList;
-pub use magpie_types::fan::Fan;
+pub use magpie_types::fan::{Fan, HwmonChip, TemperatureSensor};
 use magpie_types::gpus::gpus_response;
 use magpie_types::gpus::gpus_response::GpuMap;
 pub use magpie_types::gpus::Gpu;
@@ -844,19 +844,28 @@ impl Client {
         )
     }
 
-    pub fn fans_info(&self) -> Vec<Fan> {
+    /// Fans and temperature sensors as one snapshot. `None` is a failed request, which is not
+    /// an empty inventory.
+    pub fn fans_snapshot(&self) -> Option<FanList> {
         let mut socket = self.socket.borrow_mut();
 
         let response = make_request(ipc::req_get_fans(), &mut socket, self.socket_addr.as_ref())
             .and_then(|response| response.body);
 
-        parse_response!(
+        parse_response_with_err!(
             response,
             ResponseBody::Fans,
             FansResponse::Fans,
             FansResponse::Error,
-            |mut fans: FanList| { std::mem::take(&mut fans.fans) }
+            |fans: FanList| fans
         )
+        .and_then(|result| {
+            result
+                .inspect_err(|e| {
+                    g_critical!("TaskManager::Gatherer", "Error while getting fans: {e:?}")
+                })
+                .ok()
+        })
     }
 
     pub fn batteries_info(&self) -> Vec<Battery> {

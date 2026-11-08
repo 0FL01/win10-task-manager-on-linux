@@ -39,6 +39,7 @@ use crate::cx::Cx;
 
 pub mod batteries;
 pub mod battery;
+pub mod cooling;
 pub mod cpu;
 pub mod disk;
 pub mod fan;
@@ -49,6 +50,7 @@ pub mod memory;
 pub mod network;
 pub mod swap_compression;
 pub mod system;
+pub mod temperature;
 
 pub const MK_TO_0_C: i32 = -273150;
 
@@ -74,7 +76,7 @@ pub fn max_duration(config: &Config) -> String {
     to_short_human_readable_time(seconds)
 }
 
-/// Common interface of the CPU, memory, disk, network, GPU, fan and battery pages.
+/// Common interface of the CPU, memory, disk, network, GPU, cooling and battery pages.
 pub trait DevicePage {
     /// Sidebar/page identifier (`cpu`, `disk-sda`, `net-eth0`, ...)
     fn name(&self) -> &str;
@@ -108,6 +110,14 @@ pub trait DevicePage {
         _config: &Config,
         _selected: Option<&str>,
     ) -> Option<batteries::BatteriesView<'_>> {
+        None
+    }
+    /// The consolidated cooling page's fan/sensor cards and optional child details.
+    fn win10_cooling_view(
+        &mut self,
+        _config: &Config,
+        _selected: Option<&str>,
+    ) -> Option<cooling::CoolingView<'_>> {
         None
     }
     /// Page specific entries of the Win10 context menu.
@@ -286,7 +296,9 @@ impl PerformancePage {
                 .map(|id| network::page_name(id)),
         );
         present.extend(readings.gpus.keys().map(|id| gpu::page_name(id)));
-        present.extend(readings.fans.iter().map(fan::page_name));
+        if !readings.fans.is_empty() || !readings.temperatures.is_empty() {
+            present.push("cooling".into());
+        }
         if !readings.batteries.is_empty() {
             present.push("battery".into());
         }
@@ -316,11 +328,7 @@ impl PerformancePage {
                     .values()
                     .find(|g| gpu::page_name(&g.id) == n)
                     .map(|g| Box::new(gpu::GpuPage::new(g, config)) as Box<dyn DevicePage>),
-                n if n.starts_with("fan-") => readings
-                    .fans
-                    .iter()
-                    .find(|f| fan::page_name(f) == n)
-                    .map(|f| Box::new(fan::FanPage::new(f, config)) as Box<dyn DevicePage>),
+                "cooling" => Some(Box::new(cooling::CoolingPage::new())),
                 "battery" => Some(Box::new(batteries::BatteriesPage::new())),
                 _ => None,
             };
@@ -358,8 +366,12 @@ impl PerformancePage {
         self.inventories_pending = readings.inventories_pending;
         migrate_hidden_graphs(config);
         sidebar::migrate_battery_group(config);
+        sidebar::migrate_cooling_group(config);
         if self.selected.starts_with("battery-") {
             self.selected = "battery".into();
+        }
+        if self.selected.starts_with("fan-") {
+            self.selected = "cooling".into();
         }
         let before = self.devices.len();
         self.create_missing_devices(readings, config);

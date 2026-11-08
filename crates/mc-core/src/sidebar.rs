@@ -46,9 +46,12 @@ pub enum DeviceType {
     Cpu,
     Memory,
     Disk,
-    Network { virtual_adapter: bool },
+    Network {
+        virtual_adapter: bool,
+    },
     Gpu,
-    Fan,
+    /// Fans and temperature sensors, one consolidated page
+    Cooling,
     Battery,
     System,
     Unspecified,
@@ -168,7 +171,7 @@ pub fn prune_sidebar_order(order: &mut Vec<String>, present: &HashSet<String>, m
 
 pub fn canonical_key(name: &str) -> (u8, &str) {
     const CATEGORIES: [&str; 8] = [
-        "cpu", "memory", "disk", "net", "gpu", "fan", "battery", "system",
+        "cpu", "memory", "disk", "net", "gpu", "cooling", "battery", "system",
     ];
 
     let category = CATEGORIES
@@ -186,7 +189,7 @@ pub fn view_action_name(page_name: &str) -> Option<&'static str> {
         "disk" => "disk",
         "net" => "network",
         "gpu" => "gpu",
-        "fan" => "fan",
+        "cooling" => "cooling",
         "battery" => "battery",
         "system" => "system",
         _ => return None,
@@ -211,13 +214,25 @@ pub fn store_sidebar_order(order: &[String]) -> String {
 /// Folds saved per-battery navigation and visibility into the single `battery` page.
 /// Call after migrating the legacy hidden-graphs setting into device overrides.
 pub fn migrate_battery_group(config: &mut Config) {
+    migrate_group(config, "battery-", "battery");
+}
+
+/// Folds saved per-fan (`fan-<hwmon>-<index>`) pages into the single `cooling` page.
+/// Call after migrating the legacy hidden-graphs setting into device overrides.
+pub fn migrate_cooling_group(config: &mut Config) {
+    migrate_group(config, "fan-", "cooling");
+}
+
+/// The group takes the first legacy position unless it already has one; an existing group
+/// override wins, otherwise the group is hidden only if every known legacy page was hidden.
+fn migrate_group(config: &mut Config, legacy_prefix: &str, group: &str) {
     let mut order = load_sidebar_order(&config.performance_sidebar_order);
     let mut overrides = parse_device_overrides(&config.performance_sidebar_device_overrides);
     let legacy_keys = order
         .iter()
         .chain(overrides.keys())
         .chain(std::iter::once(&config.performance_selected_page))
-        .filter(|name| name.starts_with("battery-"))
+        .filter(|name| name.starts_with(legacy_prefix))
         .cloned()
         .collect::<HashSet<_>>();
     if legacy_keys.is_empty() {
@@ -227,26 +242,26 @@ pub fn migrate_battery_group(config: &mut Config) {
     let all_hidden = legacy_keys
         .iter()
         .all(|name| overrides.get(name) == Some(&DeviceOverride::Hide));
-    let mut has_group = order.iter().any(|name| name == "battery");
+    let mut has_group = order.iter().any(|name| name == group);
     order.retain_mut(|name| {
-        if !name.starts_with("battery-") {
+        if !name.starts_with(legacy_prefix) {
             return true;
         }
         if has_group {
             return false;
         }
-        *name = "battery".into();
+        *name = group.into();
         has_group = true;
         true
     });
     overrides.retain(|name, _| !legacy_keys.contains(name));
     if all_hidden {
         overrides
-            .entry("battery".into())
+            .entry(group.into())
             .or_insert(DeviceOverride::Hide);
     }
-    if config.performance_selected_page.starts_with("battery-") {
-        config.performance_selected_page = "battery".into();
+    if config.performance_selected_page.starts_with(legacy_prefix) {
+        config.performance_selected_page = group.into();
     }
     config.performance_sidebar_order = store_sidebar_order(&order);
     config.performance_sidebar_device_overrides = serialize_device_overrides(&overrides);
@@ -479,7 +494,7 @@ mod tests {
             "disk-sda",
             "net-eth0",
             "gpu-0",
-            "fan-0-0",
+            "cooling",
             "battery",
             "battery-BAT0",
         ];
@@ -520,7 +535,7 @@ mod tests {
             ("disk-sda", "disk"),
             ("net-eth0", "network"),
             ("gpu-0000:01:00.0", "gpu"),
-            ("fan-0-1", "fan"),
+            ("cooling", "cooling"),
             ("battery", "battery"),
             ("battery-0-BAT0", "battery"),
         ];
@@ -753,6 +768,34 @@ mod tests {
             &parse_device_overrides(&config.performance_sidebar_device_overrides),
             true
         ));
+    }
+
+    #[test]
+    fn cooling_group_folds_legacy_fans() {
+        let mut config = Config::default();
+        config.performance_selected_page = "fan-4-2".into();
+        config.performance_sidebar_order =
+            "cpu;gpu-card1;fan-1-1;fan-4-1;fan-4-2;battery;net-eth0".into();
+        config.performance_sidebar_device_overrides = "fan-1-1:hide;fan-4-1:hide".into();
+
+        migrate_cooling_group(&mut config);
+        let expected = config.clone();
+        assert_eq!(config.performance_selected_page, "cooling");
+        assert_eq!(
+            config.performance_sidebar_order,
+            "cpu;gpu-card1;cooling;battery;net-eth0"
+        );
+        // fan-4-2 was not hidden, so the group stays visible
+        assert!(config.performance_sidebar_device_overrides.is_empty());
+        migrate_cooling_group(&mut config);
+        assert_eq!(config, expected);
+
+        let mut hidden = Config::default();
+        hidden.performance_sidebar_order = "cpu;fan-1-1;fan-4-1".into();
+        hidden.performance_sidebar_device_overrides = "fan-1-1:hide;fan-4-1:hide".into();
+        migrate_cooling_group(&mut hidden);
+        assert_eq!(hidden.performance_sidebar_order, "cpu;cooling");
+        assert_eq!(hidden.performance_sidebar_device_overrides, "cooling:hide");
     }
 
     #[test]

@@ -225,3 +225,57 @@ pub const BATTERY_GENERIC_GLYPH: &[([f32; 2], [f32; 2])] = &[
     ([3., 14.], [3., 1.]),
     ([6., 11.], [9., 11.]),
 ];
+
+/// Own consolidated-cooling layout and original fan glyph (not measured Win10 assets).
+pub const COOLING_GRAPH_MIN_H: f32 = 160.;
+pub const COOLING_GRAPH_MAX_H: f32 = 260.;
+/// Overview graph height as a share of the page height
+pub const COOLING_GRAPH_SHARE: f32 = 0.38;
+pub const COOLING_SECTION_GAP: f32 = 24.;
+pub const COOLING_HEADING_H: f32 = 32.;
+pub const COOLING_HEADING_CAP: f32 = 6.;
+pub const COOLING_CHIP_H: f32 = 24.;
+pub const COOLING_CHIP_CAP: f32 = 4.;
+pub const COOLING_CARD_GAP: f32 = 12.;
+pub const COOLING_FAN_CARD_MIN_W: f32 = 224.;
+pub const COOLING_FAN_CARD_H: f32 = 96.;
+pub const COOLING_FAN_RPM_DY: f32 = 42.;
+pub const COOLING_FAN_PWM_DY: f32 = 48.;
+pub const COOLING_FAN_BAR_DY: f32 = 74.;
+pub const COOLING_SENSOR_CARD_MIN_W: f32 = 152.;
+pub const COOLING_SENSOR_CARD_H: f32 = 64.;
+pub const COOLING_SENSOR_PAD: f32 = 10.;
+pub const COOLING_SENSOR_NAME_DY: f32 = 10.;
+pub const COOLING_SENSOR_VALUE_DY: f32 = 28.;
+pub const COOLING_SENSOR_BAR_DY: f32 = 52.;
+pub const COOLING_SENSOR_BAR_H: f32 = 4.;
+pub const COOLING_STOPPED_H: f32 = 28.;
+pub const COOLING_STOPPED_CAP: f32 = 8.;
+/// Disclosure chevron box; the text starts after it
+pub const COOLING_CHEVRON_W: f32 = 16.;
+/// The sidebar shows the card glyph at this scale
+pub const COOLING_SIDEBAR_SCALE: f32 = 2.;
+/// 16 px outline: frame, hub and four rotationally symmetric blades
+pub const FAN_GLYPH: &[([f32; 2], [f32; 2])] = &[
+    ([1., 0.], [14., 0.]),
+    ([1., 15.], [14., 15.]),
+    ([0., 1.], [0., 14.]),
+    ([15., 1.], [15., 14.]),
+    ([6., 6.], [9., 6.]),
+    ([6., 9.], [9., 9.]),
+    ([6., 7.], [6., 8.]),
+    ([9., 7.], [9., 8.]),
+    ([9., 6.], [11., 2.]),
+    ([11., 2.], [13., 4.]),
+    ([13., 4.], [9., 6.]),
+    ([9., 9.], [13., 11.]),
+    ([13., 11.], [11., 13.]),
+    ([11., 13.], [9., 9.]),
+    ([6., 9.], [4., 13.]),
+    ([4., 13.], [2., 11.]),
+    ([2., 11.], [6., 9.]),
+    ([6., 6.], [2., 4.]),
+    ([2., 4.], [4., 2.]),
+    ([4., 2.], [6., 6.]),
+];
+pub const FAN_GLYPH_SIZE: f32 = 16.;

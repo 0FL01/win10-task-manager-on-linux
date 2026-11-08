@@ -58,8 +58,8 @@ mod synthetic;
 pub mod users;
 
 pub use client::{
-    App, Battery, Connection, Cpu, Disk, DiskKind, ErrorEjectFailed, Fan, Gpu, Memory,
-    MemoryDevice, Process, Service, SmartData,
+    App, Battery, Connection, Cpu, Disk, DiskKind, ErrorEjectFailed, Fan, Gpu, HwmonChip, Memory,
+    MemoryDevice, Process, Service, SmartData, TemperatureSensor,
 };
 pub use fixture::{load_fixture_dir, write_fixture_dir};
 pub use gatherer::{Event, MagpieClient, Readings, Request, Waker};

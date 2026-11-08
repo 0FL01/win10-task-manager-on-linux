@@ -283,7 +283,7 @@ where
         self.disks.disk_manager.smart_data(id)
     }
 
-    pub fn fans(&self) -> Vec<types::fan::Fan> {
+    pub fn fans(&self) -> fan::FanList {
         self.fans.local_cache.lock().clone()
     }
 

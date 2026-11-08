@@ -15,6 +15,10 @@ fn main() {
             ".magpie.disks.DisksResponse.DiskList.smart_data",
             "#[serde(default)]",
         )
+        .field_attribute(
+            ".magpie.fan.FansResponse.FanList.temperatures",
+            "#[serde(default)]",
+        )
         .compile_fds(
             protox::compile(
                 [
