@@ -23,6 +23,7 @@
 pub mod chrome;
 pub mod details;
 pub mod dialog;
+pub mod fan_spin;
 pub mod flatlist;
 pub mod fonts;
 pub mod listview;

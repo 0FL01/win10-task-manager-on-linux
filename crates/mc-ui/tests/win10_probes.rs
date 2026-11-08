@@ -2932,3 +2932,102 @@ fn performance_cooling_groups_stopped_fans_and_details() {
         .save(out.join("win10-performance-cooling-full.png"))
         .unwrap();
 }
+
+/// Original fan glyph animation: rotors turn with RPM only while visible, enabled and live.
+#[test]
+fn performance_cooling_fan_glyphs_animate_only_when_useful() {
+    let reading = mc_magpie::synthetic_readings(0, 1);
+    let config = Config {
+        performance_selected_page: "cooling".into(),
+        window_width: 1200,
+        window_height: 820,
+        ..Default::default()
+    };
+    let mut h = performance_harness(config, reading.clone(), 1.);
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.app_update_paused = false);
+    let glyph = h.get_by_label_contains("CPU Fan —").rect();
+    let crop = |image: &RgbaImage| {
+        image::imageops::crop_imm(
+            image,
+            glyph.left() as u32 + 12,
+            glyph.top() as u32 + 12,
+            16,
+            16,
+        )
+        .to_image()
+    };
+    h.run_steps(2);
+    assert!(h.state().as_ref().unwrap().fans_animating());
+    let before = crop(&h.render().unwrap());
+    std::thread::sleep(std::time::Duration::from_millis(120));
+    h.run_steps(3);
+    let after = crop(&h.render().unwrap());
+    assert_ne!(before, after, "the rotor turned");
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/ui-snapshots");
+    std::fs::create_dir_all(&out).unwrap();
+    for (name, image) in [("a", &before), ("b", &after)] {
+        image::imageops::resize(image, 128, 128, image::imageops::FilterType::Nearest)
+            .save(out.join(format!("win10-performance-cooling-rotor-{name}.png")))
+            .unwrap();
+    }
+    // The frame stays pixel-exact while the rotor turns
+    for (x, y) in [(0, 5), (15, 9), (7, 0), (8, 15)] {
+        assert_eq!(before.get_pixel(x, y), after.get_pixel(x, y));
+    }
+
+    // Disabled: static glyph, no animation frames
+    h.state_mut()
+        .as_mut()
+        .unwrap()
+        .configure_for_test(|c| c.performance_animate_fans = false);
+    h.run_steps(2);
+    assert!(!h.state().as_ref().unwrap().fans_animating());
+    let static_glyph = crop(&h.render().unwrap());
+
+    // Paused updates: rotors come to rest on the static glyph, then stop requesting frames
+    h.state_mut().as_mut().unwrap().configure_for_test(|c| {
+        c.performance_animate_fans = true;
+        c.app_update_paused = true;
+    });
+    for _ in 0..200 {
+        h.run_steps(1);
+        if !h.state().as_ref().unwrap().fans_animating() {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert!(!h.state().as_ref().unwrap().fans_animating());
+    assert_eq!(crop(&h.render().unwrap()), static_glyph);
+    drop(h);
+
+    // Another device: the sidebar glyph animates while visible, the stopped one does not
+    let config = Config {
+        performance_selected_page: "cpu".into(),
+        window_width: 1200,
+        window_height: 820,
+        ..Default::default()
+    };
+    let mut h = performance_harness(config, reading.clone(), 1.);
+    h.run_steps(2);
+    assert!(
+        h.state().as_ref().unwrap().fans_animating(),
+        "sidebar glyph"
+    );
+    let mut stopped = reading;
+    for fan in &mut stopped.fans {
+        fan.rpm = 0;
+    }
+    let config = Config {
+        performance_selected_page: "cooling".into(),
+        ..Default::default()
+    };
+    let mut h = performance_harness(config, stopped, 1.);
+    h.run_steps(2);
+    assert!(
+        !h.state().as_ref().unwrap().fans_animating(),
+        "stopped fans need no frames"
+    );
+}

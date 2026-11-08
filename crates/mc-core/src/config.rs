@@ -149,6 +149,8 @@ pub struct Config {
     pub performance_sidebar_device_overrides: String,
     /// Cooling page: the "Stopped" fans disclosure is expanded
     pub performance_cooling_stopped_expanded: bool,
+    /// View → "Animate fans": Cooling fan glyphs turn with their RPM
+    pub performance_animate_fans: bool,
 
     /// Layout defaults already applied to this file (see [`Config::migrate_layout`]). Missing in
     /// files written before the Win10 interface, hence the field-level default of 0.
@@ -201,6 +203,7 @@ impl Default for Config {
             performance_sidebar_hidden_graphs: String::new(),
             performance_sidebar_device_overrides: String::new(),
             performance_cooling_stopped_expanded: false,
+            performance_animate_fans: true,
             layout_version: LAYOUT_VERSION,
         }
     }

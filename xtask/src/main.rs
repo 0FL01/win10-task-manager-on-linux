@@ -26,7 +26,7 @@ fn help() {
          run-dev [args]      build and run the app with the cargo-built magpie daemon\n\
          bench-idle [opts]   egui idle benchmark (wgpu, glow) in nested kwin\n\
          \x20                   --seconds N --warmup N --repeats N --out FILE\n\
-         \x20                   --egui FILE [--egui-glow FILE]\n\
+         \x20                   --egui FILE [--egui-glow FILE] --only TEXT\n\
          magpie              build the magpie daemon (cargo, release)\n\
          diagnostic          build a runnable local release bundle with debug symbols\n\
          mo [DIR]            compile po/*.po into DIR/<lang>/LC_MESSAGES/taskmanager.mo\n\

@@ -22,10 +22,11 @@
 //! (docs/win10-spec/spec.md, "Performance tab").
 
 use egui::{Align, Color32, Id, Pos2, Rect, Sense, Ui, pos2, vec2};
-use mc_core::i18n::{i18n, i18n_f};
+use mc_core::i18n::i18n;
 use mc_core::sidebar::DeviceType;
 use mc_graph::Graph;
 
+use super::fan_spin::FanAnimator;
 use super::paint::{self, Font};
 use super::{listview, menu, metrics as m, palette as pal};
 use crate::cx::{Command, Cx};
@@ -179,18 +180,36 @@ pub struct PerformanceView {
     memory_size: egui::Vec2,
     battery_scroll: listview::ListState,
     battery_selected: Option<String>,
-    cooling_scroll: listview::ListState,
-    /// Transient: the card whose details are open (`fan:…` or `temp:…`)
-    cooling_selected: Option<String>,
+    cooling: CoolingState,
     /// List width while the separator is dragged (saved to the settings on release)
     dragging: Option<f32>,
+    /// Rotors of the visible fan glyphs (sidebar and cards)
+    fans: FanAnimator,
 }
+
+/// Rotor key of the sidebar's Cooling glyph
+const SIDEBAR_FAN: &str = "sidebar";
 
 impl PerformanceView {
     pub fn ui(&mut self, ui: &mut Ui, cx: &mut Cx, perf: &mut PerformancePage, content: Rect) {
         if !perf.loaded {
             return;
         }
+        let now = ui.input(|input| input.time);
+        self.fans.begin(
+            now,
+            cx.config.performance_animate_fans,
+            cx.config.app_update_paused,
+        );
+        self.page_ui(ui, cx, perf, content);
+        self.fans.end(ui.ctx());
+    }
+
+    pub fn fans_animating(&self) -> bool {
+        self.fans.moving()
+    }
+
+    fn page_ui(&mut self, ui: &mut Ui, cx: &mut Cx, perf: &mut PerformancePage, content: Rect) {
         let max_w = (content.width() - PAGE_MIN_W).max(LIST_W);
         let list_w = self
             .dragging
@@ -260,15 +279,15 @@ impl PerformanceView {
                 .unwrap_or_default()
         } else if kind == DeviceType::Cooling && !perf.summary_mode {
             let view =
-                perf.devices[index].win10_cooling_view(cx.config, self.cooling_selected.as_deref());
+                perf.devices[index].win10_cooling_view(cx.config, self.cooling.selected.as_deref());
             match view {
                 Some(view) => cooling_page_ui(
                     ui,
                     page,
                     view,
-                    &mut self.cooling_scroll,
-                    &mut self.cooling_selected,
+                    &mut self.cooling,
                     &mut cx.config.performance_cooling_stopped_expanded,
+                    &mut self.fans,
                 ),
                 None => GraphResponse::default(),
             }
@@ -517,6 +536,7 @@ impl PerformanceView {
 
             let device = &mut perf.devices[index];
             let kind = device.device_type();
+            let fastest_rpm = device.fastest_fan_rpm();
             let colors = device_colors(kind);
             let summary = device.summary_mut();
             style_graph(&mut summary.graph, colors);
@@ -560,13 +580,8 @@ impl PerformanceView {
                     (graph.center().x - size / 2.).round(),
                     (graph.center().y - size / 2.).round(),
                 );
-                let scaled: Vec<_> = m::FAN_GLYPH
-                    .iter()
-                    .map(|&([x0, y0], [x1, y1])| {
-                        ([x0 * scale, y0 * scale], [x1 * scale, y1 * scale])
-                    })
-                    .collect();
-                battery_glyph(&painter, origin, &scaled);
+                let angle = self.fans.angle(SIDEBAR_FAN, fastest_rpm);
+                fan_glyph(&painter, origin, scale, angle);
             } else {
                 summary.graph.paint(&child, graph);
             }
@@ -622,22 +637,61 @@ struct GraphResponse {
     suppress_summary: bool,
 }
 
-/// Original battery glyph family. Straight edges use the same pixel meshes as other Win10 ink.
-fn battery_glyph(painter: &egui::Painter, origin: Pos2, segments: &[([f32; 2], [f32; 2])]) {
+/// Glyph origin snapped to the physical pixel grid.
+fn glyph_origin(painter: &egui::Painter, origin: Pos2) -> Pos2 {
     let ppp = painter.ctx().pixels_per_point();
-    let origin = pos2(
+    pos2(
         (origin.x * ppp).round() / ppp,
         (origin.y * ppp).round() / ppp,
-    );
+    )
+}
+
+/// One glyph stroke in screen coordinates: rules as pixel meshes, diagonals anti-aliased.
+fn glyph_stroke(painter: &egui::Painter, (x0, y0): (f32, f32), (x1, y1): (f32, f32)) {
+    if y0 == y1 {
+        paint::hline(painter, x0.min(x1), x0.max(x1), y0, pal::LABEL);
+    } else if x0 == x1 {
+        paint::vline(painter, x0, y0.min(y1), y0.max(y1), pal::LABEL);
+    } else {
+        paint::line(painter, (x0, y0), (x1, y1), pal::LABEL);
+    }
+}
+
+/// Original battery glyph family. Straight edges use the same pixel meshes as other Win10 ink.
+fn battery_glyph(painter: &egui::Painter, origin: Pos2, segments: &[([f32; 2], [f32; 2])]) {
+    let origin = glyph_origin(painter, origin);
     for &([x0, y0], [x1, y1]) in segments {
-        let (x0, y0, x1, y1) = (origin.x + x0, origin.y + y0, origin.x + x1, origin.y + y1);
-        if y0 == y1 {
-            paint::hline(painter, x0.min(x1), x0.max(x1), y0, pal::LABEL);
-        } else if x0 == x1 {
-            paint::vline(painter, x0, y0.min(y1), y0.max(y1), pal::LABEL);
-        } else {
-            paint::line(painter, (x0, y0), (x1, y1), pal::LABEL);
+        glyph_stroke(
+            painter,
+            (origin.x + x0, origin.y + y0),
+            (origin.x + x1, origin.y + y1),
+        );
+    }
+}
+
+/// The fan glyph at `scale`: a static pixel-exact frame and the rotor turned by `angle`.
+/// At rest (`angle == 0`) the rotor uses the same pixel rules as every static glyph.
+fn fan_glyph(painter: &egui::Painter, origin: Pos2, scale: f32, angle: f32) {
+    let origin = glyph_origin(painter, origin);
+    let at = |[x, y]: [f32; 2]| (origin.x + x * scale, origin.y + y * scale);
+    for &(from, to) in m::FAN_GLYPH_FRAME {
+        glyph_stroke(painter, at(from), at(to));
+    }
+    if angle == 0. {
+        for &(from, to) in m::FAN_GLYPH_ROTOR {
+            glyph_stroke(painter, at(from), at(to));
         }
+        return;
+    }
+    let (sin, cos) = angle.sin_cos();
+    let [cx, cy] = m::FAN_GLYPH_CENTER;
+    let turn = |[x, y]: [f32; 2]| {
+        let (dx, dy) = (x - cx, y - cy);
+        at([cx + dx * cos - dy * sin, cy + dx * sin + dy * cos])
+    };
+    let ink = pal::resolve(painter.ctx(), pal::LABEL);
+    for &(from, to) in m::FAN_GLYPH_ROTOR {
+        paint::line_ink(painter, turn(from), turn(to), ink);
     }
 }
 
@@ -1146,7 +1200,37 @@ fn battery_page_ui(
     out
 }
 
-/// Vertical flow of the cooling page, in page coordinates before scrolling.
+/// Transient Cooling page state.
+#[derive(Default)]
+struct CoolingState {
+    scroll: listview::ListState,
+    /// The card whose details are open (`fan:…` or `temp:…`)
+    selected: Option<String>,
+    layout: CoolingLayout,
+}
+
+/// What the cached Cooling layout depends on.
+#[derive(Clone, PartialEq)]
+struct CoolingLayoutKey {
+    generation: u64,
+    page: Rect,
+    pixels_per_point: f32,
+    selected: Option<String>,
+    expanded: bool,
+}
+
+/// The Cooling page flow, rebuilt only when its data, size, selection or expansion change;
+/// animation frames reuse it and only paint.
+#[derive(Default)]
+struct CoolingLayout {
+    key: Option<CoolingLayoutKey>,
+    items: Vec<CoolingItem>,
+    detail: Option<DetailLayout>,
+    graph_h: f32,
+    total_h: f32,
+}
+
+/// Vertical flow of the cooling page, in page coordinates before scrolling. Texts are elided.
 enum CoolingItem {
     Heading(f32, String),
     Chip(f32, String),
@@ -1170,6 +1254,7 @@ impl CoolingFlow<'_> {
     /// Lays out chip groups as card grids from `y`; returns the end.
     fn grid<T>(
         &mut self,
+        painter: &egui::Painter,
         groups: &[ChipGroup<T>],
         (min_w, card_h): (f32, f32),
         mut y: f32,
@@ -1178,7 +1263,8 @@ impl CoolingFlow<'_> {
     ) -> f32 {
         let (columns, card_w) = card_grid(self.room, min_w, m::COOLING_CARD_GAP);
         for (g, group) in groups.iter().enumerate() {
-            self.items.push(CoolingItem::Chip(y, group.title.clone()));
+            let title = paint::elide(painter, &group.title, Font::Body, self.room);
+            self.items.push(CoolingItem::Chip(y, title));
             y += m::COOLING_CHIP_H;
             for index in 0..group.cards.len() {
                 let rect = Rect::from_min_size(
@@ -1204,7 +1290,13 @@ impl CoolingFlow<'_> {
     }
 }
 
-fn fan_card_ui(ui: &mut Ui, rect: Rect, card: &FanCard, selected: bool) -> egui::Response {
+fn fan_card_ui(
+    ui: &mut Ui,
+    rect: Rect,
+    card: &FanCard,
+    selected: bool,
+    fans: &mut FanAnimator,
+) -> egui::Response {
     let response = card_frame(
         ui,
         rect,
@@ -1216,7 +1308,8 @@ fn fan_card_ui(ui: &mut Ui, rect: Rect, card: &FanCard, selected: bool) -> egui:
         let painter = ui.painter();
         let ink_color = if card.stopped { pal::LABEL } else { pal::TEXT };
         let pad = m::BATTERY_CARD_PAD;
-        battery_glyph(painter, rect.min + vec2(pad, pad), m::FAN_GLYPH);
+        let angle = fans.angle(&card.key, card.rpm);
+        fan_glyph(painter, rect.min + vec2(pad, pad), 1., angle);
         let left = rect.left() + pad;
         let right = rect.right() - pad;
         let dark = usize::from(ui.ctx().theme() == egui::Theme::Dark);
@@ -1261,12 +1354,7 @@ fn fan_card_ui(ui: &mut Ui, rect: Rect, card: &FanCard, selected: bool) -> egui:
             let pwm_x = left
                 + paint::text_width(painter, &card.rpm_label, Font::StatValue)
                 + m::BATTERY_CARD_PAD;
-            let pwm = paint::elide(
-                painter,
-                &format!("{} {}", i18n("PWM"), card.pwm_label),
-                Font::Body,
-                right - pwm_x,
-            );
+            let pwm = paint::elide(painter, &card.pwm_label, Font::Body, right - pwm_x);
             paint::text(
                 painter,
                 right,
@@ -1329,15 +1417,15 @@ fn sensor_card_ui(ui: &mut Ui, rect: Rect, card: &SensorCard, selected: bool) ->
             pal::TEXT,
             Align::Min,
         );
-        let (ink, state) = match card.level {
-            Level::Normal => (pal::FAN.line, None),
-            Level::High => (pal::COOLING_HIGH, Some(i18n("High"))),
-            Level::Critical => (pal::COOLING_CRITICAL, Some(i18n("Critical"))),
+        let ink = match card.level {
+            Level::Normal => pal::FAN.line,
+            Level::High => pal::COOLING_HIGH,
+            Level::Critical => pal::COOLING_CRITICAL,
         };
-        if let Some(state) = state {
+        if !card.level_label.is_empty() {
             let value_right =
                 left + paint::text_width(painter, &card.value_label, Font::StatValue) + 8.;
-            let state = paint::elide(painter, &state, Font::Body, right - value_right);
+            let state = paint::elide(painter, &card.level_label, Font::Body, right - value_right);
             paint::text(
                 painter,
                 right,
@@ -1372,14 +1460,13 @@ fn sensor_card_ui(ui: &mut Ui, rect: Rect, card: &SensorCard, selected: bool) ->
 fn stopped_row_ui(
     ui: &mut Ui,
     rect: Rect,
-    count: usize,
+    label: &str,
     names: &str,
     expanded: bool,
 ) -> egui::Response {
-    let label = i18n_f("Stopped ({})", &[&count.to_string()]);
     let response = ui.interact(rect, Id::new("cooling-stopped"), Sense::click());
     response.widget_info(|| {
-        egui::WidgetInfo::labeled(egui::WidgetType::CollapsingHeader, ui.is_enabled(), &label)
+        egui::WidgetInfo::labeled(egui::WidgetType::CollapsingHeader, ui.is_enabled(), label)
     });
     ui.ctx()
         .accesskit_node_builder(response.id, |node| node.set_expanded(expanded));
@@ -1416,8 +1503,8 @@ fn stopped_row_ui(
         }
         let x = rect.left() + m::COOLING_CHEVRON_W + 4.;
         let cap = rect.top() + m::COOLING_STOPPED_CAP;
-        paint::text(painter, x, cap, &label, Font::Body, pal::TEXT, Align::Min);
-        let names_x = x + paint::text_width(painter, &label, Font::Body) + 12.;
+        paint::text(painter, x, cap, label, Font::Body, pal::TEXT, Align::Min);
+        let names_x = x + paint::text_width(painter, label, Font::Body) + 12.;
         let names = paint::elide(painter, names, Font::Body, rect.right() - 8. - names_x);
         paint::text(
             painter,
@@ -1432,14 +1519,95 @@ fn stopped_row_ui(
     response.on_hover_text(names)
 }
 
+/// Lays out the Cooling page: headings, chip groups, card grids and the open detail.
+fn cooling_layout(
+    painter: &egui::Painter,
+    view: &CoolingView<'_>,
+    gx0: f32,
+    room: f32,
+    page: Rect,
+    expanded: bool,
+    selected: &Option<String>,
+) -> CoolingLayout {
+    let has_graph = !view.overview.panels.is_empty();
+    let graph_h = (page.height() * m::COOLING_GRAPH_SHARE)
+        .clamp(m::COOLING_GRAPH_MIN_H, m::COOLING_GRAPH_MAX_H)
+        .round();
+    let detail = view
+        .detail
+        .as_ref()
+        .map(|detail| detail_layout(painter, detail, room));
+    let mut flow = CoolingFlow {
+        gx0,
+        room,
+        items: vec![],
+        detail: selected
+            .as_deref()
+            .zip(detail.as_ref().map(|layout| layout.height)),
+    };
+    let fan_card = (m::COOLING_FAN_CARD_MIN_W, m::COOLING_FAN_CARD_H);
+    fn fan_key(card: &FanCard) -> &str {
+        &card.key
+    }
+    let heading = |text: String| paint::elide(painter, &text, Font::Model, room);
+    let mut y = if has_graph {
+        GRAPH_TOP + graph_h + m::COOLING_SECTION_GAP
+    } else {
+        GRAPH_TOP - 13.
+    };
+    if !view.fans.is_empty() || view.stopped_count > 0 {
+        flow.items
+            .push(CoolingItem::Heading(y, heading(i18n("Fans"))));
+        y += m::COOLING_HEADING_H;
+        y = flow.grid(painter, view.fans, fan_card, y, fan_key, |rect, g, i| {
+            CoolingItem::Fan(rect, false, g, i)
+        });
+        if view.stopped_count > 0 {
+            flow.items.push(CoolingItem::Stopped(y));
+            y += m::COOLING_STOPPED_H + m::COOLING_CARD_GAP;
+            if expanded {
+                y = flow.grid(painter, view.stopped, fan_card, y, fan_key, |rect, g, i| {
+                    CoolingItem::Fan(rect, true, g, i)
+                });
+            }
+        }
+        y += m::COOLING_SECTION_GAP - m::COOLING_CARD_GAP;
+    }
+    if !view.sensors.is_empty() {
+        flow.items
+            .push(CoolingItem::Heading(y, heading(i18n("Temperatures"))));
+        y += m::COOLING_HEADING_H;
+        y = flow.grid(
+            painter,
+            view.sensors,
+            (m::COOLING_SENSOR_CARD_MIN_W, m::COOLING_SENSOR_CARD_H),
+            y,
+            |card: &SensorCard| -> &str { &card.key },
+            CoolingItem::Sensor,
+        );
+    }
+    CoolingLayout {
+        key: None,
+        items: flow.items,
+        detail,
+        graph_h,
+        total_h: y + m::COOLING_SECTION_GAP,
+    }
+}
+
 fn cooling_page_ui(
     ui: &mut Ui,
     page: Rect,
     mut view: CoolingView<'_>,
-    scroll: &mut listview::ListState,
-    selected: &mut Option<String>,
+    state: &mut CoolingState,
     expanded: &mut bool,
+    fans: &mut FanAnimator,
 ) -> GraphResponse {
+    let CoolingState {
+        scroll,
+        selected,
+        layout,
+    } = state;
     let shown = |key: &str| {
         let has = |groups: &[ChipGroup<FanCard>]| {
             groups
@@ -1461,61 +1629,18 @@ fn cooling_page_ui(
     let gx1 = page.right() - RIGHT_INSET;
     let room = (gx1 - gx0 + 1.).max(1.);
     let has_graph = !view.overview.panels.is_empty();
-    let graph_h = (page.height() * m::COOLING_GRAPH_SHARE)
-        .clamp(m::COOLING_GRAPH_MIN_H, m::COOLING_GRAPH_MAX_H)
-        .round();
-    let layout = view
-        .detail
-        .as_ref()
-        .map(|detail| detail_layout(ui.painter(), detail, room));
-    let mut flow = CoolingFlow {
-        gx0,
-        room,
-        items: vec![],
-        detail: selected
-            .as_deref()
-            .zip(layout.as_ref().map(|layout| layout.height)),
+    let key = CoolingLayoutKey {
+        generation: view.generation,
+        page,
+        pixels_per_point: ui.ctx().pixels_per_point(),
+        selected: selected.clone(),
+        expanded: *expanded,
     };
-    let fan_card = (m::COOLING_FAN_CARD_MIN_W, m::COOLING_FAN_CARD_H);
-    fn fan_key(card: &FanCard) -> &str {
-        &card.key
+    if layout.key.as_ref() != Some(&key) {
+        *layout = cooling_layout(ui.painter(), &view, gx0, room, page, *expanded, selected);
+        layout.key = Some(key);
     }
-    let mut y = if has_graph {
-        GRAPH_TOP + graph_h + m::COOLING_SECTION_GAP
-    } else {
-        GRAPH_TOP - 13.
-    };
-    if !view.fans.is_empty() || view.stopped_count > 0 {
-        flow.items.push(CoolingItem::Heading(y, i18n("Fans")));
-        y += m::COOLING_HEADING_H;
-        y = flow.grid(view.fans, fan_card, y, fan_key, |rect, g, i| {
-            CoolingItem::Fan(rect, false, g, i)
-        });
-        if view.stopped_count > 0 {
-            flow.items.push(CoolingItem::Stopped(y));
-            y += m::COOLING_STOPPED_H + m::COOLING_CARD_GAP;
-            if *expanded {
-                y = flow.grid(view.stopped, fan_card, y, fan_key, |rect, g, i| {
-                    CoolingItem::Fan(rect, true, g, i)
-                });
-            }
-        }
-        y += m::COOLING_SECTION_GAP - m::COOLING_CARD_GAP;
-    }
-    if !view.sensors.is_empty() {
-        flow.items
-            .push(CoolingItem::Heading(y, i18n("Temperatures")));
-        y += m::COOLING_HEADING_H;
-        y = flow.grid(
-            view.sensors,
-            (m::COOLING_SENSOR_CARD_MIN_W, m::COOLING_SENSOR_CARD_H),
-            y,
-            |card: &SensorCard| -> &str { &card.key },
-            CoolingItem::Sensor,
-        );
-    }
-    let items = flow.items;
-    let total_h = y + m::COOLING_SECTION_GAP;
+    let (graph_h, total_h) = (layout.graph_h, layout.total_h);
 
     let mut child = scrolled_page(ui, page, "cooling-performance-page", scroll, total_h);
     let top = page.top() - scroll.offset;
@@ -1541,28 +1666,26 @@ fn cooling_page_ui(
     };
 
     let mut detail = view.detail.take();
-    for item in items {
-        match item {
-            CoolingItem::Heading(y, text) => {
-                let text = paint::elide(&painter, &text, Font::Model, room);
+    for item in &layout.items {
+        match *item {
+            CoolingItem::Heading(y, ref text) => {
                 paint::text(
                     &painter,
                     gx0,
                     top + y + m::COOLING_HEADING_CAP,
-                    &text,
+                    text,
                     Font::Model,
                     pal::TEXT,
                     Align::Min,
                 );
             }
-            CoolingItem::Chip(y, title) => {
+            CoolingItem::Chip(y, ref title) => {
                 let cap = top + y + m::COOLING_CHIP_CAP;
-                let title = paint::elide(&painter, &title, Font::Body, room);
                 let end = paint::text(
                     &painter,
                     gx0,
                     cap,
-                    &title,
+                    title,
                     Font::Body,
                     pal::LABEL,
                     Align::Min,
@@ -1583,6 +1706,7 @@ fn cooling_page_ui(
                     rect,
                     card,
                     selected.as_deref() == Some(&card.key),
+                    fans,
                 );
                 card_response(
                     &child, &response, &card.key, selected, scroll, page, total_h, &mut out,
@@ -1609,7 +1733,7 @@ fn cooling_page_ui(
                 let response = stopped_row_ui(
                     &mut child,
                     rect,
-                    view.stopped_count,
+                    view.stopped_label,
                     view.stopped_names,
                     *expanded,
                 );
@@ -1634,7 +1758,7 @@ fn cooling_page_ui(
                 }
             }
             CoolingItem::Detail(y) => {
-                if let (Some(detail), Some(layout)) = (detail.take(), &layout) {
+                if let (Some(detail), Some(layout)) = (detail.take(), &layout.detail) {
                     detail_ui(
                         &mut child,
                         detail,

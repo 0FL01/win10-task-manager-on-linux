@@ -309,6 +309,11 @@ impl App {
         self.have_readings
     }
 
+    /// Whether the last pass moved a visible fan rotor (and so requested the next frame).
+    pub fn fans_animating(&self) -> bool {
+        self.performance.fans_animating()
+    }
+
     fn refresh_interval(&self) -> Duration {
         Duration::from_secs_f64(self.config.app_update_interval as f64 * INTERVAL_STEP)
     }
@@ -956,6 +961,14 @@ impl App {
                 ) {
                     self.config.performance_show_network_virtual =
                         !self.config.performance_show_network_virtual;
+                }
+                // Own addition: Cooling fan glyphs turn with their RPM
+                if menu::check(
+                    ui,
+                    &i18n("Animate fans"),
+                    self.config.performance_animate_fans,
+                ) {
+                    self.config.performance_animate_fans = !self.config.performance_animate_fans;
                 }
                 menu::separator(ui);
                 menu::submenu(ui, &i18n("Update speed"), |ui| {

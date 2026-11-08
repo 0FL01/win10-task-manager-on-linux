@@ -33,7 +33,7 @@ Task Manager: system monitor (processes, CPU, memory, disk, network, GPU, servic
 - No I/O, IPC or blocking calls in `App::ui`/`App::logic`; talk to magpie only via `Request`s and `Event`s; persist settings via `ConfigWriter`.
 - No unbounded channels. Snapshots go through `LatestSlot` (overwrite), events through bounded `sync_channel`.
 - GPU percentages use the busiest engine; groups deduplicate PIDs/DRM clients before summing each engine. Unknown is not zero; device memory never comes from process sums. Collect counters on the host-side backend, not the Flatpak GUI.
-- Repaint only on events (new readings, input, icon decoded). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only.
+- Repaint only on events (new readings, input, icon decoded). Never call `request_repaint()` unconditionally. Hidden windows run `logic` only. The one continuous animation is the Cooling fan glyphs (`win10/fan_spin.rs`): it requests frames (≥ 1/240 s apart, vsync-paced) only while a visible rotor moves, View → "Animate fans" is on and updates are not paused.
 - Rebuild table rows / format strings / graph geometry only when data, sort, filter, size or expansion change.
 - Translatable strings use `mc_core::i18n::{i18n, i18n_f, ni18n_f, ...}` with msgids identical to the GTK app (see `docs/port-spec/`); mnemonic underscores are part of the msgid, strip them for display with `strip_mnemonic`.
 - No `Arc<Mutex<AppState>>`; views mutate state through `Cx` and typed `Command`s.

@@ -168,7 +168,11 @@ children, not helpers that detach into other groups or external service managers
   locker without unlocking or reconfiguring the host session.
 - Both renderers use the same magpie daemon with a 1 s refresh interval and the CPU page selected;
   settings are injected through temporary `taskmanager/config.toml` directories. A separate
-  Processes-page scenario uses 1000 synthetic processes and no daemon.
+  Processes-page scenario uses 1000 synthetic processes and no daemon. Two Cooling scenarios
+  (synthetic data, Cooling selected) differ only in `performance-animate-fans`; with spinning
+  fans the animated one renders continuously at the compositor's refresh rate. `--only TEXT`
+  runs just the scenarios whose name contains `TEXT`. On the live CPU scenario the sidebar's
+  Cooling glyph animates too when a host fan spins.
 - After warm-up, CPU ticks from `/proc/<pid>/stat` are differenced over the measurement window
   and divided by clock ticks and elapsed wall time; CPU percentages are relative to one core.
   The daemon must be a descendant with the expected executable, unique among matching
@@ -299,6 +303,28 @@ the UI pass plus tessellation (no GPU upload). Three runs: a steady frame takes 
 first switch to Performance (6.5–7.6 ms), which rasterises that page's glyph sizes once. Every
 switch fits well inside one 60 Hz frame, so no text or geometry caches were added. Built
 with the diagnostic profile, `RUST_LOG=warn,TaskManager::Latency=debug` logs each switch pass.
+
+## Fan glyph animation (2026-11-08)
+
+`cargo xtask bench-idle --only cooling --seconds 15 --warmup 4 --repeats 2`, nested KWin
+1280x800 at 60 Hz, synthetic Cooling page, medians of 2 kept runs. The UI binaries were release
+builds with a sibling daemon (host without `patchelf`, so no GPU bundle; synthetic runs start no
+daemon). CPU is % of one core.
+
+| run | variant | animated: UI CPU % | frames/reading | UI pass p95 ms | static: UI CPU % | frames/reading |
+|---|---|---|---|---|---|---|
+| animation, before render optimizations | wgpu | 3.53 | 58.76 | 0.17 | 0.40 | 1.18 |
+| animation, before render optimizations | glow | 3.00 | 59.05 | 0.17 | 0.40 | 1.23 |
+| after (graph placement cache, cached Cooling layout) | wgpu | 6.53 | 58.33 | 0.29 | 0.40 | 1.18 |
+| after | glow | 5.73 | 58.71 | 0.33 | 0.47 | 1.23 |
+
+The host load average was 6–9 during the second series, so the same two binaries were re-run
+back to back (`--only animated`): before 5.73 % (wgpu) / 5.07 % (glow), after 5.93 % / 5.07 %.
+Within this host's noise the render optimizations made no measurable difference; an animation
+frame costs ~0.2–0.3 ms of UI pass (p95), the rest of the per-frame CPU is egui tessellation,
+upload and the driver. `perf` sampling was unavailable (perf_event access denied by policy).
+Frames stay at the compositor rate (~59 per 1 s reading) — vsync paces them; nothing renders
+while no visible rotor moves (static scenario: ~1.2 frames per reading).
 
 ## Reports and historical evidence
 

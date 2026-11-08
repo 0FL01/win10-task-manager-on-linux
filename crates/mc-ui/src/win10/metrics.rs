@@ -255,12 +255,14 @@ pub const COOLING_STOPPED_CAP: f32 = 8.;
 pub const COOLING_CHEVRON_W: f32 = 16.;
 /// The sidebar shows the card glyph at this scale
 pub const COOLING_SIDEBAR_SCALE: f32 = 2.;
-/// 16 px outline: frame, hub and four rotationally symmetric blades
-pub const FAN_GLYPH: &[([f32; 2], [f32; 2])] = &[
+/// 16 px outline: a static frame around a rotor (hub and four rotationally symmetric blades)
+pub const FAN_GLYPH_FRAME: &[([f32; 2], [f32; 2])] = &[
     ([1., 0.], [14., 0.]),
     ([1., 15.], [14., 15.]),
     ([0., 1.], [0., 14.]),
     ([15., 1.], [15., 14.]),
+];
+pub const FAN_GLYPH_ROTOR: &[([f32; 2], [f32; 2])] = &[
     ([6., 6.], [9., 6.]),
     ([6., 9.], [9., 9.]),
     ([6., 7.], [6., 8.]),
@@ -278,4 +280,14 @@ pub const FAN_GLYPH: &[([f32; 2], [f32; 2])] = &[
     ([2., 4.], [4., 2.]),
     ([4., 2.], [6., 6.]),
 ];
+/// Rotor centre in glyph coordinates
+pub const FAN_GLYPH_CENTER: [f32; 2] = [7.5, 7.5];
 pub const FAN_GLYPH_SIZE: f32 = 16.;
+/// Own: rotor speed is this fraction of the real fan speed (700 RPM → 0.58 rev/s) …
+pub const FAN_SPIN_RATIO: f32 = 1. / 20.;
+/// … capped well below the 4-blade aliasing limit (45° per frame)
+pub const FAN_SPIN_MAX_RPS: f32 = 3.;
+/// Time constant of the speed easing between readings
+pub const FAN_SPIN_EASE_S: f32 = 0.35;
+/// Shortest interval between animation frames when the presenter has no vsync
+pub const FAN_SPIN_MIN_FRAME_S: f32 = 1. / 240.;

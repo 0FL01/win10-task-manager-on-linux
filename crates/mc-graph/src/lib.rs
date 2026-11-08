@@ -56,6 +56,16 @@ pub const DEFAULT_DATA_POINTS: u32 = 60;
 /// Cached geometry: (key, fills under the grid, grid, data)
 type GeometryCache = (CacheKey, Vec<Shape>, Vec<Shape>, Vec<Shape>);
 
+/// The cached geometry translated to where it was last painted. Repaints at the same place
+/// (animation frames, hover) only clone `Arc`ed meshes instead of copying their vertices.
+struct Placed {
+    generation: u64,
+    rect: Rect,
+    under: Vec<Shape>,
+    grid: Vec<Shape>,
+    data: Vec<Shape>,
+}
+
 #[derive(Clone, PartialEq)]
 struct CacheKey {
     generation: u64,
@@ -82,6 +92,9 @@ pub struct Graph {
     /// Bumped on every data or style change; invalidates the geometry cache.
     generation: u64,
     cache: Option<GeometryCache>,
+    placed: Option<Placed>,
+    /// Bumped whenever `cache` is rebuilt
+    cache_generation: u64,
 }
 
 impl Default for Graph {
@@ -102,6 +115,8 @@ impl Graph {
             scroll_offset: 0,
             generation: 0,
             cache: None,
+            placed: None,
+            cache_generation: 0,
         }
     }
 
@@ -363,20 +378,40 @@ impl Graph {
                 adapt(&mut grid, 0.30);
             }
             self.cache = Some((key, under, grid, data));
+            self.cache_generation += 1;
         }
 
         let Some((_, under, grid, data)) = &self.cache else {
             return;
         };
 
-        let origin = area.min.to_vec2();
-        let line_origin = rect.min.to_vec2() + Vec2::splat(border / 2.);
-        let add = |painter: &egui::Painter, shapes: &[Shape], at: Vec2| {
-            for shape in shapes {
-                let mut s = shape.clone();
-                s.translate(at);
-                painter.add(s);
-            }
+        if !matches!(&self.placed, Some(p) if p.generation == self.cache_generation && p.rect == rect)
+        {
+            let origin = area.min.to_vec2();
+            let line_origin = rect.min.to_vec2() + Vec2::splat(border / 2.);
+            let place = |shapes: &[Shape], at: Vec2| {
+                shapes
+                    .iter()
+                    .map(|shape| {
+                        let mut s = shape.clone();
+                        s.translate(at);
+                        s
+                    })
+                    .collect()
+            };
+            self.placed = Some(Placed {
+                generation: self.cache_generation,
+                rect,
+                under: place(under, line_origin),
+                grid: place(grid, origin),
+                data: place(data, line_origin),
+            });
+        }
+        let Some(placed) = &self.placed else {
+            return;
+        };
+        let add = |painter: &egui::Painter, shapes: &[Shape]| {
+            painter.extend(shapes.iter().cloned());
         };
 
         let outer = ui.painter_at(rect);
@@ -392,9 +427,9 @@ impl Graph {
         );
         outer.extend(background);
         let painter = ui.painter_at(area);
-        add(&painter, under, line_origin);
-        add(&painter, grid, origin);
-        add(&outer, data, line_origin);
+        add(&painter, &placed.under);
+        add(&painter, &placed.grid);
+        add(&outer, &placed.data);
 
         // The border goes over the data: a line on it blends back to the exact border colour
         let border_color = if ui.visuals().dark_mode {
@@ -774,6 +809,50 @@ mod tests {
             Shape::Path(path)
                 if matches!(path.stroke.color, egui::epaint::ColorMode::Solid(Color32::BLUE))
         ));
+    }
+
+    #[test]
+    fn repaints_in_place_share_meshes_instead_of_copying() {
+        let mut g = graph_with(&[10., 50., 30.]);
+        let ctx = egui::Context::default();
+        let meshes = |g: &mut Graph, at: Pos2| {
+            let mut output = ctx.run_ui(egui::RawInput::default(), |ui| {
+                g.paint(ui, Rect::from_min_size(at, Vec2::new(202., 102.)));
+            });
+            output.textures_delta.clear();
+            output
+                .shapes
+                .into_iter()
+                .filter_map(|clipped| match clipped.shape {
+                    Shape::Mesh(mesh) => Some(mesh),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        };
+        let first = meshes(&mut g, Pos2::ZERO);
+        let again = meshes(&mut g, Pos2::ZERO);
+        let placed = g.placed.as_ref().unwrap();
+        let cached: Vec<_> = placed
+            .under
+            .iter()
+            .chain(&placed.grid)
+            .filter_map(|shape| match shape {
+                Shape::Mesh(mesh) => Some(mesh.clone()),
+                _ => None,
+            })
+            .collect();
+        assert!(!cached.is_empty());
+        for mesh in &cached {
+            assert!(again.iter().any(|m| std::sync::Arc::ptr_eq(m, mesh)));
+            assert!(first.iter().any(|m| std::sync::Arc::ptr_eq(m, mesh)));
+        }
+        // Moving the graph places a fresh copy at the new position
+        let moved = meshes(&mut g, Pos2::new(0., 40.));
+        assert!(
+            !cached
+                .iter()
+                .any(|mesh| moved.iter().any(|m| std::sync::Arc::ptr_eq(m, mesh)))
+        );
     }
 
     #[test]

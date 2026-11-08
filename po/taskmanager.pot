@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskmanager\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 22:54+0300\n"
+"POT-Creation-Date: 2026-11-08 14:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -205,281 +205,285 @@ msgstr ""
 msgid "Launch shortcuts saved in the desktop settings."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:431
+#: crates/mc-ui/src/app.rs:436
 msgid "Hardware access enabled."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:432
+#: crates/mc-ui/src/app.rs:437
 msgid "Local monitoring stopped; permanent access revoked."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:582
+#: crates/mc-ui/src/app.rs:587
 msgid "Cancelling the pending operation before revoking access…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:603
+#: crates/mc-ui/src/app.rs:608
 msgid "Cancellation requested; waiting for the authorized operation to finish."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:662
+#: crates/mc-ui/src/app.rs:667
 msgid "The hardware request could not be queued. Try again."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:678
+#: crates/mc-ui/src/app.rs:683
 msgid "Waiting for hardware authorization…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:679
+#: crates/mc-ui/src/app.rs:684
 msgid "Disabling hardware access…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:680
+#: crates/mc-ui/src/app.rs:685
 msgid "Waiting for service installation authorization…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:681 crates/mc-ui/src/perf/mem_slots.rs:339
+#: crates/mc-ui/src/app.rs:686 crates/mc-ui/src/perf/mem_slots.rs:339
 msgid "Reading SPD…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:811
+#: crates/mc-ui/src/app.rs:816
 msgid "Run new task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:815
+#: crates/mc-ui/src/app.rs:820
 msgid "Exit"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:830
+#: crates/mc-ui/src/app.rs:835
 msgid "Waiting for the window manager to confirm always on top."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:835
+#: crates/mc-ui/src/app.rs:840
 msgid "Always on top is unavailable on this desktop."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:838
+#: crates/mc-ui/src/app.rs:843
 msgid "The window manager could not find the Task Manager window."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:841
+#: crates/mc-ui/src/app.rs:846
 msgid "The window manager could not identify a unique Task Manager window."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:844
+#: crates/mc-ui/src/app.rs:849
 msgid "The window manager did not apply the requested always-on-top state."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:847
+#: crates/mc-ui/src/app.rs:852
 msgid "The window manager did not confirm always on top in time."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:850
+#: crates/mc-ui/src/app.rs:855
 msgid "Could not communicate with the window manager to set always on top."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:853
+#: crates/mc-ui/src/app.rs:858
 msgid ""
 "Could not remove the window manager script. Further always-on-top changes "
 "are disabled."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:859
+#: crates/mc-ui/src/app.rs:864
 msgid "Always on top"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:867 crates/mc-ui/src/dialogs.rs:514
+#: crates/mc-ui/src/app.rs:872 crates/mc-ui/src/dialogs.rs:514
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:886 crates/mc-ui/src/dialogs.rs:473
+#: crates/mc-ui/src/app.rs:891 crates/mc-ui/src/dialogs.rs:473
 msgid "Show Keyboard Shortcuts"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:892 crates/mc-ui/src/app.rs:1186
+#: crates/mc-ui/src/app.rs:897 crates/mc-ui/src/app.rs:1199
 msgid "Extended hardware monitoring"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:903
+#: crates/mc-ui/src/app.rs:908
 msgid "Install hardware monitoring service…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:912
+#: crates/mc-ui/src/app.rs:917
 #, rust-format
 msgid "About {}"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:920
+#: crates/mc-ui/src/app.rs:925
 msgid "Theme"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:923
+#: crates/mc-ui/src/app.rs:928
 msgid "Light"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:924
+#: crates/mc-ui/src/app.rs:929
 msgid "Dark"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:925 crates/mc-ui/src/perf/system.rs:54
+#: crates/mc-ui/src/app.rs:930 crates/mc-ui/src/perf/system.rs:54
 #: crates/mc-ui/src/perf/system.rs:71 crates/mc-ui/src/perf/system.rs:268
 msgid "System"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:933
+#: crates/mc-ui/src/app.rs:938
 msgid "Refresh now"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:939
+#: crates/mc-ui/src/app.rs:944
 msgid "Group by type"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:944
+#: crates/mc-ui/src/app.rs:949
 msgid "Expand all"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:947
+#: crates/mc-ui/src/app.rs:952
 msgid "Collapse all"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:954
+#: crates/mc-ui/src/app.rs:959
 msgid "Show virtual network adapters"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:961
+#: crates/mc-ui/src/app.rs:968
+msgid "Animate fans"
+msgstr ""
+
+#: crates/mc-ui/src/app.rs:974
 msgid "Update speed"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:962 crates/mc-ui/src/win10/performance.rs:1334
+#: crates/mc-ui/src/app.rs:975 crates/mc-ui/src/perf/cooling.rs:386
 msgid "High"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:962
+#: crates/mc-ui/src/app.rs:975
 msgid "Normal"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:962
+#: crates/mc-ui/src/app.rs:975
 msgid "Low"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:971
+#: crates/mc-ui/src/app.rs:984
 msgid "Paused"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1013
+#: crates/mc-ui/src/app.rs:1026
 msgid "Create new task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1021
+#: crates/mc-ui/src/app.rs:1034
 msgid "Type the name of a program and Task Manager will start it."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1025
+#: crates/mc-ui/src/app.rs:1038
 msgid "Open:"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1038
+#: crates/mc-ui/src/app.rs:1051
 msgid "Cancel"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1043
+#: crates/mc-ui/src/app.rs:1056
 msgid "OK"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1083
+#: crates/mc-ui/src/app.rs:1096
 msgid "File"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1083
+#: crates/mc-ui/src/app.rs:1096
 msgid "Options"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1083 crates/mc-ui/src/app.rs:1985
-#: crates/mc-ui/src/win10/performance.rs:389
+#: crates/mc-ui/src/app.rs:1096 crates/mc-ui/src/app.rs:1998
+#: crates/mc-ui/src/win10/performance.rs:408
 msgid "View"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1106
+#: crates/mc-ui/src/app.rs:1119
 msgid "Fewer details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1108
+#: crates/mc-ui/src/app.rs:1121
 msgid "More details"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1116 crates/mc-ui/src/app.rs:1123
+#: crates/mc-ui/src/app.rs:1129 crates/mc-ui/src/app.rs:1136
 #: crates/mc-ui/src/win10/details.rs:307
 #: crates/mc-ui/src/win10/processes.rs:617
 msgid "End task"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1189
+#: crates/mc-ui/src/app.rs:1202
 msgid ""
 "Without an installed service, the helper runs only until Task Manager "
 "closes. Install the service for persistent access across restarts."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1191
+#: crates/mc-ui/src/app.rs:1204
 msgid "Off"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1192
+#: crates/mc-ui/src/app.rs:1205
 msgid "Temporary"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1193
+#: crates/mc-ui/src/app.rs:1206
 msgid "Persistent"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1196
+#: crates/mc-ui/src/app.rs:1209
 msgid "Revoked"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1197
+#: crates/mc-ui/src/app.rs:1210
 msgid "Granted"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1198
+#: crates/mc-ui/src/app.rs:1211
 msgid "Unconfirmed"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1200
+#: crates/mc-ui/src/app.rs:1213
 msgid "Access"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1200
+#: crates/mc-ui/src/app.rs:1213
 msgid "Permanent grant"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1202
+#: crates/mc-ui/src/app.rs:1215
 msgid ""
 "Without an installed helper, authorization runs administrator code embedded "
 "in this build. Installed-helper authorization does not fall back after "
 "denial."
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1203
+#: crates/mc-ui/src/app.rs:1216
 msgid "Retry hardware access…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1206
+#: crates/mc-ui/src/app.rs:1219
 msgid "Revoke permanent access"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1209
+#: crates/mc-ui/src/app.rs:1222
 msgid "Cancel operation"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1210
+#: crates/mc-ui/src/app.rs:1223
 msgid "Install service…"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1213 crates/mc-ui/src/perf/mem_slots.rs:350
+#: crates/mc-ui/src/app.rs:1226 crates/mc-ui/src/perf/mem_slots.rs:350
 #: crates/mc-ui/src/smart.rs:278 crates/mc-ui/src/smart.rs:352
 msgid "Close"
 msgstr ""
 
-#: crates/mc-ui/src/app.rs:1942 crates/mc-ui/src/app.rs:1947
-#: crates/mc-ui/src/app.rs:1956 crates/mc-ui/src/app.rs:1977
+#: crates/mc-ui/src/app.rs:1955 crates/mc-ui/src/app.rs:1960
+#: crates/mc-ui/src/app.rs:1969 crates/mc-ui/src/app.rs:1990
 #: crates/mc-ui/src/perf/cpu.rs:520 crates/mc-ui/src/perf/gpu.rs:563
 #: crates/mc-ui/src/perf/gpu.rs:997
 msgid "Utilization"
@@ -502,7 +506,7 @@ msgid "Service Details"
 msgstr ""
 
 #: crates/mc-ui/src/dialogs.rs:171 crates/mc-ui/src/perf/battery.rs:419
-#: crates/mc-ui/src/perf/mod.rs:813
+#: crates/mc-ui/src/perf/mod.rs:817
 msgid "State"
 msgstr ""
 
@@ -652,7 +656,7 @@ msgstr ""
 msgid "Resource Usage"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:431 crates/mc-ui/src/perf/cooling.rs:105
+#: crates/mc-ui/src/dialogs.rs:431 crates/mc-ui/src/perf/cooling.rs:114
 #: crates/mc-ui/src/perf/cpu.rs:107 crates/mc-ui/src/perf/cpu.rs:587
 #: crates/mc-ui/src/win10/details.rs:252 crates/mc-ui/src/win10/processes.rs:78
 msgid "CPU"
@@ -677,7 +681,7 @@ msgstr ""
 msgid "Network"
 msgstr ""
 
-#: crates/mc-ui/src/dialogs.rs:445 crates/mc-ui/src/perf/cooling.rs:100
+#: crates/mc-ui/src/dialogs.rs:445 crates/mc-ui/src/perf/cooling.rs:109
 #: crates/mc-ui/src/win10/details.rs:254 crates/mc-ui/src/win10/processes.rs:83
 msgid "GPU"
 msgstr ""
@@ -809,7 +813,7 @@ msgstr ""
 msgid "Copy All"
 msgstr ""
 
-#: crates/mc-ui/src/perf/batteries.rs:62 crates/mc-ui/src/perf/mod.rs:784
+#: crates/mc-ui/src/perf/batteries.rs:62 crates/mc-ui/src/perf/mod.rs:788
 msgid "Batteries"
 msgstr ""
 
@@ -833,7 +837,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: crates/mc-ui/src/perf/batteries.rs:241 crates/mc-ui/src/perf/battery.rs:408
-#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/mod.rs:812
+#: crates/mc-ui/src/perf/battery.rs:450 crates/mc-ui/src/perf/mod.rs:816
 msgid "Percentage"
 msgstr ""
 
@@ -900,7 +904,7 @@ msgid "Serial:"
 msgstr ""
 
 #: crates/mc-ui/src/perf/battery.rs:439 crates/mc-ui/src/perf/disk.rs:342
-#: crates/mc-ui/src/perf/memory.rs:527 crates/mc-ui/src/perf/mod.rs:816
+#: crates/mc-ui/src/perf/memory.rs:527 crates/mc-ui/src/perf/mod.rs:820
 msgid "Type:"
 msgstr ""
 
@@ -926,69 +930,71 @@ msgstr ""
 msgid "Powering System:"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:103 crates/mc-ui/src/perf/cooling.rs:629
+#: crates/mc-ui/src/perf/cooling.rs:112 crates/mc-ui/src/perf/cooling.rs:664
 #: crates/mc-ui/src/perf/system.rs:81
 msgid "Motherboard"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:176
+#: crates/mc-ui/src/perf/cooling.rs:188
 msgid "Cooling"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:289
+#: crates/mc-ui/src/perf/cooling.rs:304
 msgid "PWM duty cycle"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:292
+#: crates/mc-ui/src/perf/cooling.rs:307
 msgid "Speed relative to the reported maximum"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:301
-#: crates/mc-ui/src/win10/performance.rs:1266
+#: crates/mc-ui/src/perf/cooling.rs:315
 msgid "PWM"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:342 crates/mc-ui/src/perf/disk.rs:295
+#: crates/mc-ui/src/perf/cooling.rs:343 crates/mc-ui/src/perf/cooling.rs:495
+#, rust-format
+msgid "Stopped ({})"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cooling.rs:362 crates/mc-ui/src/perf/disk.rs:295
 #: crates/mc-ui/src/perf/fan.rs:60 crates/mc-ui/src/perf/fan.rs:134
 #: crates/mc-ui/src/perf/fan.rs:154 crates/mc-ui/src/perf/fan.rs:195
 #, rust-format
 msgid "{} RPM"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:374
+#: crates/mc-ui/src/perf/cooling.rs:387
+msgid "Critical"
+msgstr ""
+
+#: crates/mc-ui/src/perf/cooling.rs:400
 #, rust-format
 msgid "{}/{} fan"
 msgid_plural "{}/{} fans"
 msgstr[0] ""
 msgstr[1] ""
 
-#: crates/mc-ui/src/perf/cooling.rs:382
+#: crates/mc-ui/src/perf/cooling.rs:408
 #, rust-format
 msgid "{} sensor"
 msgid_plural "{} sensors"
 msgstr[0] ""
 msgstr[1] ""
 
-#: crates/mc-ui/src/perf/cooling.rs:447
+#: crates/mc-ui/src/perf/cooling.rs:476
 #, rust-format
 msgid "Max {}"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:458
+#: crates/mc-ui/src/perf/cooling.rs:487
 msgid "Hottest sensor"
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:466
-#: crates/mc-ui/src/win10/performance.rs:1379
-#, rust-format
-msgid "Stopped ({})"
-msgstr ""
-
-#: crates/mc-ui/src/perf/cooling.rs:471 crates/mc-ui/src/perf/fan.rs:162
+#: crates/mc-ui/src/perf/cooling.rs:500 crates/mc-ui/src/perf/fan.rs:162
 msgid "Fan speed over "
 msgstr ""
 
-#: crates/mc-ui/src/perf/cooling.rs:642 crates/mc-ui/src/perf/temperature.rs:50
+#: crates/mc-ui/src/perf/cooling.rs:677 crates/mc-ui/src/perf/temperature.rs:50
 #: crates/mc-ui/src/smart.rs:87 crates/mc-ui/src/smart.rs:93
 #: crates/mc-ui/src/smart.rs:121
 #, rust-format
@@ -1776,11 +1782,11 @@ msgstr ""
 msgid "Show Swap Usage"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mod.rs:813
+#: crates/mc-ui/src/perf/mod.rs:817
 msgid "Discharging"
 msgstr ""
 
-#: crates/mc-ui/src/perf/mod.rs:816
+#: crates/mc-ui/src/perf/mod.rs:820
 msgid "Mouse"
 msgstr ""
 
@@ -2276,35 +2282,31 @@ msgstr ""
 msgid "Click to copy"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:386
+#: crates/mc-ui/src/win10/performance.rs:405
 msgid "Graph summary view"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:399
+#: crates/mc-ui/src/win10/performance.rs:418
 msgid "_Copy"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:1335
-msgid "Critical"
-msgstr ""
-
-#: crates/mc-ui/src/win10/performance.rs:1489
+#: crates/mc-ui/src/win10/performance.rs:1560
 msgid "Fans"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:1507
+#: crates/mc-ui/src/win10/performance.rs:1578
 msgid "Temperatures"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:2338
+#: crates/mc-ui/src/win10/performance.rs:2462
 msgid "More details…"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:2439
+#: crates/mc-ui/src/win10/performance.rs:2563
 msgid "Physical memory composition"
 msgstr ""
 
-#: crates/mc-ui/src/win10/performance.rs:2459
+#: crates/mc-ui/src/win10/performance.rs:2583
 msgid "Swap usage"
 msgstr ""
 

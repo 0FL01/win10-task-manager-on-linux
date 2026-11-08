@@ -120,6 +120,10 @@ pub trait DevicePage {
     ) -> Option<cooling::CoolingView<'_>> {
         None
     }
+    /// Fastest valid fan speed, for the animated Cooling sidebar glyph.
+    fn fastest_fan_rpm(&self) -> Option<u32> {
+        None
+    }
     /// Page specific entries of the Win10 context menu.
     fn win10_menu(&mut self, _ui: &mut Ui, _cx: &mut Cx) {}
     /// Optional per-tile captions for the first graph panel. Other device layouts are unchanged.

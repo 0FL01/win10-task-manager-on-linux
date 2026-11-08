@@ -33,6 +33,18 @@ struct Options {
     warmup: u64,
     repeats: usize,
     out: PathBuf,
+    /// Only scenarios whose name contains this text
+    only: Option<String>,
+}
+
+/// What the measured window shows.
+#[derive(Clone, Copy)]
+struct Workload<'a> {
+    page: &'a str,
+    device: &'a str,
+    synthetic: Option<usize>,
+    /// Extra `config.toml` lines
+    settings: &'a str,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -329,14 +341,15 @@ fn compositor_command(session: &PrivateSession) -> Command {
     command
 }
 
-fn write_egui_settings(dir: &Path, page: &str) -> std::io::Result<()> {
+fn write_egui_settings(dir: &Path, workload: &Workload) -> std::io::Result<()> {
     let d = dir.join("taskmanager");
     fs::create_dir_all(&d)?;
     fs::write(
         d.join("config.toml"),
         format!(
             "window-width = 1280\nwindow-height = 800\n\
-             window-selected-page = \"{page}\"\nperformance-selected-page = \"cpu\"\n"
+             window-selected-page = \"{}\"\nperformance-selected-page = \"{}\"\n{}",
+            workload.page, workload.device, workload.settings
         ),
     )
 }
@@ -345,16 +358,23 @@ fn run_once(
     opts: &Options,
     backend: &Backend,
     variant: Variant,
-    page: &str,
-    synthetic: Option<usize>,
+    workload: &Workload,
     tck: f64,
     cancel: &Cancellation,
 ) -> Result<Sample, RunError> {
     cancel.check()?;
     let mut session = PrivateSession::new(cancel).map_err(RunError::Fatal)?;
     let result = (|| {
-        write_egui_settings(session.config_home(), page).map_err(|e| e.to_string())?;
-        run_in_session(opts, backend, variant, synthetic, tck, &session, cancel)
+        write_egui_settings(session.config_home(), workload).map_err(|e| e.to_string())?;
+        run_in_session(
+            opts,
+            backend,
+            variant,
+            workload.synthetic,
+            tck,
+            &session,
+            cancel,
+        )
     })();
     if matches!(result, Err(RunError::Fatal(_))) {
         session.preserve();
@@ -632,6 +652,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
         warmup: 8,
         repeats: 3,
         out: root.join("perf/bench-latest.md"),
+        only: None,
     };
     let mut glow = None;
     let mut custom_binary = false;
@@ -651,6 +672,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
             "--warmup" => o.warmup = next()?.parse().map_err(|_| "invalid --warmup")?,
             "--repeats" => o.repeats = next()?.parse().map_err(|_| "invalid --repeats")?,
             "--out" => { o.out = next()?.into(); explicit_out = true; }
+            "--only" => o.only = Some(next()?),
             _ => return Err(format!("unknown bench-idle option {a}")),
         }
     }
@@ -752,24 +774,60 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
 
     let mut rows: Vec<Row> = vec![];
 
-    // (name, page, synthetic process count, variants)
-    type Scenario<'a> = (String, &'a str, Option<usize>, Vec<Variant>);
+    // (name, workload, variants)
+    type Scenario<'a> = (String, Workload<'a>, Vec<Variant>);
+    let both = || vec![Variant::EguiWgpu, Variant::EguiGlow];
+    let cooling = Workload {
+        page: "performance-page",
+        device: "cooling",
+        synthetic: Some(300),
+        settings: "",
+    };
     let scenarios: Vec<Scenario> = vec![
         (
             "performance/cpu".into(),
-            "performance-page",
-            None,
-            vec![Variant::EguiWgpu, Variant::EguiGlow],
+            Workload {
+                page: "performance-page",
+                device: "cpu",
+                synthetic: None,
+                settings: "",
+            },
+            both(),
         ),
         (
             "apps, 1000 synthetic processes".into(),
-            "apps-page",
-            Some(1000),
-            vec![Variant::EguiWgpu, Variant::EguiGlow],
+            Workload {
+                page: "apps-page",
+                device: "cpu",
+                synthetic: Some(1000),
+                settings: "",
+            },
+            both(),
+        ),
+        // Continuous frames: synthetic fans spin, so their glyphs animate at the display rate
+        (
+            "performance/cooling, synthetic, animated fans".into(),
+            cooling,
+            both(),
+        ),
+        (
+            "performance/cooling, synthetic, static fans".into(),
+            Workload {
+                settings: "performance-animate-fans = false\n",
+                ..cooling
+            },
+            both(),
         ),
     ];
 
-    for (scenario, page, synthetic, variants) in &scenarios {
+    for (scenario, workload, variants) in &scenarios {
+        if opts
+            .only
+            .as_ref()
+            .is_some_and(|only| !scenario.contains(only.as_str()))
+        {
+            continue;
+        }
         for variant in variants {
             let backend = &backends[match variant {
                 Variant::EguiWgpu => 0,
@@ -777,12 +835,12 @@ pub fn bench_idle(args: &[String]) -> Result<(), String> {
             }];
             let samples = collect_samples(opts.repeats, &cancel, |r| {
                 eprintln!("[bench] {scenario} / {} / run {}", variant.name(), r + 1);
-                run_once(&opts, backend, *variant, page, *synthetic, tck, &cancel)
+                run_once(&opts, backend, *variant, workload, tck, &cancel)
             })?;
             rows.push(Row {
                 scenario: scenario.clone(),
                 variant: *variant,
-                daemon: synthetic.is_none().then(|| backend.daemon.clone()),
+                daemon: workload.synthetic.is_none().then(|| backend.daemon.clone()),
                 samples,
             });
         }
@@ -1317,10 +1375,21 @@ mod tests {
         assert!(ui.get_envs().any(
             |(k, v)| k == "MC_LOCALEDIR" && v == backend.locale.as_deref().map(Path::as_os_str)
         ));
-        write_egui_settings(session.config_home(), "performance-page").unwrap();
+        write_egui_settings(
+            session.config_home(),
+            &Workload {
+                page: "performance-page",
+                device: "cooling",
+                synthetic: Some(300),
+                settings: "performance-animate-fans = false\n",
+            },
+        )
+        .unwrap();
         let config =
             fs::read_to_string(session.config_home().join("taskmanager/config.toml")).unwrap();
         assert!(config.contains("window-selected-page = \"performance-page\""));
+        assert!(config.contains("performance-selected-page = \"cooling\""));
+        assert!(config.ends_with("performance-animate-fans = false\n"));
     }
 
     #[test]
@@ -1462,8 +1531,12 @@ mod tests {
                 &opts,
                 &backend,
                 Variant::EguiGlow,
-                "apps-page",
-                Some(1),
+                &Workload {
+                    page: "apps-page",
+                    device: "cpu",
+                    synthetic: Some(1),
+                    settings: "",
+                },
                 100.,
                 &cancel
             )

@@ -29,7 +29,10 @@ const RPM_SCALE_STEP: f32 = 500.;
 pub struct FanCard {
     pub key: String,
     pub name: String,
+    /// Valid speed; drives the glyph's rotor
+    pub rpm: Option<u32>,
     pub rpm_label: String,
+    /// "PWM 21%", empty without PWM; formatted once per reading, not per frame
     pub pwm_label: String,
     /// PWM duty cycle, otherwise speed relative to the reported maximum
     pub bar: Option<f32>,
@@ -46,6 +49,8 @@ pub struct SensorCard {
     pub value_label: String,
     pub bar: Option<f32>,
     pub level: Level,
+    /// "High"/"Critical", empty when normal
+    pub level_label: String,
     pub accessible_label: String,
 }
 
@@ -63,9 +68,13 @@ pub struct CoolingView<'a> {
     /// Fans that report 0 RPM: unused headers or zero-RPM fan modes
     pub stopped: &'a [ChipGroup<FanCard>],
     pub stopped_count: usize,
+    /// "Stopped (N)"
+    pub stopped_label: &'a str,
     pub stopped_names: &'a str,
     pub sensors: &'a [ChipGroup<SensorCard>],
     pub detail: Option<PageView<'a>>,
+    /// Changes with every applied reading: cached layouts key on it
+    pub generation: u64,
 }
 
 /// Where a channel's device header comes from.
@@ -156,6 +165,7 @@ pub struct CoolingPage {
     fan_groups: Vec<ChipGroup<FanCard>>,
     stopped_groups: Vec<ChipGroup<FanCard>>,
     stopped_count: usize,
+    stopped_label: String,
     stopped_names: String,
     sensor_groups: Vec<ChipGroup<SensorCard>>,
     summary: SummaryGraph,
@@ -163,6 +173,8 @@ pub struct CoolingPage {
     max_duration: String,
     rpm_scale: f32,
     scale_label: String,
+    fastest_rpm: Option<u32>,
+    generation: u64,
 }
 
 impl Default for CoolingPage {
@@ -181,6 +193,7 @@ impl CoolingPage {
             fan_groups: vec![],
             stopped_groups: vec![],
             stopped_count: 0,
+            stopped_label: String::new(),
             stopped_names: String::new(),
             sensor_groups: vec![],
             summary,
@@ -188,6 +201,8 @@ impl CoolingPage {
             max_duration: String::new(),
             rpm_scale: RPM_SCALE_MIN,
             scale_label: String::new(),
+            fastest_rpm: None,
+            generation: 0,
         }
     }
 
@@ -295,14 +310,18 @@ impl CoolingPage {
             };
             let name = fan::label(f);
             let rpm_label = fan::rpm_label(rpm);
-            let pwm_label = fan::pwm_label(f.pwm_percent);
+            let pwm_label = match fan::pwm_label(f.pwm_percent) {
+                pwm if pwm.is_empty() => pwm,
+                pwm => format!("{} {pwm}", i18n("PWM")),
+            };
             let mut accessible_label = format!("{name} — {}: {rpm_label}", info.title);
             if !pwm_label.is_empty() {
-                accessible_label.push_str(&format!(", {} {pwm_label}", i18n("PWM")));
+                accessible_label.push_str(&format!(", {pwm_label}"));
             }
             let card = FanCard {
                 key: self.fans[index].entry.key().to_owned(),
                 name,
+                rpm,
                 rpm_label,
                 pwm_label,
                 bar,
@@ -321,6 +340,7 @@ impl CoolingPage {
             }
         }
         self.stopped_count = stopped_names.len();
+        self.stopped_label = i18n_f("Stopped ({})", &[&self.stopped_count.to_string()]);
         self.stopped_names = stopped_names.join(", ");
 
         self.summary.graph.add_data_point(samples);
@@ -353,13 +373,19 @@ impl CoolingPage {
             let crit = temperature::limit(s.crit_millicelsius);
             let name = temperature::label(s);
             let value_label = temperature::temperature_label(current);
+            let level = temperature::level(current, max, crit);
             let card = SensorCard {
                 key: entry.key().to_owned(),
                 accessible_label: format!("{name} — {}: {value_label}", info.title),
                 name,
                 value_label,
                 bar: temperature::bar(current, max, crit),
-                level: temperature::level(current, max, crit),
+                level,
+                level_label: match level {
+                    Level::Normal => String::new(),
+                    Level::High => i18n("High"),
+                    Level::Critical => i18n("Critical"),
+                },
             };
             push_card(&mut self.sensor_groups, &mut last, &info, card);
         }
@@ -431,6 +457,7 @@ impl DevicePage for CoolingPage {
             return false;
         }
         self.max_duration = env.max_duration.clone();
+        self.generation += 1;
         self.reconcile_fans(&fans);
         self.reconcile_sensors(&sensors);
         self.update_fans(&fans, readings);
@@ -443,6 +470,7 @@ impl DevicePage for CoolingPage {
             .filter_map(|s| Some((temperature::celsius(s.input_millicelsius)?, s)))
             .max_by(|a, b| a.0.total_cmp(&b.0));
         let fastest = readings.fans.iter().filter_map(fan::rpm).max();
+        self.fastest_rpm = fastest;
         let mut info2 = vec![];
         if let Some((t, _)) = hottest {
             info2.push(i18n_f("Max {}", &[&format!("{t:.0} °C")]));
@@ -471,6 +499,10 @@ impl DevicePage for CoolingPage {
         self.summary.tooltip = (!tooltip.is_empty()).then(|| tooltip.join("\n"));
         self.caption = over(n_("Fan speed over "), &env.max_duration);
         true
+    }
+
+    fn fastest_fan_rpm(&self) -> Option<u32> {
+        self.fastest_rpm
     }
 
     fn set_grid_offset(&mut self, offset: u32) -> bool {
@@ -531,9 +563,11 @@ impl DevicePage for CoolingPage {
             fans: &self.fan_groups,
             stopped: &self.stopped_groups,
             stopped_count: self.stopped_count,
+            stopped_label: &self.stopped_label,
             stopped_names: &self.stopped_names,
             sensors: &self.sensor_groups,
             detail,
+            generation: self.generation,
         })
     }
 }

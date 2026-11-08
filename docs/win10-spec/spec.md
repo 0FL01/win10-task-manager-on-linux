@@ -415,6 +415,17 @@ Text placement rule: `cap top` values below; for a 12 px font the cap top is ≈
   the driver's critical, else high, limit, only when that limit is in (0, 200] °C. At/above
   high the bar and a right-aligned `High` use `#c27c0e` (dark `#e3a33d`); at/above critical
   `Critical` and the summary alert red.
+- Fan glyph animation (View → **Animate fans**, `performance-animate-fans`, default on): the
+  frame stays static and pixel-exact; the rotor (hub and blades, centre `(7.5,7.5)`) turns at
+  `min(RPM / 60 / 20, 3)` revolutions per second — 1/20 of the real speed, capped well below
+  the four-blade aliasing limit. Speed changes between readings ease exponentially (time
+  constant 0.35 s); time is integrated per frame, so motion does not depend on the frame rate,
+  and gaps longer than 0.1 s are clamped. Stopped and unknown fans do not turn. A stopping rotor
+  slows to at least 0.2 rev/s and comes to rest exactly on a quarter turn, where the static
+  glyph is pixel-exact again. The sidebar glyph follows the fastest fan. Paused updates stop
+  the rotors this way; with the option off the glyphs are static. Frames are requested only
+  while a visible rotor moves, paced by vsync (at most every 1/240 s without vsync); rotated
+  strokes are anti-aliased.
 - Cards are disclosure controls like battery cards. A selected card's details open below its
   own chip group: heading, a 120-point graph (fan: RPM plus dashed PWM; sensor: temperature),
   statistics and `Sensor:`/limit rows. Collapsing the stopped section closes a stopped fan's
